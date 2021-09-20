@@ -1,25 +1,24 @@
 import React, { useCallback } from 'react';
-import { Button, Select } from 'antd';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { ENDPOINTS, useConnectionConfig } from '../../contexts/connection';
-import { useWalletModal } from '../../contexts';
-import { notify, shortenAddress } from '../../utils';
-import { CopyOutlined } from '@ant-design/icons';
+import { Avatar, List } from 'antd';
+import FeatherIcon from 'feather-icons-react';
 
-export const Settings = ({
-  additionalSettings,
-}: {
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '../../contexts';
+import { ItemIcon, ListStyle } from './style';
+
+export const Settings = ({ additionalSettings, setShowEdit = () => { } }: {
   additionalSettings?: JSX.Element;
+  setShowEdit?: Function;
 }) => {
-  const { connected, disconnect, publicKey } = useWallet();
-  const { endpoint, setEndpoint } = useConnectionConfig();
+  const { disconnect } = useWallet();
+  // const { endpoint, setEndpoint } = useConnectionConfig();
   const { setVisible } = useWalletModal();
   const open = useCallback(() => setVisible(true), [setVisible]);
 
   return (
     <>
-      <div style={{ display: 'grid' }}>
-        Network:{' '}
+      {/* TODO-Iyai: Show this in staging */}
+      {/* Network:{' '}
         <Select
           onSelect={setEndpoint}
           value={endpoint}
@@ -30,42 +29,19 @@ export const Settings = ({
               {name}
             </Select.Option>
           ))}
-        </Select>
-        {connected && (
-          <>
-            <span>Wallet:</span>
-            {publicKey && (
-              <Button
-                style={{ marginBottom: 5 }}
-                onClick={async () => {
-                  if (publicKey) {
-                    await navigator.clipboard.writeText(publicKey.toBase58());
-                    notify({
-                      message: 'Wallet update',
-                      description: 'Address copied to clipboard',
-                    });
-                  }
-                }}
-              >
-                <CopyOutlined />
-                {shortenAddress(publicKey.toBase58())}
-              </Button>
-            )}
+        </Select> */}
+      <List className={ListStyle}>
+        <List.Item onClick={() => setShowEdit()}>
+          <Avatar className={ItemIcon} src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" />
+          edit profile
+        </List.Item>
 
-            <Button onClick={open} style={{ marginBottom: 5 }}>
-              Change
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => disconnect().catch()}
-              style={{ marginBottom: 5 }}
-            >
-              Disconnect
-            </Button>
-          </>
-        )}
-        {additionalSettings}
-      </div>
+        <List.Item onClick={() => disconnect().catch()}>
+          <FeatherIcon icon="power" className={ItemIcon} />
+          disconnect
+        </List.Item>
+      </List>
+      {additionalSettings}
     </>
   );
 };

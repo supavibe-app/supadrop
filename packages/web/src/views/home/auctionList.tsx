@@ -1,5 +1,7 @@
 import BN from 'bn.js';
 import React, { useMemo } from 'react';
+// import moment from 'moment';
+
 import { PreSaleBanner } from '../../components/PreSaleBanner';
 import { AuctionView, AuctionViewState, useAuctions } from '../../hooks';
 
@@ -47,9 +49,9 @@ export const AuctionListView = () => {
         // return Math.floor(delta / 86400) <= 30;
       })?.[0],
     [auctions],
-  );
+  ) || [];
 
   return (
-    <PreSaleBanner auction={heroAuction} />
+    <PreSaleBanner />
   );
 };

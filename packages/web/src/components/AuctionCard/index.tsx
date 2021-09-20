@@ -25,7 +25,7 @@ import {
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AuctionView, useBidsForAuction, useUserBalance } from '../../hooks';
 import { sendPlaceBid } from '../../actions/sendPlaceBid';
-import { AuctionNumbers } from './../AuctionNumbers';
+import { AuctionNumbers } from '../AuctionNumbers';
 import {
   sendRedeemBid,
   eligibleForParticipationPrizeGivenWinningIndex,
@@ -104,6 +104,7 @@ async function calculateTotalCostOfRedeemingOtherPeoplesBids(
     (eligibleParticipations.length + totalWinnerItems)
   );
 }
+
 function useGapTickCheck(
   value: number | undefined,
   gapTick: number | null,
@@ -254,7 +255,7 @@ export const AuctionCard = ({
   return (
     <div className="auction-container" style={style}>
       <Col>
-        <AuctionNumbers auctionView={auctionView} />
+        <AuctionNumbers />
         <br />
         {showRedemptionIssue && (
           <span>
@@ -326,18 +327,17 @@ export const AuctionCard = ({
               style={{ marginTop: 20 }}
             >
               {loading ||
-              auctionView.items.find(i => i.find(it => !it.metadata)) ||
-              !myPayingAccount ? (
+                auctionView.items.find(i => i.find(it => !it.metadata)) ||
+                !myPayingAccount ? (
                 <Spin />
               ) : eligibleForAnything ? (
                 `Redeem bid`
               ) : (
-                `${
-                  wallet?.publicKey &&
+                `${wallet?.publicKey &&
                   auctionView.auctionManager.authority ===
-                    wallet.publicKey.toBase58()
-                    ? 'Reclaim Items'
-                    : 'Refund bid'
+                  wallet.publicKey.toBase58()
+                  ? 'Reclaim Items'
+                  : 'Refund bid'
                 }`
               )}
             </Button>
@@ -505,7 +505,7 @@ export const AuctionCard = ({
                     </div>
                   )}
                   <br />
-                  <AuctionNumbers auctionView={auctionView} />
+                  <AuctionNumbers />
 
                   <br />
                   {tickSizeInvalid && tickSize && (

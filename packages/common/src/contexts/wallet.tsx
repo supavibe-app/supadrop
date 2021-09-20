@@ -13,7 +13,7 @@ import {
   getTorusWallet,
   WalletName,
 } from '@solana/wallet-adapter-wallets';
-import { Button } from 'antd';
+import { Avatar, Button } from 'antd';
 import React, {
   createContext,
   FC,
@@ -26,6 +26,7 @@ import React, {
 } from 'react';
 import { notify } from '../utils';
 import { MetaplexModal } from '../components';
+import { LogoStyle } from './style';
 
 export interface WalletModalContextState {
   visible: boolean;
@@ -43,33 +44,15 @@ export function useWalletModal(): WalletModalContextState {
 export const WalletModal: FC = () => {
   const { wallets, wallet: selected, select } = useWallet();
   const { visible, setVisible } = useWalletModal();
-  const [showWallets, setShowWallets] = useState(false);
   const close = useCallback(() => {
     setVisible(false);
-    setShowWallets(false);
-  }, [setVisible, setShowWallets]);
+  }, [setVisible]);
 
   return (
     <MetaplexModal visible={visible} onCancel={close}>
-      <div
-        style={{
-          background:
-            'linear-gradient(180deg, #D329FC 0%, #8F6DDE 49.48%, #19E6AD 100%)',
-          borderRadius: 36,
-          width: 50,
-          height: 50,
-          textAlign: 'center',
-          verticalAlign: 'middle',
-          fontWeight: 700,
-          fontSize: '1.3rem',
-          lineHeight: 2.4,
-          marginBottom: 10,
-        }}
-      >
-        M
-      </div>
+      <Avatar className={LogoStyle} size={64} src='./logo.svg' />
 
-      <h2>{selected ? 'Change provider' : 'Welcome to Metaplex'}</h2>
+      <h2>{selected ? 'Change provider' : 'Welcome to Supadrop'}</h2>
       <p>
         {selected
           ? 'Feel free to switch wallet provider'
@@ -77,67 +60,37 @@ export const WalletModal: FC = () => {
       </p>
 
       <br />
-      {selected || showWallets ? (
-        wallets.map(wallet => {
-          return (
-            <Button
-              key={wallet.name}
-              size="large"
-              type={wallet === selected ? 'primary' : 'ghost'}
-              onClick={() => {
-                select(wallet.name);
-                close();
-              }}
-              icon={
-                <img
-                  alt={`${wallet.name}`}
-                  width={20}
-                  height={20}
-                  src={wallet.icon}
-                  style={{ marginRight: 8 }}
-                />
-              }
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'left',
-                marginBottom: 8,
-              }}
-            >
-              {wallet.name}
-            </Button>
-          );
-        })
-      ) : (
-        <>
+      {wallets.map(wallet => {
+        return (
           <Button
-            className="metaplex-button"
-            style={{
-              width: '80%',
-              fontWeight: 'unset',
-            }}
+            key={wallet.name}
+            size="large"
+            type={wallet === selected ? 'primary' : 'ghost'}
             onClick={() => {
-              select(WalletName.Phantom);
+              select(wallet.name);
               close();
             }}
-          >
-            <span>
+            icon={
               <img
-                src="https://www.phantom.app/img/logo.png"
-                style={{ width: '1.2rem' }}
+                alt={`${wallet.name}`}
+                width={20}
+                height={20}
+                src={wallet.icon}
+                style={{ marginRight: 8 }}
               />
-              &nbsp;Sign in with Phantom
-            </span>
-            <span>&gt;</span>
-          </Button>
-          <p
-            onClick={() => setShowWallets(true)}
-            style={{ cursor: 'pointer', marginTop: 10 }}
+            }
+            style={{
+              display: 'block',
+              width: '100%',
+              textAlign: 'left',
+              marginBottom: 8,
+            }}
           >
-            Select a different Solana wallet
-          </p>
-        </>
-      )}
+            {wallet.name}
+          </Button>
+        );
+      })
+      }
     </MetaplexModal>
   );
 };
@@ -155,9 +108,9 @@ export const WalletModalProvider: FC<{ children: ReactNode }> = ({
       const keyToDisplay =
         base58.length > 20
           ? `${base58.substring(0, 7)}.....${base58.substring(
-              base58.length - 7,
-              base58.length,
-            )}`
+            base58.length - 7,
+            base58.length,
+          )}`
           : base58;
 
       notify({
