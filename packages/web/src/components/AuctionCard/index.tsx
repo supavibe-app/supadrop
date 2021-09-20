@@ -255,7 +255,7 @@ export const AuctionCard = ({
   return (
     <div className="auction-container" style={style}>
       <Col>
-        <AuctionNumbers auctionView={auctionView} />
+        <AuctionNumbers />
         <br />
         {showRedemptionIssue && (
           <span>
@@ -505,7 +505,7 @@ export const AuctionCard = ({
                     </div>
                   )}
                   <br />
-                  <AuctionNumbers auctionView={auctionView} />
+                  <AuctionNumbers />
 
                   <br />
                   {tickSizeInvalid && tickSize && (
