@@ -7,6 +7,7 @@ import { useCachedImage, useExtendedArt } from '../../hooks';
 import { Stream, StreamPlayerApi } from '@cloudflare/stream-react';
 import { PublicKey } from '@solana/web3.js';
 import { getLast } from '../../utils/utils';
+import { ImageStyle } from './style';
 
 const MeshArtContent = ({
   uri,
@@ -57,16 +58,15 @@ const CachedImageContent = ({
 
   return (
     <Image
-      src={cachedBlob}
+      src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png"
+      className={ImageStyle}
       preview={preview}
       wrapperClassName={className}
       loading="lazy"
       wrapperStyle={{ ...style }}
-      onLoad={e => {
-        setLoaded(true);
-      }}
+      onLoad={e => setLoaded(true)}
       placeholder={<ThreeDots />}
-      {...(loaded ? {} : { height: 200 })}
+      {...(loaded ? {} : { height: 512 })}
     />
   );
 };
@@ -112,7 +112,7 @@ const VideoArtContent = ({
 
   const content =
     likelyVideo &&
-    likelyVideo.startsWith('https://watch.videodelivery.net/') ? (
+      likelyVideo.startsWith('https://watch.videodelivery.net/') ? (
       <div className={`${className} square`}>
         <Stream
           streamRef={(e: any) => playerRef(e)}

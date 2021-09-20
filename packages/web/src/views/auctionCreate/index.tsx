@@ -137,10 +137,10 @@ export const AuctionCreateView = () => {
   const [auctionObj, setAuctionObj] =
     useState<
       | {
-          vault: StringPublicKey;
-          auction: StringPublicKey;
-          auctionManager: StringPublicKey;
-        }
+        vault: StringPublicKey;
+        auction: StringPublicKey;
+        auctionManager: StringPublicKey;
+      }
       | undefined
     >(undefined);
   const [attributes, setAttributes] = useState<AuctionState>({
@@ -197,7 +197,7 @@ export const AuctionCreateView = () => {
         ) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-            (wallet?.publicKey || SystemProgram.programId).toBase58()
+              (wallet?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -231,9 +231,9 @@ export const AuctionCreateView = () => {
       const tiers = tieredAttributes.tiers;
       tiers.forEach(
         c =>
-          (c.items = c.items.filter(
-            i => (i as TierDummyEntry).winningConfigType !== undefined,
-          )),
+        (c.items = c.items.filter(
+          i => (i as TierDummyEntry).winningConfigType !== undefined,
+        )),
       );
       let filteredTiers = tiers.filter(
         i => i.items.length > 0 && i.winningSpots.length > 0,
@@ -386,17 +386,17 @@ export const AuctionCreateView = () => {
       winners: winnerLimit,
       endAuctionAt: new BN(
         (attributes.auctionDuration || 0) *
-          (attributes.auctionDurationType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.auctionDurationType == 'hours'
+        (attributes.auctionDurationType == 'days'
+          ? 60 * 60 * 24 // 1 day in seconds
+          : attributes.auctionDurationType == 'hours'
             ? 60 * 60 // 1 hour in seconds
             : 60), // 1 minute in seconds
       ), // endAuctionAt is actually auction duration, poorly named, in seconds
       auctionGap: new BN(
         (attributes.gapTime || 0) *
-          (attributes.gapTimeType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.gapTimeType == 'hours'
+        (attributes.gapTimeType == 'days'
+          ? 60 * 60 * 24 // 1 day in seconds
+          : attributes.gapTimeType == 'hours'
             ? 60 * 60 // 1 hour in seconds
             : 60), // 1 minute in seconds
       ),
@@ -421,8 +421,8 @@ export const AuctionCreateView = () => {
       attributes.category === AuctionCategory.Open
         ? []
         : attributes.category !== AuctionCategory.Tiered
-        ? attributes.items
-        : tieredAttributes.items,
+          ? attributes.items
+          : tieredAttributes.items,
       attributes.category === AuctionCategory.Open
         ? attributes.items[0]
         : attributes.participationNFT,
@@ -1473,10 +1473,10 @@ const TierTableStep = (props: {
                   selected={
                     (i as TierDummyEntry).safetyDepositBoxIndex !== undefined
                       ? [
-                          props.attributes.items[
-                            (i as TierDummyEntry).safetyDepositBoxIndex
-                          ],
-                        ]
+                        props.attributes.items[
+                        (i as TierDummyEntry).safetyDepositBoxIndex
+                        ],
+                      ]
                       : []
                   }
                   setSelected={items => {
@@ -1499,14 +1499,14 @@ const TierTableStep = (props: {
                       if (
                         items[0].masterEdition &&
                         items[0].masterEdition.info.key ==
-                          MetadataKey.MasterEditionV1
+                        MetadataKey.MasterEditionV1
                       ) {
                         myNewTier.winningConfigType =
                           WinningConfigType.PrintingV1;
                       } else if (
                         items[0].masterEdition &&
                         items[0].masterEdition.info.key ==
-                          MetadataKey.MasterEditionV2
+                        MetadataKey.MasterEditionV2
                       ) {
                         myNewTier.winningConfigType =
                           WinningConfigType.PrintingV2;
@@ -1582,7 +1582,7 @@ const TierTableStep = (props: {
                           props.attributes.items[
                             myNewTier.safetyDepositBoxIndex
                           ].masterEdition?.info.key ==
-                            MetadataKey.MasterEditionV1
+                          MetadataKey.MasterEditionV1
                         ) {
                           value = WinningConfigType.PrintingV1;
                         }
@@ -1611,37 +1611,37 @@ const TierTableStep = (props: {
                     {((i as TierDummyEntry).winningConfigType ===
                       WinningConfigType.PrintingV1 ||
                       (i as TierDummyEntry).winningConfigType ===
-                        WinningConfigType.PrintingV2) && (
-                      <label className="action-field">
-                        <span className="field-title">
-                          How many copies do you want to create for each winner?
-                          If you put 2, then each winner will get 2 copies.
-                        </span>
-                        <span className="field-info">
-                          Each copy will be given unique edition number e.g. 1
-                          of 30
-                        </span>
-                        <Input
-                          autoFocus
-                          className="input"
-                          placeholder="Enter number of copies sold"
-                          allowClear
-                          onChange={info => {
-                            const newTiers = newImmutableTiers(
-                              props.attributes.tiers,
-                            );
+                      WinningConfigType.PrintingV2) && (
+                        <label className="action-field">
+                          <span className="field-title">
+                            How many copies do you want to create for each winner?
+                            If you put 2, then each winner will get 2 copies.
+                          </span>
+                          <span className="field-info">
+                            Each copy will be given unique edition number e.g. 1
+                            of 30
+                          </span>
+                          <Input
+                            autoFocus
+                            className="input"
+                            placeholder="Enter number of copies sold"
+                            allowClear
+                            onChange={info => {
+                              const newTiers = newImmutableTiers(
+                                props.attributes.tiers,
+                              );
 
-                            const myNewTier =
-                              newTiers[configIndex].items[itemIndex];
-                            myNewTier.amount = parseInt(info.target.value);
-                            props.setAttributes({
-                              ...props.attributes,
-                              tiers: newTiers,
-                            });
-                          }}
-                        />
-                      </label>
-                    )}
+                              const myNewTier =
+                                newTiers[configIndex].items[itemIndex];
+                              myNewTier.amount = parseInt(info.target.value);
+                              props.setAttributes({
+                                ...props.attributes,
+                                tiers: newTiers,
+                              });
+                            }}
+                          />
+                        </label>
+                      )}
                   </>
                 )}
               </Card>
@@ -1828,8 +1828,8 @@ const ReviewStep = (props: {
           value={
             props.attributes.startSaleTS
               ? moment
-                  .unix(props.attributes.startSaleTS as number)
-                  .format('dddd, MMMM Do YYYY, h:mm a')
+                .unix(props.attributes.startSaleTS as number)
+                .format('dddd, MMMM Do YYYY, h:mm a')
               : 'Right after successfully published'
           }
         />
@@ -1850,8 +1850,8 @@ const ReviewStep = (props: {
           value={
             props.attributes.endTS
               ? moment
-                  .unix(props.attributes.endTS as number)
-                  .format('dddd, MMMM Do YYYY, h:mm a')
+                .unix(props.attributes.endTS as number)
+                .format('dddd, MMMM Do YYYY, h:mm a')
               : 'Until sold'
           }
         />
@@ -1926,9 +1926,8 @@ const Congrats = (props: {
   const newTweetURL = () => {
     const params = {
       text: "I've created a new NFT auction on Metaplex, check it out!",
-      url: `${
-        window.location.origin
-      }/#/auction/${props.auction?.auction.toString()}`,
+      url: `${window.location.origin
+        }/#/auction/${props.auction?.auction.toString()}`,
       hashtags: 'NFT,Crypto,Metaplex',
       // via: "Metaplex",
       related: 'Metaplex,Solana',

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Statistic } from 'antd';
-import { useSolPrice } from '../../contexts';
-import { formatUSD } from '@oyster/common';
+import React from 'react';
+import { Row, Statistic } from 'antd';
+import { Availability, CreateStatistic } from './style';
 
 interface IAmountLabel {
   amount: number | string;
@@ -14,43 +13,28 @@ interface IAmountLabel {
 export const AmountLabel = (props: IAmountLabel) => {
   const {
     amount: _amount,
-    displayUSD = true,
     title = '',
     style = {},
     containerStyle = {},
   } = props;
   const amount = typeof _amount === 'string' ? parseFloat(_amount) : _amount;
 
-  const solPrice = useSolPrice();
-
-  const [priceUSD, setPriceUSD] = useState<number | undefined>(undefined);
-
-  useEffect(() => {
-    setPriceUSD(solPrice * amount);
-  }, [amount, solPrice]);
-
-  const PriceNaN = isNaN(amount);
-
   return (
     <div style={{ display: 'flex', ...containerStyle }}>
-      {PriceNaN === false && (
+      <Row>
         <Statistic
           style={style}
-          className="create-statistic"
+          className={CreateStatistic}
           title={title || ''}
           value={amount}
-          prefix="◎"
+          suffix="SOL"
         />
-      )}
-      {displayUSD && (
-        <div className="usd">
-          {PriceNaN === false ? (
-            formatUSD.format(priceUSD || 0)
-          ) : (
-            <div className="placebid">Place Bid</div>
-          )}
-        </div>
-      )}
+      </Row>
+
+      <div className={Availability}>
+        {/* TODO-Iyai: Handle if sold out */}
+        24/111 left
+      </div>
     </div>
   );
 };

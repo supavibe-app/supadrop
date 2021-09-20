@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { Avatar, Button, Modal, Popover } from 'antd';
+
 import { useNativeAccount } from '../../contexts/accounts';
 import { formatNumber } from '../../utils';
-import { Popover } from 'antd';
 import { Settings } from '../Settings';
+import { AddressStyle, BalanceStyle, DetailBox, ModalEditProfile, ProfileContainer, ProfilePopover } from './style';
 
 export const CurrentUserBadge = (props: {
   showBalance?: boolean;
@@ -13,53 +15,62 @@ export const CurrentUserBadge = (props: {
 }) => {
   const { wallet, publicKey } = useWallet();
   const { account } = useNativeAccount();
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showPopover, setShowPopover] = useState(false);
+
+  const base58 = publicKey?.toBase58() || '';
+  const keyToDisplay =
+    base58.length > 12
+      ? `${base58.substring(0, 4)}...${base58.substring(
+        base58.length - 4,
+        base58.length,
+      )}`
+      : base58;
 
   if (!wallet || !publicKey) {
     return null;
   }
 
-  const iconStyle: React.CSSProperties = props.showAddress
-    ? {
-        marginLeft: '0.5rem',
-        display: 'flex',
-        width: props.iconSize || 20,
-        borderRadius: 50,
-      }
-    : {
-        display: 'flex',
-        width: props.iconSize || 20,
-        paddingLeft: 0,
-        borderRadius: 50,
-      };
-
-  const baseWalletKey: React.CSSProperties = {
-    height: props.iconSize,
-    cursor: 'pointer',
-    userSelect: 'none',
+  const handleShowEditProfile = () => {
+    setShowEditProfile(true);
+    setShowPopover(false);
   };
-  const walletKeyStyle: React.CSSProperties = props.showAddress
-    ? baseWalletKey
-    : { ...baseWalletKey, paddingLeft: 0 };
 
   return (
-    <div className="wallet-wrapper">
-      {props.showBalance && (
-        <span>
-          {formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL)} SOL
-        </span>
-      )}
+    <>
+      <div className="wallet-wrapper">
+        <Popover
+          overlayClassName={ProfilePopover}
+          color="#000000"
+          content={<Settings setShowEdit={handleShowEditProfile} />}
+          trigger="click"
+          onVisibleChange={visible => setShowPopover(visible)}
+          visible={showPopover}
+        >
+          <div className={ProfileContainer}>
+            <div className={DetailBox}>
+              <div className={BalanceStyle}>{formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL)} SOL</div>
+              <div className={AddressStyle}>{keyToDisplay}</div>
+            </div>
 
-      <Popover
-        placement="topRight"
-        title="Settings"
-        content={<Settings />}
-        trigger="click"
+            <Avatar src={wallet.icon} size={42} style={{ cursor: 'pointer' }} />
+          </div>
+        </Popover>
+      </div>
+
+      <Modal
+        className={ModalEditProfile}
+        title="edit profile"
+        visible={showEditProfile}
+        onCancel={() => setShowEditProfile(false)}
+        footer={[
+          <Button key="save" type="link" style={{ fontWeight: 'bold' }} disabled>
+            save
+          </Button>,
+        ]}
       >
-        <div className="wallet-key" style={walletKeyStyle}>
-          <span style={{ marginRight: '0.5rem' }}>{wallet.name}</span>
-          <img src={wallet.icon} style={iconStyle} />
-        </div>
-      </Popover>
-    </div>
+        huyu
+      </Modal>
+    </>
   );
 };
