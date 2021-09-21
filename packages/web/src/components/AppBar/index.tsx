@@ -20,10 +20,11 @@ export const AppBar = () => {
         </Link>
 
         <div className={ButtonContainer}>
-          {/* `/auction/create/0` */}
-          <Button className={RoundButton} type="default" shape="round">
-            SELL
-          </Button>
+          <Link to={`/auction/create/0`}>
+            <Button className={RoundButton} type="default" shape="round">
+              SELL
+            </Button>
+          </Link>
 
           <Button className={CircleButton} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
 

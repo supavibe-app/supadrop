@@ -13,7 +13,10 @@ export const AppLayout = React.memo((props: any) => {
         <Header className={HeaderStyle}>
           <AppBar />
         </Header>
-        <Content style={{ paddingTop: '168px' }}>
+
+        <div style={{ height: 80 }} />
+
+        <Content>
           {props.children}
         </Content>
       </Layout>

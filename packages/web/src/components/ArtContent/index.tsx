@@ -58,7 +58,7 @@ const CachedImageContent = ({
 
   return (
     <Image
-      src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png"
+      src={cachedBlob}
       className={ImageStyle}
       preview={preview}
       wrapperClassName={className}
