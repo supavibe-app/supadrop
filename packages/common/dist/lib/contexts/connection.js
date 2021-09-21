@@ -30,7 +30,7 @@ const wallet_adapter_base_1 = require("@solana/wallet-adapter-base");
 exports.ENDPOINTS = [
     {
         name: 'mainnet-beta',
-        endpoint: process.env.NEXT_PUBLIC_ENDPOINT,
+        endpoint: process.env.NEXT_PUBLIC_ENDPOINT || "'https://api.metaplex.solana.com'",
         ChainId: spl_token_registry_1.ENV.MainnetBeta,
     },
     {

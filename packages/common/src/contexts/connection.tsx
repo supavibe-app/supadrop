@@ -41,7 +41,7 @@ export type ENV =
 export const ENDPOINTS = [
   {
     name: 'mainnet-beta' as ENV,
-    endpoint: process.env.NEXT_PUBLIC_ENDPOINT,
+    endpoint: process.env.NEXT_PUBLIC_ENDPOINT || "'https://api.metaplex.solana.com'",
     ChainId: ChainId.MainnetBeta,
   },
   {
