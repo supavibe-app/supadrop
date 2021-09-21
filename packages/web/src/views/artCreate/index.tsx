@@ -122,10 +122,6 @@ export const ArtCreateView = () => {
       attributes.properties?.maxSupply,
     );
 
-   console.log('nft',_nft['metadataAccount']);
-   console.log('metadata',metadata);
-   
-
     if (_nft) setNft(_nft);
     clearInterval(inte);
   };

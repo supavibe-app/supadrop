@@ -412,8 +412,6 @@ export const AuctionCreateView = () => {
         ? new BN(attributes.priceTick * LAMPORTS_PER_SOL)
         : null,
     };
-    console.log('auctionSettings',auctionSettings);
-    
     const _auctionObj = await createAuctionManager(
       connection,
       wallet,
@@ -429,9 +427,6 @@ export const AuctionCreateView = () => {
         : attributes.participationNFT,
       QUOTE_MINT.toBase58(),
     );
-    console.log("_auctionObj",_auctionObj.auction);
-    console.log('attributes',attributes);
-
     
     supabase.from('auction_status')
       .insert([{

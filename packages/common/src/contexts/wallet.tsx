@@ -49,7 +49,6 @@ export const WalletModal: FC = () => {
   const close = useCallback(() => {
     setVisible(false);
   }, [setVisible]);
-  console.log('wallet');
   
   return (
     <MetaplexModal visible={visible} onCancel={close}>

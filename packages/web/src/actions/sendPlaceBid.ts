@@ -145,15 +145,6 @@ export async function setupPlaceBid(
     instructions,
   );
 
-  console.log('#vault',auctionView.auctionManager.vault);
-  console.log('#tokenmint',auctionView.auction.info.tokenMint);
-  console.log('#bid',lamports - accountRentExempt,bid);
-  console.log('#idAuction',auctionView.auction.pubkey);
-  console.log('#amount',amount);
-    
-  
-  
-
   supabase.from('action_bidding')
     .insert([{
       id:`${auctionView.auction.pubkey}_${wallet.publicKey.toBase58()}`,
@@ -161,7 +152,7 @@ export async function setupPlaceBid(
       id_auction:auctionView.auction.pubkey,
       price_bid:amount
     }])
-    .then(tes=>console.log('tes',tes))
+    .then()
 
 
   overallInstructions.push([...instructions, ...cleanupInstructions]);

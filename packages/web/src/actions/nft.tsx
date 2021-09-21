@@ -215,13 +215,10 @@ export const mintNFT = async (
   const metadataFile = result.messages?.find(
     m => m.filename === RESERVED_TXN_MANIFEST,
   );
+  //TODO Add for filter another extension -> now: only filter png 
   const imgFile = result.messages?.find(
     m => m.filename.includes('png'),
   );
-  console.log('masuk sini');
-  console.log(metadataFile);
-  console.log(result);
-  
   
   if (metadataFile?.transactionId && wallet.publicKey) {
     const updateInstructions: TransactionInstruction[] = [];
