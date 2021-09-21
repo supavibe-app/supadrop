@@ -19,6 +19,7 @@ import { AuctionView } from '../hooks';
 import BN from 'bn.js';
 import { setupCancelBid } from './cancelBid';
 import { QUOTE_MINT } from '../constants';
+import {supabase} from '../../supabaseClient'
 
 export async function sendPlaceBid(
   connection: Connection,
@@ -143,6 +144,25 @@ export async function setupPlaceBid(
     bid,
     instructions,
   );
+
+  console.log('#vault',auctionView.auctionManager.vault);
+  console.log('#tokenmint',auctionView.auction.info.tokenMint);
+  console.log('#bid',lamports - accountRentExempt,bid);
+  console.log('#idAuction',auctionView.auction.pubkey);
+  console.log('#amount',amount);
+    
+  
+  
+
+  supabase.from('action_bidding')
+    .insert([{
+      id:`${auctionView.auction.pubkey}_${wallet.publicKey.toBase58()}`,
+      wallet_address:wallet.publicKey.toBase58(),
+      id_auction:auctionView.auction.pubkey,
+      price_bid:amount
+    }])
+    .then(tes=>console.log('tes',tes))
+
 
   overallInstructions.push([...instructions, ...cleanupInstructions]);
   overallSigners.push(signers);

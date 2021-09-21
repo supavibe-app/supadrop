@@ -35,6 +35,8 @@ module.exports = withPlugins(plugins, {
     NEXT_PUBLIC_BIG_STORE: process.env.REACT_APP_BIG_STORE,
     NEXT_PUBLIC_CLIENT_ID: process.env.REACT_APP_CLIENT_ID,
     NEXT_PUBLIC_ENDPOINT: process.env.REACT_APP_ENDPOINT,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY,
   },
   async rewrites() {
     return [
