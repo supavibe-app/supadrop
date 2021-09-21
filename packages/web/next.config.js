@@ -31,9 +31,10 @@ module.exports = withPlugins(plugins, {
     NEXT_PUBLIC_STORE_OWNER_ADDRESS:
       process.env.STORE_OWNER_ADDRESS ||
       process.env.REACT_APP_STORE_OWNER_ADDRESS_ADDRESS,
-    NEXT_PUBLIC_STORE_ADDRESS: process.env.STORE_ADDRESS,
+    NEXT_PUBLIC_STORE_ADDRESS: process.env.REACT_APP_STORE_ADDRESS,
     NEXT_PUBLIC_BIG_STORE: process.env.REACT_APP_BIG_STORE,
     NEXT_PUBLIC_CLIENT_ID: process.env.REACT_APP_CLIENT_ID,
+    NEXT_PUBLIC_ENDPOINT: process.env.REACT_APP_ENDPOINT,
   },
   async rewrites() {
     return [

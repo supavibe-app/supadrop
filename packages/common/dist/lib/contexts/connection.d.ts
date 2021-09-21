@@ -9,7 +9,7 @@ interface BlockhashAndFeeCalculator {
 export declare type ENV = 'mainnet-beta' | 'mainnet-beta (Solana)' | 'mainnet-beta (Serum)' | 'testnet' | 'devnet' | 'localnet' | 'lending';
 export declare const ENDPOINTS: {
     name: ENV;
-    endpoint: string;
+    endpoint: string | undefined;
     ChainId: ChainId;
 }[];
 export declare function ConnectionProvider({ children }: {
