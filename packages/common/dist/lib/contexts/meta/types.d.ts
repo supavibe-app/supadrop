@@ -6,6 +6,9 @@ import { PublicKeyStringAndAccount } from '../../utils';
 import { ParsedAccount } from '../accounts/types';
 export interface MetaState {
     metadata: ParsedAccount<Metadata>[];
+}
+export interface MetaState {
+    metadata: ParsedAccount<Metadata>[];
     metadataByMint: Record<string, ParsedAccount<Metadata>>;
     metadataByMasterEdition: Record<string, ParsedAccount<Metadata>>;
     editions: Record<string, ParsedAccount<Edition>>;
@@ -32,6 +35,9 @@ export interface MetaState {
 export interface MetaContextState extends MetaState {
     isLoading: boolean;
 }
+export interface MetaContextState extends MetaState {
+    liveDataAuction: ItemAuction[];
+}
 export declare type AccountAndPubkey = {
     pubkey: string;
     account: AccountInfo<Buffer>;
@@ -39,4 +45,9 @@ export declare type AccountAndPubkey = {
 export declare type UpdateStateValueFunc = (prop: keyof MetaState, key: string, value: ParsedAccount<any>) => void;
 export declare type ProcessAccountsFunc = (account: PublicKeyStringAndAccount<Buffer>, setter: UpdateStateValueFunc, useAll: boolean) => void;
 export declare type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean;
+export declare class ItemAuction {
+    id: string;
+    id_nft: string;
+    constructor(id: string, id_nft: string);
+}
 //# sourceMappingURL=types.d.ts.map

@@ -39,7 +39,6 @@ const WalletModal = () => {
     const close = react_1.useCallback(() => {
         setVisible(false);
     }, [setVisible]);
-    console.log('wallet');
     return (react_1.default.createElement(components_1.MetaplexModal, { visible: visible, onCancel: close },
         react_1.default.createElement(antd_1.Avatar, { className: style_1.LogoStyle, size: 64, src: './logo.svg' }),
         react_1.default.createElement("h2", null, selected ? 'Change provider' : 'Welcome to Supadrop'),

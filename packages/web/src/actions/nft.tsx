@@ -304,10 +304,7 @@ export const mintNFT = async (
           royalty:metadata.sellerFeeBasisPoints,
           arweave_link:arweaveLink
         }])
-        .then(data=>{
-          console.log('data',data);
-          
-        })
+        .then()
 
     
     notify({

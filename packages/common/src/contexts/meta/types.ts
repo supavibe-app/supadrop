@@ -24,6 +24,9 @@ import {
 } from '../../models/metaplex';
 import { PublicKeyStringAndAccount } from '../../utils';
 import { ParsedAccount } from '../accounts/types';
+export interface MetaState {
+  metadata: ParsedAccount<Metadata>[];
+}
 
 export interface MetaState {
   metadata: ParsedAccount<Metadata>[];
@@ -78,6 +81,9 @@ export interface MetaState {
 export interface MetaContextState extends MetaState {
   isLoading: boolean;
 }
+export interface MetaContextState extends MetaState {
+  liveDataAuction: ItemAuction[];
+}
 
 export type AccountAndPubkey = {
   pubkey: string;
@@ -97,3 +103,13 @@ export type ProcessAccountsFunc = (
 ) => void;
 
 export type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean;
+
+export class ItemAuction {
+  id: string;
+  id_nft: string;
+
+  constructor(id: string, id_nft: string) {
+    this.id = id;
+    this.id_nft = id_nft;
+  }
+}

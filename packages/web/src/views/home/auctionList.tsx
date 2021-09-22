@@ -8,7 +8,6 @@ import { CardLoader } from '../../components/MyLoader';
 import { useMeta } from '../../contexts';
 import { AuctionView, AuctionViewState, useAuctions } from '../../hooks';
 import { LiveDot, TitleWrapper } from './style';
-
 const { Content } = Layout;
 
 export enum LiveAuctionViewState {
@@ -22,9 +21,9 @@ export const AuctionListView = () => {
   const auctions = useAuctions(AuctionViewState.Live);
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
   const [activeKey, setActiveKey] = useState(LiveAuctionViewState.All);
-  const { isLoading } = useMeta();
+  const { isLoading , liveDataAuction} = useMeta();
   const { connected, publicKey } = useWallet();
-
+  
   // Check if the auction is primary sale or not
   const checkPrimarySale = (auc: AuctionView) => {
     var flag = 0;
@@ -82,6 +81,9 @@ export const AuctionListView = () => {
       break;
   }
 
+  console.log('liveDataAuctions',liveDataAuction);
+  
+
   const heroAuction = useMemo(
     () =>
       auctions.filter(a => {
@@ -137,7 +139,7 @@ export const AuctionListView = () => {
         <div className={LiveDot} />live auctions
       </div>
 
-      {liveAuctions.length >= 0 && <Row gutter={[24, 24]}>{endedAuctions}</Row>}
+      {liveAuctions.length >= 0 && <Row gutter={[24, 24]}>{liveAuctionsView}</Row>}
     </Col>
   );
 };
