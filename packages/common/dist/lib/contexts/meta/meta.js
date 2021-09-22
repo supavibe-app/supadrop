@@ -28,6 +28,7 @@ const loadAccounts_1 = require("./loadAccounts");
 const connection_1 = require("../connection");
 const store_1 = require("../store");
 const hooks_1 = require("../../hooks");
+const supabaseClient_1 = require("../../supabaseClient");
 const MetaContext = react_1.default.createContext({
     ...getEmptyMetaState_1.getEmptyMetaState(),
     isLoading: false,
@@ -67,6 +68,17 @@ function MetaProvider({ children = null }) {
             }
             console.log('-----> Query started');
             console.log('date', new Date());
+            //TODO query end date
+            supabaseClient_1.supabase.from('auction_status')
+                .select(`
+        *,
+        nft_data (
+          *
+        )
+        `)
+                .then(dataAuction => {
+                console.log('data auction', dataAuction.body);
+            });
             const nextState = await loadAccounts_1.loadAccounts(connection, all);
             console.log('------->Query finished');
             console.log('date', new Date());

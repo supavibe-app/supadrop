@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardProps } from 'antd';
+import { Avatar, Card, Col, CardProps, Row, Statistic } from 'antd';
 import {
   formatTokenAmount,
   CountdownState,
@@ -14,9 +14,9 @@ import {
   useArt,
   useBidsForAuction,
 } from '../../hooks';
-import { AmountLabel } from '../AmountLabel';
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
+import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, UserWrapper } from './style';
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
@@ -77,54 +77,81 @@ export const AuctionRenderCard = (props: AuctionCard) => {
     return () => clearInterval(interval);
   }, [auction, setState]);
 
-  const card = (
+  return (
     <Card
       hoverable={true}
-      className={`art-card`}
+      className={CardStyle}
       cover={
-        <>
-          <ArtContent
-            className="auction-image no-events"
-            preview={false}
-            pubkey={id}
-            allowMeshRender={false}
-          />
-        </>
+        <ArtContent
+          className={AuctionImage}
+          preview={false}
+          pubkey={id}
+          allowMeshRender={false}
+        />
       }
     >
       <Meta
-        title={`${name}`}
+        title={name}
         description={
           <>
-            <h4 style={{ marginBottom: 0 }}>{label}</h4>
-            <div className="bids">
-              <AmountLabel
-                style={{ marginBottom: 10 }}
-                containerStyle={{ flexDirection: 'row' }}
-                title={label}
-                amount={currentBid}
-              />
+            <div className={UserWrapper}>
+              <Avatar src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" size={32} className={AvatarStyle} />@apri
             </div>
-            {/* {endAuctionAt && hasTimer && (
-              <div className="cd-container">
-                {hours === 0 && minutes === 0 && seconds === 0 ? (
-                  <div className="cd-title">Finished</div>
-                ) : (
-                  <>
-                    <div className="cd-title">Ending in</div>
-                    <div className="cd-time">
-                      {hours}h {minutes}m {seconds}s
-                      pants
-                    </div>
-                  </>
-                )}
-              </div>
-            )} */}
+
+            <Row>
+              <Col span={12}>
+                <div>current bid</div>
+                <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
+              </Col>
+
+              <Col span={12}>
+                <div>ending in</div>
+                <div className={NumberStyle}>
+                  {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+                  {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
+                  {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+                </div>
+              </Col>
+            </Row>
           </>
         }
       />
     </Card>
   );
-
-  return card;
 };
+
+const CardCountdown = ({ state }: { state?: CountdownState }) => {
+  return (
+    <>
+      {state &&
+        <Row gutter={[16, 0]}>
+
+          <Col span={8}>
+            <div className={NumberStyle}>
+              {state.hours < 10 && <span>0</span>}
+              {state.hours}
+              :
+            </div>
+          </Col>
+
+          <Col span={8}>
+            <div className={NumberStyle}>
+              {state.minutes < 10 && <span>0</span>}
+              {state.minutes}
+              {state.days === 0 && ':'}
+            </div>
+          </Col>
+
+          {state.days === 0 && (
+            <Col span={8}>
+              <div className={NumberStyle}>
+                {state.seconds < 10 && <span>0</span>}
+                {state.seconds}
+              </div>
+            </Col>
+          )}
+        </Row>
+      }
+    </>
+  )
+}

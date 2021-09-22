@@ -87,6 +87,7 @@ const Countdown = ({ state }: { state?: CountdownState }) => {
               <div className={Label}>days</div>
             </Col>
           )}
+
           <Col>
             <div className={NumberStyle}>
               {state.hours < 10 && <span>0</span>}

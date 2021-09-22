@@ -21,7 +21,7 @@ const images = [
 
 export const PreSaleBanner = () => {
   return (
-    <Row>
+    <Row style={{ marginTop: 88 }}>
       <Col span={12} md={12}>
         <div style={{ textAlign: 'center' }}>
           <Carousel autoplay effect="fade">

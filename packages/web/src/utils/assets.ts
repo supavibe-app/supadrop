@@ -11,21 +11,16 @@ export const filterModalSolTokens = (tokens: TokenInfo[]) => {
 export async function getAssetCostToStore(files: File[]) {
   const localStorage = useLocalStorage();
   const totalBytes = files.reduce((sum, f) => (sum += f.size), 0);
-  console.log('Total bytes', totalBytes);
   const txnFeeInWinstons = parseInt(
     await (await fetch('https://arweave.net/price/0')).text(),
   );
-  console.log('txn fee', txnFeeInWinstons);
   const byteCostInWinstons = parseInt(
     await (
       await fetch('https://arweave.net/price/' + totalBytes.toString())
     ).text(),
   );
-  console.log('byte cost', byteCostInWinstons);
   const totalArCost =
     (txnFeeInWinstons * files.length + byteCostInWinstons) / WINSTON_MULTIPLIER;
-
-  console.log('total ar', totalArCost);
 
   let conversionRates = JSON.parse(
     localStorage.getItem('conversionRates') || '{}',

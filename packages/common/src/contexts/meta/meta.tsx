@@ -7,6 +7,7 @@ import { MetaContextState, MetaState } from './types';
 import { useConnection } from '../connection';
 import { useStore } from '../store';
 import { useQuerySearch } from '../../hooks';
+import {supabase} from '../../supabaseClient'
 
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
@@ -57,8 +58,17 @@ export function MetaProvider({ children = null as any }) {
 
       console.log('-----> Query started');
       console.log('date',new Date());
-      
-      
+      //TODO query end date
+      supabase.from('auction_status')
+        .select(`
+        *,
+        nft_data (
+          *
+        )
+        `)
+        .then(dataAuction=>{
+          console.log('data auction',dataAuction.body);
+        })
       const nextState = await loadAccounts(connection, all);
       
       console.log('------->Query finished');
