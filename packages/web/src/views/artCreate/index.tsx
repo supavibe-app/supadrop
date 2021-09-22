@@ -42,7 +42,7 @@ import { cleanName, getLast } from '../../utils/utils';
 import { AmountLabel } from '../../components/AmountLabel';
 import useWindowDimensions from '../../utils/layout';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-
+import {supabase} from '../../../supabaseClient'
 const { Step } = Steps;
 const { Dragger } = Upload;
 const { Text } = Typography;
@@ -121,6 +121,7 @@ export const ArtCreateView = () => {
       metadata,
       attributes.properties?.maxSupply,
     );
+
     if (_nft) setNft(_nft);
     clearInterval(inte);
   };
