@@ -31,10 +31,7 @@ export const AmountLabel = (props: IAmountLabel) => {
         />
       </Row>
 
-      <div className={Availability}>
-        {/* TODO-Iyai: Handle if sold out */}
-        24/111 left
-      </div>
+      <div className={Availability}>24/111 left</div>
     </div>
   );
 };

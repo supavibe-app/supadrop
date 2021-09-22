@@ -58,7 +58,7 @@ const CachedImageContent = ({
 
   return (
     <Image
-      src={uri}
+      src={cachedBlob}
       className={ImageStyle}
       preview={preview}
       wrapperClassName={className}
