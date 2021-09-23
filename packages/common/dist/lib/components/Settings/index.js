@@ -27,11 +27,12 @@ const react_1 = __importStar(require("react"));
 const antd_1 = require("antd");
 const feather_icons_react_1 = __importDefault(require("feather-icons-react"));
 const wallet_adapter_react_1 = require("@solana/wallet-adapter-react");
+const connection_1 = require("../../contexts/connection");
 const contexts_1 = require("../../contexts");
 const style_1 = require("./style");
 const Settings = ({ additionalSettings, setShowEdit = () => { } }) => {
     const { disconnect } = wallet_adapter_react_1.useWallet();
-    // const { endpoint, setEndpoint } = useConnectionConfig();
+    const { endpoint, setEndpoint } = connection_1.useConnectionConfig();
     const { setVisible } = contexts_1.useWalletModal();
     const open = react_1.useCallback(() => setVisible(true), [setVisible]);
     return (react_1.default.createElement(react_1.default.Fragment, null,
@@ -39,6 +40,8 @@ const Settings = ({ additionalSettings, setShowEdit = () => { } }) => {
             react_1.default.createElement(antd_1.List.Item, { onClick: () => setShowEdit() },
                 react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon, src: "https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" }),
                 "edit profile"),
+            react_1.default.createElement(antd_1.List.Item, null,
+                react_1.default.createElement(antd_1.Select, { onSelect: setEndpoint, value: endpoint, style: { marginBottom: 20 } }, connection_1.ENDPOINTS.map(({ name, endpoint }) => (react_1.default.createElement(antd_1.Select.Option, { value: endpoint, key: endpoint }, name))))),
             react_1.default.createElement(antd_1.List.Item, { onClick: () => disconnect().catch() },
                 react_1.default.createElement(feather_icons_react_1.default, { icon: "power", className: style_1.ItemIcon }),
                 "disconnect")),
