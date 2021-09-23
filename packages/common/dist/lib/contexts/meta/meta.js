@@ -90,8 +90,9 @@ function MetaProvider({ children = null }) {
                 let listData = [];
                 if (dataAuction.body != null) {
                     dataAuction.body.forEach(v => {
-                        listData.push(new types_1.ItemAuction(v.id, v.id_nft));
+                        listData.push(new types_1.ItemAuction(v.id, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft));
                     });
+                    console.log("Query listData", listData);
                     setDataAuction(listData);
                 }
                 setIsLoading(false);
@@ -105,9 +106,9 @@ function MetaProvider({ children = null }) {
                     console.log('date', new Date());
                     setState(nextState);
                     updateMints(nextState.metadataByMint);
+                    console.log('------->set finished');
                 });
             });
-            console.log('------->set finished');
         })();
     }, [connection, setState, updateMints, storeAddress, isReady]);
     react_1.useEffect(() => {

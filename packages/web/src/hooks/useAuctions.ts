@@ -125,9 +125,11 @@ export const useAuctions = (state?: AuctionViewState) => {
     safetyDepositConfigsByAuctionManagerAndIndex,
     bidRedemptionV2sByAuctionManagerAndWinningIndex,
   } = useMeta();
+  let total = 0;
   useEffect(() => {
     const map = Object.keys(auctions).reduce((agg, a) => {
       const auction = auctions[a];
+      total++;
       const nextAuctionView = processAccountsIntoAuctionView(
         publicKey?.toBase58(),
         auction,
@@ -150,6 +152,7 @@ export const useAuctions = (state?: AuctionViewState) => {
       return agg;
     }, {} as Record<string, AuctionView | undefined>);
     const dataAuction = Object.values(map).filter(v => v) as AuctionView[];
+    console.log('Query total', total);
 
     setAuctionViews(
       dataAuction.sort((a, b) => {

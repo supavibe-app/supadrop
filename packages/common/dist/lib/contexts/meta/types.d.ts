@@ -48,6 +48,9 @@ export declare type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean
 export declare class ItemAuction {
     id: string;
     id_nft: string;
-    constructor(id: string, id_nft: string);
+    token_mint: string;
+    price_floor: number;
+    img_nft: string;
+    constructor(id: string, id_nft: string, token_mint: string, price_floor: number, img_nft: string);
 }
 //# sourceMappingURL=types.d.ts.map

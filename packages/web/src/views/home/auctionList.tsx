@@ -3,7 +3,7 @@ import { Col, Layout, Row } from 'antd';
 import BN from 'bn.js';
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AuctionRenderCard } from '../../components/AuctionRenderCard';
+import { AuctionRenderCard, AuctionRenderCard2 } from '../../components/AuctionRenderCard';
 import { CardLoader } from '../../components/MyLoader';
 import { useMeta } from '../../contexts';
 import { AuctionView, AuctionViewState, useAuctions } from '../../hooks';
@@ -81,7 +81,6 @@ export const AuctionListView = () => {
       break;
   }
 
-  console.log('liveDataAuctions',liveDataAuction);
   
 
   const heroAuction = useMemo(
@@ -98,15 +97,12 @@ export const AuctionListView = () => {
   const liveAuctionsView = (
     <>
       {!isLoading
-        ? items.map((m, idx) => {
-          if (m === heroAuction) {
-            return;
-          }
+        ? liveDataAuction.map((m, idx) => {
 
-          const id = m.auction.pubkey;
+          const id = m.id;
           return (
             <Link to={`/auction/${id}`} key={idx}>
-              <AuctionRenderCard key={id} auctionView={m} />
+              <AuctionRenderCard2 key={id} auctionView={m} />
             </Link>
           );
         })

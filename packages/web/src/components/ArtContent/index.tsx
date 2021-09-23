@@ -254,3 +254,71 @@ export const ArtContent = ({
     </div>
   );
 };
+export const ArtContent2 = ({
+  category,
+  className,
+  preview,
+  style,
+  active,
+  allowMeshRender,
+  pubkey,
+
+  uri,
+  animationURL,
+  files,
+}: {
+  category?: MetadataCategory;
+  className?: string;
+  preview?: boolean;
+  style?: React.CSSProperties;
+  width?: number;
+  height?: number;
+  ref?: Ref<HTMLDivElement>;
+  active?: boolean;
+  allowMeshRender?: boolean;
+  pubkey?: PublicKey | string;
+  uri?: string;
+  animationURL?: string;
+  files?: (MetadataFile | string)[];
+}) => {
+  const id = pubkeyToString(pubkey);
+
+  const { ref } = useExtendedArt(id);
+
+  const content =
+    category === 'video' ? (
+      <VideoArtContent
+        className={className}
+        style={style}
+        files={files}
+        uri={uri}
+        animationURL={animationURL}
+        active={active}
+      />
+    ) : (
+      <CachedImageContent
+        uri={uri}
+        className={className}
+        preview={preview}
+        style={style}
+      />
+    );
+
+  return (
+    <div
+      ref={ref as any}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <CachedImageContent
+        uri={uri}
+        className={className}
+        preview={preview}
+        style={style}
+      />
+    </div>
+  );
+};
