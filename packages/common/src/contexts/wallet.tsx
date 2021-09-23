@@ -28,6 +28,8 @@ import { notify } from '../utils';
 import { MetaplexModal } from '../components';
 import { LogoStyle } from './style';
 
+import {supabase} from '../supabaseClient'
+
 export interface WalletModalContextState {
   visible: boolean;
   setVisible: (open: boolean) => void;
@@ -47,7 +49,7 @@ export const WalletModal: FC = () => {
   const close = useCallback(() => {
     setVisible(false);
   }, [setVisible]);
-
+  
   return (
     <MetaplexModal visible={visible} onCancel={close}>
       <Avatar className={LogoStyle} size={64} src='./logo.svg' />
@@ -112,6 +114,20 @@ export const WalletModalProvider: FC<{ children: ReactNode }> = ({
             base58.length,
           )}`
           : base58;
+
+      supabase.from('user_data')
+            .select('*')
+            .eq('wallet_address',base58)
+            .then(data=>{
+              if (data.body!=null && data.body.length==0) {
+                supabase.from('user_data')
+                  .insert([{
+                    wallet_address:base58
+                  }])
+                  .then()
+              }
+              
+            })
 
       notify({
         message: 'Wallet update',

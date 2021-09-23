@@ -28,6 +28,7 @@ import crypto from 'crypto';
 import { getAssetCostToStore } from '../utils/assets';
 import { AR_SOL_HOLDER_ID } from '../utils/ids';
 import BN from 'bn.js';
+import { supabase } from '../../supabaseClient';
 const RESERVED_TXN_MANIFEST = 'manifest.json';
 
 interface IArweaveResult {
@@ -214,13 +215,19 @@ export const mintNFT = async (
   const metadataFile = result.messages?.find(
     m => m.filename === RESERVED_TXN_MANIFEST,
   );
+  //TODO Add for filter another extension -> now: only filter png 
+  const imgFile = result.messages?.find(
+    m => m.filename.includes('png'),
+  );
+  
   if (metadataFile?.transactionId && wallet.publicKey) {
     const updateInstructions: TransactionInstruction[] = [];
     const updateSigners: Keypair[] = [];
 
     // TODO: connect to testnet arweave
     const arweaveLink = `https://arweave.net/${metadataFile.transactionId}`;
-    await updateMetadata(
+    const imgLink = `https://arweave.net/${imgFile?.transactionId}`;
+    let idNFT = await updateMetadata(
       new Data({
         name: metadata.name,
         symbol: metadata.symbol,
@@ -235,6 +242,7 @@ export const mintNFT = async (
       updateInstructions,
       metadataAccount,
     );
+    
 
     updateInstructions.push(
       Token.createMintToInstruction(
@@ -246,9 +254,10 @@ export const mintNFT = async (
         1,
       ),
     );
+    
     // // In this instruction, mint authority will be removed from the main mint, while
     // // minting authority will be maintained for the Printing mint (which we want.)
-    await createMasterEdition(
+    let masterEdition = await createMasterEdition(
       maxSupply !== undefined ? new BN(maxSupply) : undefined,
       mintKey,
       payerPublicKey,
@@ -257,6 +266,7 @@ export const mintNFT = async (
       updateInstructions,
     );
 
+    
     // TODO: enable when using payer account to avoid 2nd popup
     /*  if (maxSupply !== undefined)
       updateInstructions.push(
@@ -283,7 +293,23 @@ export const mintNFT = async (
       updateInstructions,
       updateSigners,
     );
+      supabase.from('nft_data')
+        .insert([{
+          id:idNFT,
+          img_nft:imgLink,
+          name:metadata.name,
+          description:metadata.description,
+          attribute:metadata.attributes,
+          max_supply:1,
+          royalty:metadata.sellerFeeBasisPoints,
+          arweave_link:arweaveLink
+        }])
+        .then(data=>{
+          console.log('data',data);
+          
+        })
 
+    
     notify({
       message: 'Art created on Solana',
       description: (
