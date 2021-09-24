@@ -427,21 +427,21 @@ export const AuctionCreateView = () => {
         : attributes.participationNFT,
       QUOTE_MINT.toBase58(),
     );
-    
+
     supabase.from('auction_status')
       .insert([{
-        id:_auctionObj.auction,
-        start_auction:attributes.startSaleTS,
-        end_auction:attributes.startSaleTS,
-        highest_bid:0,
-        id_nft:attributes.items[0].metadata.pubkey,
-        price_floor:attributes.priceFloor,
-        price_tick:attributes.priceTick,
-        gap_time:attributes.gapTime,
-        tick_size_ending_phase:attributes.tickSizeEndingPhase
+        id: _auctionObj.auction,
+        start_auction: attributes.startSaleTS,
+        end_auction: attributes.startSaleTS,
+        highest_bid: 0,
+        id_nft: attributes.items[0].metadata.pubkey,
+        price_floor: attributes.priceFloor,
+        price_tick: attributes.priceTick,
+        gap_time: attributes.gapTime,
+        tick_size_ending_phase: attributes.tickSizeEndingPhase
       }])
       .then()
-    
+
     setAuctionObj(_auctionObj);
   };
 
@@ -1942,9 +1942,9 @@ const Congrats = (props: {
       text: "I've created a new NFT auction on Metaplex, check it out!",
       url: `${window.location.origin
         }/#/auction/${props.auction?.auction.toString()}`,
-      hashtags: 'NFT,Crypto,Metaplex',
+      hashtags: 'NFT,Crypto,SUPADROP',
       // via: "Metaplex",
-      related: 'Metaplex,Solana',
+      related: 'SUPADROP,Solana',
     };
     const queryParams = new URLSearchParams(params).toString();
     return `https://twitter.com/intent/tweet?${queryParams}`;

@@ -29,6 +29,13 @@ export const CircleButton = css`
   vertical-align: -4px;
 `;
 
+export const LinkButton = css`
+  font-weight: bold;
+  color: #fafafb;
+  font-size: 14px;
+  margin: 0 18px;
+`;
+
 export const RoundButton = css`
   height: 42px;
   padding: 0 24px;

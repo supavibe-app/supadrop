@@ -133,7 +133,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
   const bids = useBidsForAuction(auctionView.id);
   const mintInfo = useMint(auctionView.token_mint);
 
-  const participationFixedPrice =  0;
+  const participationFixedPrice = 0;
   const participationOnly = false;
   const priceFloor = auctionView.price_floor;
   const isUpcoming = false;
@@ -165,7 +165,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
       hoverable={true}
       className={CardStyle}
       cover={
-        
+
         <ArtContent2
           className={AuctionImage}
           preview={false}
@@ -189,14 +189,14 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
                 <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
               </Col>
 
-              {/* <Col span={12}>
+              <Col span={12}>
                 <div>ending in</div>
                 <div className={NumberStyle}>
                   {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
                   {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
                   {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
                 </div>
-              </Col> */}
+              </Col>
             </Row>
           </>
         }
