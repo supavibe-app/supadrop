@@ -82,7 +82,7 @@ export interface MetaContextState extends MetaState {
   isLoading: boolean;
 }
 export interface MetaContextState extends MetaState {
-  liveDataAuction: ItemAuction[];
+  liveDataAuctions: { [key: string]: ItemAuction };
 }
 
 export type AccountAndPubkey = {

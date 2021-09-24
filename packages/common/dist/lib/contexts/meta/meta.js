@@ -33,7 +33,7 @@ const supabaseClient_1 = require("../../supabaseClient");
 const MetaContext = react_1.default.createContext({
     ...getEmptyMetaState_1.getEmptyMetaState(),
     isLoading: false,
-    liveDataAuction: []
+    liveDataAuctions: {}
 });
 function MetaProvider({ children = null }) {
     const connection = connection_1.useConnection();
@@ -41,7 +41,7 @@ function MetaProvider({ children = null }) {
     const searchParams = hooks_1.useQuerySearch();
     const all = searchParams.get('all') == 'true';
     const [state, setState] = react_1.useState(getEmptyMetaState_1.getEmptyMetaState());
-    const [liveDataAuction, setDataAuction] = react_1.useState([]);
+    const [liveDataAuctions, setDataAuction] = react_1.useState({});
     const [isLoading, setIsLoading] = react_1.useState(true);
     const updateMints = react_1.useCallback(async (metadataByMint) => {
         try {
@@ -87,10 +87,10 @@ function MetaProvider({ children = null }) {
         )
         `)
                 .then(dataAuction => {
-                let listData = [];
+                let listData = {};
                 if (dataAuction.body != null) {
                     dataAuction.body.forEach(v => {
-                        listData.push(new types_1.ItemAuction(v.id, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft));
+                        listData[v.id] = new types_1.ItemAuction(v.id, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft);
                     });
                     console.log("Query listData", listData);
                     setDataAuction(listData);
@@ -99,8 +99,8 @@ function MetaProvider({ children = null }) {
                 loadAccounts_1.loadAccounts(connection, all)
                     .then(nextState => {
                     let objAuctions = {};
-                    for (let i = 0; i < listData.length; i++) {
-                        objAuctions[`${listData[i].id}`] = nextState.auctions[listData[i].id];
+                    for (const key in listData) {
+                        objAuctions[`${listData[key].id}`] = nextState.auctions[listData[key].id];
                     }
                     console.log('------->Query finished');
                     console.log('date', new Date());
@@ -144,7 +144,7 @@ function MetaProvider({ children = null }) {
     return (react_1.default.createElement(MetaContext.Provider, { value: {
             ...state,
             isLoading,
-            liveDataAuction
+            liveDataAuctions
         } }, children));
 }
 exports.MetaProvider = MetaProvider;

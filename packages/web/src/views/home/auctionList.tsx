@@ -21,7 +21,7 @@ export const AuctionListView = () => {
   const auctions = useAuctions(AuctionViewState.Live);
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
   const [activeKey, setActiveKey] = useState(LiveAuctionViewState.All);
-  const { isLoading , liveDataAuction} = useMeta();
+  const { isLoading , liveDataAuctions} = useMeta();
   const { connected, publicKey } = useWallet();
   
   // Check if the auction is primary sale or not
@@ -97,7 +97,7 @@ export const AuctionListView = () => {
   const liveAuctionsView = (
     <>
       {!isLoading
-        ? liveDataAuction.map((m, idx) => {
+        ? liveDataAuctions.map((m, idx) => {
 
           const id = m.id;
           return (

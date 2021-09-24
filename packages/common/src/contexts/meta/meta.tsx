@@ -13,7 +13,7 @@ import { ParsedAccount } from '..';
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
   isLoading: false,
-  liveDataAuction:[]
+  liveDataAuctions:{}
 });
 
 export function MetaProvider({ children = null as any }) {
@@ -24,7 +24,7 @@ export function MetaProvider({ children = null as any }) {
 
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
 
-  const [liveDataAuction,setDataAuction] = useState<ItemAuction []>([])
+  const [liveDataAuctions,setDataAuction] = useState<{[key:string]:ItemAuction}>({})
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -78,10 +78,10 @@ export function MetaProvider({ children = null as any }) {
         )
         `)
         .then(dataAuction=>{
-          let listData : ItemAuction[] =  []
+          let listData : {[key:string]:ItemAuction} =  {}
           if (dataAuction.body != null) {
             dataAuction.body.forEach(v=>{
-              listData.push(new ItemAuction(v.id,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft))
+              listData[v.id] =new ItemAuction(v.id,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft)
             })
             console.log("Query listData",listData);
             
@@ -92,9 +92,8 @@ export function MetaProvider({ children = null as any }) {
           loadAccounts(connection, all)
           .then(nextState =>{
             let objAuctions:{[key:string]:ParsedAccount<AuctionData>} ={}
-            for (let i = 0; i < listData.length; i++) {
-
-              objAuctions[`${listData[i].id}`] =nextState.auctions[listData[i].id]
+            for (const key in listData) {
+              objAuctions[`${listData[key].id}`] =nextState.auctions[listData[key].id]
             }
             console.log('------->Query finished');
             console.log('date',new Date());
@@ -152,7 +151,7 @@ export function MetaProvider({ children = null as any }) {
       value={{
         ...state,
         isLoading,
-        liveDataAuction
+        liveDataAuctions
       }}
     >
       {children}
