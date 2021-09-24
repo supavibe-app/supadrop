@@ -11,6 +11,7 @@ import {
   AuctionCreateView,
   AuctionView,
 } from './views';
+import ActivityView from './views/activity';
 import { AdminView } from './views/admin';
 import { BillingView } from './views/auction/billing';
 import { AuctionListView } from './views/home/auctionList';
@@ -56,6 +57,7 @@ export function Routes() {
               component={() => <BillingView />}
             />
             <Route path="/auction" component={() => <AuctionListView />} />
+            <Route path="/activity" component={() => <ActivityView />} />
             <Route exact path="/" component={() => <PreSaleBanner />} />
           </Switch>
         </Providers>

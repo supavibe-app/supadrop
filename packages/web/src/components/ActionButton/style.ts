@@ -1,22 +1,21 @@
 import { css } from '@emotion/css';
 
-export const ButtonStyle = width => css`
+export const ButtonStyle = ({ height, width, fontSize, padding }) => css`
   position: relative;
   display: inline-block;
-  padding: 20px 32px;
+  padding: ${padding}px 32px;
   background-color: transparent;
   border: 2px solid #ccff00;
-  height: 78px;
-  width: ${width || 'fit-content'}px;
+  height: ${height}px;
+  width: ${width ? `${width}px` : 'fit-content'};
   min-width: fit-content;
   text-align: center;
 
   font-weight: bold;
-  font-size: 24px;
-  line-height: 30px;
+  font-size: ${fontSize}px;
   color: #ccff00;
 
-  box-shadow: 6px 6px 0 #ccff00;
+  box-shadow: 8px 8px 0 #ccff00;
   text-decoration: none;
 
   border-radius: 2px;
@@ -49,8 +48,8 @@ export const ButtonStyle = width => css`
   }
 
   :active {
-    top: 6px;
-    left: 6px;
+    top: 8px;
+    left: 8px;
     box-shadow: none;
 
     &:before {

@@ -3,15 +3,17 @@ import { queryExtendedMetadata } from './queryExtendedMetadata';
 import { subscribeAccountsChange } from './subscribeAccountsChange';
 import { getEmptyMetaState } from './getEmptyMetaState';
 import { loadAccounts } from './loadAccounts';
-import { MetaContextState, MetaState } from './types';
+import { MetaContextState, MetaState, ItemAuction } from './types';
 import { useConnection } from '../connection';
 import { useStore } from '../store';
 import { useQuerySearch } from '../../hooks';
 import {supabase} from '../../supabaseClient'
-
+import { AuctionData } from '../..';
+import { ParsedAccount } from '..';
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
   isLoading: false,
+  liveDataAuctions:{}
 });
 
 export function MetaProvider({ children = null as any }) {
@@ -21,6 +23,8 @@ export function MetaProvider({ children = null as any }) {
   const all = searchParams.get('all') == 'true';
 
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
+
+  const [liveDataAuctions,setDataAuction] = useState<{[key:string]:ItemAuction}>({})
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -55,7 +59,14 @@ export function MetaProvider({ children = null as any }) {
       } else if (!state.store) {
         setIsLoading(true);
       }
+      if (sessionStorage.getItem('testing')) {
+        let sessionAuction = JSON.parse(sessionStorage.getItem('testing')||"") as ParsedAccount<AuctionData>
 
+        console.log('session storage masih ada',sessionAuction);
+      }else{
+        console.log('sessiong storage gk ada');
+        
+      }
       console.log('-----> Query started');
       console.log('date',new Date());
       //TODO query end date
@@ -67,19 +78,33 @@ export function MetaProvider({ children = null as any }) {
         )
         `)
         .then(dataAuction=>{
-          console.log('data auction',dataAuction.body);
+          let listData : {[key:string]:ItemAuction} =  {}
+          if (dataAuction.body != null) {
+            dataAuction.body.forEach(v=>{
+              listData[v.id] =new ItemAuction(v.id,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft)
+            })
+            setDataAuction(listData)
+            
+          }
+          setIsLoading(false);
+          loadAccounts(connection, all)
+          .then(nextState =>{
+            let objAuctions:{[key:string]:ParsedAccount<AuctionData>} ={}
+            for (const key in listData) {
+              objAuctions[`${listData[key].id}`] =nextState.auctions[listData[key].id]
+            }
+            console.log('------->Query finished');
+            console.log('date',new Date());
+            setState(nextState);
+            updateMints(nextState.metadataByMint);
+            console.log('------->set finished');
+  
+          })
         })
-      const nextState = await loadAccounts(connection, all);
-      
-      console.log('------->Query finished');
-      console.log('date',new Date());
 
-      setState(nextState);
 
-      setIsLoading(false);
-      console.log('------->set finished');
 
-      updateMints(nextState.metadataByMint);
+
     })();
   }, [connection, setState, updateMints, storeAddress, isReady]);
 
@@ -124,6 +149,7 @@ export function MetaProvider({ children = null as any }) {
       value={{
         ...state,
         isLoading,
+        liveDataAuctions
       }}
     >
       {children}
