@@ -83,8 +83,6 @@ export function MetaProvider({ children = null as any }) {
             dataAuction.body.forEach(v=>{
               listData[v.id] =new ItemAuction(v.id,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft)
             })
-            console.log("Query listData",listData);
-            
             setDataAuction(listData)
             
           }

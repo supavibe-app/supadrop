@@ -97,9 +97,7 @@ export const AuctionListView = () => {
   const liveAuctionsView = (
     <>
       {!isLoading
-        ? liveDataAuctions.map((m, idx) => {
-
-          const id = m.id;
+        ? Object.entries(liveDataAuctions).map(([id,m], idx) => {
           return (
             <Link to={`/auction/${id}`} key={idx}>
               <AuctionRenderCard2 key={id} auctionView={m} />
