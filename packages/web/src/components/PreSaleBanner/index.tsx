@@ -45,7 +45,7 @@ export const PreSaleBanner = () => {
 
         <div className={ButtonWrapper}>
           {/* TODO-Iyai: Update to live auction url */}
-          <ActionButton to={`/auction`} />
+          <ActionButton to={`/auction`} size="large">view auction</ActionButton>
 
           <div className={SocialMediaButton}>
             <div className={DiscordButton}>
