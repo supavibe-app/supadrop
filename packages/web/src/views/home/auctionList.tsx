@@ -93,7 +93,7 @@ export const AuctionListView = () => {
           {liveAuctions.length > 0 ? (
             <Row gutter={[24, 24]}>{auctionList(liveAuctions)}</Row>
           ) : (
-            <div>
+            <div style={{ marginLeft: 28 }}>
               <div className={Timer}>
                 starting in
               </div>

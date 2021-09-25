@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { MouseEventHandler } from 'react';
 import { Link } from 'react-router-dom';
 
 import { ButtonStyle } from './style';
 
 interface IActionButton {
-  to: string;
-  width?: number;
+  to?: string;
+  width?: number | string;
   size?: "small" | "medium" | "large";
+  onClick?: MouseEventHandler<HTMLDivElement>;
   children: React.ReactNode;
+  disabled?: boolean;
 }
 
-const ActionButton = ({ to, size, width, children }: IActionButton) => {
+const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionButton) => {
   let height = 60;
   let fontSize = 16;
   let padding = 16;
@@ -28,9 +30,23 @@ const ActionButton = ({ to, size, width, children }: IActionButton) => {
       break;
   }
 
+  if (onClick) {
+    return <div onClick={onClick} className={ButtonStyle({ height, width, fontSize, padding, disabled })}>
+      {children}
+    </div>
+  }
+
+  if (to) {
+    return (
+      <Link className={ButtonStyle({ height, width, fontSize, padding, disabled })} to={to}>{children}</Link>
+    );
+  }
+
   return (
-    <Link className={ButtonStyle({ height, width, fontSize, padding })} to={to}>{children}</Link>
-  )
+    <div className={ButtonStyle({ height, width, fontSize, padding, disabled })}>
+      {children}
+    </div>
+  );
 };
 
 export default ActionButton;
