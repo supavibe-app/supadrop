@@ -9,16 +9,15 @@ export const TitleWrapper = css`
   font-size: 36px;
   font-weight: bold;
   align-items: center;
-  margin-bottom: 38px;
 `;
 
-export const LiveDot = css`
+export const LiveDot = isActive => css`
   width: 12px;
   height: 12px;
-  background: #ccff00;
+  background: ${isActive ? '#ccff00' : '#7E7C7C'};
   border-radius: 5px;
   margin-right: 16px;
-  animation: blinker 2s linear infinite;
+  ${isActive ? 'animation: blinker 2s linear infinite;' : null}
 
   @keyframes blinker {
     50% {
@@ -27,19 +26,42 @@ export const LiveDot = css`
   }
 `;
 
-export const MasonryGrid = css`
-  display: -webkit-box; /* Not needed if autoprefixing */
-  display: -ms-flexbox; /* Not needed if autoprefixing */
-  display: flex;
-  width: auto;
-  margin-left: auto;
-  margin-right: auto;
+export const TabsStyle = css`
+  color: #7e7c7c;
 
-  > div {
-    margin-bottom: 30px;
+  .ant-tabs-tab-active {
+    .ant-tabs-tab-btn {
+      color: #fafafb;
+    }
+  }
+
+  .ant-tabs-nav {
+    ::before {
+      content: none;
+    }
+  }
+
+  .ant-tabs-ink-bar {
+    display: none;
   }
 `;
 
-export const MasonryGridColumn = css`
-  background-clip: padding-box;
+export const Timer = css`
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 30px;
+  color: #ccff00;
+`;
+
+export const Label = css`
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 30px;
+  color: #7e7c7c;
+`;
+
+export const NumberStyle = css`
+  font-size: 48px;
+  font-weight: bold;
+  color: #fafafb;
 `;

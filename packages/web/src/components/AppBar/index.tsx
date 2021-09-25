@@ -6,7 +6,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import FeatherIcon from 'feather-icons-react';
 
 import { LABELS } from '../../constants';
-import { ButtonContainer, CircleButton, LogoWrapper, RoundButton, Title } from './style';
+import { ButtonContainer, CircleButton, LinkButton, LogoWrapper, RoundButton, Title } from './style';
 
 export const AppBar = () => {
   const { connected } = useWallet();
@@ -20,6 +20,12 @@ export const AppBar = () => {
         </Link>
 
         <div className={ButtonContainer}>
+          <Link to={`/activity`}>
+            <Button className={LinkButton} type="link">
+              ACTIVITY
+            </Button>
+          </Link>
+
           <Link to={`/auction/create/0`}>
             <Button className={RoundButton} type="default" shape="round">
               SELL

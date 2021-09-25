@@ -5,13 +5,20 @@ export const PageTitle = css`
   font-size: 36px;
   line-height: 45px;
   color: #fafafb;
-  margin: 36px 0;
+  margin: 56px 0 24px 0;
 `;
 
 export const TabStyle = css`
+  padding-bottom: 8px;
+
   .ant-tabs-nav {
     font-weight: bold;
     color: #7e7c7c;
+    margin-bottom: 32px;
+  }
+
+  .ant-tabs-tab + .ant-tabs-tab {
+    margin: 0 0 0 24px;
   }
 
   .ant-tabs-tab {
@@ -29,6 +36,7 @@ export const ActivityCard = css`
   border-radius: 2px;
   padding: 32px;
   justify-content: space-between;
+  margin-bottom: 32px;
 `;
 
 export const ImageCard = css`
@@ -80,4 +88,24 @@ export const StatusValue = css`
 export const Price = css`
   font-size: 36px;
   margin-bottom: 38px;
+`;
+
+export const ButtonWrapper = css`
+  padding-right: 8px;
+  padding-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+`;
+
+export const SubTitle = css`
+  font-size: 24px;
+  font-weight: bold;
+  color: #fafafb;
+`;
+
+export const Content = css`
+  font-size: 18px;
+  color: #7e7c7c;
+  margin-bottom: 36px;
 `;

@@ -66,7 +66,7 @@ const CachedImageContent = ({
       wrapperStyle={{ ...style }}
       onLoad={e => setLoaded(true)}
       placeholder={<ThreeDots />}
-      {...(loaded ? {} : { height: 512 })}
+      {...(loaded ? {} : null)}
     />
   );
 };
