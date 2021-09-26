@@ -24,6 +24,10 @@ auctioneerReclaimIndex) {
         utils_1.toPublicKey(vault).toBuffer(),
     ], utils_1.toPublicKey(PROGRAM_IDS.vault)))[0];
     const safetyDepositConfig = await _1.getSafetyDepositConfig(auctionManagerKey, safetyDeposit);
+    const auctionExtended = await actions_1.getAuctionExtended({
+        auctionProgramId: PROGRAM_IDS.auction,
+        resource: vault,
+    });
     const value = auctioneerReclaimIndex !== undefined
         ? new _1.RedeemUnusedWinningConfigItemsAsAuctioneerArgs({
             winningConfigItemIndex: auctioneerReclaimIndex,
@@ -124,6 +128,11 @@ auctioneerReclaimIndex) {
         },
         {
             pubkey: utils_1.toPublicKey(safetyDepositConfig),
+            isSigner: false,
+            isWritable: false,
+        },
+        {
+            pubkey: utils_1.toPublicKey(auctionExtended),
             isSigner: false,
             isWritable: false,
         },

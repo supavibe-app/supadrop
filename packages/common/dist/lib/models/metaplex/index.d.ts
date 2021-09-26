@@ -89,6 +89,7 @@ export declare class AuctionManagerV2 {
     vault: StringPublicKey;
     acceptPayment: StringPublicKey;
     state: AuctionManagerStateV2;
+    auctionDataExtended?: StringPublicKey;
     constructor(args: {
         store: StringPublicKey;
         authority: StringPublicKey;
@@ -123,6 +124,13 @@ export declare class RedeemFullRightsTransferBidArgs {
 }
 export declare class StartAuctionArgs {
     instruction: number;
+}
+export declare class EndAuctionArgs {
+    instruction: number;
+    reveal: BN[] | null;
+    constructor(args: {
+        reveal: BN[] | null;
+    });
 }
 export declare class ClaimBidArgs {
     instruction: number;

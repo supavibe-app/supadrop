@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBidRedemption = exports.getAuctionKeys = exports.getAuctionManagerKey = exports.SCHEMA = exports.ValidateSafetyDepositBoxV2Args = exports.SafetyDepositConfig = exports.InitAuctionManagerV2Args = exports.AmountRange = exports.TupleNumericType = exports.AuctionManagerStatus = exports.BidRedemptionTicketV2 = exports.Store = exports.WhitelistedCreator = exports.decodePayoutTicket = exports.decodeSafetyDepositConfig = exports.decodeBidRedemptionTicket = exports.decodeAuctionManager = exports.decodeStore = exports.WhitelistedCreatorParser = exports.decodeWhitelistedCreator = exports.decodePrizeTrackingTicket = exports.WinningConfigType = exports.NonWinningConstraint = exports.WinningConstraint = exports.RedeemParticipationBidV3Args = exports.WithdrawMasterEditionArgs = exports.RedeemPrintingV2BidArgs = exports.DecommissionAuctionManagerArgs = exports.SetWhitelistedCreatorArgs = exports.SetStoreArgs = exports.EmptyPaymentAccountArgs = exports.RedeemUnusedWinningConfigItemsAsAuctioneerArgs = exports.ProxyCallAddress = exports.ClaimBidArgs = exports.StartAuctionArgs = exports.RedeemFullRightsTransferBidArgs = exports.RedeemBidArgs = exports.ParticipationConfigV2 = exports.ParticipationStateV2 = exports.AuctionManagerStateV2 = exports.AuctionManagerV2 = exports.AuctionManager = exports.PayoutTicket = exports.PrizeTrackingTicket = exports.MetaplexKey = exports.MAX_WHITELISTED_CREATOR_SIZE = exports.MAX_PRIZE_TRACKING_TICKET_SIZE = exports.ORIGINAL_AUTHORITY_LOOKUP_SIZE = exports.TOTALS = exports.METAPLEX_PREFIX = void 0;
-exports.getPayoutTicket = exports.getSafetyDepositConfig = exports.getAuctionWinnerTokenTypeTracker = exports.getPrizeTrackingTicket = exports.getWhitelistedCreator = exports.isCreatorPartOfTheStore = exports.getOriginalAuthority = exports.getBidderKeys = void 0;
+exports.getAuctionKeys = exports.getAuctionManagerKey = exports.SCHEMA = exports.ValidateSafetyDepositBoxV2Args = exports.SafetyDepositConfig = exports.InitAuctionManagerV2Args = exports.AmountRange = exports.TupleNumericType = exports.AuctionManagerStatus = exports.BidRedemptionTicketV2 = exports.Store = exports.WhitelistedCreator = exports.decodePayoutTicket = exports.decodeSafetyDepositConfig = exports.decodeBidRedemptionTicket = exports.decodeAuctionManager = exports.decodeStore = exports.WhitelistedCreatorParser = exports.decodeWhitelistedCreator = exports.decodePrizeTrackingTicket = exports.WinningConfigType = exports.NonWinningConstraint = exports.WinningConstraint = exports.RedeemParticipationBidV3Args = exports.WithdrawMasterEditionArgs = exports.RedeemPrintingV2BidArgs = exports.DecommissionAuctionManagerArgs = exports.SetWhitelistedCreatorArgs = exports.SetStoreArgs = exports.EmptyPaymentAccountArgs = exports.RedeemUnusedWinningConfigItemsAsAuctioneerArgs = exports.ProxyCallAddress = exports.ClaimBidArgs = exports.EndAuctionArgs = exports.StartAuctionArgs = exports.RedeemFullRightsTransferBidArgs = exports.RedeemBidArgs = exports.ParticipationConfigV2 = exports.ParticipationStateV2 = exports.AuctionManagerStateV2 = exports.AuctionManagerV2 = exports.AuctionManager = exports.PayoutTicket = exports.PrizeTrackingTicket = exports.MetaplexKey = exports.MAX_WHITELISTED_CREATOR_SIZE = exports.MAX_PRIZE_TRACKING_TICKET_SIZE = exports.ORIGINAL_AUTHORITY_LOOKUP_SIZE = exports.TOTALS = exports.METAPLEX_PREFIX = void 0;
+exports.getPayoutTicket = exports.getSafetyDepositConfig = exports.getAuctionWinnerTokenTypeTracker = exports.getPrizeTrackingTicket = exports.getWhitelistedCreator = exports.isCreatorPartOfTheStore = exports.getOriginalAuthority = exports.getBidderKeys = exports.getBidRedemption = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const bn_js_1 = __importDefault(require("bn.js"));
 const bs58_1 = __importDefault(require("bs58"));
@@ -197,6 +197,11 @@ class AuctionManagerV2 {
         this.vault = args.vault;
         this.acceptPayment = args.acceptPayment;
         this.state = args.state;
+        const auction = utils_1.programIds().auction;
+        actions_1.getAuctionExtended({
+            auctionProgramId: auction,
+            resource: this.vault,
+        }).then(val => (this.auctionDataExtended = val));
     }
 }
 exports.AuctionManagerV2 = AuctionManagerV2;
@@ -244,6 +249,13 @@ class StartAuctionArgs {
     }
 }
 exports.StartAuctionArgs = StartAuctionArgs;
+class EndAuctionArgs {
+    constructor(args) {
+        this.instruction = 21;
+        this.reveal = args.reveal;
+    }
+}
+exports.EndAuctionArgs = EndAuctionArgs;
 class ClaimBidArgs {
     constructor() {
         this.instruction = 6;
@@ -790,6 +802,16 @@ exports.SCHEMA = new Map([
         {
             kind: 'struct',
             fields: [['instruction', 'u8']],
+        },
+    ],
+    [
+        EndAuctionArgs,
+        {
+            kind: 'struct',
+            fields: [
+                ['instruction', 'u8'],
+                ['reveal', { kind: 'option', type: [bn_js_1.default] }],
+            ],
         },
     ],
     [

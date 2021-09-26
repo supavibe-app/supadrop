@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadAnchorProgram = exports.loadWalletKey = exports.getMasterEdition = exports.getMetadata = exports.getConfig = exports.getCandyMachineAddress = exports.getTokenWallet = exports.uuidFromConfigPubkey = exports.createConfig = void 0;
+exports.loadFairLaunchProgram = exports.loadCandyProgram = exports.loadWalletKey = exports.getMasterEdition = exports.getMetadata = exports.getTreasury = exports.getAtaForMint = exports.getFairLaunchTicketSeqLookup = exports.getFairLaunchLotteryBitmap = exports.getFairLaunchTicket = exports.getFairLaunch = exports.getTokenMint = exports.getConfig = exports.getCandyMachineAddress = exports.getTokenWallet = exports.uuidFromConfigPubkey = exports.createConfig = void 0;
 var web3_js_1 = require("@solana/web3.js");
 var constants_1 = require("./constants");
 var anchor = __importStar(require("@project-serum/anchor"));
@@ -147,6 +147,74 @@ var getConfig = function (authority, uuid) { return __awaiter(void 0, void 0, vo
     });
 }); };
 exports.getConfig = getConfig;
+var getTokenMint = function (authority, uuid) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([
+                    Buffer.from('fair_launch'),
+                    authority.toBuffer(),
+                    Buffer.from('mint'),
+                    Buffer.from(uuid),
+                ], constants_1.FAIR_LAUNCH_PROGRAM_ID)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.getTokenMint = getTokenMint;
+var getFairLaunch = function (tokenMint) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([Buffer.from('fair_launch'), tokenMint.toBuffer()], constants_1.FAIR_LAUNCH_PROGRAM_ID)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.getFairLaunch = getFairLaunch;
+var getFairLaunchTicket = function (tokenMint, buyer) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([Buffer.from('fair_launch'), tokenMint.toBuffer(), buyer.toBuffer()], constants_1.FAIR_LAUNCH_PROGRAM_ID)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.getFairLaunchTicket = getFairLaunchTicket;
+var getFairLaunchLotteryBitmap = function (tokenMint) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([Buffer.from('fair_launch'), tokenMint.toBuffer(), Buffer.from('lottery')], constants_1.FAIR_LAUNCH_PROGRAM_ID)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.getFairLaunchLotteryBitmap = getFairLaunchLotteryBitmap;
+var getFairLaunchTicketSeqLookup = function (tokenMint, seq) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([Buffer.from('fair_launch'), tokenMint.toBuffer(), seq.toBuffer('le', 8)], constants_1.FAIR_LAUNCH_PROGRAM_ID)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.getFairLaunchTicketSeqLookup = getFairLaunchTicketSeqLookup;
+var getAtaForMint = function (mint, buyer) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([buyer.toBuffer(), constants_1.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()], constants_1.SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.getAtaForMint = getAtaForMint;
+var getTreasury = function (tokenMint) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([Buffer.from('fair_launch'), tokenMint.toBuffer(), Buffer.from('treasury')], constants_1.FAIR_LAUNCH_PROGRAM_ID)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.getTreasury = getTreasury;
 var getMetadata = function (mint) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -175,12 +243,15 @@ var getMasterEdition = function (mint) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.getMasterEdition = getMasterEdition;
 function loadWalletKey(keypair) {
+    if (!keypair || keypair == '') {
+        throw new Error("Keypair is required!");
+    }
     var loaded = web3_js_1.Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs_1.default.readFileSync(keypair).toString())));
     loglevel_1.default.info("wallet public key: " + loaded.publicKey);
     return loaded;
 }
 exports.loadWalletKey = loadWalletKey;
-function loadAnchorProgram(walletKeyPair, env) {
+function loadCandyProgram(walletKeyPair, env) {
     return __awaiter(this, void 0, void 0, function () {
         var solConnection, walletWrapper, provider, idl, program;
         return __generator(this, function (_a) {
@@ -195,10 +266,30 @@ function loadAnchorProgram(walletKeyPair, env) {
                 case 1:
                     idl = _a.sent();
                     program = new anchor.Program(idl, constants_1.CANDY_MACHINE_PROGRAM_ID, provider);
-                    loglevel_1.default.debug("program id from anchor", program.programId.toBase58());
+                    loglevel_1.default.debug('program id from anchor', program.programId.toBase58());
                     return [2 /*return*/, program];
             }
         });
     });
 }
-exports.loadAnchorProgram = loadAnchorProgram;
+exports.loadCandyProgram = loadCandyProgram;
+function loadFairLaunchProgram(walletKeyPair, env) {
+    return __awaiter(this, void 0, void 0, function () {
+        var solConnection, walletWrapper, provider, idl;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    solConnection = new anchor.web3.Connection(anchor_1.web3.clusterApiUrl(env));
+                    walletWrapper = new anchor.Wallet(walletKeyPair);
+                    provider = new anchor.Provider(solConnection, walletWrapper, {
+                        preflightCommitment: 'recent',
+                    });
+                    return [4 /*yield*/, anchor.Program.fetchIdl(constants_1.FAIR_LAUNCH_PROGRAM_ID, provider)];
+                case 1:
+                    idl = _a.sent();
+                    return [2 /*return*/, new anchor.Program(idl, constants_1.FAIR_LAUNCH_PROGRAM_ID, provider)];
+            }
+        });
+    });
+}
+exports.loadFairLaunchProgram = loadFairLaunchProgram;

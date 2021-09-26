@@ -20,6 +20,10 @@ async function claimBid(acceptPayment, bidder, bidderPotToken, vault, tokenMint,
     });
     const value = new _1.ClaimBidArgs();
     const data = Buffer.from(borsh_1.serialize(_1.SCHEMA, value));
+    const auctionExtendedKey = await actions_1.getAuctionExtended({
+        auctionProgramId: PROGRAM_IDS.auction,
+        resource: vault,
+    });
     const keys = [
         {
             pubkey: utils_1.toPublicKey(acceptPayment),
@@ -78,6 +82,11 @@ async function claimBid(acceptPayment, bidder, bidderPotToken, vault, tokenMint,
         },
         {
             pubkey: PROGRAM_IDS.token,
+            isSigner: false,
+            isWritable: false,
+        },
+        {
+            pubkey: utils_1.toPublicKey(auctionExtendedKey),
             isSigner: false,
             isWritable: false,
         },

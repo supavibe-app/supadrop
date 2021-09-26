@@ -21,6 +21,10 @@ async function redeemPrintingV2Bid(vault, safetyDepositTokenStore, tokenAccount,
     const editionMarkPda = await actions_1.getEditionMarkPda(originalMint, edition);
     const value = new _1.RedeemPrintingV2BidArgs({ editionOffset, winIndex });
     const data = Buffer.from(borsh_1.serialize(_1.SCHEMA, value));
+    const extended = await actions_1.getAuctionExtended({
+        auctionProgramId: PROGRAM_IDS.auction,
+        resource: vault,
+    });
     const keys = [
         {
             pubkey: utils_1.toPublicKey(auctionManagerKey),
@@ -148,6 +152,11 @@ async function redeemPrintingV2Bid(vault, safetyDepositTokenStore, tokenAccount,
         },
         {
             pubkey: utils_1.toPublicKey(metadata),
+            isSigner: false,
+            isWritable: false,
+        },
+        {
+            pubkey: utils_1.toPublicKey(extended),
             isSigner: false,
             isWritable: false,
         },

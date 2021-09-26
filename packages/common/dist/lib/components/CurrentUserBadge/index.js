@@ -44,6 +44,48 @@ const CurrentUserBadge = (props) => {
         setShowEditProfile(true);
         setShowPopover(false);
     };
+    const iconStyle = props.showAddress
+        ? {
+            marginLeft: '0.5rem',
+            display: 'flex',
+            width: props.iconSize || 20,
+            borderRadius: 50,
+        }
+        : {
+            display: 'flex',
+            width: props.iconSize || 20,
+            paddingLeft: 0,
+            borderRadius: 50,
+        };
+    const baseWalletKey = {
+        height: props.iconSize,
+        cursor: 'pointer',
+        userSelect: 'none',
+    };
+    const walletKeyStyle = props.showAddress
+        ? baseWalletKey
+        : { ...baseWalletKey, paddingLeft: 0 };
+    //   return (
+    //     <div className="wallet-wrapper">
+    //       {props.showBalance && (
+    //         <span>
+    //           {formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL)} SOL
+    //         </span>
+    //       )}
+    //
+    //       <Popover
+    //         placement="topRight"
+    //         title="Settings"
+    //         content={<Settings />}
+    //         trigger="click"
+    //       >
+    //         <div className="wallet-key" style={walletKeyStyle}>
+    //           <span style={{ marginRight: '0.5rem' }}>{wallet.name}</span>
+    //           <img src={wallet.icon} style={iconStyle} />
+    //         </div>
+    //       </Popover>
+    //     </div>
+    //   );
     return (react_1.default.createElement(react_1.default.Fragment, null,
         react_1.default.createElement("div", { className: "wallet-wrapper" },
             react_1.default.createElement(antd_1.Popover, { overlayClassName: style_1.ProfilePopover, color: "#000000", content: react_1.default.createElement(Settings_1.Settings, { setShowEdit: handleShowEditProfile }), trigger: "click", onVisibleChange: visible => setShowPopover(visible), visible: showPopover },

@@ -10,25 +10,6 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -76,19 +57,18 @@ var accounts_1 = require("../helpers/accounts");
 var web3_js_1 = require("@solana/web3.js");
 var fs_1 = __importDefault(require("fs"));
 var bn_js_1 = __importDefault(require("bn.js"));
-var anchor = __importStar(require("@project-serum/anchor"));
-var transactions_1 = require("../helpers/transactions");
-var form_data_1 = __importDefault(require("form-data"));
 var cache_1 = require("../helpers/cache");
-var node_fetch_1 = __importDefault(require("node-fetch"));
 var loglevel_1 = __importDefault(require("loglevel"));
-function upload(files, cacheName, env, keypair, totalNFTs) {
-    var _a, _b, _c;
+var arweave_1 = require("../helpers/upload/arweave");
+var ipfs_1 = require("../helpers/upload/ipfs");
+var various_1 = require("../helpers/various");
+function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthority, ipfsCredentials) {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var uploadSuccessful, savedContent, cacheContent, existingInCache, seen, newFiles, images, SIZE, walletKeyPair, anchorProgram, config, i, image, imageName, index, storageCost, link, manifestPath, manifestContent, manifest, manifestBuffer, res, exx_1, instructions, tx, data, result, metadataFile, er_1, keys, e_1;
+        var uploadSuccessful, savedContent, cacheContent, existingInCache, seen, newFiles, images, SIZE, walletKeyPair, anchorProgram, config, i, image, imageName, index, link, manifestPath, manifestContent, manifest, manifestBuffer, res, exx_1, er_1, keys, e_1;
         var _this = this;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     uploadSuccessful = true;
                     savedContent = cache_1.loadCache(cacheName, env);
@@ -120,16 +100,16 @@ function upload(files, cacheName, env, keypair, totalNFTs) {
                     images = newFiles.filter(function (val) { return path_1.default.extname(val) === constants_1.EXTENSION_PNG; });
                     SIZE = images.length;
                     walletKeyPair = accounts_1.loadWalletKey(keypair);
-                    return [4 /*yield*/, accounts_1.loadAnchorProgram(walletKeyPair, env)];
+                    return [4 /*yield*/, accounts_1.loadCandyProgram(walletKeyPair, env)];
                 case 1:
-                    anchorProgram = _d.sent();
+                    anchorProgram = _c.sent();
                     config = cacheContent.program.config
                         ? new web3_js_1.PublicKey(cacheContent.program.config)
                         : undefined;
                     i = 0;
-                    _d.label = 2;
+                    _c.label = 2;
                 case 2:
-                    if (!(i < SIZE)) return [3 /*break*/, 12];
+                    if (!(i < SIZE)) return [3 /*break*/, 14];
                     image = images[i];
                     imageName = path_1.default.basename(image);
                     index = imageName.replace(constants_1.EXTENSION_PNG, '');
@@ -137,9 +117,8 @@ function upload(files, cacheName, env, keypair, totalNFTs) {
                     if (i % 50 === 0) {
                         loglevel_1.default.info("Processing file: " + i);
                     }
-                    storageCost = 10;
                     link = (_b = (_a = cacheContent === null || cacheContent === void 0 ? void 0 : cacheContent.items) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.link;
-                    if (!(!link || !cacheContent.program.uuid)) return [3 /*break*/, 11];
+                    if (!(!link || !cacheContent.program.uuid)) return [3 /*break*/, 13];
                     manifestPath = image.replace(constants_1.EXTENSION_PNG, '.json');
                     manifestContent = fs_1.default
                         .readFileSync(manifestPath)
@@ -151,16 +130,16 @@ function upload(files, cacheName, env, keypair, totalNFTs) {
                     if (!(i === 0 && !cacheContent.program.uuid)) return [3 /*break*/, 6];
                     // initialize config
                     loglevel_1.default.info("initializing config");
-                    _d.label = 3;
+                    _c.label = 3;
                 case 3:
-                    _d.trys.push([3, 5, , 6]);
+                    _c.trys.push([3, 5, , 6]);
                     return [4 /*yield*/, accounts_1.createConfig(anchorProgram, walletKeyPair, {
                             maxNumberOfLines: new bn_js_1.default(totalNFTs),
                             symbol: manifest.symbol,
                             sellerFeeBasisPoints: manifest.seller_fee_basis_points,
                             isMutable: true,
                             maxSupply: new bn_js_1.default(0),
-                            retainAuthority: true,
+                            retainAuthority: retainAuthority,
                             creators: manifest.properties.creators.map(function (creator) {
                                 return {
                                     address: new web3_js_1.PublicKey(creator.address),
@@ -170,7 +149,7 @@ function upload(files, cacheName, env, keypair, totalNFTs) {
                             }),
                         })];
                 case 4:
-                    res = _d.sent();
+                    res = _c.sent();
                     cacheContent.program.uuid = res.uuid;
                     cacheContent.program.config = res.config.toBase58();
                     config = res.config;
@@ -178,59 +157,51 @@ function upload(files, cacheName, env, keypair, totalNFTs) {
                     cache_1.saveCache(cacheName, env, cacheContent);
                     return [3 /*break*/, 6];
                 case 5:
-                    exx_1 = _d.sent();
+                    exx_1 = _c.sent();
                     loglevel_1.default.error('Error deploying config to Solana network.', exx_1);
                     throw exx_1;
                 case 6:
-                    if (!!link) return [3 /*break*/, 11];
-                    instructions = [
-                        anchor.web3.SystemProgram.transfer({
-                            fromPubkey: walletKeyPair.publicKey,
-                            toPubkey: constants_1.ARWEAVE_PAYMENT_WALLET,
-                            lamports: storageCost,
-                        }),
-                    ];
-                    return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(anchorProgram.provider.connection, walletKeyPair, instructions, [], 'single')];
+                    if (!!link) return [3 /*break*/, 13];
+                    _c.label = 7;
                 case 7:
-                    tx = _d.sent();
-                    loglevel_1.default.debug('transaction for arweave payment:', tx);
-                    data = new form_data_1.default();
-                    data.append('transaction', tx['txid']);
-                    data.append('env', env);
-                    data.append('file[]', fs_1.default.createReadStream(image), { filename: "image.png", contentType: 'image/png' });
-                    data.append('file[]', manifestBuffer, 'metadata.json');
-                    _d.label = 8;
+                    _c.trys.push([7, 12, , 13]);
+                    if (!(storage === 'arweave')) return [3 /*break*/, 9];
+                    return [4 /*yield*/, arweave_1.arweaveUpload(walletKeyPair, anchorProgram, env, image, manifestBuffer, manifest, index)];
                 case 8:
-                    _d.trys.push([8, 10, , 11]);
-                    return [4 /*yield*/, uploadToArweave(data, manifest, index)];
-                case 9:
-                    result = _d.sent();
-                    metadataFile = (_c = result.messages) === null || _c === void 0 ? void 0 : _c.find(function (m) { return m.filename === 'manifest.json'; });
-                    if (metadataFile === null || metadataFile === void 0 ? void 0 : metadataFile.transactionId) {
-                        link = "https://arweave.net/" + metadataFile.transactionId;
-                        loglevel_1.default.debug("File uploaded: " + link);
-                    }
-                    cacheContent.items[index] = {
-                        link: link,
-                        name: manifest.name,
-                        onChain: false,
-                    };
-                    cache_1.saveCache(cacheName, env, cacheContent);
+                    link = _c.sent();
                     return [3 /*break*/, 11];
+                case 9:
+                    if (!(storage === 'ipfs')) return [3 /*break*/, 11];
+                    return [4 /*yield*/, ipfs_1.ipfsUpload(ipfsCredentials, image, manifestBuffer)];
                 case 10:
-                    er_1 = _d.sent();
+                    link = _c.sent();
+                    _c.label = 11;
+                case 11:
+                    if (link) {
+                        loglevel_1.default.debug('setting cache for ', index);
+                        cacheContent.items[index] = {
+                            link: link,
+                            name: manifest.name,
+                            onChain: false,
+                        };
+                        cacheContent.authority = walletKeyPair.publicKey.toBase58();
+                        cache_1.saveCache(cacheName, env, cacheContent);
+                    }
+                    return [3 /*break*/, 13];
+                case 12:
+                    er_1 = _c.sent();
                     uploadSuccessful = false;
                     loglevel_1.default.error("Error uploading file " + index, er_1);
-                    return [3 /*break*/, 11];
-                case 11:
+                    return [3 /*break*/, 13];
+                case 13:
                     i++;
                     return [3 /*break*/, 2];
-                case 12:
+                case 14:
                     keys = Object.keys(cacheContent.items);
-                    _d.label = 13;
-                case 13:
-                    _d.trys.push([13, 15, 16, 17]);
-                    return [4 /*yield*/, Promise.all(chunks(Array.from(Array(keys.length).keys()), 1000).map(function (allIndexesInSlice) { return __awaiter(_this, void 0, void 0, function () {
+                    _c.label = 15;
+                case 15:
+                    _c.trys.push([15, 17, 18, 19]);
+                    return [4 /*yield*/, Promise.all(various_1.chunks(Array.from(Array(keys.length).keys()), 1000).map(function (allIndexesInSlice) { return __awaiter(_this, void 0, void 0, function () {
                             var offset, indexes, onChain, ind, e_2;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
@@ -280,17 +251,17 @@ function upload(files, cacheName, env, keypair, totalNFTs) {
                                 }
                             });
                         }); }))];
-                case 14:
-                    _d.sent();
-                    return [3 /*break*/, 17];
-                case 15:
-                    e_1 = _d.sent();
-                    loglevel_1.default.error(e_1);
-                    return [3 /*break*/, 17];
                 case 16:
+                    _c.sent();
+                    return [3 /*break*/, 19];
+                case 17:
+                    e_1 = _c.sent();
+                    loglevel_1.default.error(e_1);
+                    return [3 /*break*/, 19];
+                case 18:
                     cache_1.saveCache(cacheName, env, cacheContent);
                     return [7 /*endfinally*/];
-                case 17:
+                case 19:
                     console.log("Done. Successful = " + uploadSuccessful + ".");
                     return [2 /*return*/, uploadSuccessful];
             }
@@ -298,23 +269,3 @@ function upload(files, cacheName, env, keypair, totalNFTs) {
     });
 }
 exports.upload = upload;
-function uploadToArweave(data, manifest, index) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    loglevel_1.default.debug("trying to upload " + index + ".png: " + manifest.name);
-                    return [4 /*yield*/, node_fetch_1.default('https://us-central1-principal-lane-200702.cloudfunctions.net/uploadFile4', {
-                            method: 'POST',
-                            // @ts-ignore
-                            body: data,
-                        })];
-                case 1: return [4 /*yield*/, (_a.sent()).json()];
-                case 2: return [2 /*return*/, _a.sent()];
-            }
-        });
-    });
-}
-function chunks(array, size) {
-    return Array.apply(0, new Array(Math.ceil(array.length / size))).map(function (_, index) { return array.slice(index * size, (index + 1) * size); });
-}

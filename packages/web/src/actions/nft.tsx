@@ -198,28 +198,40 @@ export const mintNFT = async (
   realFiles.map(f => data.append('file[]', f));
 
   // TODO: convert to absolute file name for image
+  console.log("env",env);
+  
+  const uploadArweaveResponse =  await fetch(
+    // TODO: add CNAME
+    env.startsWith('mainnet-beta')
+      ? 'https://us-central1-principal-lane-200702.cloudfunctions.net/uploadFileProd2'
+      : 'https://us-central1-principal-lane-200702.cloudfunctions.net/uploadFile2',
+    {
+      method: 'POST',
+      body: data,
+    },
+  )
+  console.log("🚀 ~ file: nft.tsx ~ line 211 ~ uploadArweaveResponse", uploadArweaveResponse)
 
-  const result: IArweaveResult = await (
-    await fetch(
-      // TODO: add CNAME
-      env.startsWith('mainnet-beta')
-        ? 'https://us-central1-principal-lane-200702.cloudfunctions.net/uploadFileProd2'
-        : 'https://us-central1-principal-lane-200702.cloudfunctions.net/uploadFile2',
-      {
-        method: 'POST',
-        body: data,
-      },
-    )
-  ).json();
+  if (!uploadArweaveResponse.ok) {
+    return Promise.reject(new Error("Unable to upload the artwork to Arweave. Please wait and then try again."))
+  }
+
+  const result: IArweaveResult = await uploadArweaveResponse.json();
+
+  if (result.error) {
+    return Promise.reject(new Error(result.error))
+  }
+
+  console.log("test: ", result);
+  console.log("test2: ", wallet.publicKey);
 
   const metadataFile = result.messages?.find(
     m => m.filename === RESERVED_TXN_MANIFEST,
   );
-  //TODO Add for filter another extension -> now: only filter png 
   const imgFile = result.messages?.find(
     m => m.filename.includes('png'),
   );
-  
+
   if (metadataFile?.transactionId && wallet.publicKey) {
     const updateInstructions: TransactionInstruction[] = [];
     const updateSigners: Keypair[] = [];
@@ -242,7 +254,6 @@ export const mintNFT = async (
       updateInstructions,
       metadataAccount,
     );
-    
 
     updateInstructions.push(
       Token.createMintToInstruction(
@@ -254,10 +265,9 @@ export const mintNFT = async (
         1,
       ),
     );
-    
     // // In this instruction, mint authority will be removed from the main mint, while
     // // minting authority will be maintained for the Printing mint (which we want.)
-    let masterEdition = await createMasterEdition(
+    await createMasterEdition(
       maxSupply !== undefined ? new BN(maxSupply) : undefined,
       mintKey,
       payerPublicKey,
@@ -266,7 +276,6 @@ export const mintNFT = async (
       updateInstructions,
     );
 
-    
     // TODO: enable when using payer account to avoid 2nd popup
     /*  if (maxSupply !== undefined)
       updateInstructions.push(
@@ -306,7 +315,6 @@ export const mintNFT = async (
         }])
         .then()
 
-    
     notify({
       message: 'Art created on Solana',
       description: (

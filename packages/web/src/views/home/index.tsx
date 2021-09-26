@@ -1,3 +1,4 @@
+import { Layout } from 'antd';
 import React from 'react';
 import { useStore } from '@oyster/common';
 import { useMeta } from '../../contexts';
@@ -10,5 +11,11 @@ export const HomeView = () => {
 
   const showAuctions = (store && isConfigured) || isLoading;
 
-  return showAuctions ? <AuctionListView /> : <SetupView />;
+return showAuctions ? <AuctionListView /> : <SetupView />;
+
+  // return (
+  //   <Layout style={{ margin: 0, marginTop: 30, alignItems: 'center' }}>
+  //     {showAuctions ? <AuctionListView /> : <SetupView />}
+  //   </Layout>
+  // )
 };
