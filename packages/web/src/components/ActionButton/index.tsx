@@ -30,13 +30,13 @@ const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionB
       break;
   }
 
-  if (onClick) {
+  if (!disabled && onClick) {
     return <div onClick={onClick} className={ButtonStyle({ height, width, fontSize, padding, disabled })}>
       {children}
     </div>
   }
 
-  if (to) {
+  if (!disabled && to) {
     return (
       <Link className={ButtonStyle({ height, width, fontSize, padding, disabled })} to={to}>{children}</Link>
     );

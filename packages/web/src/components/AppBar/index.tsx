@@ -51,7 +51,7 @@ export const AppBar = () => {
 
       <div className={ButtonContainer}>
         <ConnectButton type="default" allowWalletChange />
-        <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} />
+        {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
       </div>
     </>
   );

@@ -41,7 +41,7 @@ export const AuctionNumbers = () => {
 
     calc();
     return () => clearInterval(interval);
-  });
+  }, [setState]);
 
   return (
     <div style={{ marginBottom: 48 }}>

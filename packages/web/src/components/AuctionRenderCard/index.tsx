@@ -104,7 +104,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 
             <Row>
               <Col span={12}>
-                <div>current bid</div>
+                <div>{label}</div>
                 <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
               </Col>
 
@@ -185,7 +185,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
 
             <Row>
               <Col span={12}>
-                <div>current bid</div>
+                <div>{label}</div>
                 <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
               </Col>
 
