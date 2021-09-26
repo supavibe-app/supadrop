@@ -462,6 +462,8 @@ export const AuctionCreateView = () => {
         : attributes.participationNFT,
       QUOTE_MINT.toBase58(),
     );
+    //TODO add Supabase Auction
+
     setAuctionObj(_auctionObj);
   };
 

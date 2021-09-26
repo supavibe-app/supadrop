@@ -42,7 +42,7 @@ export type ENV =
 export const ENDPOINTS = [
   {
     name: 'mainnet-beta' as ENV,
-    endpoint: process.env.NEXT_PUBLIC_ENDPOINT || "'https://api.metaplex.solana.com'",
+    endpoint: 'https://api.metaplex.solana.com',
     ChainId: ChainId.MainnetBeta,
   },
   {
@@ -66,8 +66,8 @@ export const ENDPOINTS = [
     ChainId: ChainId.Devnet,
   },
 ];
-
-const DEFAULT = ENDPOINTS[0].endpoint;
+const defaultEndpoint = ENDPOINTS[Number(process.env.NEXT_PUBLIC_ENDPOINT)]
+const DEFAULT = defaultEndpoint.endpoint;
 
 interface ConnectionConfig {
   connection: Connection;
@@ -82,7 +82,7 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   endpoint: DEFAULT,
   setEndpoint: () => {},
   connection: new Connection(DEFAULT, 'recent'),
-  env: ENDPOINTS[0].name,
+  env: defaultEndpoint.name,
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
 });
@@ -95,7 +95,7 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   const [savedEndpoint, setEndpoint] = useLocalStorageState(
     'connectionEndpoint',
-    ENDPOINTS[0].endpoint,
+    defaultEndpoint.endpoint,
   );
   const endpoint = queryEndpoint || savedEndpoint;
 
@@ -105,7 +105,7 @@ export function ConnectionProvider({ children = undefined as any }) {
   );
 
   const env =
-    ENDPOINTS.find(end => end.endpoint === endpoint)?.name || ENDPOINTS[0].name;
+    ENDPOINTS.find(end => end.endpoint === endpoint)?.name || defaultEndpoint.name;
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
@@ -172,6 +172,7 @@ export function useConnection() {
 
 export function useConnectionConfig() {
   const context = useContext(ConnectionContext);
+  
   return {
     endpoint: context.endpoint,
     setEndpoint: context.setEndpoint,

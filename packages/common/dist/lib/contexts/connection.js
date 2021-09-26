@@ -31,7 +31,7 @@ const wallet_adapter_base_1 = require("@solana/wallet-adapter-base");
 exports.ENDPOINTS = [
     {
         name: 'mainnet-beta',
-        endpoint: process.env.NEXT_PUBLIC_ENDPOINT || "'https://api.metaplex.solana.com'",
+        endpoint: 'https://api.metaplex.solana.com',
         ChainId: spl_token_registry_1.ENV.MainnetBeta,
     },
     {
@@ -55,12 +55,13 @@ exports.ENDPOINTS = [
         ChainId: spl_token_registry_1.ENV.Devnet,
     },
 ];
-const DEFAULT = exports.ENDPOINTS[0].endpoint;
+const defaultEndpoint = exports.ENDPOINTS[Number(process.env.NEXT_PUBLIC_ENDPOINT)];
+const DEFAULT = defaultEndpoint.endpoint;
 const ConnectionContext = react_1.default.createContext({
     endpoint: DEFAULT,
     setEndpoint: () => { },
     connection: new web3_js_1.Connection(DEFAULT, 'recent'),
-    env: exports.ENDPOINTS[0].name,
+    env: defaultEndpoint.name,
     tokens: [],
     tokenMap: new Map(),
 });
@@ -69,10 +70,10 @@ function ConnectionProvider({ children = undefined }) {
     const searchParams = hooks_1.useQuerySearch();
     const network = searchParams.get('network');
     const queryEndpoint = network && ((_a = exports.ENDPOINTS.find(({ name }) => name.startsWith(network))) === null || _a === void 0 ? void 0 : _a.endpoint);
-    const [savedEndpoint, setEndpoint] = utils_1.useLocalStorageState('connectionEndpoint', exports.ENDPOINTS[0].endpoint);
+    const [savedEndpoint, setEndpoint] = utils_1.useLocalStorageState('connectionEndpoint', defaultEndpoint.endpoint);
     const endpoint = queryEndpoint || savedEndpoint;
     const connection = react_1.useMemo(() => new web3_js_1.Connection(endpoint, 'recent'), [endpoint]);
-    const env = ((_b = exports.ENDPOINTS.find(end => end.endpoint === endpoint)) === null || _b === void 0 ? void 0 : _b.name) || exports.ENDPOINTS[0].name;
+    const env = ((_b = exports.ENDPOINTS.find(end => end.endpoint === endpoint)) === null || _b === void 0 ? void 0 : _b.name) || defaultEndpoint.name;
     const [tokens, setTokens] = react_1.useState([]);
     const [tokenMap, setTokenMap] = react_1.useState(new Map());
     react_1.useEffect(() => {

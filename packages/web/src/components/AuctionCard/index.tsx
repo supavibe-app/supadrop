@@ -512,6 +512,7 @@ export const AuctionCard = ({
                     accountByMint,
                     value,
                   );
+                  // TODO place BId
                   setLastBid(bid);
                   setShowBidModal(false);
                   setShowBidPlaced(true);

@@ -72,7 +72,7 @@ function MetaProvider({ children = null }) {
         else {
             console.log('sessiong storage gk ada');
         }
-        console.log('-----> Query started');
+        console.log('-----> Query started', new Date());
         const nextState = !loadAccounts_1.USE_SPEED_RUN
             ? await loadAccounts_1.loadAccounts(connection)
             : await loadAccounts_1.limitedLoadAccounts(connection);
@@ -96,7 +96,7 @@ function MetaProvider({ children = null }) {
             }
         });
         setIsLoading(false);
-        console.log('------->set finished');
+        console.log('------->set finished', new Date());
         await updateMints(nextState.metadataByMint);
         if (auctionAddress && bidderAddress) {
             const auctionBidderKey = auctionAddress + '-' + bidderAddress;

@@ -60,15 +60,15 @@ export function MetaProvider({ children = null as any }) {
     }
 
     if (sessionStorage.getItem('testing')) {
-            let sessionAuction = JSON.parse(sessionStorage.getItem('testing')||"") as ParsedAccount<AuctionData>
+      let sessionAuction = JSON.parse(sessionStorage.getItem('testing')||"") as ParsedAccount<AuctionData>
 
-            console.log('session storage masih ada',sessionAuction);
-          }else{
-            console.log('sessiong storage gk ada');
+      console.log('session storage masih ada',sessionAuction);
+    }else{
+      console.log('sessiong storage gk ada');
 
-          }
+    }
 
-    console.log('-----> Query started');
+    console.log('-----> Query started', new Date());
 
     const nextState = !USE_SPEED_RUN
       ? await loadAccounts(connection)
@@ -99,7 +99,7 @@ export function MetaProvider({ children = null as any }) {
         })
 
     setIsLoading(false);
-    console.log('------->set finished');
+    console.log('------->set finished',new Date());
 
     await updateMints(nextState.metadataByMint);
 

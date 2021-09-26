@@ -198,6 +198,8 @@ export const mintNFT = async (
   realFiles.map(f => data.append('file[]', f));
 
   // TODO: convert to absolute file name for image
+  console.log("env",env);
+  
   const uploadArweaveResponse =  await fetch(
     // TODO: add CNAME
     env.startsWith('mainnet-beta')
@@ -208,6 +210,7 @@ export const mintNFT = async (
       body: data,
     },
   )
+  console.log("🚀 ~ file: nft.tsx ~ line 211 ~ uploadArweaveResponse", uploadArweaveResponse)
 
   if (!uploadArweaveResponse.ok) {
     return Promise.reject(new Error("Unable to upload the artwork to Arweave. Please wait and then try again."))
@@ -225,13 +228,18 @@ export const mintNFT = async (
   const metadataFile = result.messages?.find(
     m => m.filename === RESERVED_TXN_MANIFEST,
   );
+  const imgFile = result.messages?.find(
+    m => m.filename.includes('png'),
+  );
+
   if (metadataFile?.transactionId && wallet.publicKey) {
     const updateInstructions: TransactionInstruction[] = [];
     const updateSigners: Keypair[] = [];
 
     // TODO: connect to testnet arweave
     const arweaveLink = `https://arweave.net/${metadataFile.transactionId}`;
-    await updateMetadata(
+    const imgLink = `https://arweave.net/${imgFile?.transactionId}`;
+    let idNFT = await updateMetadata(
       new Data({
         name: metadata.name,
         symbol: metadata.symbol,
