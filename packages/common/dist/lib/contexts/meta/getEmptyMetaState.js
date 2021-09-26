@@ -23,8 +23,6 @@ const getEmptyMetaState = () => ({
     prizeTrackingTickets: {},
     safetyDepositConfigsByAuctionManagerAndIndex: {},
     bidRedemptionV2sByAuctionManagerAndWinningIndex: {},
-    stores: {},
-    creators: {},
 });
 exports.getEmptyMetaState = getEmptyMetaState;
 //# sourceMappingURL=getEmptyMetaState.js.map

@@ -5,7 +5,6 @@ import { Avatar, Button, Modal, Popover } from 'antd';
 
 import { useNativeAccount } from '../../contexts/accounts';
 import { formatNumber } from '../../utils';
-import { Popover } from 'antd';
 import { Settings } from '../Settings';
 import { AddressStyle, BalanceStyle, DetailBox, ModalEditProfile, ProfileContainer, ProfilePopover } from './style';
 
