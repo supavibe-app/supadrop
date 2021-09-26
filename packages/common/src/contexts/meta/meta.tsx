@@ -86,15 +86,17 @@ export function MetaProvider({ children = null as any }) {
           *
         )
         `)
-        .then(dataAuction=>{
+        .then(dataAuction => {
           let listData : {[key:string]:ItemAuction} =  {}
           if (dataAuction.body != null) {
-            dataAuction.body.forEach(v=>{
-              listData[v.id] =new ItemAuction(v.id,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft)
+            dataAuction.body.forEach( v =>{
+              listData[v.id] = new ItemAuction(v.id,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft)
             })
+            
             setDataAuction(listData)
 
           }
+        })
 
     setIsLoading(false);
     console.log('------->set finished');

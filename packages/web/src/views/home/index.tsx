@@ -17,5 +17,4 @@ return showAuctions ? <AuctionListView /> : <SetupView />;
 //     <Layout style={{ margin: 0, marginTop: 30, alignItems: 'center' }}>
 //       {showAuctions ? <AuctionListView /> : <SetupView />}
 //     </Layout>
-  );
 };

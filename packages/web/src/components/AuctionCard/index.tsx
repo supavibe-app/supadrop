@@ -271,13 +271,11 @@ export const AuctionCard = ({
     <div className="auction-container" style={style}>
       <Col>
 //         {!auctionView.isInstantSale && (
-//           <>
-//             <AuctionNumbers auctionView={auctionView} />
-//             <br />
-//           </>
-//         )}
-<AuctionNumbers />
-        <br />
+          <>
+            <AuctionNumbers auctionView={auctionView} />
+            <br />
+          </>
+        )}
         {showRedemptionIssue && (
           <span>
             There was an issue redeeming or refunding your bid. Please try

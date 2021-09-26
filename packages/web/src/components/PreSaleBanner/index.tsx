@@ -45,7 +45,6 @@ export const PreSaleBanner = () => {
           <Col className={Description} span={16}>limited collection 111 of crystal gods</Col>
         </Row>
 
-        <AuctionNumbers />
 
         <div className={ButtonWrapper}>
           {/* TODO-Iyai: Update to live auction url */}

@@ -17,7 +17,6 @@ export const AppLayout = React.memo((props: any) => {
   const { width } = useWindowDimensions();
 
   return (
-    <>
 //       <Layout
 //         title={LABELS.APP_TITLE}
 //         style={{
@@ -32,6 +31,8 @@ export const AppLayout = React.memo((props: any) => {
 //           {props.children}
 //         </Content>
 //       </Layout>
+<>
+
 <Layout style={{ overflow: 'hidden' }}>
         <Header className={HeaderStyle}>
           <AppBar />

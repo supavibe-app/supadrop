@@ -32,6 +32,7 @@ export const AuctionNumbers = (props: { auctionView: AuctionView }) => {
   const [state, setState] = useState<CountdownState>();
 
   const auction = auctionView.auction.info;
+
   useEffect(() => {
     const calc = () => {
       const newState = auction.timeToEnd();

@@ -26,8 +26,6 @@ export interface MetaState {
     bidRedemptions: Record<string, ParsedAccount<BidRedemptionTicket>>;
     whitelistedCreatorsByCreator: Record<string, ParsedAccount<WhitelistedCreator>>;
     payoutTickets: Record<string, ParsedAccount<PayoutTicket>>;
-//     stores: Record<string, ParsedAccount<Store>>;
-//         creators: Record<string, ParsedAccount<WhitelistedCreator>>;
 }
 export interface MetaContextState extends MetaState {
     isLoading: boolean;
@@ -44,8 +42,6 @@ export declare type AccountAndPubkey = {
 export declare type UpdateStateValueFunc<T = void> = (prop: keyof MetaState, key: string, value: ParsedAccount<any>) => T;
 export declare type ProcessAccountsFunc = (account: PublicKeyStringAndAccount<Buffer>, setter: UpdateStateValueFunc) => void;
 export declare type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean;
-export declare type UnPromise<T extends Promise<any>> = T extends Promise<infer U> ? U : never;
-
 export declare class ItemAuction {
     id: string;
     id_nft: string;
@@ -54,4 +50,5 @@ export declare class ItemAuction {
     img_nft: string;
     constructor(id: string, id_nft: string, token_mint: string, price_floor: number, img_nft: string);
 }
+export declare type UnPromise<T extends Promise<any>> = T extends Promise<infer U> ? U : never;
 //# sourceMappingURL=types.d.ts.map

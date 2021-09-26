@@ -1,7 +1,6 @@
 import { Metadata } from '../../actions';
 import { WhitelistedCreator } from '../../models/metaplex';
 import { Connection } from '@solana/web3.js';
-import { MetaState } from './types';
 import { AccountAndPubkey, MetaState, ProcessAccountsFunc, UpdateStateValueFunc } from './types';
 import { ParsedAccount } from '../accounts/types';
 export declare const USE_SPEED_RUN = false;

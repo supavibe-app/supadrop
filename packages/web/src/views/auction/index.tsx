@@ -11,6 +11,7 @@ import {
   useBidsForAuction,
   useCreators,
   useExtendedArt,
+  useHighestBidForAuction,
 } from '../../hooks';
 import ActionButton from '../../components/ActionButton';
 import { ArtContent } from '../../components/ArtContent';

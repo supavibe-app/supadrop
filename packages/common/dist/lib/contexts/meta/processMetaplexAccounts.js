@@ -67,6 +67,7 @@ const processMetaplexAccounts = async ({ account, pubkey }, setter) => {
             if (STORE_ID && pubkey === STORE_ID.toBase58()) {
                 setter('store', pubkey, parsedAccount);
             }
+            //       setter('stores', pubkey, parsedAccount);
         }
         if (isSafetyDepositConfigV1Account(account)) {
             const config = models_1.decodeSafetyDepositConfig(account.data);
@@ -87,6 +88,13 @@ const processMetaplexAccounts = async ({ account, pubkey }, setter) => {
                     setter('whitelistedCreatorsByCreator', parsedAccount.info.address, parsedAccount);
                 }
             }
+            //       if (useAll) {
+            //         setter(
+            //           'creators',
+            //           parsedAccount.info.address + '-' + pubkey,
+            //           parsedAccount,
+            //         );
+            //       }
         }
     }
     catch {

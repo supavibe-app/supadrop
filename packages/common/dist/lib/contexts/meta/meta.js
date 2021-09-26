@@ -25,9 +25,11 @@ const queryExtendedMetadata_1 = require("./queryExtendedMetadata");
 const subscribeAccountsChange_1 = require("./subscribeAccountsChange");
 const getEmptyMetaState_1 = require("./getEmptyMetaState");
 const loadAccounts_1 = require("./loadAccounts");
+const types_1 = require("./types");
 const connection_1 = require("../connection");
 const store_1 = require("../store");
 const actions_1 = require("../../actions");
+const supabaseClient_1 = require("../../supabaseClient");
 const MetaContext = react_1.default.createContext({
     ...getEmptyMetaState_1.getEmptyMetaState(),
     isLoading: false,
@@ -38,6 +40,7 @@ function MetaProvider({ children = null }) {
     const connection = connection_1.useConnection();
     const { isReady, storeAddress } = store_1.useStore();
     const [state, setState] = react_1.useState(getEmptyMetaState_1.getEmptyMetaState());
+    const [liveDataAuctions, setDataAuction] = react_1.useState({});
     const [isLoading, setIsLoading] = react_1.useState(true);
     const updateMints = react_1.useCallback(async (metadataByMint) => {
         try {
@@ -62,12 +65,36 @@ function MetaProvider({ children = null }) {
         else if (!state.store) {
             setIsLoading(true);
         }
+        if (sessionStorage.getItem('testing')) {
+            let sessionAuction = JSON.parse(sessionStorage.getItem('testing') || "");
+            console.log('session storage masih ada', sessionAuction);
+        }
+        else {
+            console.log('sessiong storage gk ada');
+        }
         console.log('-----> Query started');
         const nextState = !loadAccounts_1.USE_SPEED_RUN
             ? await loadAccounts_1.loadAccounts(connection)
             : await loadAccounts_1.limitedLoadAccounts(connection);
         console.log('------->Query finished');
         setState(nextState);
+        //TODO query end date
+        supabaseClient_1.supabase.from('auction_status')
+            .select(`
+        *,
+        nft_data (
+          *
+        )
+        `)
+            .then(dataAuction => {
+            let listData = {};
+            if (dataAuction.body != null) {
+                dataAuction.body.forEach(v => {
+                    listData[v.id] = new types_1.ItemAuction(v.id, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft);
+                });
+                setDataAuction(listData);
+            }
+        });
         setIsLoading(false);
         console.log('------->set finished');
         await updateMints(nextState.metadataByMint);
@@ -118,6 +145,7 @@ function MetaProvider({ children = null }) {
             // @ts-ignore
             update,
             isLoading,
+            liveDataAuctions
         } }, children));
 }
 exports.MetaProvider = MetaProvider;
