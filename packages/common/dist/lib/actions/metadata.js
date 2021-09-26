@@ -41,6 +41,7 @@ var MetadataCategory;
     MetadataCategory["Video"] = "video";
     MetadataCategory["Image"] = "image";
     MetadataCategory["VR"] = "vr";
+    MetadataCategory["HTML"] = "html";
 })(MetadataCategory = exports.MetadataCategory || (exports.MetadataCategory = {}));
 class MasterEditionV1 {
     constructor(args) {
@@ -107,18 +108,29 @@ class Data {
 exports.Data = Data;
 class Metadata {
     constructor(args) {
+        var _a;
         this.key = MetadataKey.MetadataV1;
         this.updateAuthority = args.updateAuthority;
         this.mint = args.mint;
         this.data = args.data;
         this.primarySaleHappened = args.primarySaleHappened;
         this.isMutable = args.isMutable;
-        this.editionNonce = args.editionNonce;
+        this.editionNonce = (_a = args.editionNonce) !== null && _a !== void 0 ? _a : null;
     }
     async init() {
-        const edition = await getEdition(this.mint);
-        this.edition = edition;
-        this.masterEdition = edition;
+        const metadata = utils_1.toPublicKey(programIds_1.programIds().metadata);
+        if (this.editionNonce !== null) {
+            this.edition = (await web3_js_1.PublicKey.createProgramAddress([
+                Buffer.from(exports.METADATA_PREFIX),
+                metadata.toBuffer(),
+                utils_1.toPublicKey(this.mint).toBuffer(),
+                new Uint8Array([this.editionNonce || 0]),
+            ], metadata)).toBase58();
+        }
+        else {
+            this.edition = await getEdition(this.mint);
+        }
+        this.masterEdition = this.edition;
     }
 }
 exports.Metadata = Metadata;

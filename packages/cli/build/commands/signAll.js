@@ -54,6 +54,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.signAllMetadataFromCandyMachine = void 0;
 var web3_js_1 = require("@solana/web3.js");
@@ -61,6 +64,11 @@ var transactions_1 = require("../helpers/transactions");
 var borsh = __importStar(require("borsh"));
 var constants_1 = require("../helpers/constants");
 var types_1 = require("../types");
+var sign_1 = require("./sign");
+var loglevel_1 = __importDefault(require("loglevel"));
+var various_1 = require("../helpers/various");
+var SIGNING_INTERVAL = 60 * 1000; //60s
+var lastCount = 0;
 /*
  Get accounts by candy machine creator address
  Get only verified ones
@@ -69,62 +77,33 @@ var types_1 = require("../types");
 
  PS: Don't sign candy machine addresses that you do not know about. Signing verifies your participation.
 */
-function decodeMetadata(buffer) {
+function signAllMetadataFromCandyMachine(connection, wallet, candyMachineAddress, batchSize, daemon) {
     return __awaiter(this, void 0, void 0, function () {
-        var metadata;
-        return __generator(this, function (_a) {
-            metadata = borsh.deserializeUnchecked(types_1.METADATA_SCHEMA, types_1.Metadata, buffer);
-            return [2 /*return*/, metadata];
-        });
-    });
-}
-;
-function getProgramAccounts(connection, programId, configOrCommitment) {
-    return __awaiter(this, void 0, void 0, function () {
-        var extra, commitment, args, unsafeRes, data;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    extra = {};
-                    //let encoding;
-                    if (configOrCommitment) {
-                        if (typeof configOrCommitment === 'string') {
-                            commitment = configOrCommitment;
-                        }
-                        else {
-                            commitment = configOrCommitment.commitment;
-                            //encoding = configOrCommitment.encoding;
-                            if (configOrCommitment.dataSlice) {
-                                extra.dataSlice = configOrCommitment.dataSlice;
-                            }
-                            if (configOrCommitment.filters) {
-                                extra.filters = configOrCommitment.filters;
-                            }
-                        }
-                    }
-                    args = connection._buildArgs([programId], commitment, 'base64', extra);
-                    return [4 /*yield*/, connection._rpcRequest('getProgramAccounts', args)];
-                case 1:
-                    unsafeRes = _a.sent();
-                    data = unsafeRes.result.map(function (item) {
-                        return {
-                            account: {
-                                // TODO: possible delay parsing could be added here
-                                data: Buffer.from(item.account.data[0], 'base64'),
-                                executable: item.account.executable,
-                                lamports: item.account.lamports,
-                                // TODO: maybe we can do it in lazy way? or just use string
-                                owner: item.account.owner,
-                            },
-                            pubkey: item.pubkey,
-                        };
-                    });
-                    return [2 /*return*/, data];
+                    if (!daemon) return [3 /*break*/, 6];
+                    _a.label = 1;
+                case 1: return [4 /*yield*/, findAndSignMetadata(candyMachineAddress, connection, wallet, batchSize)];
+                case 2:
+                    _a.sent();
+                    return [4 /*yield*/, various_1.sleep(SIGNING_INTERVAL)];
+                case 3:
+                    _a.sent();
+                    _a.label = 4;
+                case 4: return [3 /*break*/, 1];
+                case 5: return [3 /*break*/, 8];
+                case 6: return [4 /*yield*/, findAndSignMetadata(candyMachineAddress, connection, wallet, batchSize)];
+                case 7:
+                    _a.sent();
+                    _a.label = 8;
+                case 8: return [2 /*return*/];
             }
         });
     });
 }
-function signAllMetadataFromCandyMachine(connection, wallet, candyMachineAddress, batchSize) {
+exports.signAllMetadataFromCandyMachine = signAllMetadataFromCandyMachine;
+function findAndSignMetadata(candyMachineAddress, connection, wallet, batchSize) {
     return __awaiter(this, void 0, void 0, function () {
         var metadataByCandyMachine, candyVerifiedListToSign;
         return __generator(this, function (_a) {
@@ -132,11 +111,16 @@ function signAllMetadataFromCandyMachine(connection, wallet, candyMachineAddress
                 case 0: return [4 /*yield*/, getAccountsByCreatorAddress(candyMachineAddress, connection)];
                 case 1:
                     metadataByCandyMachine = _a.sent();
-                    console.log("Found " + metadataByCandyMachine.length + " nft's minted by candy machine " + candyMachineAddress);
+                    if (lastCount === metadataByCandyMachine.length) {
+                        loglevel_1.default.debug("Didn't find any new NFTs to sign - " + new Date());
+                        return [2 /*return*/];
+                    }
+                    lastCount = metadataByCandyMachine.length;
+                    loglevel_1.default.info("Found " + metadataByCandyMachine.length + " nft's minted by candy machine " + candyMachineAddress);
                     return [4 /*yield*/, getCandyMachineVerifiedMetadata(metadataByCandyMachine, candyMachineAddress, wallet.publicKey.toBase58())];
                 case 2:
                     candyVerifiedListToSign = _a.sent();
-                    console.log("Found " + candyVerifiedListToSign.length + " nft's to sign by  " + wallet.publicKey.toBase58());
+                    loglevel_1.default.info("Found " + candyVerifiedListToSign.length + " nft's to sign by  " + wallet.publicKey.toBase58());
                     return [4 /*yield*/, sendSignMetadata(connection, wallet, candyVerifiedListToSign, batchSize)];
                 case 3:
                     _a.sent();
@@ -145,7 +129,6 @@ function signAllMetadataFromCandyMachine(connection, wallet, candyMachineAddress
         });
     });
 }
-exports.signAllMetadataFromCandyMachine = signAllMetadataFromCandyMachine;
 function getAccountsByCreatorAddress(creatorAddress, connection) {
     return __awaiter(this, void 0, void 0, function () {
         var metadataAccounts, decodedAccounts, i, e, decoded, accountPubkey, store;
@@ -196,6 +179,58 @@ function getAccountsByCreatorAddress(creatorAddress, connection) {
         });
     });
 }
+function getProgramAccounts(connection, programId, configOrCommitment) {
+    return __awaiter(this, void 0, void 0, function () {
+        var extra, commitment, args, unsafeRes, data;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    extra = {};
+                    //let encoding;
+                    if (configOrCommitment) {
+                        if (typeof configOrCommitment === 'string') {
+                            commitment = configOrCommitment;
+                        }
+                        else {
+                            commitment = configOrCommitment.commitment;
+                            //encoding = configOrCommitment.encoding;
+                            if (configOrCommitment.dataSlice) {
+                                extra.dataSlice = configOrCommitment.dataSlice;
+                            }
+                            if (configOrCommitment.filters) {
+                                extra.filters = configOrCommitment.filters;
+                            }
+                        }
+                    }
+                    args = connection._buildArgs([programId], commitment, 'base64', extra);
+                    return [4 /*yield*/, connection._rpcRequest('getProgramAccounts', args)];
+                case 1:
+                    unsafeRes = _a.sent();
+                    data = unsafeRes.result.map(function (item) {
+                        return {
+                            account: {
+                                // TODO: possible delay parsing could be added here
+                                data: Buffer.from(item.account.data[0], 'base64'),
+                                executable: item.account.executable,
+                                lamports: item.account.lamports,
+                                // TODO: maybe we can do it in lazy way? or just use string
+                                owner: item.account.owner,
+                            },
+                            pubkey: item.pubkey,
+                        };
+                    });
+                    return [2 /*return*/, data];
+            }
+        });
+    });
+}
+function decodeMetadata(buffer) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, borsh.deserializeUnchecked(types_1.METADATA_SCHEMA, types_1.Metadata, buffer)];
+        });
+    });
+}
 function getCandyMachineVerifiedMetadata(metadataList, candyAddress, creatorAddress) {
     return __awaiter(this, void 0, void 0, function () {
         var verifiedList;
@@ -205,10 +240,12 @@ function getCandyMachineVerifiedMetadata(metadataList, candyAddress, creatorAddr
                 var verifiedCandy = false;
                 var verifiedCreator = true;
                 meta[0].data.creators.forEach(function (creator) {
-                    if (new web3_js_1.PublicKey(creator.address).toBase58() == candyAddress && creator.verified === 1) {
+                    if (new web3_js_1.PublicKey(creator.address).toBase58() == candyAddress &&
+                        creator.verified === 1) {
                         verifiedCandy = true;
                     }
-                    if (new web3_js_1.PublicKey(creator.address).toBase58() == creatorAddress && creator.verified === 0) {
+                    if (new web3_js_1.PublicKey(creator.address).toBase58() == creatorAddress &&
+                        creator.verified === 0) {
                         verifiedCreator = false;
                     }
                 });
@@ -230,7 +267,7 @@ function sendSignMetadata(connection, wallet, metadataList, batchsize) {
                     _a.label = 1;
                 case 1:
                     if (!(metadataList.length > 0)) return [3 /*break*/, 4];
-                    console.log("Signing metadata");
+                    loglevel_1.default.debug('Signing metadata ');
                     sliceAmount = batchsize;
                     if (metadataList.length < batchsize) {
                         sliceAmount = metadataList.length;
@@ -243,10 +280,10 @@ function sendSignMetadata(connection, wallet, metadataList, batchsize) {
                     return [4 /*yield*/, signMetadataBatch(removed, connection, wallet)];
                 case 3:
                     _a.sent();
-                    console.log("Processed " + total + " nfts");
+                    loglevel_1.default.debug("Processed " + total + " nfts");
                     return [3 /*break*/, 1];
                 case 4:
-                    console.log("Finished signing metadata..");
+                    loglevel_1.default.info("Finished signing metadata for " + total + " NFTs");
                     return [2 /*return*/];
             }
         });
@@ -254,55 +291,18 @@ function sendSignMetadata(connection, wallet, metadataList, batchsize) {
 }
 function signMetadataBatch(metadataList, connection, keypair) {
     return __awaiter(this, void 0, void 0, function () {
-        var signers, instructions, i, meta;
+        var instructions;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    signers = [];
-                    instructions = [];
-                    i = 0;
-                    _a.label = 1;
+                    instructions = metadataList.map(function (meta) {
+                        return sign_1.signMetadataInstruction(new web3_js_1.PublicKey(meta[1]), keypair.publicKey);
+                    });
+                    return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(connection, keypair, instructions, [], 'single')];
                 case 1:
-                    if (!(i < metadataList.length)) return [3 /*break*/, 4];
-                    meta = metadataList[i];
-                    return [4 /*yield*/, signMetadataSingle(meta[1], keypair.publicKey.toBase58(), instructions)];
-                case 2:
-                    _a.sent();
-                    _a.label = 3;
-                case 3:
-                    i++;
-                    return [3 /*break*/, 1];
-                case 4: return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(connection, keypair, instructions, [], 'single')];
-                case 5:
                     _a.sent();
                     return [2 /*return*/];
             }
-        });
-    });
-}
-function signMetadataSingle(metadata, creator, instructions) {
-    return __awaiter(this, void 0, void 0, function () {
-        var data, keys;
-        return __generator(this, function (_a) {
-            data = Buffer.from([7]);
-            keys = [
-                {
-                    pubkey: new web3_js_1.PublicKey(metadata),
-                    isSigner: false,
-                    isWritable: true,
-                },
-                {
-                    pubkey: new web3_js_1.PublicKey(creator),
-                    isSigner: true,
-                    isWritable: false,
-                },
-            ];
-            instructions.push(({
-                keys: keys,
-                programId: constants_1.TOKEN_METADATA_PROGRAM_ID.toBase58(),
-                data: data,
-            }));
-            return [2 /*return*/];
         });
     });
 }

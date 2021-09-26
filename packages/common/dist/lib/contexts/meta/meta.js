@@ -25,96 +25,69 @@ const queryExtendedMetadata_1 = require("./queryExtendedMetadata");
 const subscribeAccountsChange_1 = require("./subscribeAccountsChange");
 const getEmptyMetaState_1 = require("./getEmptyMetaState");
 const loadAccounts_1 = require("./loadAccounts");
-const types_1 = require("./types");
 const connection_1 = require("../connection");
 const store_1 = require("../store");
-const hooks_1 = require("../../hooks");
-const supabaseClient_1 = require("../../supabaseClient");
+const actions_1 = require("../../actions");
 const MetaContext = react_1.default.createContext({
     ...getEmptyMetaState_1.getEmptyMetaState(),
     isLoading: false,
-    liveDataAuctions: {}
+    // @ts-ignore
+    update: () => [actions_1.AuctionData, actions_1.BidderMetadata, actions_1.BidderPot],
 });
 function MetaProvider({ children = null }) {
     const connection = connection_1.useConnection();
     const { isReady, storeAddress } = store_1.useStore();
-    const searchParams = hooks_1.useQuerySearch();
-    const all = searchParams.get('all') == 'true';
     const [state, setState] = react_1.useState(getEmptyMetaState_1.getEmptyMetaState());
-    const [liveDataAuctions, setDataAuction] = react_1.useState({});
     const [isLoading, setIsLoading] = react_1.useState(true);
     const updateMints = react_1.useCallback(async (metadataByMint) => {
         try {
-            if (!all) {
-                const { metadata, mintToMetadata } = await queryExtendedMetadata_1.queryExtendedMetadata(connection, metadataByMint);
-                setState(current => ({
-                    ...current,
-                    metadata,
-                    metadataByMint: mintToMetadata,
-                }));
-            }
+            const { metadata, mintToMetadata } = await queryExtendedMetadata_1.queryExtendedMetadata(connection, metadataByMint);
+            setState(current => ({
+                ...current,
+                metadata,
+                metadataByMint: mintToMetadata,
+            }));
         }
         catch (er) {
             console.error(er);
         }
     }, [setState]);
-    react_1.useEffect(() => {
-        (async () => {
-            if (!storeAddress) {
-                if (isReady) {
-                    setIsLoading(false);
-                }
-                return;
-            }
-            else if (!state.store) {
-                setIsLoading(true);
-            }
-            if (sessionStorage.getItem('testing')) {
-                let sessionAuction = JSON.parse(sessionStorage.getItem('testing') || "");
-                console.log('session storage masih ada', sessionAuction);
-            }
-            else {
-                console.log('sessiong storage gk ada');
-            }
-            console.log('-----> Query started');
-            console.log('date', new Date());
-            //TODO query end date
-            supabaseClient_1.supabase.from('auction_status')
-                .select(`
-        *,
-        nft_data (
-          *
-        )
-        `)
-                .then(dataAuction => {
-                let listData = {};
-                if (dataAuction.body != null) {
-                    dataAuction.body.forEach(v => {
-                        listData[v.id] = new types_1.ItemAuction(v.id, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft);
-                    });
-                    setDataAuction(listData);
-                }
+    async function update(auctionAddress, bidderAddress) {
+        if (!storeAddress) {
+            if (isReady) {
                 setIsLoading(false);
-                loadAccounts_1.loadAccounts(connection, all)
-                    .then(nextState => {
-                    let objAuctions = {};
-                    for (const key in listData) {
-                        objAuctions[`${listData[key].id}`] = nextState.auctions[listData[key].id];
-                    }
-                    console.log('------->Query finished');
-                    console.log('date', new Date());
-                    setState(nextState);
-                    updateMints(nextState.metadataByMint);
-                    console.log('------->set finished');
-                });
-            });
-        })();
+            }
+            return;
+        }
+        else if (!state.store) {
+            setIsLoading(true);
+        }
+        console.log('-----> Query started');
+        const nextState = !loadAccounts_1.USE_SPEED_RUN
+            ? await loadAccounts_1.loadAccounts(connection)
+            : await loadAccounts_1.limitedLoadAccounts(connection);
+        console.log('------->Query finished');
+        setState(nextState);
+        setIsLoading(false);
+        console.log('------->set finished');
+        await updateMints(nextState.metadataByMint);
+        if (auctionAddress && bidderAddress) {
+            const auctionBidderKey = auctionAddress + '-' + bidderAddress;
+            return [
+                nextState.auctions[auctionAddress],
+                nextState.bidderPotsByAuctionAndBidder[auctionBidderKey],
+                nextState.bidderMetadataByAuctionAndBidder[auctionBidderKey],
+            ];
+        }
+    }
+    react_1.useEffect(() => {
+        update();
     }, [connection, setState, updateMints, storeAddress, isReady]);
     react_1.useEffect(() => {
         if (isLoading) {
             return;
         }
-        return subscribeAccountsChange_1.subscribeAccountsChange(connection, all, () => state, setState);
+        return subscribeAccountsChange_1.subscribeAccountsChange(connection, () => state, setState);
     }, [connection, setState, isLoading]);
     // TODO: fetch names dynamically
     // TODO: get names for creators
@@ -142,8 +115,9 @@ function MetaProvider({ children = null }) {
     // }, [whitelistedCreatorsByCreator]);
     return (react_1.default.createElement(MetaContext.Provider, { value: {
             ...state,
+            // @ts-ignore
+            update,
             isLoading,
-            liveDataAuctions
         } }, children));
 }
 exports.MetaProvider = MetaProvider;

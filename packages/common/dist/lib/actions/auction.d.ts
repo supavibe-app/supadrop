@@ -65,10 +65,14 @@ export declare class AuctionDataExtended {
     totalUncancelledBids: BN;
     tickSize: BN | null;
     gapTickSizePercentage: number | null;
+    instantSalePrice: BN | null;
+    name: number[] | null;
     constructor(args: {
         totalUncancelledBids: BN;
         tickSize: BN | null;
         gapTickSizePercentage: number | null;
+        instantSalePrice: BN | null;
+        name: number[] | null;
     });
 }
 export interface CountdownState {
@@ -88,6 +92,7 @@ export declare class AuctionData {
     state: AuctionState;
     bidState: BidState;
     bidRedemptionKey?: StringPublicKey;
+    auctionDataExtended?: StringPublicKey;
     timeToEnd(): CountdownState;
     ended(): boolean | undefined;
     constructor(args: {
@@ -151,6 +156,8 @@ export interface IPartialCreateAuctionArgs {
     priceFloor: PriceFloor;
     tickSize: BN | null;
     gapTickSizePercentage: number | null;
+    instantSalePrice: BN | null;
+    name: number[] | null;
 }
 export declare class CreateAuctionArgs implements IPartialCreateAuctionArgs {
     instruction: number;
@@ -163,6 +170,8 @@ export declare class CreateAuctionArgs implements IPartialCreateAuctionArgs {
     priceFloor: PriceFloor;
     tickSize: BN | null;
     gapTickSizePercentage: number | null;
+    instantSalePrice: BN | null;
+    name: number[] | null;
     constructor(args: {
         winners: WinnerLimit;
         endAuctionAt: BN | null;
@@ -173,6 +182,8 @@ export declare class CreateAuctionArgs implements IPartialCreateAuctionArgs {
         priceFloor: PriceFloor;
         tickSize: BN | null;
         gapTickSizePercentage: number | null;
+        name: number[] | null;
+        instantSalePrice: BN | null;
     });
 }
 export declare const AUCTION_SCHEMA: Map<any, any>;

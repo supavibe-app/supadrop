@@ -26,8 +26,6 @@ const antd_1 = require("antd");
 const react_1 = __importStar(require("react"));
 const utils_1 = require("../utils");
 const components_1 = require("../components");
-const style_1 = require("./style");
-const supabaseClient_1 = require("../supabaseClient");
 exports.WalletModalContext = react_1.createContext({});
 function useWalletModal() {
     return react_1.useContext(exports.WalletModalContext);
@@ -36,17 +34,30 @@ exports.useWalletModal = useWalletModal;
 const WalletModal = () => {
     const { wallets, wallet: selected, select } = wallet_adapter_react_1.useWallet();
     const { visible, setVisible } = useWalletModal();
+    const [showWallets, setShowWallets] = react_1.useState(false);
     const close = react_1.useCallback(() => {
         setVisible(false);
-    }, [setVisible]);
+        setShowWallets(false);
+    }, [setVisible, setShowWallets]);
     return (react_1.default.createElement(components_1.MetaplexModal, { visible: visible, onCancel: close },
-        react_1.default.createElement(antd_1.Avatar, { className: style_1.LogoStyle, size: 64, src: './logo.svg' }),
-        react_1.default.createElement("h2", null, selected ? 'Change provider' : 'Welcome to Supadrop'),
+        react_1.default.createElement("div", { style: {
+                background: 'linear-gradient(180deg, #D329FC 0%, #8F6DDE 49.48%, #19E6AD 100%)',
+                borderRadius: 36,
+                width: 50,
+                height: 50,
+                textAlign: 'center',
+                verticalAlign: 'middle',
+                fontWeight: 700,
+                fontSize: '1.3rem',
+                lineHeight: 2.4,
+                marginBottom: 10,
+            } }, "M"),
+        react_1.default.createElement("h2", null, selected ? 'Change provider' : 'Welcome to Metaplex'),
         react_1.default.createElement("p", null, selected
             ? 'Feel free to switch wallet provider'
             : 'You must be signed in to place a bid'),
         react_1.default.createElement("br", null),
-        wallets.map(wallet => {
+        selected || showWallets ? (wallets.map(wallet => {
             return (react_1.default.createElement(antd_1.Button, { key: wallet.name, size: "large", type: wallet === selected ? 'primary' : 'ghost', onClick: () => {
                     select(wallet.name);
                     close();
@@ -56,7 +67,19 @@ const WalletModal = () => {
                     textAlign: 'left',
                     marginBottom: 8,
                 } }, wallet.name));
-        })));
+        })) : (react_1.default.createElement(react_1.default.Fragment, null,
+            react_1.default.createElement(antd_1.Button, { className: "metaplex-button", style: {
+                    width: '80%',
+                    fontWeight: 'unset',
+                }, onClick: () => {
+                    select(wallet_adapter_wallets_1.WalletName.Phantom);
+                    close();
+                } },
+                react_1.default.createElement("span", null,
+                    react_1.default.createElement("img", { src: "https://www.phantom.app/img/logo.png", style: { width: '1.2rem' } }),
+                    "\u00A0Sign in with Phantom"),
+                react_1.default.createElement("span", null, ">")),
+            react_1.default.createElement("p", { onClick: () => setShowWallets(true), style: { cursor: 'pointer', marginTop: 10 } }, "Select a different Solana wallet")))));
 };
 exports.WalletModal = WalletModal;
 const WalletModalProvider = ({ children, }) => {
@@ -69,18 +92,6 @@ const WalletModalProvider = ({ children, }) => {
             const keyToDisplay = base58.length > 20
                 ? `${base58.substring(0, 7)}.....${base58.substring(base58.length - 7, base58.length)}`
                 : base58;
-            supabaseClient_1.supabase.from('user_data')
-                .select('*')
-                .eq('wallet_address', base58)
-                .then(data => {
-                if (data.body != null && data.body.length == 0) {
-                    supabaseClient_1.supabase.from('user_data')
-                        .insert([{
-                            wallet_address: base58
-                        }])
-                        .then();
-                }
-            });
             utils_1.notify({
                 message: 'Wallet update',
                 description: 'Connected to wallet ' + keyToDisplay,
