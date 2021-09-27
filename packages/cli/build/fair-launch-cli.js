@@ -785,8 +785,7 @@ commander_1.program
                 fairLaunchTicket = (_b.sent())[0];
                 return [4 /*yield*/, accounts_1.getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint)];
             case 4:
-                fairLaunchLotteryBitmap = ( //@ts-ignore
-                _b.sent())[0];
+                fairLaunchLotteryBitmap = (_b.sent())[0];
                 return [4 /*yield*/, adjustTicket({
                         amountNumber: amountNumber,
                         fairLaunchObj: fairLaunchObj,
@@ -1117,8 +1116,7 @@ commander_1.program
                 fairLaunchTicket = (_b.sent())[0];
                 return [4 /*yield*/, accounts_1.getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint)];
             case 4:
-                fairLaunchLotteryBitmap = ( //@ts-ignore
-                _b.sent())[0];
+                fairLaunchLotteryBitmap = (_b.sent())[0];
                 return [4 /*yield*/, anchorProgram.account.fairLaunchTicket.fetch(fairLaunchTicket)];
             case 5:
                 ticket = _b.sent();
@@ -1221,8 +1219,7 @@ commander_1.program
                 fairLaunchObj = _b.sent();
                 return [4 /*yield*/, accounts_1.getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint)];
             case 3:
-                fairLaunchLotteryBitmap = ( //@ts-ignore
-                _b.sent())[0];
+                fairLaunchLotteryBitmap = (_b.sent())[0];
                 return [4 /*yield*/, anchorProgram.rpc.startPhaseThree({
                         accounts: {
                             fairLaunch: fairLaunch,
