@@ -36,11 +36,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signMetadataInstruction = exports.signAllUnapprovedMetadata = exports.signMetadata = void 0;
+exports.signMetadataInstruction = exports.signMetadata = void 0;
 var web3_js_1 = require("@solana/web3.js");
 var constants_1 = require("../helpers/constants");
 var transactions_1 = require("../helpers/transactions");
 var accounts_1 = require("../helpers/accounts");
+var METADATA_SIGNATURE = Buffer.from([7]); //now thats some voodoo magic. WTF metaplex? XD
 function signMetadata(metadata, keypair, env) {
     return __awaiter(this, void 0, void 0, function () {
         var creatorKeyPair, anchorProgram;
@@ -48,10 +49,10 @@ function signMetadata(metadata, keypair, env) {
             switch (_a.label) {
                 case 0:
                     creatorKeyPair = accounts_1.loadWalletKey(keypair);
-                    return [4 /*yield*/, accounts_1.loadAnchorProgram(creatorKeyPair, env)];
+                    return [4 /*yield*/, accounts_1.loadCandyProgram(creatorKeyPair, env)];
                 case 1:
                     anchorProgram = _a.sent();
-                    return [4 /*yield*/, signWithRetry(anchorProgram, creatorKeyPair, metadata)];
+                    return [4 /*yield*/, signWithRetry(anchorProgram, creatorKeyPair, new web3_js_1.PublicKey(metadata))];
                 case 2:
                     _a.sent();
                     return [2 /*return*/];
@@ -60,55 +61,13 @@ function signMetadata(metadata, keypair, env) {
     });
 }
 exports.signMetadata = signMetadata;
-function signAllUnapprovedMetadata(keypair, env) {
-    return __awaiter(this, void 0, void 0, function () {
-        var creatorKeyPair, anchorProgram, metadataIds, _a, _b, _i, id;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    creatorKeyPair = accounts_1.loadWalletKey(keypair);
-                    return [4 /*yield*/, accounts_1.loadAnchorProgram(creatorKeyPair, env)];
-                case 1:
-                    anchorProgram = _c.sent();
-                    return [4 /*yield*/, findAllUnapprovedMetadataIds(anchorProgram, creatorKeyPair)];
-                case 2:
-                    metadataIds = _c.sent();
-                    _a = [];
-                    for (_b in metadataIds)
-                        _a.push(_b);
-                    _i = 0;
-                    _c.label = 3;
-                case 3:
-                    if (!(_i < _a.length)) return [3 /*break*/, 6];
-                    id = _a[_i];
-                    return [4 /*yield*/, signWithRetry(anchorProgram, creatorKeyPair, id)];
-                case 4:
-                    _c.sent();
-                    _c.label = 5;
-                case 5:
-                    _i++;
-                    return [3 /*break*/, 3];
-                case 6: return [2 /*return*/];
-            }
-        });
-    });
-}
-exports.signAllUnapprovedMetadata = signAllUnapprovedMetadata;
-// @ts-ignore
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function findAllUnapprovedMetadataIds(anchorProgram, creatorKeyPair) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            //TODO well I need some help with that... so... help? :D
-            throw new Error("Unsupported yet");
-        });
-    });
-}
 function signWithRetry(anchorProgram, creatorKeyPair, metadataAddress) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(anchorProgram.provider.connection, creatorKeyPair, [signMetadataInstruction(new web3_js_1.PublicKey(metadataAddress), creatorKeyPair.publicKey)], [], 'single')];
+                case 0: return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(anchorProgram.provider.connection, creatorKeyPair, [
+                        signMetadataInstruction(new web3_js_1.PublicKey(metadataAddress), creatorKeyPair.publicKey),
+                    ], [], 'single')];
                 case 1:
                     _a.sent();
                     return [2 /*return*/];
@@ -117,7 +76,7 @@ function signWithRetry(anchorProgram, creatorKeyPair, metadataAddress) {
     });
 }
 function signMetadataInstruction(metadata, creator) {
-    var data = Buffer.from([7]); //now thats bloody magic. WTF metaplex? XD
+    var data = METADATA_SIGNATURE;
     var keys = [
         {
             pubkey: metadata,

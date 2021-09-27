@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from 'antd';
+import { Button, Popover } from 'antd';
 import { ConnectButton, CurrentUserBadge } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import FeatherIcon from 'feather-icons-react';
+import { Notifications } from '../Notifications';
 
 import { LABELS } from '../../constants';
-import { ButtonContainer, CircleButton, LogoWrapper, RoundButton, Title } from './style';
+import { ButtonContainer, CircleButton, LinkButton, LogoWrapper, NotificationPopover, RoundButton, Title } from './style';
+import { GreyColor, uBoldFont, uFlexSpaceBetween, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
   const { connected } = useWallet();
@@ -20,17 +22,36 @@ export const AppBar = () => {
         </Link>
 
         <div className={ButtonContainer}>
+          <Link to={`/activity`}>
+            <Button className={LinkButton} type="link">
+              ACTIVITY
+            </Button>
+          </Link>
+
           <Link to={`/auction/create/0`}>
             <Button className={RoundButton} type="default" shape="round">
               SELL
             </Button>
           </Link>
 
-          <Button className={CircleButton} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+          <Popover
+            overlayClassName={NotificationPopover}
+            content={Notifications()}
+            trigger="click"
+            placement="bottomRight"
+            title={(
+              <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
+                <div className={WhiteColor}>notification</div>
+                <div className={GreyColor}>see all</div>
+              </div>
+            )}
+          >
+            <Button className={CircleButton} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+          </Popover>
 
           <CurrentUserBadge showBalance={true} showAddress={true} />
 
-          <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} />
+          {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
         </div>
       </>
     );
@@ -45,7 +66,7 @@ export const AppBar = () => {
 
       <div className={ButtonContainer}>
         <ConnectButton type="default" allowWalletChange />
-        <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} />
+        {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
       </div>
     </>
   );

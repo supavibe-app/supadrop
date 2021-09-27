@@ -31,17 +31,67 @@ const connection_1 = require("../../contexts/connection");
 const contexts_1 = require("../../contexts");
 const style_1 = require("./style");
 const Settings = ({ additionalSettings, setShowEdit = () => { } }) => {
-    const { disconnect } = wallet_adapter_react_1.useWallet();
+    const { connected, disconnect, publicKey } = wallet_adapter_react_1.useWallet();
     const { endpoint, setEndpoint } = connection_1.useConnectionConfig();
     const { setVisible } = contexts_1.useWalletModal();
     const open = react_1.useCallback(() => setVisible(true), [setVisible]);
+    //   return (
+    //     <>
+    //       <div style={{ display: 'grid' }}>
+    //         Network:{' '}
+    //         <Select
+    //           onSelect={setEndpoint}
+    //           value={endpoint}
+    //           style={{ marginBottom: 20 }}
+    //         >
+    //           {ENDPOINTS.map(({ name, endpoint }) => (
+    //             <Select.Option value={endpoint} key={endpoint}>
+    //               {name}
+    //             </Select.Option>
+    //           ))}
+    //         </Select>
+    //         {connected && (
+    //           <>
+    //             <span>Wallet:</span>
+    //             {publicKey && (
+    //               <Button
+    //                 style={{ marginBottom: 5 }}
+    //                 onClick={async () => {
+    //                   if (publicKey) {
+    //                     await navigator.clipboard.writeText(publicKey.toBase58());
+    //                     notify({
+    //                       message: 'Wallet update',
+    //                       description: 'Address copied to clipboard',
+    //                     });
+    //                   }
+    //                 }}
+    //               >
+    //                 <CopyOutlined />
+    //                 {shortenAddress(publicKey.toBase58())}
+    //               </Button>
+    //             )}
+    //
+    //             <Button onClick={open} style={{ marginBottom: 5 }}>
+    //               Change
+    //             </Button>
+    //             <Button
+    //               type="primary"
+    //               onClick={() => disconnect().catch()}
+    //               style={{ marginBottom: 5 }}
+    //             >
+    //               Disconnect
+    //             </Button>
+    //           </>
+    //         )}
+    //         {additionalSettings}
+    //       </div>
+    //     </>
+    //   );
     return (react_1.default.createElement(react_1.default.Fragment, null,
         react_1.default.createElement(antd_1.List, { className: style_1.ListStyle },
             react_1.default.createElement(antd_1.List.Item, { onClick: () => setShowEdit() },
                 react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon, src: "https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" }),
                 "edit profile"),
-            react_1.default.createElement(antd_1.List.Item, null,
-                react_1.default.createElement(antd_1.Select, { onSelect: setEndpoint, value: endpoint, style: { marginBottom: 20 } }, connection_1.ENDPOINTS.map(({ name, endpoint }) => (react_1.default.createElement(antd_1.Select.Option, { value: endpoint, key: endpoint }, name))))),
             react_1.default.createElement(antd_1.List.Item, { onClick: () => disconnect().catch() },
                 react_1.default.createElement(feather_icons_react_1.default, { icon: "power", className: style_1.ItemIcon }),
                 "disconnect")),

@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -35,8 +46,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.upload = exports.parsePrice = exports.fromUTF8Array = exports.sleep = exports.getUnixTs = void 0;
+exports.chunks = exports.getMultipleAccounts = exports.parseDate = exports.parsePrice = exports.fromUTF8Array = exports.sleep = exports.getUnixTs = void 0;
 var web3_js_1 = require("@solana/web3.js");
 var getUnixTs = function () {
     return new Date().getTime() / 1000;
@@ -83,21 +105,63 @@ function parsePrice(price, mantissa) {
     return Math.ceil(parseFloat(price) * mantissa);
 }
 exports.parsePrice = parsePrice;
-function upload(data, manifest, index) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    console.log("trying to upload " + index + ".png: " + manifest.name);
-                    return [4 /*yield*/, fetch('https://us-central1-principal-lane-200702.cloudfunctions.net/uploadFile4', {
-                            method: 'POST',
-                            // @ts-ignore
-                            body: data,
-                        })];
-                case 1: return [4 /*yield*/, (_a.sent()).json()];
-                case 2: return [2 /*return*/, _a.sent()];
-            }
-        });
-    });
+function parseDate(date) {
+    if (date === 'now') {
+        return Date.now() / 1000;
+    }
+    return Date.parse(date) / 1000;
 }
-exports.upload = upload;
+exports.parseDate = parseDate;
+var getMultipleAccounts = function (connection, keys, commitment) { return __awaiter(void 0, void 0, void 0, function () {
+    var result, array;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, Promise.all(chunks(keys, 99).map(function (chunk) {
+                    return getMultipleAccountsCore(connection, chunk, commitment);
+                }))];
+            case 1:
+                result = _a.sent();
+                array = result
+                    .map(function (a) {
+                    //@ts-ignore
+                    return a.array.map(function (acc) {
+                        if (!acc) {
+                            return undefined;
+                        }
+                        var data = acc.data, rest = __rest(acc, ["data"]);
+                        var obj = __assign(__assign({}, rest), { data: Buffer.from(data[0], 'base64') });
+                        return obj;
+                    });
+                })
+                    //@ts-ignore
+                    .flat();
+                return [2 /*return*/, { keys: keys, array: array }];
+        }
+    });
+}); };
+exports.getMultipleAccounts = getMultipleAccounts;
+function chunks(array, size) {
+    return Array.apply(0, new Array(Math.ceil(array.length / size))).map(function (_, index) { return array.slice(index * size, (index + 1) * size); });
+}
+exports.chunks = chunks;
+var getMultipleAccountsCore = function (connection, keys, commitment) { return __awaiter(void 0, void 0, void 0, function () {
+    var args, unsafeRes, array;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                args = connection._buildArgs([keys], commitment, 'base64');
+                return [4 /*yield*/, connection._rpcRequest('getMultipleAccounts', args)];
+            case 1:
+                unsafeRes = _a.sent();
+                if (unsafeRes.error) {
+                    throw new Error('failed to get info about account ' + unsafeRes.error.message);
+                }
+                if (unsafeRes.result.value) {
+                    array = unsafeRes.result.value;
+                    return [2 /*return*/, { keys: keys, array: array }];
+                }
+                // TODO: fix
+                throw new Error();
+        }
+    });
+}); };

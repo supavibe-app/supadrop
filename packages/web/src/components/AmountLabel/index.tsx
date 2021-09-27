@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Row, Statistic } from 'antd';
+import { useSolPrice } from '../../contexts';
+import { formatUSD } from '@oyster/common';
 import { Availability, CreateStatistic } from './style';
 
 interface IAmountLabel {
@@ -13,25 +15,59 @@ interface IAmountLabel {
 export const AmountLabel = (props: IAmountLabel) => {
   const {
     amount: _amount,
+    displayUSD = true,
     title = '',
     style = {},
     containerStyle = {},
   } = props;
   const amount = typeof _amount === 'string' ? parseFloat(_amount) : _amount;
 
+  const solPrice = useSolPrice();
+
+  const [priceUSD, setPriceUSD] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    setPriceUSD(solPrice * amount);
+  }, [amount, solPrice]);
+
+  const PriceNaN = isNaN(amount);
+
   return (
     <div style={{ display: 'flex', ...containerStyle }}>
-      <Row>
+      {PriceNaN === false && (
         <Statistic
           style={style}
-          className={CreateStatistic}
+          className="create-statistic"
           title={title || ''}
           value={amount}
-          suffix="SOL"
+          prefix="◎"
         />
-      </Row>
-
-      <div className={Availability}>24/111 left</div>
+      )}
+      {displayUSD && (
+        <div className="usd">
+          {PriceNaN === false ? (
+            formatUSD.format(priceUSD || 0)
+          ) : (
+            <div className="placebid">Place Bid</div>
+          )}
+        </div>
+      )}
     </div>
   );
+
+//   return (
+//       <div style={{ display: 'flex', ...containerStyle }}>
+//         <Row>
+//           <Statistic
+//             style={style}
+//             className={CreateStatistic}
+//             title={title || ''}
+//             value={amount}
+//             suffix="SOL"
+//           />
+//         </Row>
+//
+//         <div className={Availability}>24/111 left</div>
+//       </div>
+//     );
 };

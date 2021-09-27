@@ -13,7 +13,7 @@ const utils_1 = require("../utils");
 exports.AUCTION_PREFIX = 'auction';
 exports.METADATA = 'metadata';
 exports.EXTENDED = 'extended';
-exports.MAX_AUCTION_DATA_EXTENDED_SIZE = 8 + 9 + 2 + 200;
+exports.MAX_AUCTION_DATA_EXTENDED_SIZE = 8 + 9 + 2 + 9 + 33 + 158;
 var AuctionState;
 (function (AuctionState) {
     AuctionState[AuctionState["Created"] = 0] = "Created";
@@ -137,6 +137,8 @@ class AuctionDataExtended {
         this.totalUncancelledBids = args.totalUncancelledBids;
         this.tickSize = args.tickSize;
         this.gapTickSizePercentage = args.gapTickSizePercentage;
+        this.instantSalePrice = args.instantSalePrice;
+        this.name = args.name;
     }
 }
 exports.AuctionDataExtended = AuctionDataExtended;
@@ -224,7 +226,7 @@ class WinnerLimit {
 exports.WinnerLimit = WinnerLimit;
 class CreateAuctionArgs {
     constructor(args) {
-        this.instruction = 1;
+        this.instruction = 7;
         this.winners = args.winners;
         this.endAuctionAt = args.endAuctionAt;
         this.auctionGap = args.auctionGap;
@@ -234,6 +236,8 @@ class CreateAuctionArgs {
         this.priceFloor = args.priceFloor;
         this.tickSize = args.tickSize;
         this.gapTickSizePercentage = args.gapTickSizePercentage;
+        this.name = args.name;
+        this.instantSalePrice = args.instantSalePrice;
     }
 }
 exports.CreateAuctionArgs = CreateAuctionArgs;
@@ -277,6 +281,8 @@ exports.AUCTION_SCHEMA = new Map([
                 ['priceFloor', PriceFloor],
                 ['tickSize', { kind: 'option', type: 'u64' }],
                 ['gapTickSizePercentage', { kind: 'option', type: 'u8' }],
+                ['instantSalePrice', { kind: 'option', type: 'u64' }],
+                ['name', { kind: 'option', type: [32] }],
             ],
         },
     ],
@@ -353,6 +359,8 @@ exports.AUCTION_SCHEMA = new Map([
                 ['totalUncancelledBids', 'u64'],
                 ['tickSize', { kind: 'option', type: 'u64' }],
                 ['gapTickSizePercentage', { kind: 'option', type: 'u8' }],
+                ['instantSalePrice', { kind: 'option', type: 'u64' }],
+                ['name', { kind: 'option', type: [32] }],
             ],
         },
     ],

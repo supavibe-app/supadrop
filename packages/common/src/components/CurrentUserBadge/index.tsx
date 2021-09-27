@@ -36,6 +36,15 @@ export const CurrentUserBadge = (props: {
     setShowPopover(false);
   };
 
+  const baseWalletKey: React.CSSProperties = {
+    height: props.iconSize,
+    cursor: 'pointer',
+    userSelect: 'none',
+  };
+  const walletKeyStyle: React.CSSProperties = props.showAddress
+    ? baseWalletKey
+    : { ...baseWalletKey, paddingLeft: 0 };
+
   return (
     <>
       <div className="wallet-wrapper">
@@ -44,6 +53,7 @@ export const CurrentUserBadge = (props: {
           color="#000000"
           content={<Settings setShowEdit={handleShowEditProfile} />}
           trigger="click"
+          placement="bottomRight"
           onVisibleChange={visible => setShowPopover(visible)}
           visible={showPopover}
         >

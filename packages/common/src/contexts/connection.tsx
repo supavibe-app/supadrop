@@ -16,6 +16,7 @@ import {
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { notify } from '../utils/notifications';
 import { ExplorerLink } from '../components/ExplorerLink';
+import { useQuerySearch } from '../hooks';
 import {
   TokenInfo,
   TokenListProvider,
@@ -41,7 +42,7 @@ export type ENV =
 export const ENDPOINTS = [
   {
     name: 'mainnet-beta' as ENV,
-    endpoint: process.env.NEXT_PUBLIC_ENDPOINT || "'https://api.metaplex.solana.com'",
+    endpoint: 'https://api.metaplex.solana.com',
     ChainId: ChainId.MainnetBeta,
   },
   {
@@ -65,8 +66,8 @@ export const ENDPOINTS = [
     ChainId: ChainId.Devnet,
   },
 ];
-
-const DEFAULT = ENDPOINTS[0].endpoint;
+const defaultEndpoint = ENDPOINTS[Number(process.env.NEXT_PUBLIC_ENDPOINT)]
+const DEFAULT = defaultEndpoint.endpoint;
 
 interface ConnectionConfig {
   connection: Connection;
@@ -81,16 +82,22 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   endpoint: DEFAULT,
   setEndpoint: () => {},
   connection: new Connection(DEFAULT, 'recent'),
-  env: ENDPOINTS[0].name,
+  env: defaultEndpoint.name,
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
-  const [endpoint, setEndpoint] = useLocalStorageState(
+  const searchParams = useQuerySearch();
+  const network = searchParams.get('network');
+  const queryEndpoint =
+    network && ENDPOINTS.find(({ name }) => name.startsWith(network))?.endpoint;
+
+  const [savedEndpoint, setEndpoint] = useLocalStorageState(
     'connectionEndpoint',
-    ENDPOINTS[0].endpoint,
+    defaultEndpoint.endpoint,
   );
+  const endpoint = queryEndpoint || savedEndpoint;
 
   const connection = useMemo(
     () => new Connection(endpoint, 'recent'),
@@ -98,7 +105,7 @@ export function ConnectionProvider({ children = undefined as any }) {
   );
 
   const env =
-    ENDPOINTS.find(end => end.endpoint === endpoint)?.name || ENDPOINTS[0].name;
+    ENDPOINTS.find(end => end.endpoint === endpoint)?.name || defaultEndpoint.name;
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
@@ -165,6 +172,7 @@ export function useConnection() {
 
 export function useConnectionConfig() {
   const context = useContext(ConnectionContext);
+  
   return {
     endpoint: context.endpoint,
     setEndpoint: context.setEndpoint,

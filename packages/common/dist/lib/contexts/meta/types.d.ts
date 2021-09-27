@@ -6,9 +6,6 @@ import { PublicKeyStringAndAccount } from '../../utils';
 import { ParsedAccount } from '../accounts/types';
 export interface MetaState {
     metadata: ParsedAccount<Metadata>[];
-}
-export interface MetaState {
-    metadata: ParsedAccount<Metadata>[];
     metadataByMint: Record<string, ParsedAccount<Metadata>>;
     metadataByMasterEdition: Record<string, ParsedAccount<Metadata>>;
     editions: Record<string, ParsedAccount<Edition>>;
@@ -29,23 +26,21 @@ export interface MetaState {
     bidRedemptions: Record<string, ParsedAccount<BidRedemptionTicket>>;
     whitelistedCreatorsByCreator: Record<string, ParsedAccount<WhitelistedCreator>>;
     payoutTickets: Record<string, ParsedAccount<PayoutTicket>>;
-    stores: Record<string, ParsedAccount<Store>>;
-    creators: Record<string, ParsedAccount<WhitelistedCreator>>;
 }
 export interface MetaContextState extends MetaState {
     isLoading: boolean;
-}
-export interface MetaContextState extends MetaState {
-    liveDataAuctions: {
-        [key: string]: ItemAuction;
-    };
+    update: (auctionAddress?: any, bidderAddress?: any) => [
+        ParsedAccount<AuctionData>,
+        ParsedAccount<BidderPot>,
+        ParsedAccount<BidderMetadata>
+    ];
 }
 export declare type AccountAndPubkey = {
     pubkey: string;
     account: AccountInfo<Buffer>;
 };
-export declare type UpdateStateValueFunc = (prop: keyof MetaState, key: string, value: ParsedAccount<any>) => void;
-export declare type ProcessAccountsFunc = (account: PublicKeyStringAndAccount<Buffer>, setter: UpdateStateValueFunc, useAll: boolean) => void;
+export declare type UpdateStateValueFunc<T = void> = (prop: keyof MetaState, key: string, value: ParsedAccount<any>) => T;
+export declare type ProcessAccountsFunc = (account: PublicKeyStringAndAccount<Buffer>, setter: UpdateStateValueFunc) => void;
 export declare type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean;
 export declare class ItemAuction {
     id: string;
@@ -55,4 +50,5 @@ export declare class ItemAuction {
     img_nft: string;
     constructor(id: string, id_nft: string, token_mint: string, price_floor: number, img_nft: string);
 }
+export declare type UnPromise<T extends Promise<any>> = T extends Promise<infer U> ? U : never;
 //# sourceMappingURL=types.d.ts.map

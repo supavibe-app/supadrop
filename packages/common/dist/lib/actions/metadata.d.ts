@@ -25,7 +25,8 @@ export declare enum MetadataCategory {
     Audio = "audio",
     Video = "video",
     Image = "image",
-    VR = "vr"
+    VR = "vr",
+    HTML = "html"
 }
 export declare type MetadataFile = {
     uri: string;

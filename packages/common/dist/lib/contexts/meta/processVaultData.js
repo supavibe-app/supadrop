@@ -32,7 +32,7 @@ const processVaultData = ({ account, pubkey }, setter) => {
     }
 };
 exports.processVaultData = processVaultData;
-const isVaultAccount = (account) => account.owner === utils_1.VAULT_ID;
+const isVaultAccount = (account) => utils_1.pubkeyToString(account.owner) === utils_1.VAULT_ID;
 const isSafetyDepositBoxV1Account = (account) => account.data[0] === actions_1.VaultKey.SafetyDepositBoxV1;
 const isVaultV1Account = (account) => account.data[0] === actions_1.VaultKey.VaultV1;
 //# sourceMappingURL=processVaultData.js.map

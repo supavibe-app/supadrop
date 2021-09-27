@@ -43,7 +43,6 @@ var MasterEditionV1 = /** @class */ (function () {
         this.oneTimePrintingAuthorizationMint =
             args.oneTimePrintingAuthorizationMint;
     }
-    ;
     return MasterEditionV1;
 }());
 exports.MasterEditionV1 = MasterEditionV1;
@@ -53,7 +52,6 @@ var MasterEditionV2 = /** @class */ (function () {
         this.supply = args.supply;
         this.maxSupply = args.maxSupply;
     }
-    ;
     return MasterEditionV2;
 }());
 exports.MasterEditionV2 = MasterEditionV2;
@@ -62,7 +60,6 @@ var EditionMarker = /** @class */ (function () {
         this.key = MetadataKey.EditionMarker;
         this.ledger = args.ledger;
     }
-    ;
     return EditionMarker;
 }());
 exports.EditionMarker = EditionMarker;
@@ -72,7 +69,6 @@ var Edition = /** @class */ (function () {
         this.parent = args.parent;
         this.edition = args.edition;
     }
-    ;
     return Edition;
 }());
 exports.Edition = Edition;
@@ -84,7 +80,6 @@ var Data = /** @class */ (function () {
         this.sellerFeeBasisPoints = args.sellerFeeBasisPoints;
         this.creators = args.creators;
     }
-    ;
     return Data;
 }());
 exports.Data = Data;
@@ -97,7 +92,6 @@ var Metadata = /** @class */ (function () {
         this.primarySaleHappened = args.primarySaleHappened;
         this.isMutable = args.isMutable;
     }
-    ;
     return Metadata;
 }());
 exports.Metadata = Metadata;

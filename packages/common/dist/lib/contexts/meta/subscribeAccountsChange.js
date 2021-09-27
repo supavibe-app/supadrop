@@ -8,26 +8,34 @@ const processAuctions_1 = require("./processAuctions");
 const processMetaData_1 = require("./processMetaData");
 const processMetaplexAccounts_1 = require("./processMetaplexAccounts");
 const processVaultData_1 = require("./processVaultData");
-const subscribeAccountsChange = (connection, all, getState, setState) => {
+const subscribeAccountsChange = (connection, getState, setState) => {
     const subscriptions = [];
     const updateStateValue = (prop, key, value) => {
         const state = getState();
         const nextState = loadAccounts_1.makeSetter({ ...state })(prop, key, value);
         setState(nextState);
     };
-    subscriptions.push(connection.onProgramAccountChange(utils_1.toPublicKey(utils_1.VAULT_ID), onChangeAccount_1.onChangeAccount(processVaultData_1.processVaultData, updateStateValue, all)));
-    subscriptions.push(connection.onProgramAccountChange(utils_1.toPublicKey(utils_1.AUCTION_ID), onChangeAccount_1.onChangeAccount(processAuctions_1.processAuctions, updateStateValue, all)));
-    subscriptions.push(connection.onProgramAccountChange(utils_1.toPublicKey(utils_1.METAPLEX_ID), onChangeAccount_1.onChangeAccount(processMetaplexAccounts_1.processMetaplexAccounts, updateStateValue, all)));
+    subscriptions.push(connection.onProgramAccountChange(utils_1.toPublicKey(utils_1.VAULT_ID), onChangeAccount_1.onChangeAccount(processVaultData_1.processVaultData, updateStateValue)));
+    subscriptions.push(connection.onProgramAccountChange(utils_1.toPublicKey(utils_1.AUCTION_ID), onChangeAccount_1.onChangeAccount(processAuctions_1.processAuctions, updateStateValue)));
+    subscriptions.push(connection.onProgramAccountChange(utils_1.toPublicKey(utils_1.METAPLEX_ID), onChangeAccount_1.onChangeAccount(processMetaplexAccounts_1.processMetaplexAccounts, updateStateValue)));
     subscriptions.push(connection.onProgramAccountChange(utils_1.toPublicKey(utils_1.METADATA_PROGRAM_ID), onChangeAccount_1.onChangeAccount(processMetaData_1.processMetaData, async (prop, key, value) => {
+        const state = { ...getState() };
+        const setter = loadAccounts_1.makeSetter(state);
+        let hasChanges = false;
+        const updater = (...args) => {
+            hasChanges = true;
+            setter(...args);
+        };
         if (prop === 'metadataByMint') {
-            const state = getState();
-            const nextState = await loadAccounts_1.metadataByMintUpdater(value, state, all);
-            setState(nextState);
+            await loadAccounts_1.initMetadata(value, state.whitelistedCreatorsByCreator, updater);
         }
         else {
-            updateStateValue(prop, key, value);
+            updater(prop, key, value);
         }
-    }, all)));
+        if (hasChanges) {
+            setState(state);
+        }
+    })));
     return () => {
         subscriptions.forEach(subscriptionId => {
             connection.removeProgramAccountChangeListener(subscriptionId);

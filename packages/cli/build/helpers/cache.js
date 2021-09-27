@@ -22,6 +22,8 @@ function loadCache(cacheName, env, cPath) {
 exports.loadCache = loadCache;
 function saveCache(cacheName, env, cacheContent, cPath) {
     if (cPath === void 0) { cPath = constants_1.CACHE_PATH; }
+    cacheContent.env = env;
+    cacheContent.cacheName = cacheName;
     fs_1.default.writeFileSync(cachePath(env, cacheName, cPath), JSON.stringify(cacheContent));
 }
 exports.saveCache = saveCache;

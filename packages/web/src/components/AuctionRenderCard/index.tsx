@@ -7,17 +7,20 @@ import {
   fromLamports,
   useMint,
   ItemAuction,
+  shortenAddress,
 } from '@oyster/common';
-import { ArtContent, ArtContent2 } from '../ArtContent';
+import { ArtContent } from '../ArtContent';
 import {
   AuctionView,
   AuctionViewState,
   useArt,
   useBidsForAuction,
 } from '../../hooks';
+import { AmountLabel } from '../AmountLabel';
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
 import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, UserWrapper } from './style';
+import { WhiteColor } from '../../styles';
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
@@ -46,13 +49,11 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   const isUpcoming = auctionView.state === AuctionViewState.Upcoming;
 
   const winningBid = useHighestBidForAuction(auctionView.auction.pubkey);
-  const ended =
+  const ended = !auctionView.isInstantSale &&
     state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
 
   let currentBid: number | string = 0;
-  let label = '';
   if (isUpcoming || bids) {
-    label = ended ? 'Ended' : 'Starting bid';
     currentBid = fromLamports(
       participationOnly ? participationFixedPrice : priceFloor,
       mintInfo,
@@ -60,7 +61,6 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   }
 
   if (!isUpcoming && bids.length > 0) {
-    label = ended ? 'Winning bid' : 'Current bid';
     currentBid =
       winningBid && Number.isFinite(winningBid.info.lastBid?.toNumber())
         ? formatTokenAmount(winningBid.info.lastBid)
@@ -99,7 +99,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" size={32} className={AvatarStyle} />@apri
+              <Avatar size={32} className={AvatarStyle} />{shortenAddress(auctionView.auction.account.owner.toString())}
             </div>
 
             <Row>
@@ -110,11 +110,15 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 
               <Col span={12}>
                 <div>ending in</div>
-                <div className={NumberStyle}>
-                  {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-                  {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
-                  {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
-                </div>
+
+                {ended && <div className={WhiteColor} style={{ fontSize: 20 }}>ended</div>}
+                {!ended && (
+                  <div className={NumberStyle}>
+                    {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+                    {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
+                    {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+                  </div>
+                )}
               </Col>
             </Row>
           </>
@@ -133,7 +137,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
   const bids = useBidsForAuction(auctionView.id);
   const mintInfo = useMint(auctionView.token_mint);
 
-  const participationFixedPrice =  0;
+  const participationFixedPrice = 0;
   const participationOnly = false;
   const priceFloor = auctionView.price_floor;
   const isUpcoming = false;
@@ -160,83 +164,85 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
         : 'No Bid';
   }
 
-  return (
-    <Card
-      hoverable={true}
-      className={CardStyle}
-      cover={
-        
-        <ArtContent2
-          className={AuctionImage}
-          preview={false}
-          pubkey={id}
-          uri={auctionView.img_nft}
-          allowMeshRender={false}
-        />
-      }
-    >
-      <Meta
-        title={name}
-        description={
-          <>
-            <div className={UserWrapper}>
-              <Avatar src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" size={32} className={AvatarStyle} />@apri
-            </div>
+  //     return (
+  //       <Card
+  //         hoverable={true}
+  //         className={CardStyle}
+  //         cover={
+  //
+  //           <ArtContent2
+  //             className={AuctionImage}
+  //             preview={false}
+  //             pubkey={id}
+  //             uri={auctionView.img_nft}
+  //             allowMeshRender={false}
+  //           />
+  //         }
+  //       >
+  //         <Meta
+  //           title={name}
+  //           description={
+  //             <>
+  //               <div className={UserWrapper}>
+  //                 <Avatar src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" size={32} className={AvatarStyle} />@apri
+  //               </div>
+  //
+  //               <Row>
+  //                 <Col span={12}>
+  //                   <div>current bid</div>
+  //                   <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
+  //                 </Col>
+  //
+  //                 <Col span={12}>
+  //                   <div>ending in</div>
+  //                   <div className={NumberStyle}>
+  //                     {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+  //                     {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
+  //                     {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+  //                   </div>
+  //                 </Col>
+  //               </Row>
+  //             </>
+  //           }
+  //         />
+  //       </Card>
+  //     );
+  //   };
+  //
+  //   const CardCountdown = ({ state }: { state?: CountdownState }) => {
+  //     return (
+  //       <>
+  //         {state &&
+  //           <Row gutter={[16, 0]}>
+  //
+  //             <Col span={8}>
+  //               <div className={NumberStyle}>
+  //                 {state.hours < 10 && <span>0</span>}
+  //                 {state.hours}
+  //                 :
+  //               </div>
+  //             </Col>
+  //
+  //             <Col span={8}>
+  //               <div className={NumberStyle}>
+  //                 {state.minutes < 10 && <span>0</span>}
+  //                 {state.minutes}
+  //                 {state.days === 0 && ':'}
+  //               </div>
+  //             </Col>
+  //
+  //             {state.days === 0 && (
+  //               <Col span={8}>
+  //                 <div className={NumberStyle}>
+  //                   {state.seconds < 10 && <span>0</span>}
+  //                   {state.seconds}
+  //                 </div>
+  //               </Col>
+  //             )}
+  //           </Row>
+  //         }
+  //       </>
+  //     )
 
-            <Row>
-              <Col span={12}>
-                <div>current bid</div>
-                <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
-              </Col>
-
-              {/* <Col span={12}>
-                <div>ending in</div>
-                <div className={NumberStyle}>
-                  {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-                  {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
-                  {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
-                </div>
-              </Col> */}
-            </Row>
-          </>
-        }
-      />
-    </Card>
-  );
+  // return card;
 };
-
-const CardCountdown = ({ state }: { state?: CountdownState }) => {
-  return (
-    <>
-      {state &&
-        <Row gutter={[16, 0]}>
-
-          <Col span={8}>
-            <div className={NumberStyle}>
-              {state.hours < 10 && <span>0</span>}
-              {state.hours}
-              :
-            </div>
-          </Col>
-
-          <Col span={8}>
-            <div className={NumberStyle}>
-              {state.minutes < 10 && <span>0</span>}
-              {state.minutes}
-              {state.days === 0 && ':'}
-            </div>
-          </Col>
-
-          {state.days === 0 && (
-            <Col span={8}>
-              <div className={NumberStyle}>
-                {state.seconds < 10 && <span>0</span>}
-                {state.seconds}
-              </div>
-            </Col>
-          )}
-        </Row>
-      }
-    </>
-  )
-}
