@@ -462,6 +462,8 @@ export const AuctionCreateView = () => {
         : attributes.participationNFT,
       QUOTE_MINT.toBase58(),
     );
+
+    console.log("endAuction", auctionSettings.endAuctionAt?.toNumber())
     console.log(_auctionObj);
     
     // TODO : calculate end auction timestamp
@@ -469,7 +471,7 @@ export const AuctionCreateView = () => {
     .insert([{
       id:_auctionObj.auction,
       start_auction:attributes.startSaleTS,
-      end_auction:attributes.startSaleTS,
+      end_auction:(attributes.startSaleTS || 0 + (auctionSettings.endAuctionAt?.toNumber() || 0)),
       highest_bid:0,
       id_nft:attributes.items[0].metadata.pubkey,
       price_floor:attributes.priceFloor,
@@ -480,7 +482,9 @@ export const AuctionCreateView = () => {
       vault:_auctionObj.vault,
       type_auction:isInstantSale
     }])
-    .then()
+    .then(
+      
+    )
 
     setAuctionObj(_auctionObj);
   };

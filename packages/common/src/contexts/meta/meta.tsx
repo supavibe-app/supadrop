@@ -18,6 +18,7 @@ import { ParsedAccount } from '..';
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
   isLoading: false,
+  liveDataAuctions: {},
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
 });
@@ -68,6 +69,29 @@ export function MetaProvider({ children = null as any }) {
 
     }
 
+    //Todo handle not-started, starting, ended
+    supabase.from('auction_status')
+    .select(`
+    *,
+    nft_data (
+      *
+    )
+    `)
+    .then(dataAuction => {
+      let listData : {[key:string]:ItemAuction} =  {}
+      if (dataAuction.body != null) {
+        dataAuction.body.forEach( v =>{
+          listData[v.id] = new ItemAuction(v.id,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault)
+        })
+        
+        console.log('dataucte', dataAuction)
+
+        setDataAuction(listData)
+        setIsLoading(false);
+
+      }
+    })
+
     console.log('-----> Query started', new Date());
 
     const nextState = !USE_SPEED_RUN
@@ -78,27 +102,6 @@ export function MetaProvider({ children = null as any }) {
 
     setState(nextState);
 
-      //Todo handle not-started, starting, ended
-      supabase.from('auction_status')
-        .select(`
-        *,
-        nft_data (
-          *
-        )
-        `)
-        .then(dataAuction => {
-          let listData : {[key:string]:ItemAuction} =  {}
-          if (dataAuction.body != null) {
-            dataAuction.body.forEach( v =>{
-              listData[v.id] = new ItemAuction(v.id,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft)
-            })
-            
-            setDataAuction(listData)
-
-          }
-        })
-
-    setIsLoading(false);
     console.log('------->set finished',new Date());
 
     await updateMints(nextState.metadataByMint);

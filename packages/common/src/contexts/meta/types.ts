@@ -75,6 +75,7 @@ export interface MetaState {
 
 export interface MetaContextState extends MetaState {
   isLoading: boolean;
+  liveDataAuctions: { [key: string]: ItemAuction };
   update: (
     auctionAddress?: any,
     bidderAddress?: any,
@@ -109,6 +110,13 @@ export class ItemAuction {
   token_mint: string;
   price_floor: number;
   img_nft: string;
+  startAt: number;
+  endAt: number;
+  highestBid: number;
+  price_tick: number;
+  gapTime: number;
+  tickExtend: number;
+  vault: string;
 
   constructor(
     id: string,
@@ -116,12 +124,26 @@ export class ItemAuction {
     token_mint: string,
     price_floor: number,
     img_nft: string,
+    startAt: number,
+    endAt: number,
+    highestBid: number,
+    price_tick: number,
+    gapTime: number,
+    tickExtend: number,
+    vault: string,
   ) {
     this.id = id;
     this.id_nft = id_nft;
     this.token_mint = token_mint;
     this.price_floor = price_floor;
     this.img_nft = img_nft;
+    this.startAt = startAt;
+    this.endAt = endAt;
+    this.highestBid = highestBid;
+    this.price_tick = price_tick;
+    this.gapTime = gapTime;
+    this.tickExtend = tickExtend;
+    this.vault = vault;
   }
 }
 

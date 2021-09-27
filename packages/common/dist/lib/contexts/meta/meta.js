@@ -33,6 +33,7 @@ const supabaseClient_1 = require("../../supabaseClient");
 const MetaContext = react_1.default.createContext({
     ...getEmptyMetaState_1.getEmptyMetaState(),
     isLoading: false,
+    liveDataAuctions: {},
     // @ts-ignore
     update: () => [actions_1.AuctionData, actions_1.BidderMetadata, actions_1.BidderPot],
 });
@@ -72,30 +73,31 @@ function MetaProvider({ children = null }) {
         else {
             console.log('sessiong storage gk ada');
         }
+        //Todo handle not-started, starting, ended
+        supabaseClient_1.supabase.from('auction_status')
+            .select(`
+    *,
+    nft_data (
+      *
+    )
+    `)
+            .then(dataAuction => {
+            let listData = {};
+            if (dataAuction.body != null) {
+                dataAuction.body.forEach(v => {
+                    listData[v.id] = new types_1.ItemAuction(v.id, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault);
+                });
+                console.log('dataucte', dataAuction);
+                setDataAuction(listData);
+                setIsLoading(false);
+            }
+        });
         console.log('-----> Query started', new Date());
         const nextState = !loadAccounts_1.USE_SPEED_RUN
             ? await loadAccounts_1.loadAccounts(connection)
             : await loadAccounts_1.limitedLoadAccounts(connection);
         console.log('------->Query finished');
         setState(nextState);
-        //TODO query end date
-        supabaseClient_1.supabase.from('auction_status')
-            .select(`
-        *,
-        nft_data (
-          *
-        )
-        `)
-            .then(dataAuction => {
-            let listData = {};
-            if (dataAuction.body != null) {
-                dataAuction.body.forEach(v => {
-                    listData[v.id] = new types_1.ItemAuction(v.id, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft);
-                });
-                setDataAuction(listData);
-            }
-        });
-        setIsLoading(false);
         console.log('------->set finished', new Date());
         await updateMints(nextState.metadataByMint);
         if (auctionAddress && bidderAddress) {

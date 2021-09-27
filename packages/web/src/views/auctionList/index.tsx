@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
 import BN from 'bn.js';
 import { Link } from 'react-router-dom';
-import { AuctionRenderCard } from '../../components/AuctionRenderCard';
+import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
 import { CardLoader } from '../../components/MyLoader';
 import { useMeta } from '../../contexts';
 import { AuctionView, AuctionViewState, useAuctions } from '../../hooks';
@@ -15,7 +15,7 @@ const AuctionListView = () => {
   const auctions = useAuctions(AuctionViewState.Live);
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
   const [activeKey, setActiveKey] = useState(auctions.length > 0 ? '1' : '2');
-  const { isLoading } = useMeta();
+  const { isLoading, liveDataAuctions } = useMeta();
 
   // Check if the auction is primary sale or not
   const checkPrimarySale = (auc: AuctionView) => {
@@ -41,14 +41,18 @@ const AuctionListView = () => {
     )
     .filter(m => checkPrimarySale(m) == true);
   // Removed resales from live auctions
-  const liveAuctions = auctions
-    .sort(
-      (a, b) =>
-        a.auction.info.endedAt
-          ?.sub(b.auction.info.endedAt || new BN(0))
-          .toNumber() || 0,
-    )
-    .filter(a => !resaleAuctions.includes(a));
+  // const liveAuctions = auctions
+  //   .sort(
+  //     (a, b) =>
+  //       a.auction.info.endedAt
+  //         ?.sub(b.auction.info.endedAt || new BN(0))
+  //         .toNumber() || 0,
+  //   )
+  //   .filter(a => !resaleAuctions.includes(a));
+
+  const liveAuctions = Object.entries(liveDataAuctions).map(([key, data]) => {
+    return data;
+  })
 
   const heroAuction = useMemo(
     () =>
@@ -67,13 +71,18 @@ const AuctionListView = () => {
     return (
       <>
         {list.map((m, idx) => {
-          if (m === heroAuction) return;
+          console.log('auctionList',list)
+          console.log('mapAuction',m)
+          console.log('idxAuction',idx)
+          console.log('heroAuction',heroAuction)
+
+          // if (m === heroAuction) return;
 
           const id = m.auction.pubkey;
           return (
             <Col key={idx} span={6}>
               <Link to={`/auction/${id}`}>
-                <AuctionRenderCard auctionView={m} />
+                <AuctionRenderCard2 auctionView={m} />
               </Link>
             </Col>
           );
