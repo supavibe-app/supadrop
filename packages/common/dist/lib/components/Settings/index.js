@@ -92,8 +92,6 @@ const Settings = ({ additionalSettings, setShowEdit = () => { } }) => {
             react_1.default.createElement(antd_1.List.Item, { onClick: () => setShowEdit() },
                 react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon, src: "https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" }),
                 "edit profile"),
-            react_1.default.createElement(antd_1.List.Item, null,
-                react_1.default.createElement(antd_1.Select, { onSelect: setEndpoint, value: endpoint, style: { marginBottom: 20 } }, connection_1.ENDPOINTS.map(({ name, endpoint }) => (react_1.default.createElement(antd_1.Select.Option, { value: endpoint, key: endpoint }, name))))),
             react_1.default.createElement(antd_1.List.Item, { onClick: () => disconnect().catch() },
                 react_1.default.createElement(feather_icons_react_1.default, { icon: "power", className: style_1.ItemIcon }),
                 "disconnect")),

@@ -17,6 +17,16 @@ export const ArtContainer = css`
   }
 `;
 
+export const BackButton = css`
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  .anticon {
+    margin-right: 8px;
+  }
+`;
+
 export const ArtDetailsColumn = css`
   display: flex;
   flex-direction: column;
@@ -24,7 +34,7 @@ export const ArtDetailsColumn = css`
   height: 100%;
 `;
 
-export const ArtDetails = css`
+export const OverflowYAuto = css`
   overflow-y: auto;
 `;
 
@@ -40,7 +50,7 @@ export const PaddingBox = css`
   padding: 32px 28px;
 `;
 
-export const EditionContainer = css`
+export const ArtDetailsHeader = css`
   display: flex;
   justify-content: space-between;
 `;
@@ -185,4 +195,60 @@ export const Attribute = css`
 export const AttributeRarity = css`
   margin-left: 4px;
   color: #ccff00;
+`;
+
+// place bid styles
+export const PlaceBidTitle = css`
+  font-weight: bold;
+  font-size: 36px;
+  color: #fafafb;
+  margin-bottom: 16px;
+`;
+
+export const Information = css`
+  font-weight: bold;
+  font-size: 18px;
+  color: #7e7c7c;
+  margin-bottom: 28px;
+`;
+
+export const BidRuleInformation = css`
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 17px;
+  color: #fafafb;
+`;
+
+export const BidInput = css`
+  padding: unset;
+  height: 78px;
+  margin-bottom: 24px;
+  border-radius: 2px;
+  border: 2px solid #ccff00;
+  background: transparent;
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  .ant-input {
+    font-weight: bold;
+    background: transparent;
+    padding-left: 32px !important;
+    font-size: 24px;
+  }
+
+  .ant-input-suffix {
+    padding: 0 32px;
+    background: #fafafb;
+    color: #161f26;
+    font-weight: bold;
+    font-size: 24px;
+  }
 `;
