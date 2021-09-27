@@ -244,7 +244,7 @@ var getMasterEdition = function (mint) { return __awaiter(void 0, void 0, void 0
 exports.getMasterEdition = getMasterEdition;
 function loadWalletKey(keypair) {
     if (!keypair || keypair == '') {
-        throw new Error("Keypair is required!");
+        throw new Error('Keypair is required!');
     }
     var loaded = web3_js_1.Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs_1.default.readFileSync(keypair).toString())));
     loglevel_1.default.info("wallet public key: " + loaded.publicKey);

@@ -294,5 +294,5 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 //       </>
 //     )
 
-  return card;
+  return Card;
 };
