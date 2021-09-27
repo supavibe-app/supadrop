@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Avatar } from 'antd';
-import { BidStatus, ButtonWrapper, CurrentBid, NormalFont, WhiteColor } from './style';
+import { Avatar, Col, Row, Skeleton } from 'antd';
+import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox } from './style';
 import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, fromLamports } from '@oyster/common';
 import moment from 'moment';
 
@@ -10,6 +10,7 @@ import { Art } from '../../types';
 import { TwitterOutlined } from '@ant-design/icons';
 import { AuctionView, useHighestBidForAuction } from '../../hooks';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { uFontSize24, WhiteColor } from '../../styles';
 
 const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
   art: Art;
@@ -62,59 +63,103 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     }, [wallet, connect, open],
   );
 
-  const bidDetailsContent = () => {
+  const BidDetailsContent = ({ children }) => {
     if (ended) {
       return (
-        <div className={BidStatus}>
-          <div>
-            <Avatar size={40} />
-          </div>
+        <div className={art.title && highestBid ? PaddingBox : SmallPaddingBox}>
+          {art.title && highestBid && (
+            <div className={BidStatus}>
+              <div>
+                <Avatar size={40} />
+              </div>
 
-          <div>
-            <div>
-              winning bid by{' '}
-              <span className={WhiteColor}>{highestBid && shortenAddress(highestBid.info.bidderPubkey)}</span>
-            </div>
+              <div>
+                <div>
+                  winning bid by{' '}
+                  <span className={WhiteColor}>{highestBid && shortenAddress(highestBid.info.bidderPubkey)}</span>
+                </div>
 
-            <div className={CurrentBid}>
-              <span className={WhiteColor}>{highestBid && `${formatTokenAmount(highestBid.info.lastBid)} SOL`}</span>
+                <div className={CurrentBid}>
+                  <span className={WhiteColor}>{highestBid && `${formatTokenAmount(highestBid.info.lastBid)} SOL`}</span>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {art.title && !highestBid && (
+            <Row className={BidStatusEmpty}>
+              <Col span={12}>
+                <div>reserve price</div>
+                <div className={`${WhiteColor} ${uFontSize24}`}>{currentBid}</div>
+              </Col>
+
+              <Col span={12}>
+                <div>ending in</div>
+                <div className={`${WhiteColor} ${uFontSize24}`}>ended</div>
+              </Col>
+            </Row>
+          )}
+
+          {children}
         </div>
       );
     }
 
     return (
-      <div className={BidStatus}>
-        {art.title && (
-          <>
-            <div>
-              <Avatar size={40} />
-            </div>
-
-            <div>
+      <div className={PaddingBox}>
+        <div className={BidStatus}>
+          {art.title && highestBid && (
+            <>
               <div>
-                current bid by{' '}
-                <span className={WhiteColor}>{highestBid && shortenAddress(highestBid.info.bidderPubkey)}</span>
-                <span className={NormalFont}>・{highestBid && moment.unix(highestBid.info.lastBidTimestamp.toNumber()).fromNow()}</span>
+                <Avatar size={40} />
               </div>
 
-              <div className={CurrentBid}>
-                <span className={WhiteColor}>{highestBid && formatTokenAmount(highestBid.info.lastBid)} SOL</span>
+              <div>
+                <div>
+                  current bid by{' '}
+                  <span className={WhiteColor}>{shortenAddress(highestBid.info.bidderPubkey)}</span>
+                  <span className={NormalFont}>・{moment.unix(highestBid.info.lastBidTimestamp.toNumber()).fromNow()}</span>
+                </div>
 
-                {' '}ending in{' '}
+                <div className={CurrentBid}>
+                  <span className={WhiteColor}>{formatTokenAmount(highestBid.info.lastBid)} SOL</span>
 
+                  {' '}ending in{' '}
+
+                  {state && (
+                    <span className={WhiteColor}>
+                      {state.hours} :{' '}
+                      {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
+                      {state.minutes > 0 ? state.minutes : `0${state.minutes}`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {art.title && !highestBid && (
+            <Row style={{ width: '100%' }}>
+              <Col span={12}>
+                <div>reserve price</div>
+                <div className={`${WhiteColor} ${uFontSize24}`}>{currentBid}</div>
+              </Col>
+
+              <Col span={12}>
+                <div>ending in</div>
                 {state && (
-                  <span className={WhiteColor}>
+                  <div className={`${WhiteColor} ${uFontSize24}`}>
                     {state.hours} :{' '}
                     {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
                     {state.minutes > 0 ? state.minutes : `0${state.minutes}`}
-                  </span>
+                  </div>
                 )}
-              </div>
-            </div>
-          </>
-        )}
+              </Col>
+            </Row>
+          )}
+        </div>
+
+        {children}
       </div>
     );
   };
@@ -122,23 +167,27 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   // case 0: loading
   if (!art.title) {
     return (
-      <div className={ButtonWrapper}>
-        <ActionButton disabled width="100%">please wait...</ActionButton>
+      <div className={PaddingBox}>
+        <div className={BidStatus}>
+          <Skeleton avatar paragraph={{ rows: 0 }} />
+        </div>
+        <div className={ButtonWrapper}>
+          <ActionButton disabled width="100%">please wait...</ActionButton>
+        </div>
       </div>
     );
   }
 
   // if auction ended
-  if (!ended) {
+  if (ended) {
     // case 1: you win the bid
-    if (publicKey?.toBase58() === highestBid?.info.bidderPubkey) {
+    if (highestBid && publicKey && publicKey?.toBase58() === highestBid?.info.bidderPubkey) {
       return (
-        <>
-          {bidDetailsContent()}
+        <BidDetailsContent>
           <div className={ButtonWrapper}>
             <ActionButton width="100%">claim your NFT</ActionButton>
           </div>
-        </>
+        </BidDetailsContent>
       )
     }
 
@@ -147,37 +196,41 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     // case 2: auction ended but not winning 
     if (isParticipated) {
       return (
-        <>
-          {bidDetailsContent()}
+        <BidDetailsContent>
           <div className={ButtonWrapper}>
             <ActionButton width="100%">refund bid</ActionButton>
           </div>
-        </>
+        </BidDetailsContent>
       )
     }
 
     // case 3: auction ended but not participated
     return (
-      <>
-        {bidDetailsContent()}
+      <BidDetailsContent>
         <div className={ButtonWrapper}>
           <ActionButton disabled width="100%">ended auction</ActionButton>
         </div>
-      </>
+      </BidDetailsContent>
     );
   }
 
   // case 4: your nft on sale
   if (publicKey?.toBase58() === owner) {
-    <>
-      {bidDetailsContent()}
-      <div className={ButtonWrapper}>
-        <ActionButton width="100%">
-          <TwitterOutlined style={{ color: 'white', marginRight: 8 }} />
-          share on twitter
-        </ActionButton>
-      </div>
-    </>
+    const baseURL = process.env.REACT_APP_SUPABASE_URL || 'https://supadrop.com';
+    const auctionURL = `${baseURL}/auction/${auction?.auction.pubkey}`;
+    const twitterText = `gm%21%E2%80%A8i%20just%20list%20my%20NFT%20on%20supadrop%20marketplace%2C%20check%20this%20out%21%E2%80%A8%20${auctionURL}`;
+    const twitterIntent = `https://twitter.com/intent/tweet?text=${twitterText}`;
+
+    return (
+      <BidDetailsContent>
+        <a className={ButtonWrapper} href={twitterIntent}>
+          <ActionButton width="100%">
+            <TwitterOutlined style={{ color: 'white', marginRight: 8 }} />
+            share on twitter
+          </ActionButton>
+        </a>
+      </BidDetailsContent>
+    );
   }
 
   // place bid page active
@@ -185,14 +238,13 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     // case 5: insufficient balance
     if (balance < minimumBid) {
       return (
-        <>
-          {bidDetailsContent()}
+        <BidDetailsContent>
           <div className={ButtonWrapper}>
             <ActionButton width="100%" disabled>
               insufficient balance
             </ActionButton>
           </div>
-        </>
+        </BidDetailsContent>
       )
     }
 
@@ -200,21 +252,19 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
       // case 6: filled amount but not more than minimum bid
       if (currentBidAmount < minimumBid) {
         return (
-          <>
-            {bidDetailsContent()}
+          <BidDetailsContent>
             <div className={ButtonWrapper}>
               <ActionButton width="100%" disabled>
-                insufficient balance
+                insufficient bid
               </ActionButton>
             </div>
-          </>
+          </BidDetailsContent>
         )
       }
 
       // case 7: filled amount
       return (
-        <>
-          {bidDetailsContent()}
+        <BidDetailsContent>
           <div className={ButtonWrapper}>
             <ActionButton
               width="100%"
@@ -222,27 +272,25 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
               CONFIRM
             </ActionButton>
           </div>
-        </>
+        </BidDetailsContent>
       );
     }
 
     // case 8: default view - place bid
     return (
-      <>
-        {bidDetailsContent()}
+      <BidDetailsContent>
         <div className={ButtonWrapper}>
           <ActionButton width="100%" disabled>
             enter your bid amount
           </ActionButton>
         </div>
-      </>
+      </BidDetailsContent>
     );
   }
 
   // default case
   return (
-    <>
-      {bidDetailsContent()}
+    <BidDetailsContent>
       <div className={ButtonWrapper}>
         <ActionButton
           width="100%"
@@ -254,7 +302,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           place a bid
         </ActionButton>
       </div>
-    </>
+    </BidDetailsContent>
   );
 };
 

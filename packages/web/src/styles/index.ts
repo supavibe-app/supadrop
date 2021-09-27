@@ -26,3 +26,11 @@ export const uFlexSpaceBetween = css`
   display: flex;
   justify-content: space-between;
 `;
+
+export const uFontSize24 = css`
+  font-size: 24px;
+`;
+
+export const uPointer = css`
+  cursor: pointer;
+`;

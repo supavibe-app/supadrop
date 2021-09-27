@@ -36,15 +36,6 @@ export const CurrentUserBadge = (props: {
     setShowPopover(false);
   };
 
-  const baseWalletKey: React.CSSProperties = {
-    height: props.iconSize,
-    cursor: 'pointer',
-    userSelect: 'none',
-  };
-  const walletKeyStyle: React.CSSProperties = props.showAddress
-    ? baseWalletKey
-    : { ...baseWalletKey, paddingLeft: 0 };
-
   return (
     <>
       <div className="wallet-wrapper">

@@ -2,7 +2,7 @@ import React from 'react';
 import { Avatar, Button, Col, Row } from 'antd';
 import { ArtDescription, ArtTitle, Attribute, AttributeRarity, ContentSection, Label, UserThumbnail } from './style';
 import { IMetadataExtension, shortenAddress } from '@oyster/common';
-import { AuctionView, useArt, useCreators, useExtendedArt } from '../../hooks';
+import { AuctionView, useArt, useCreators } from '../../hooks';
 
 const ArtDetails = ({ auction, artData }: {
   auction: AuctionView | undefined;

@@ -1,3 +1,4 @@
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   CheckCircleTwoTone,
   LoadingOutlined,
@@ -16,9 +17,10 @@ import {
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
-import { Badge, List } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Badge, Button, List, Popover } from 'antd';
+import FeatherIcon from 'feather-icons-react';
+import { Link, useLocation } from 'react-router-dom';
+
 import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
 import { decommAuctionManagerAndReturnPrizes } from '../../actions/decommAuctionManagerAndReturnPrizes';
 import { sendSignMetadata } from '../../actions/sendSignMetadata';
@@ -28,6 +30,9 @@ import { startAuctionManually } from '../../actions/startAuctionManually';
 import { QUOTE_MINT } from '../../constants';
 import { useMeta } from '../../contexts';
 import { AuctionViewState, useAuctions } from '../../hooks';
+import { BadgeStyle, CircleButton, NotificationPopover } from './style';
+import { GreyColor, uBoldFont, uFlexSpaceBetween, WhiteColor } from '../../styles';
+import Coffee from '../../assets/icons/coffee';
 
 interface NotificationCard {
   id: string;
@@ -296,7 +301,7 @@ export function useSettlementAuctions({
   });
 }
 
-export function Notifications() {
+export const Notifications = ({ }) => {
   const {
     metadata,
     whitelistedCreatorsByCreator,
@@ -304,14 +309,12 @@ export function Notifications() {
     vaults,
     safetyDepositBoxesByVaultAndIndex,
   } = useMeta();
-  const possiblyBrokenAuctionManagerSetups = useAuctions(
-    AuctionViewState.Defective,
-  );
+  const possiblyBrokenAuctionManagerSetups = useAuctions(AuctionViewState.Defective);
+  const { pathname } = useLocation();
 
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
   const wallet = useWallet();
-  const { accountByMint } = useUserAccounts();
 
   const notifications: NotificationCard[] = [];
 
@@ -485,14 +488,48 @@ export function Notifications() {
       />
     </div>
   ) : (
-    <span>No notifications</span>
+    // <div className={EmptyNotification}>
+    <div>
+      <Coffee />
+      <div>no notifications</div>
+    </div>
   );
 
-  if (notifications.length === 0) return content;
-  else
+  if (notifications.length === 0) {
     return (
-      <Badge count={notifications.length} style={{ backgroundColor: 'white' }}>
-        {content}
-      </Badge>
+      <Popover
+        overlayClassName={NotificationPopover}
+        content={content}
+        trigger="click"
+        placement="bottomRight"
+        title={(
+          <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
+            <div className={WhiteColor}>notification</div>
+            {!pathname.includes('activity') && <Link className={GreyColor} to="/activity">see all</Link>}
+          </div>
+        )}
+      >
+        <Button className={CircleButton({ active: false })} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+      </Popover>
     );
+  }
+
+  return (
+    <Badge className={BadgeStyle} dot>
+      <Popover
+        overlayClassName={NotificationPopover}
+        content={content}
+        trigger="click"
+        placement="bottomRight"
+        title={(
+          <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
+            <div className={WhiteColor}>notification</div>
+            <Link className={GreyColor} to="/activity">see all</Link>
+          </div>
+        )}
+      >
+        <Button className={CircleButton({ active: true })} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+      </Popover>
+    </Badge>
+  );
 }

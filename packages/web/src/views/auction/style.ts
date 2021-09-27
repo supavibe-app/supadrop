@@ -17,6 +17,26 @@ export const ArtContainer = css`
   }
 `;
 
+export const OptionsPopover = css`
+  .ant-popover-inner {
+    border: 2px solid yellow;
+    border-radius: 4px;
+    background: #000000;
+  }
+
+  .ant-popover-inner-content {
+    padding: 0 20px;
+    padding-right: 0;
+  }
+
+  .ant-btn-link {
+    padding: 0;
+    padding-right: 32px;
+    color: #fafafb;
+    font-weight: bold;
+  }
+`;
+
 export const BackButton = css`
   display: flex;
   align-items: center;
@@ -48,6 +68,10 @@ export const ColumnBox = css`
 
 export const PaddingBox = css`
   padding: 32px 28px;
+`;
+
+export const SmallPaddingBox = css`
+  padding: 16px 28px 32px 28px;
 `;
 
 export const ArtDetailsHeader = css`
@@ -90,7 +114,6 @@ export const BidStatus = css`
   align-items: center;
   font-weight: bold;
   font-size: 14px;
-
   color: #7e7c7c;
 
   .ant-avatar {
@@ -98,25 +121,21 @@ export const BidStatus = css`
   }
 `;
 
+export const BidStatusEmpty = css`
+  display: flex;
+  margin-bottom: 22px;
+  font-weight: bold;
+  font-size: 14px;
+  color: #7e7c7c;
+`;
+
 export const CurrentBid = css`
   font-size: 18px;
-`;
-
-export const WhiteColor = css`
-  color: #fafafb;
-`;
-
-export const YellowGlowColor = css`
-  color: #ccff00;
 `;
 
 export const NormalFont = css`
   font-weight: normal;
   font-style: normal;
-`;
-
-export const BoldFont = css`
-  font-weight: bold;
 `;
 
 export const ButtonWrapper = css`

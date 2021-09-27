@@ -15,19 +15,17 @@ import { ArrowLeftOutlined, EllipsisOutlined } from '@ant-design/icons';
 
 import {
   formatTokenAmount,
-  PriceFloorType,
   shortenAddress,
   useConnectionConfig,
-  fromLamports,
   useMint,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ArtType } from '../../types';
-import { Activity, ActivityHeader, ArtContainer, OverflowYAuto, ArtDetailsColumn, BidStatus, BoldFont, ButtonWrapper, ColumnBox, Container, ContentSection, CurrentBid, ArtDetailsHeader, IsMyBid, Label, NormalFont, PaddingBox, StatusContainer, WhiteColor, YellowGlowColor, BackButton } from './style';
-import { BN } from 'bn.js';
+import { Activity, ActivityHeader, ArtContainer, OverflowYAuto, ArtDetailsColumn, ColumnBox, Container, ContentSection, ArtDetailsHeader, IsMyBid, Label, PaddingBox, StatusContainer, BackButton, OptionsPopover } from './style';
 import BidDetails from './bidDetails';
 import PlaceBid from './placeBid';
 import ArtDetails from './artDetails';
+import { GreyColor, uBoldFont, YellowGlowColor } from '../../styles';
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
@@ -51,32 +49,7 @@ export const AuctionView = () => {
   const art = useArt(auction?.thumbnail.metadata.pubkey);
   const bids = useBidsForAuction(auction?.auction.pubkey || '');
   const mint = useMint(auction?.auction.info.tokenMint);
-  const mintInfo = useMint(auction?.auction.info.tokenMint);
-
-  const participationFixedPrice = auction?.auctionManager.participationConfig?.fixedPrice || 0;
-  const participationOnly = auction?.auctionManager.numWinners.eq(new BN(0));
-  const priceFloor =
-    auction?.auction.info.priceFloor.type === PriceFloorType.Minimum
-      ? auction?.auction.info.priceFloor.minPrice?.toNumber() || 0
-      : 0;
-  const isUpcoming = auction?.state === AuctionViewState.Upcoming;
-
   const highestBid = useHighestBidForAuction(auction?.auction.pubkey || '');
-
-  let currentBid: number | string = 0;
-  if (isUpcoming || bids) {
-    currentBid = fromLamports(
-      participationOnly ? participationFixedPrice : priceFloor,
-      mintInfo,
-    );
-  }
-
-  if (!isUpcoming && bids.length > 0) {
-    currentBid =
-      highestBid && Number.isFinite(highestBid.info.lastBid?.toNumber())
-        ? formatTokenAmount(highestBid.info.lastBid)
-        : 'No Bid';
-  }
 
   let edition = '';
   switch (art.type) {
@@ -113,7 +86,7 @@ export const AuctionView = () => {
     );
   });
 
-  const options = (
+  const moreOptions = (
     <div>
       <List>
         <List.Item>
@@ -174,9 +147,7 @@ export const AuctionView = () => {
 
   const BidsHistorySkeleton = (
     <div>
-      {[...Array(3)].map(i => (
-        <Skeleton avatar paragraph={{ rows: 0 }} />
-      ))}
+      {[...Array(3)].map(i => <Skeleton avatar paragraph={{ rows: 0 }} />)}
     </div>
   );
 
@@ -203,7 +174,7 @@ export const AuctionView = () => {
                 </div>
               )}
 
-              <Popover trigger="click" placement="bottomRight" content={options}>
+              <Popover overlayClassName={OptionsPopover} trigger="click" placement="bottomRight" content={moreOptions}>
                 <div style={{ cursor: 'pointer', color: '#FAFAFB' }}>
                   <EllipsisOutlined />
                 </div>
@@ -214,16 +185,10 @@ export const AuctionView = () => {
             {!art.title && ArtDetailSkeleton}
 
             {art.title && showPlaceBid && <PlaceBid auction={auction} setBidAmount={setBidAmountNumber} />}
-
             {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} />}
           </div>
 
-          <div className={`${StatusContainer} ${PaddingBox} `}>
-            {!art.title && (
-              <div className={BidStatus}>
-                <Skeleton avatar paragraph={{ rows: 0 }} />
-              </div>
-            )}
+          <div className={StatusContainer}>
             <BidDetails
               auction={auction}
               art={art}
@@ -245,6 +210,13 @@ export const AuctionView = () => {
 
         {!art.title && BidsHistorySkeleton}
 
+        {art.title && !Boolean(bids.length) && (
+          <div className={GreyColor}>
+            <div>no one bid yet</div>
+            <div>be the first to make a bid!</div>
+          </div>
+        )}
+
         {bids.map((bid, idx) => (
           <div key={idx}>
             {publicKey?.toBase58() === bid.info.bidderPubkey && <div className={IsMyBid} />}
@@ -252,7 +224,7 @@ export const AuctionView = () => {
               <div>
                 <Avatar size={24} /> {shortenAddress(bid.info.bidderPubkey)}
               </div>
-              <div className={BoldFont}>
+              <div className={uBoldFont}>
                 {formatTokenAmount(bid.info.lastBid, mint)} SOL
               </div>
             </div>

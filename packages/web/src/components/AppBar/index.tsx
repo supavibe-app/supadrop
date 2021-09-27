@@ -1,14 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Popover } from 'antd';
+import { Button } from 'antd';
 import { ConnectButton, CurrentUserBadge } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
-import FeatherIcon from 'feather-icons-react';
 import { Notifications } from '../Notifications';
 
 import { LABELS } from '../../constants';
-import { ButtonContainer, CircleButton, LinkButton, LogoWrapper, NotificationPopover, RoundButton, Title } from './style';
-import { GreyColor, uBoldFont, uFlexSpaceBetween, WhiteColor } from '../../styles';
+import { ButtonContainer, LinkButton, LogoWrapper, RoundButton, Title } from './style';
 
 export const AppBar = () => {
   const { connected } = useWallet();
@@ -34,25 +32,12 @@ export const AppBar = () => {
             </Button>
           </Link>
 
-          <Popover
-            overlayClassName={NotificationPopover}
-            content={Notifications()}
-            trigger="click"
-            placement="bottomRight"
-            title={(
-              <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
-                <div className={WhiteColor}>notification</div>
-                <div className={GreyColor}>see all</div>
-              </div>
-            )}
-          >
-            <Button className={CircleButton} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
-          </Popover>
+          <Notifications />
 
           <CurrentUserBadge showBalance={true} showAddress={true} />
 
           {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
-        </div>
+        </div >
       </>
     );
   }
