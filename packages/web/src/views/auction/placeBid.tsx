@@ -1,7 +1,7 @@
 import React from 'react';
 import { Col, Input, Row } from 'antd';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { formatNumber, fromLamports, PriceFloorType, useMint, useNativeAccount } from '@oyster/common';
+import { formatNumber, formatTokenAmount, fromLamports, PriceFloorType, useMint, useNativeAccount } from '@oyster/common';
 import { BidInput, BidRuleInformation, Information, PlaceBidTitle, WhiteColor } from './style';
 import { AuctionView, useHighestBidForAuction } from '../../hooks';
 
@@ -18,18 +18,12 @@ const PlaceBid = ({ auction, setBidAmount }: {
     auction?.auction.info.priceFloor.type === PriceFloorType.Minimum
       ? auction?.auction.info.priceFloor.minPrice?.toNumber() || 0
       : 0;
-  let currentBid: number | string = 0;
-  currentBid = fromLamports(priceFloor, mintInfo);
 
-  // currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || auction?.auction.info.priceFloor.minPrice?.toNumber() || 0;
-  const minimumBid = currentBid + currentBid * 0.1;
+  console.log(fromLamports(participationFixedPrice, mintInfo));
+
   const balance = formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL);
-
-  // console.log('auction: ', auction);
-  // console.log('currentBid: ', currentBid);
-  // console.log('priceFloor: ', priceFloor);
-  // console.log('participationFixedPrice: ', participationFixedPrice);
-  // console.log('minimumBid: ', minimumBid);
+  const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
+  const minimumBid = currentBid + currentBid * 0.1;
 
   return (
     <>

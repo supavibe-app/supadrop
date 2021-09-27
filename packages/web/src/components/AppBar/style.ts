@@ -45,3 +45,23 @@ export const RoundButton = css`
   font-size: 14px;
   font-weight: 700;
 `;
+
+export const NotificationPopover = css`
+  .ant-popover-inner {
+    border: 1px solid yellow;
+    border-radius: 4px;
+    padding: 16px 20px;
+    background: #000000;
+  }
+
+  .ant-popover-title {
+    border: unset;
+    padding: 0;
+  }
+
+  .ant-popover-inner-content {
+    width: 378px;
+    height: 318px;
+    padding: 0;
+  }
+`;

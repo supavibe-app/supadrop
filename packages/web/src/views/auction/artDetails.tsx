@@ -1,26 +1,25 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Avatar, Button, Col, Row } from 'antd';
 import { ArtDescription, ArtTitle, Attribute, AttributeRarity, ContentSection, Label, UserThumbnail } from './style';
-import { shortenAddress } from '@oyster/common';
+import { IMetadataExtension, shortenAddress } from '@oyster/common';
 import { AuctionView, useArt, useCreators, useExtendedArt } from '../../hooks';
 
-const ArtDetails = ({ auction }: { auction: AuctionView | undefined; }) => {
-  const { data } = useExtendedArt(auction?.thumbnail.metadata.pubkey);
+const ArtDetails = ({ auction, artData }: {
+  auction: AuctionView | undefined;
+  artData: IMetadataExtension | undefined;
+}) => {
   const creators = useCreators(auction);
   const art = useArt(auction?.thumbnail.metadata.pubkey);
 
-  console.log('art: ', data);
-
-  const hasDescription = data === undefined || data.description === undefined;
-  const description = data?.description;
-  const attributes = data?.attributes;
+  const description = artData?.description;
+  const attributes = artData?.attributes;
   const owner = auction?.auction.account.owner.toString();
 
   return (
     <>
       <div className={ArtTitle}>{art.title}</div>
 
-      {hasDescription && (
+      {description && (
         <div className={`${ArtDescription} ${ContentSection}`}>
           {description}
         </div>
@@ -55,19 +54,21 @@ const ArtDetails = ({ auction }: { auction: AuctionView | undefined; }) => {
         )}
       </Row>
 
-      {attributes && <div className={ContentSection}>
-        <div className={Label}>attributes</div>
-        <Row gutter={[12, 12]}>
-          {attributes.map(attribute =>
-            <Col key={attribute.trait_type}>
-              <Button className={Attribute} shape="round">
-                <span>{attribute.value} –</span>
-                <span className={AttributeRarity}>{attribute.trait_type}</span>
-              </Button>
-            </Col>
-          )}
-        </Row>
-      </div>}
+      {attributes && (
+        <div className={ContentSection}>
+          <div className={Label}>attributes</div>
+          <Row gutter={[12, 12]}>
+            {attributes.map(attribute =>
+              <Col key={attribute.trait_type}>
+                <Button className={Attribute} shape="round">
+                  <span>{attribute.value} –</span>
+                  <span className={AttributeRarity}>{attribute.trait_type}</span>
+                </Button>
+              </Col>
+            )}
+          </Row>
+        </div>
+      )}
     </>
   )
 };

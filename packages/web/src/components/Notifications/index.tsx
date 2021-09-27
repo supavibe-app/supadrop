@@ -16,7 +16,7 @@ import {
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
-import { Badge, Popover, List } from 'antd';
+import { Badge, List } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
@@ -137,7 +137,7 @@ export function useCollapseWrappedSol({
         if ((balance && balance.value.uiAmount) || 0 > 0) {
           setShowNotification(true);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     setTimeout(fn, 60000);
   };
@@ -193,9 +193,9 @@ export function useSettlementAuctions({
           a => {
             const isEndedInstantSale = a.isInstantSale && a.items.length === a.auction.info.bidState.bids.length;
 
-           return walletPubkey &&
-            a.auctionManager.authority === walletPubkey &&
-             (a.auction.info.ended() || isEndedInstantSale)
+            return walletPubkey &&
+              a.auctionManager.authority === walletPubkey &&
+              (a.auction.info.ended() || isEndedInstantSale)
           }
         )
         .sort(
@@ -488,22 +488,11 @@ export function Notifications() {
     <span>No notifications</span>
   );
 
-  const justContent = (
-    <Popover
-      className="noty-popover"
-      placement="bottomLeft"
-      content={content}
-      trigger="click"
-    >
-      <h1 className="title">M</h1>
-    </Popover>
-  );
-
-  if (notifications.length === 0) return justContent;
+  if (notifications.length === 0) return content;
   else
     return (
       <Badge count={notifications.length} style={{ backgroundColor: 'white' }}>
-        {justContent}
+        {content}
       </Badge>
     );
 }

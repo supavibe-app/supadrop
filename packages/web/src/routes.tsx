@@ -1,5 +1,5 @@
-import {BrowserRouter, HashRouter, Route, Switch } from 'react-router-dom';
-import { PreSaleBanner } from './components/PreSaleBanner';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import Home from './components/Home';
 import { Providers } from './providers';
 import {
   AnalyticsView,
@@ -10,17 +10,16 @@ import {
   ArtworksView,
   AuctionCreateView,
   AuctionView,
-  HomeView,
 } from './views';
-import ActivityView from './views/activity';
 import { AdminView } from './views/admin';
 import { BillingView } from './views/auction/billing';
-import { AuctionListView } from './views/home/auctionList';
+import ActivityView from './views/activity';
+import AuctionListView from './views/auctionList';
 
 export function Routes() {
   return (
     <>
-      <HashRouter basename={'/'}>
+      <BrowserRouter basename={'/'}>
         <Providers>
           <Switch>
             <Route exact path="/admin" component={() => <AdminView />} />
@@ -57,13 +56,14 @@ export function Routes() {
               path="/auction/:id/billing"
               component={() => <BillingView />}
             />
-{/*             <Route path="/" component={() => <HomeView />} /> */}
-<Route path="/auction" component={() => <AuctionListView />} />
+
+            {/* Updated Path */}
+            <Route path="/auction" component={() => <AuctionListView />} />
             <Route path="/activity" component={() => <ActivityView />} />
-            <Route exact path="/" component={() => <PreSaleBanner />} />
+            <Route exact path="/" component={() => <Home />} />
           </Switch>
         </Providers>
-      </HashRouter>
+      </BrowserRouter>
     </>
   );
 }

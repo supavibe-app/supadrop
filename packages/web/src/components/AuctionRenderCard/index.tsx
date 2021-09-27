@@ -7,8 +7,9 @@ import {
   fromLamports,
   useMint,
   ItemAuction,
+  shortenAddress,
 } from '@oyster/common';
-import { ArtContent, ArtContent2 } from '../ArtContent';
+import { ArtContent } from '../ArtContent';
 import {
   AuctionView,
   AuctionViewState,
@@ -19,6 +20,7 @@ import { AmountLabel } from '../AmountLabel';
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
 import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, UserWrapper } from './style';
+import { WhiteColor } from '../../styles';
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
@@ -51,13 +53,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
     state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
 
   let currentBid: number | string = 0;
-  let label = '';
   if (isUpcoming || bids) {
-    label = ended
-      ? 'Ended'
-      : auctionView.isInstantSale
-        ? 'Price'
-        : 'Starting bid';
     currentBid = fromLamports(
       participationOnly ? participationFixedPrice : priceFloor,
       mintInfo,
@@ -65,7 +61,6 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   }
 
   if (!isUpcoming && bids.length > 0) {
-    label = ended ? 'Winning bid' : 'Current bid';
     currentBid =
       winningBid && Number.isFinite(winningBid.info.lastBid?.toNumber())
         ? formatTokenAmount(winningBid.info.lastBid)
@@ -86,56 +81,6 @@ export const AuctionRenderCard = (props: AuctionCard) => {
     return () => clearInterval(interval);
   }, [auction, setState]);
 
-  const card = (
-    <Card
-      hoverable={true}
-      className={`art-card`}
-      cover={
-        <>
-          <ArtContent
-            className="auction-image no-events"
-            preview={false}
-            pubkey={id}
-            allowMeshRender={false}
-          />
-        </>
-      }
-    >
-      <Meta
-        title={`${name}`}
-        description={
-          <>
-            <h4 style={{ marginBottom: 0 }}>{label}</h4>
-            <div className="bids">
-              <AmountLabel
-                style={{ marginBottom: 10 }}
-                containerStyle={{ flexDirection: 'row' }}
-                title={label}
-                amount={currentBid}
-              />
-            </div>
-
-            <Row>
-              <Col span={12}>
-                <div>{label}</div>
-                <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
-              </Col>
-
-              <Col span={12}>
-                <div>ending in</div>
-                <div className={NumberStyle}>
-                  {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-                  {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
-                  {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
-                </div>
-              </Col>
-            </Row>
-          </>
-        }
-      />
-    </Card>
-  );
-
   return (
     <Card
       hoverable={true}
@@ -154,7 +99,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" size={32} className={AvatarStyle} />@apri
+              <Avatar size={32} className={AvatarStyle} />{shortenAddress(auctionView.auction.account.owner.toString())}
             </div>
 
             <Row>
@@ -165,11 +110,15 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 
               <Col span={12}>
                 <div>ending in</div>
-                <div className={NumberStyle}>
-                  {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-                  {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
-                  {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
-                </div>
+
+                {ended && <div className={WhiteColor} style={{ fontSize: 20 }}>ended</div>}
+                {!ended && (
+                  <div className={NumberStyle}>
+                    {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+                    {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
+                    {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+                  </div>
+                )}
               </Col>
             </Row>
           </>
@@ -295,5 +244,5 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
   //       </>
   //     )
 
-  return card;
+  // return card;
 };

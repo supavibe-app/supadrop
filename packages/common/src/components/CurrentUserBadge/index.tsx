@@ -31,24 +31,10 @@ export const CurrentUserBadge = (props: {
     return null;
   }
 
-const handleShowEditProfile = () => {
+  const handleShowEditProfile = () => {
     setShowEditProfile(true);
     setShowPopover(false);
   };
-
-  const iconStyle: React.CSSProperties = props.showAddress
-    ? {
-        marginLeft: '0.5rem',
-        display: 'flex',
-        width: props.iconSize || 20,
-        borderRadius: 50,
-      }
-    : {
-        display: 'flex',
-        width: props.iconSize || 20,
-        paddingLeft: 0,
-        borderRadius: 50,
-      };
 
   const baseWalletKey: React.CSSProperties = {
     height: props.iconSize,
@@ -59,29 +45,7 @@ const handleShowEditProfile = () => {
     ? baseWalletKey
     : { ...baseWalletKey, paddingLeft: 0 };
 
-//   return (
-//     <div className="wallet-wrapper">
-//       {props.showBalance && (
-//         <span>
-//           {formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL)} SOL
-//         </span>
-//       )}
-//
-//       <Popover
-//         placement="topRight"
-//         title="Settings"
-//         content={<Settings />}
-//         trigger="click"
-//       >
-//         <div className="wallet-key" style={walletKeyStyle}>
-//           <span style={{ marginRight: '0.5rem' }}>{wallet.name}</span>
-//           <img src={wallet.icon} style={iconStyle} />
-//         </div>
-//       </Popover>
-//     </div>
-//   );
-
-return (
+  return (
     <>
       <div className="wallet-wrapper">
         <Popover
@@ -89,6 +53,7 @@ return (
           color="#000000"
           content={<Settings setShowEdit={handleShowEditProfile} />}
           trigger="click"
+          placement="bottomRight"
           onVisibleChange={visible => setShowPopover(visible)}
           visible={showPopover}
         >
