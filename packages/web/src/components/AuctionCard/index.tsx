@@ -47,6 +47,7 @@ import {
   MAX_PRIZE_TRACKING_TICKET_SIZE,
   WinningConfigType,
 } from '@oyster/common/dist/lib/models/metaplex/index';
+import {supabase} from '../../../supabaseClient'
 
 async function calculateTotalCostOfRedeemingOtherPeoplesBids(
   connection: Connection,
@@ -513,6 +514,14 @@ export const AuctionCard = ({
                     value,
                   );
                   // TODO place BId
+                  supabase.from('action_bidding')
+                    .insert([{
+                      id:`${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`,
+                      wallet_address:myPayingAccount.pubkey,
+                      id_auction:auctionView.auction.pubkey,
+                      price_bid:value
+                    }])
+                    .then()
                   setLastBid(bid);
                   setShowBidModal(false);
                   setShowBidPlaced(true);

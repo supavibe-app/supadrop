@@ -54,7 +54,7 @@ import { useMeta } from '../../contexts';
 import useWindowDimensions from '../../utils/layout';
 import { PlusCircleOutlined } from '@ant-design/icons';
 import { SystemProgram } from '@solana/web3.js';
-
+import { supabase } from '../../../supabaseClient';
 const { Option } = Select;
 const { Step } = Steps;
 const { ZERO } = constants;
@@ -462,7 +462,25 @@ export const AuctionCreateView = () => {
         : attributes.participationNFT,
       QUOTE_MINT.toBase58(),
     );
-    //TODO add Supabase Auction
+    console.log(_auctionObj);
+    
+    // TODO : calculate end auction timestamp
+    supabase.from('auction_status')
+    .insert([{
+      id:_auctionObj.auction,
+      start_auction:attributes.startSaleTS,
+      end_auction:attributes.startSaleTS,
+      highest_bid:0,
+      id_nft:attributes.items[0].metadata.pubkey,
+      price_floor:attributes.priceFloor,
+      price_tick:attributes.priceTick,
+      gap_time:attributes.gapTime,
+      tick_size_ending_phase:attributes.tickSizeEndingPhase,
+      token_mint:QUOTE_MINT.toBase58(),
+      vault:_auctionObj.vault,
+      type_auction:isInstantSale
+    }])
+    .then()
 
     setAuctionObj(_auctionObj);
   };

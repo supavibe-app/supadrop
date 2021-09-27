@@ -78,7 +78,7 @@ export function MetaProvider({ children = null as any }) {
 
     setState(nextState);
 
-//TODO query end date
+      //Todo handle not-started, starting, ended
       supabase.from('auction_status')
         .select(`
         *,
