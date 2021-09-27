@@ -133,7 +133,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
   let { auctionView } = props;
   const id = auctionView.id_nft;
   const art = useArt(id);
-  const name = art?.title || ' ';
+  const name = art?.title || auctionView.name;
   const [state, setState] = useState<CountdownState>();
   const bids = useBidsForAuction(auctionView.id);
   const mintInfo = useMint(auctionView.token_mint);
@@ -142,6 +142,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
   const participationOnly = false;
   const priceFloor = auctionView.price_floor;
   const isUpcoming = false;
+  const now = Math.floor(new Date().getTime()/1000);
 
   const winningBid = useHighestBidForAuction(auctionView.id);
   const ended =
@@ -164,6 +165,35 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
         ? formatTokenAmount(winningBid.info.lastBid)
         : 'No Bid';
   }
+
+  console.log('renderCard', now);
+  console.log('end', auctionView.endAt);
+  console.log('tod', now-auctionView.endAt);
+
+  // const countDown = () => {
+  //   const ended = { days: 0, hours: 0, minutes: 0, seconds: 0 };
+
+  //   let delta = auctionView.endAt - now;
+  //   if (!auctionView.endAt || delta <= 0)
+  //     return ended;
+  //   const days = Math.floor(delta / 86400);
+  //   delta -= days * 86400;
+  //   const hours = Math.floor(delta / 3600) % 24;
+  //   delta -= hours * 3600;
+  //   const minutes = Math.floor(delta / 60) % 60;
+  //   delta -= minutes * 60;
+  //   const seconds = Math.floor(delta % 60);
+  //   return { days, hours, minutes, seconds };
+  // }
+
+  // useEffect(() => {
+  //   const calc = () => setState(countDown());
+
+  //   const interval = setInterval(() => calc(), 1000);
+  //   calc();
+
+  //   return () => clearInterval(interval);
+  // });
 
       return (
         <Card

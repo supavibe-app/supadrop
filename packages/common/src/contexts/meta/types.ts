@@ -106,6 +106,7 @@ export type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean;
 
 export class ItemAuction {
   id: string;
+  name: string;
   id_nft: string;
   token_mint: string;
   price_floor: number;
@@ -120,6 +121,7 @@ export class ItemAuction {
 
   constructor(
     id: string,
+    name: string,
     id_nft: string,
     token_mint: string,
     price_floor: number,
@@ -133,6 +135,7 @@ export class ItemAuction {
     vault: string,
   ) {
     this.id = id;
+    this.name = name;
     this.id_nft = id_nft;
     this.token_mint = token_mint;
     this.price_floor = price_floor;

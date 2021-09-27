@@ -78,10 +78,10 @@ const AuctionListView = () => {
 
           // if (m === heroAuction) return;
 
-          const id = m.auction.pubkey;
+          // const id = m.auction.pubkey;
           return (
             <Col key={idx} span={6}>
-              <Link to={`/auction/${id}`}>
+              <Link to={`/auction/${m.id}`}>
                 <AuctionRenderCard2 auctionView={m} />
               </Link>
             </Col>
