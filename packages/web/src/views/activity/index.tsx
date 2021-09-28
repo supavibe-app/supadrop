@@ -3,10 +3,17 @@ import { Avatar, Col, Row, Tabs } from 'antd';
 import { ActivityCard, NFTDescription, ImageCard, PageTitle, TabStyle, NFTStatus, NFTName, NFTOwner, Label, StatusValue, Price, ButtonWrapper, SubTitle, Content } from './style';
 
 import ActionButton from '../../components/ActionButton';
+import { AuctionViewState, useAuctions } from '../../hooks';
 
 const { TabPane } = Tabs;
 
 const ActivityView = () => {
+  const allAuctions = [
+    ...useAuctions(AuctionViewState.Live),
+    ...useAuctions(AuctionViewState.Ended),
+    ...useAuctions(AuctionViewState.Upcoming),
+    ...useAuctions(AuctionViewState.BuyNow),
+  ];
   return (
     <Row justify="center">
       <Col span={14}>

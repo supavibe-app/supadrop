@@ -20,6 +20,7 @@ import {
   useConnectionConfig,
   fromLamports,
   useMint,
+  useMeta,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ArtType } from '../../types';
@@ -41,14 +42,15 @@ export const AuctionView = () => {
   const { env } = useConnectionConfig();
   const { connected, publicKey } = useWallet();
   const auction = useAuction(id);
-
+  const {liveDataAuctions} = useMeta()
+  const dataAuction = liveDataAuctions[id]
   const [bidAmount, setBidAmount] = useState(0);
   const setBidAmountNumber = useCallback((num: number) => setBidAmount(num), [setBidAmount]);
   const [showPlaceBid, setShowPlaceBid] = useState(false);
   const setPlaceBidVisibility = useCallback((visible: boolean) => setShowPlaceBid(visible), [setShowPlaceBid]);
 
   const { ref, data } = useExtendedArt(auction?.thumbnail.metadata.pubkey);
-  const art = useArt(auction?.thumbnail.metadata.pubkey);
+  const art = useArt(auction?.thumbnail.metadata.pubkey );
   const bids = useBidsForAuction(auction?.auction.pubkey || '');
   const mint = useMint(auction?.auction.info.tokenMint);
   const mintInfo = useMint(auction?.auction.info.tokenMint);
