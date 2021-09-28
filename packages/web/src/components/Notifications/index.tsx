@@ -30,7 +30,7 @@ import { startAuctionManually } from '../../actions/startAuctionManually';
 import { QUOTE_MINT } from '../../constants';
 import { useMeta } from '../../contexts';
 import { AuctionViewState, useAuctions } from '../../hooks';
-import { BadgeStyle, CircleButton, NotificationPopover } from './style';
+import { BadgeStyle, CircleButton, EmptyNotification, ListStyle, NotificationPopover } from './style';
 import { GreyColor, uBoldFont, uFlexSpaceBetween, WhiteColor } from '../../styles';
 import Coffee from '../../assets/icons/coffee';
 
@@ -451,45 +451,27 @@ export const Notifications = ({ }) => {
     });
 
   const content = notifications.length ? (
-    <div style={{ width: '300px' }}>
+
+    <div>
       <List
         itemLayout="vertical"
         size="small"
-        dataSource={notifications.slice(0, 10)}
-        renderItem={(item: NotificationCard) => (
+        dataSource={notifications.slice(0, 2)}
+        renderItem={() => (
           <List.Item
-            extra={
-              <>
-                <RunAction
-                  id={item.id}
-                  action={item.action}
-                  icon={<PlayCircleOutlined />}
-                />
-                {item.dismiss && (
-                  <RunAction
-                    id={item.id}
-                    action={item.dismiss}
-                    icon={<PlayCircleOutlined />}
-                  />
-                )}
-              </>
-            }
+            className={ListStyle}
+            // TODO-Iyai Update with action button
+            extra={<Button className={uBoldFont} type="link">settle</Button>}
           >
-            <List.Item.Meta
-              title={<span>{item.title}</span>}
-              description={
-                <span>
-                  <i>{item.description}</i>
-                </span>
-              }
-            />
+            {/* TODO-Iyai: Update with desription and notifications time */}
+            <div>you have ended auction that needs to be settling</div>
+            <div className={GreyColor}>21 minutes ago</div>
           </List.Item>
         )}
       />
     </div>
   ) : (
-    // <div className={EmptyNotification}>
-    <div>
+    <div className={EmptyNotification}>
       <Coffee />
       <div>no notifications</div>
     </div>
@@ -498,9 +480,9 @@ export const Notifications = ({ }) => {
   if (notifications.length === 0) {
     return (
       <Popover
-        overlayClassName={NotificationPopover}
+        overlayClassName={NotificationPopover({ empty: true })}
         content={content}
-        trigger="click"
+        trigger="focus"
         placement="bottomRight"
         title={(
           <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
@@ -517,7 +499,7 @@ export const Notifications = ({ }) => {
   return (
     <Badge className={BadgeStyle} dot>
       <Popover
-        overlayClassName={NotificationPopover}
+        overlayClassName={NotificationPopover({ empty: false })}
         content={content}
         trigger="click"
         placement="bottomRight"

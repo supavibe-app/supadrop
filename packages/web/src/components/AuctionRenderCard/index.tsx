@@ -16,10 +16,9 @@ import {
   useArt,
   useBidsForAuction,
 } from '../../hooks';
-import { AmountLabel } from '../AmountLabel';
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
-import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, UserWrapper } from './style';
+import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, OwnerContainer, UserWrapper } from './style';
 import { WhiteColor } from '../../styles';
 
 const { Meta } = Card;
@@ -38,6 +37,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   const [state, setState] = useState<CountdownState>();
   const bids = useBidsForAuction(auctionView.auction.pubkey);
   const mintInfo = useMint(auctionView.auction.info.tokenMint);
+  const owner = auctionView.auctionManager.authority.toString();
 
   const participationFixedPrice =
     auctionView.auctionManager.participationConfig?.fixedPrice || 0;
@@ -99,19 +99,36 @@ export const AuctionRenderCard = (props: AuctionCard) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar size={32} className={AvatarStyle} />{shortenAddress(auctionView.auction.account.owner.toString())}
+              <Avatar size={32} className={AvatarStyle} />
+              <span>{shortenAddress(owner)}</span>
             </div>
 
             <Row>
               <Col span={12}>
-                <div>current bid</div>
+                {/* case 1 & 3: live/ended and no bidder */}
+                {!winningBid && <div>reserve price</div>}
+                {/* case 2: live and have bidder */}
+                {winningBid && !ended && <div>current bid</div>}
+                {/* case 4: ended and have bidder */}
+                {winningBid && ended && <div>sold for</div>}
+
                 <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
               </Col>
 
               <Col span={12}>
-                <div>ending in</div>
+                <div>
+                  {/* case 1 & 2: live and have/no bidder */}
+                  {!ended && <div>ending in</div>}
+                  {/* case 3: ended and no bidder */}
+                  {!winningBid && ended && <div>status</div>}
+                  {/* case 4: ended and have bidder */}
+                  {winningBid && ended && <div>owned by</div>}
+                </div>
 
-                {ended && <div className={WhiteColor} style={{ fontSize: 20 }}>ended</div>}
+                {ended && <div className={OwnerContainer} style={{ fontSize: 20 }}>
+                  {winningBid ? shortenAddress(winningBid.info.bidderPubkey) : 'ended'}
+                </div>}
+
                 {!ended && (
                   <div className={NumberStyle}>
                     {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}

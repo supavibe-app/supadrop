@@ -25,7 +25,7 @@ import { Activity, ActivityHeader, ArtContainer, OverflowYAuto, ArtDetailsColumn
 import BidDetails from './bidDetails';
 import PlaceBid from './placeBid';
 import ArtDetails from './artDetails';
-import { GreyColor, uBoldFont, YellowGlowColor } from '../../styles';
+import { GreyColor, uBoldFont, uFlexAlignItemsCenter, YellowGlowColor } from '../../styles';
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
@@ -185,7 +185,7 @@ export const AuctionView = () => {
             {!art.title && ArtDetailSkeleton}
 
             {art.title && showPlaceBid && <PlaceBid auction={auction} setBidAmount={setBidAmountNumber} />}
-            {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} />}
+            {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} highestBid={highestBid} />}
           </div>
 
           <div className={StatusContainer}>
@@ -220,14 +220,16 @@ export const AuctionView = () => {
         {bids.map((bid, idx) => (
           <div key={idx}>
             {publicKey?.toBase58() === bid.info.bidderPubkey && <div className={IsMyBid} />}
-            <div className={Activity}>
-              <div>
-                <Avatar size={24} /> {shortenAddress(bid.info.bidderPubkey)}
-              </div>
-              <div className={uBoldFont}>
-                {formatTokenAmount(bid.info.lastBid, mint)} SOL
-              </div>
-            </div>
+            <Row className={Activity} justify="space-between" align="middle">
+              <Col className={uFlexAlignItemsCenter} span={12}>
+                <Avatar size={24} />
+                <span>{shortenAddress(bid.info.bidderPubkey)}</span>
+              </Col>
+
+              <Col className={uBoldFont} span={12}>
+                <span>{formatTokenAmount(bid.info.lastBid, mint)} SOL</span>
+              </Col>
+            </Row>
           </div>
         ))}
       </Col>

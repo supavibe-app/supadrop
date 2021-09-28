@@ -18,6 +18,10 @@ export const uBoldFont = css`
   font-weight: bold;
 `;
 
+export const uTextAlignEnd = css`
+  text-align: end;
+`;
+
 export const uFlex = css`
   display: flex;
 `;
@@ -25,6 +29,11 @@ export const uFlex = css`
 export const uFlexSpaceBetween = css`
   display: flex;
   justify-content: space-between;
+`;
+
+export const uFlexAlignItemsCenter = css`
+  display: flex;
+  align-items: center;
 `;
 
 export const uFontSize24 = css`

@@ -16,23 +16,32 @@ export const CircleButton = ({ active }) => css`
   }
 `;
 
-export const NotificationPopover = css`
+export const NotificationPopover = ({ empty }) => css`
   .ant-popover-inner {
     border: 2px solid #ccff00;
     border-radius: 4px;
-    padding: 16px 20px;
     background: #000000;
   }
 
   .ant-popover-title {
+    padding: 16px 20px 8px 20px;
     border: unset;
-    padding: 0;
   }
 
   .ant-popover-inner-content {
+    height: ${empty ? '318px' : 'fit-content'};
     width: 378px;
-    height: 318px;
-    padding: 0;
+
+    padding: 0 0 16px 20px;
+  }
+`;
+
+export const ListStyle = css`
+  padding: 8px 0 !important;
+
+  .ant-btn-link {
+    font-size: 16px;
+    padding-right: 20px;
   }
 `;
 
@@ -57,4 +66,8 @@ export const EmptyNotification = css`
 
   color: #7e7c7c;
   height: 100%;
+
+  > div {
+    margin: 12px 0;
+  }
 `;

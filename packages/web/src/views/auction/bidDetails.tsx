@@ -24,7 +24,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const { wallet, connect, connected, publicKey } = useWallet();
   const { account } = useNativeAccount();
   const { setVisible } = useWalletModal();
-  const owner = auction?.auction.account.owner.toString();
+  const owner = auction?.auctionManager.authority.toString();
   const [state, setState] = useState<CountdownState>();
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
 
@@ -49,11 +49,13 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 
   // countdown
   useEffect(() => {
-    const calc = () => setState(auction?.auction.info.timeToEnd());
+    if (!ended) {
+      const calc = () => setState(auction?.auction.info.timeToEnd());
 
-    const interval = setInterval(() => calc(), 1000);
-    calc();
-    return () => clearInterval(interval);
+      const interval = setInterval(() => calc(), 1000);
+      calc();
+      return () => clearInterval(interval);
+    }
   }, [auction, setState]);
 
   const handleConnect = useCallback(

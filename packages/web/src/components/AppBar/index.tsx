@@ -35,7 +35,6 @@ export const AppBar = () => {
           <Notifications />
 
           <CurrentUserBadge showBalance={true} showAddress={true} />
-
           {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
         </div >
       </>

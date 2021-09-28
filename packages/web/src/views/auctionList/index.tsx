@@ -62,7 +62,7 @@ const AuctionListView = () => {
   );
 
   const auctionList = list => {
-    if (isLoading) return [...Array(8)].map((_, idx) => <Col key={idx} span={6}><CardLoader key={idx} /></Col>)
+    if (isLoading) return [...Array(8)].map((_, idx) => <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}><CardLoader key={idx} /></Col>)
 
     return (
       <>
@@ -71,7 +71,7 @@ const AuctionListView = () => {
 
           const id = m.auction.pubkey;
           return (
-            <Col key={idx} span={6}>
+            <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24} >
               <Link to={`/auction/${id}`}>
                 <AuctionRenderCard auctionView={m} />
               </Link>
@@ -83,11 +83,12 @@ const AuctionListView = () => {
   };
 
   const emptyAuction = (
-    <div style={{ marginLeft: 28 }}>
+    <div style={{ margin: '0 0 48px 28px' }}>
       <div className={Timer}>
         starting in
       </div>
 
+      {/* TODO-Iyai: implement countdown */}
       <Row gutter={[24, 0]} style={{ marginBottom: 48 }}>
         <Col>
           <div className={NumberStyle}>00
@@ -118,23 +119,25 @@ const AuctionListView = () => {
   );
 
   return (
-    <Col style={{ margin: '62px 54px' }}>
-      <Tabs defaultActiveKey={liveAuctions.length > 0 ? '1' : '2'} className={TabsStyle} onChange={key => setActiveKey(key)}>
-        <TabPane key="1" tab={(<div className={TitleWrapper}>
-          <div className={LiveDot(activeKey === '1')} />live auctions
-        </div>)}>
-          <Row gutter={[24, 24]}>{auctionList(liveAuctions)}</Row>
-          {!Boolean(liveAuctions.length) && !isLoading && emptyAuction}
-        </TabPane>
+    <Row justify="center">
+      <Col style={{ margin: '24px 0 48px 0' }} span={20} xs={20} sm={20} md={20} lg={20} xl={18} xxl={16}>
+        <Tabs defaultActiveKey={liveAuctions.length > 0 ? '1' : '2'} className={TabsStyle} onChange={key => setActiveKey(key)}>
+          <TabPane key="1" tab={(<div className={TitleWrapper}>
+            <div className={LiveDot(activeKey === '1')} />live auctions
+          </div>)}>
+            <Row gutter={[36, 36]}>{auctionList(liveAuctions)}</Row>
+            {!Boolean(liveAuctions.length) && !isLoading && emptyAuction}
+          </TabPane>
 
-        <TabPane key="2" tab={(
-          <div className={TitleWrapper}>ended auctions</div>
-        )}>
-          <Row gutter={[24, 24]}>{auctionList(auctionsEnded)}</Row>
-          {!Boolean(auctionsEnded.length) && !isLoading && emptyAuction}
-        </TabPane>
-      </Tabs>
-    </Col >
+          <TabPane key="2" tab={(
+            <div className={TitleWrapper}>ended auctions</div>
+          )}>
+            <Row gutter={[36, 36]}>{auctionList(auctionsEnded)}</Row>
+            {!Boolean(auctionsEnded.length) && !isLoading && emptyAuction}
+          </TabPane>
+        </Tabs>
+      </Col>
+    </Row>
   );
 };
 

@@ -51,7 +51,10 @@ export const ArtDetailsColumn = css`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
+
+  @media (min-width: 768px) {
+    height: 100%;
+  }
 `;
 
 export const OverflowYAuto = css`
@@ -62,8 +65,11 @@ export const ColumnBox = css`
   border: 1px solid #2b2b2b;
   border-bottom: none;
   border-left: none;
-  height: 100%;
   overflow-y: auto;
+
+  @media (min-width: 768px) {
+    height: 100%;
+  }
 `;
 
 export const PaddingBox = css`
@@ -143,8 +149,6 @@ export const ButtonWrapper = css`
 `;
 
 export const Activity = css`
-  display: flex;
-  justify-content: space-between;
   font-size: 14px;
   color: #fafafb;
   margin-bottom: 12px;
@@ -152,6 +156,10 @@ export const Activity = css`
 
   .ant-avatar {
     margin-right: 4px;
+  }
+
+  div:last-child {
+    text-align: end;
   }
 `;
 
