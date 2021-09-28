@@ -32,7 +32,8 @@ const actions_1 = require("../../actions");
 const supabaseClient_1 = require("../../supabaseClient");
 const MetaContext = react_1.default.createContext({
     ...getEmptyMetaState_1.getEmptyMetaState(),
-    isLoading: false,
+    isLoadingMetaplex: false,
+    isLoadingDatabase: false,
     liveDataAuctions: {},
     // @ts-ignore
     update: () => [actions_1.AuctionData, actions_1.BidderMetadata, actions_1.BidderPot],
@@ -42,7 +43,8 @@ function MetaProvider({ children = null }) {
     const { isReady, storeAddress } = store_1.useStore();
     const [state, setState] = react_1.useState(getEmptyMetaState_1.getEmptyMetaState());
     const [liveDataAuctions, setDataAuction] = react_1.useState({});
-    const [isLoading, setIsLoading] = react_1.useState(true);
+    const [isLoadingMetaplex, setIsLoadingMetaplex] = react_1.useState(true);
+    const [isLoadingDatabase, setIsLoadingDatabase] = react_1.useState(true);
     const updateMints = react_1.useCallback(async (metadataByMint) => {
         try {
             const { metadata, mintToMetadata } = await queryExtendedMetadata_1.queryExtendedMetadata(connection, metadataByMint);
@@ -59,12 +61,14 @@ function MetaProvider({ children = null }) {
     async function update(auctionAddress, bidderAddress) {
         if (!storeAddress) {
             if (isReady) {
-                setIsLoading(false);
+                setIsLoadingMetaplex(false);
+                setIsLoadingDatabase(false);
             }
             return;
         }
         else if (!state.store) {
-            setIsLoading(true);
+            setIsLoadingMetaplex(true);
+            setIsLoadingDatabase(true);
         }
         if (sessionStorage.getItem('testing')) {
             let sessionAuction = JSON.parse(sessionStorage.getItem('testing') || "");
@@ -85,11 +89,10 @@ function MetaProvider({ children = null }) {
             let listData = {};
             if (dataAuction.body != null) {
                 dataAuction.body.forEach(v => {
-                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault);
+                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link);
                 });
-                console.log('dataucte', dataAuction);
                 setDataAuction(listData);
-                setIsLoading(false);
+                setIsLoadingDatabase(false);
             }
         });
         console.log('-----> Query started', new Date());
@@ -98,6 +101,7 @@ function MetaProvider({ children = null }) {
             : await loadAccounts_1.limitedLoadAccounts(connection);
         console.log('------->Query finished');
         setState(nextState);
+        setIsLoadingMetaplex(false);
         console.log('------->set finished', new Date());
         await updateMints(nextState.metadataByMint);
         if (auctionAddress && bidderAddress) {
@@ -113,11 +117,11 @@ function MetaProvider({ children = null }) {
         update();
     }, [connection, setState, updateMints, storeAddress, isReady]);
     react_1.useEffect(() => {
-        if (isLoading) {
+        if (isLoadingMetaplex) {
             return;
         }
         return subscribeAccountsChange_1.subscribeAccountsChange(connection, () => state, setState);
-    }, [connection, setState, isLoading]);
+    }, [connection, setState, isLoadingMetaplex]);
     // TODO: fetch names dynamically
     // TODO: get names for creators
     // useEffect(() => {
@@ -146,7 +150,7 @@ function MetaProvider({ children = null }) {
             ...state,
             // @ts-ignore
             update,
-            isLoading,
+            isLoadingMetaplex,
             liveDataAuctions
         } }, children));
 }

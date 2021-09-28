@@ -210,7 +210,6 @@ export const mintNFT = async (
       body: data,
     },
   )
-  console.log("🚀 ~ file: nft.tsx ~ line 211 ~ uploadArweaveResponse", uploadArweaveResponse)
 
   if (!uploadArweaveResponse.ok) {
     return Promise.reject(new Error("Unable to upload the artwork to Arweave. Please wait and then try again."))
@@ -267,7 +266,7 @@ export const mintNFT = async (
     );
     // // In this instruction, mint authority will be removed from the main mint, while
     // // minting authority will be maintained for the Printing mint (which we want.)
-    await createMasterEdition(
+    const masterEdition = await createMasterEdition(
       maxSupply !== undefined ? new BN(maxSupply) : undefined,
       mintKey,
       payerPublicKey,
@@ -275,6 +274,13 @@ export const mintNFT = async (
       payerPublicKey,
       updateInstructions,
     );
+    console.log("🚀 ~ file: nft.tsx ~ line 277 ~ masterEdition", masterEdition)
+    console.log("🚀 ~ file: nft.tsx ~ line 277 ~ mintInstructions", {
+      TOKEN_PROGRAM_ID,
+      mintKey,
+      recipientKey,
+      payerPublicKey,
+    })
 
     // TODO: enable when using payer account to avoid 2nd popup
     /*  if (maxSupply !== undefined)
@@ -302,6 +308,7 @@ export const mintNFT = async (
       updateInstructions,
       updateSigners,
     );
+
       supabase.from('nft_data')
         .insert([{
           id:idNFT,
@@ -311,7 +318,8 @@ export const mintNFT = async (
           attribute:metadata.attributes,
           max_supply:1,
           royalty:metadata.sellerFeeBasisPoints,
-          arweave_link:arweaveLink
+          arweave_link:arweaveLink,
+          mint_key:mintKey,
         }])
         .then()
 
@@ -333,6 +341,7 @@ export const mintNFT = async (
   // 1. Jordan: --- upload file and metadata to storage API
   // 2. pay for storage by hashing files and attaching memo for each file
 
+  console.log("🚀 ~ file: nft.tsx ~ line 355 ~ metadataAccount", metadataAccount)
   return { metadataAccount };
 };
 
