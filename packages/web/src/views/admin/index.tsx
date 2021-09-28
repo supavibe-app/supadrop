@@ -40,7 +40,7 @@ import { SetupVariables } from '../../components/SetupVariables';
 
 const { Content } = Layout;
 export const AdminView = () => {
-  const { store, whitelistedCreatorsByCreator, isLoading } = useMeta();
+  const { store, whitelistedCreatorsByCreator, isLoadingMetaplex } = useMeta();
   const connection = useConnection();
   const wallet = useWallet();
   const { setVisible } = useWalletModal();
@@ -55,7 +55,7 @@ export const AdminView = () => {
       setStoreForOwner(wallet.publicKey.toBase58());
     }
   }, [store, storeAddress, wallet.publicKey]);
-  console.log('@admin', wallet.connected, storeAddress, isLoading, store);
+  console.log('@admin', wallet.connected, storeAddress, isLoadingMetaplex, store);
 
   return (
     <>
@@ -66,7 +66,7 @@ export const AdminView = () => {
           </Button>{' '}
           to admin store.
         </p>
-      ) : !storeAddress || isLoading ? (
+      ) : !storeAddress || isLoadingMetaplex ? (
         <Spin />
       ) : store && wallet ? (
         <>

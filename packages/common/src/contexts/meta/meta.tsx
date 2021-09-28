@@ -17,7 +17,8 @@ import { ParsedAccount } from '..';
 
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
-  isLoading: false,
+  isLoadingMetaplex: false,
+  isLoadingDatabase: false,
   liveDataAuctions: {},
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
@@ -29,7 +30,8 @@ export function MetaProvider({ children = null as any }) {
 
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
  const [liveDataAuctions,setDataAuction] = useState<{[key:string]:ItemAuction}>({})
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMetaplex, setIsLoadingMetaplex] = useState(true);
+  const [isLoadingDatabase, setIsLoadingDatabase] = useState(true);
 
   const updateMints = useCallback(
     async metadataByMint => {
@@ -53,11 +55,13 @@ export function MetaProvider({ children = null as any }) {
   async function update(auctionAddress?: any, bidderAddress?: any) {
     if (!storeAddress) {
       if (isReady) {
-        setIsLoading(false);
+        setIsLoadingMetaplex(false);
+        setIsLoadingDatabase(false);
       }
       return;
     } else if (!state.store) {
-      setIsLoading(true);
+      setIsLoadingMetaplex(true);
+      setIsLoadingDatabase(true);
     }
 
     if (sessionStorage.getItem('testing')) {
@@ -81,14 +85,11 @@ export function MetaProvider({ children = null as any }) {
       let listData : {[key:string]:ItemAuction} =  {}
       if (dataAuction.body != null) {
         dataAuction.body.forEach( v =>{
-          listData[v.id] = new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault)
+          listData[v.id] = new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link)
         })
         
-        console.log('dataucte', dataAuction)
-
         setDataAuction(listData)
-        setIsLoading(false);
-
+        setIsLoadingDatabase(false)
       }
     })
 
@@ -101,6 +102,7 @@ export function MetaProvider({ children = null as any }) {
     console.log('------->Query finished');
 
     setState(nextState);
+    setIsLoadingMetaplex(false);
 
     console.log('------->set finished',new Date());
 
@@ -121,12 +123,12 @@ export function MetaProvider({ children = null as any }) {
   }, [connection, setState, updateMints, storeAddress, isReady]);
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoadingMetaplex) {
       return;
     }
 
     return subscribeAccountsChange(connection, () => state, setState);
-  }, [connection, setState, isLoading]);
+  }, [connection, setState, isLoadingMetaplex]);
 
   // TODO: fetch names dynamically
   // TODO: get names for creators
@@ -162,7 +164,7 @@ export function MetaProvider({ children = null as any }) {
         ...state,
         // @ts-ignore
         update,
-        isLoading,
+        isLoadingMetaplex,
         liveDataAuctions
       }}
     >

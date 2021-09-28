@@ -74,7 +74,8 @@ export interface MetaState {
 }
 
 export interface MetaContextState extends MetaState {
-  isLoading: boolean;
+  isLoadingMetaplex: boolean;
+  isLoadingDatabase: boolean;
   liveDataAuctions: { [key: string]: ItemAuction };
   update: (
     auctionAddress?: any,
@@ -118,6 +119,7 @@ export class ItemAuction {
   gapTime: number;
   tickExtend: number;
   vault: string;
+  arweave_link: string;
 
   constructor(
     id: string,
@@ -133,6 +135,7 @@ export class ItemAuction {
     gapTime: number,
     tickExtend: number,
     vault: string,
+    arweave_link: string,
   ) {
     this.id = id;
     this.name = name;
@@ -147,6 +150,7 @@ export class ItemAuction {
     this.gapTime = gapTime;
     this.tickExtend = tickExtend;
     this.vault = vault;
+    this.arweave_link = arweave_link;
   }
 }
 
