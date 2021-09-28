@@ -28,6 +28,7 @@ import { BN } from 'bn.js';
 import BidDetails from './bidDetails';
 import PlaceBid from './placeBid';
 import ArtDetails from './artDetails';
+import { useMeta } from '../../contexts';
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
@@ -37,10 +38,14 @@ export const AuctionItem = ({ item, active }: {
 );
 
 export const AuctionView = () => {
+  const { liveDataAuctions } = useMeta();
   const { id } = useParams<{ id: string }>();
   const { env } = useConnectionConfig();
   const { connected, publicKey } = useWallet();
   const auction = useAuction(id);
+
+  const detailAuction = liveDataAuctions[id]
+  console.log('detail', detailAuction)
 
   const [bidAmount, setBidAmount] = useState(0);
   const setBidAmountNumber = useCallback((num: number) => setBidAmount(num), [setBidAmount]);
@@ -67,7 +72,7 @@ export const AuctionView = () => {
   if (isUpcoming || bids) {
     currentBid = fromLamports(
       participationOnly ? participationFixedPrice : priceFloor,
-      mintInfo,
+      mintInfo,auction?.auction.pubkey || 0
     );
   }
 
@@ -112,6 +117,8 @@ export const AuctionView = () => {
       />
     );
   });
+
+  console.log('link')
 
   const options = (
     <div>

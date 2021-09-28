@@ -166,9 +166,9 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
         : 'No Bid';
   }
 
-  console.log('renderCard', now);
-  console.log('end', auctionView.endAt);
-  console.log('tod', now-auctionView.endAt);
+  // console.log('renderCard', now);
+  // console.log('end', auctionView.endAt);
+  // console.log('tod', now-auctionView.endAt);
 
   // const countDown = () => {
   //   const ended = { days: 0, hours: 0, minutes: 0, seconds: 0 };

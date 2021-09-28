@@ -71,10 +71,10 @@ const AuctionListView = () => {
     return (
       <>
         {list.map((m, idx) => {
-          console.log('auctionList',list)
-          console.log('mapAuction',m)
-          console.log('idxAuction',idx)
-          console.log('heroAuction',heroAuction)
+          // console.log('auctionList',list)
+          // console.log('mapAuction',m)
+          // console.log('idxAuction',idx)
+          // console.log('heroAuction',heroAuction)
 
           // if (m === heroAuction) return;
 

@@ -4,6 +4,7 @@ exports.initMetadata = exports.metadataByMintUpdater = exports.processingAccount
 const ids_1 = require("../../utils/ids");
 const models_1 = require("../../models");
 const actions_1 = require("../../actions");
+const lodash_1 = require("lodash");
 const web3_js_1 = require("@solana/web3.js");
 const isMetadataPartOfStore_1 = require("./isMetadataPartOfStore");
 const processAuctions_1 = require("./processAuctions");
@@ -13,7 +14,7 @@ const processVaultData_1 = require("./processVaultData");
 const getEmptyMetaState_1 = require("./getEmptyMetaState");
 const getMultipleAccounts_1 = require("../accounts/getMultipleAccounts");
 const web3_1 = require("./web3");
-const createPipelineExecutor_1 = require("./createPipelineExecutor");
+const createPipelineExecutor_1 = require("../../utils/createPipelineExecutor");
 exports.USE_SPEED_RUN = false;
 const WHITELISTED_METADATA = ['98vYFjBYS9TguUMWQRPjy2SZuxKuUMcqR4vnQiLjZbte'];
 const WHITELISTED_AUCTION = ['D8wMB5iLZnsV7XQjpwqXaDynUtFuDs7cRXvEGNj1NF1e'];
@@ -211,7 +212,7 @@ const loadAccounts = async (connection) => {
         loadMetaplex(),
     ];
     await Promise.all(loading);
-    console.log('Metadata size', state.metadata.length);
+    state.metadata = lodash_1.uniqWith(state.metadata, (a, b) => a.pubkey === b.pubkey);
     return state;
 };
 exports.loadAccounts = loadAccounts;
