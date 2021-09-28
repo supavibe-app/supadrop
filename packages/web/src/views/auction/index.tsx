@@ -69,7 +69,7 @@ export const AuctionView = () => {
   if (isUpcoming || bids) {
     currentBid = fromLamports(
       participationOnly ? participationFixedPrice : priceFloor,
-      mintInfo,auction?.auction.pubkey || 0
+      mintInfo
     );
   }
 
