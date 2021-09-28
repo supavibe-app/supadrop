@@ -30,7 +30,7 @@ const AuctionListView = () => {
 
 
   const auctionList = list => {
-    if (isLoadingMetaplex || isLoadingDatabase) return [...Array(8)].map((_, idx) => <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}><CardLoader key={idx} /></Col>)
+    if (isLoadingMetaplex && isLoadingDatabase) return [...Array(8)].map((_, idx) => <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}><CardLoader key={idx} /></Col>)
 
     return (
       <>
@@ -98,7 +98,7 @@ const AuctionListView = () => {
           <TabPane key="2" tab={(
             <div className={TitleWrapper}>ended auctions</div>
           )}>
-            <Row gutter={[36, 36]}>{auctionList(auctionsEnded)}</Row>
+            <Row gutter={[36, 36]}>{auctionList(endAuctions)}</Row>
             {!Boolean(auctionsEnded.length) && !isLoadingMetaplex && emptyAuction}
           </TabPane>
         </Tabs>

@@ -17,8 +17,9 @@ import {
   formatTokenAmount,
   shortenAddress,
   useConnectionConfig,
+  PriceFloorType,
   useMint,
-  useMeta,
+  fromLamports,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ArtType } from '../../types';
@@ -27,6 +28,8 @@ import BidDetails from './bidDetails';
 import PlaceBid from './placeBid';
 import ArtDetails from './artDetails';
 import { GreyColor, uBoldFont, uFlexAlignItemsCenter, YellowGlowColor } from '../../styles';
+import { useMeta } from '../../contexts';
+import BN from 'bn.js';
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
@@ -51,7 +54,31 @@ export const AuctionView = () => {
   const art = useArt(auction?.thumbnail.metadata.pubkey );
   const bids = useBidsForAuction(auction?.auction.pubkey || '');
   const mint = useMint(auction?.auction.info.tokenMint);
+  const mintInfo = useMint(auction?.auction.info.tokenMint);
+
+  const participationFixedPrice = auction?.auctionManager.participationConfig?.fixedPrice || 0;
+  const participationOnly = auction?.auctionManager.numWinners.eq(new BN(0));
+  const priceFloor =
+    auction?.auction.info.priceFloor.type === PriceFloorType.Minimum
+      ? auction?.auction.info.priceFloor.minPrice?.toNumber() || 0
+      : 0;
+  const isUpcoming = auction?.state === AuctionViewState.Upcoming;
   const highestBid = useHighestBidForAuction(auction?.auction.pubkey || '');
+
+  let currentBid: number | string = 0;
+  if (isUpcoming || bids) {
+    currentBid = fromLamports(
+      participationOnly ? participationFixedPrice : priceFloor,
+      mintInfo
+    );
+  }
+
+  if (!isUpcoming && bids.length > 0) {
+    currentBid =
+      highestBid && Number.isFinite(highestBid.info.lastBid?.toNumber())
+        ? formatTokenAmount(highestBid.info.lastBid)
+        : 'No Bid';
+  }
 
   let edition = '';
   switch (art.type) {

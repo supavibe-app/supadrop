@@ -34,4 +34,5 @@ __exportStar(require("./strings"), exports);
 exports.shortvec = __importStar(require("./shortvec"));
 __exportStar(require("./isValidHttpUrl"), exports);
 __exportStar(require("./borsh"), exports);
+__exportStar(require("./createPipelineExecutor"), exports);
 //# sourceMappingURL=index.js.map
