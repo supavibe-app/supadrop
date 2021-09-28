@@ -406,7 +406,7 @@ export const AuctionCreateView = () => {
 
     const isInstantSale =
       attributes.instantSalePrice &&
-      attributes.priceFloor === attributes.instantSalePrice;
+      attributes.priceFloor === attributes.instantSalePrice ;
 
     const auctionSettings: IPartialCreateAuctionArgs = {
       winners: winnerLimit,
@@ -453,23 +453,23 @@ export const AuctionCreateView = () => {
       whitelistedCreatorsByCreator,
       auctionSettings,
       attributes.category === AuctionCategory.Open
-        ? []
-        : attributes.category !== AuctionCategory.Tiered
-        ? attributes.items
-        : tieredAttributes.items,
+      ? []
+      : attributes.category !== AuctionCategory.Tiered
+      ? attributes.items
+      : tieredAttributes.items,
       attributes.category === AuctionCategory.Open
-        ? attributes.items[0]
-        : attributes.participationNFT,
+      ? attributes.items[0]
+      : attributes.participationNFT,
       QUOTE_MINT.toBase58(),
-    );
-    console.log(_auctionObj);
-    
+      );
+      
+
     // TODO : calculate end auction timestamp
     supabase.from('auction_status')
     .insert([{
       id:_auctionObj.auction,
       start_auction:attributes.startSaleTS,
-      end_auction:attributes.startSaleTS,
+      end_auction:(attributes.startSaleTS || 0 + (auctionSettings.endAuctionAt?.toNumber() || 0)),
       highest_bid:0,
       id_nft:attributes.items[0].metadata.pubkey,
       price_floor:attributes.priceFloor,
@@ -478,9 +478,12 @@ export const AuctionCreateView = () => {
       tick_size_ending_phase:attributes.tickSizeEndingPhase,
       token_mint:QUOTE_MINT.toBase58(),
       vault:_auctionObj.vault,
-      type_auction:isInstantSale
+      type_auction:isInstantSale || false,
+      owner:wallet.publicKey
     }])
-    .then()
+    .then(
+      
+    )
 
     setAuctionObj(_auctionObj);
   };

@@ -28,7 +28,11 @@ export interface MetaState {
     payoutTickets: Record<string, ParsedAccount<PayoutTicket>>;
 }
 export interface MetaContextState extends MetaState {
-    isLoading: boolean;
+    isLoadingMetaplex: boolean;
+    isLoadingDatabase: boolean;
+    liveDataAuctions: {
+        [key: string]: ItemAuction;
+    };
     update: (auctionAddress?: any, bidderAddress?: any) => [
         ParsedAccount<AuctionData>,
         ParsedAccount<BidderPot>,
@@ -44,11 +48,20 @@ export declare type ProcessAccountsFunc = (account: PublicKeyStringAndAccount<Bu
 export declare type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean;
 export declare class ItemAuction {
     id: string;
+    name: string;
     id_nft: string;
     token_mint: string;
     price_floor: number;
     img_nft: string;
-    constructor(id: string, id_nft: string, token_mint: string, price_floor: number, img_nft: string);
+    startAt: number;
+    endAt: number;
+    highestBid: number;
+    price_tick: number;
+    gapTime: number;
+    tickExtend: number;
+    vault: string;
+    arweave_link: string;
+    constructor(id: string, name: string, id_nft: string, token_mint: string, price_floor: number, img_nft: string, startAt: number, endAt: number, highestBid: number, price_tick: number, gapTime: number, tickExtend: number, vault: string, arweave_link: string);
 }
 export declare type UnPromise<T extends Promise<any>> = T extends Promise<infer U> ? U : never;
 //# sourceMappingURL=types.d.ts.map

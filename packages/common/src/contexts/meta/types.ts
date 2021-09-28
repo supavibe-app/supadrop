@@ -74,7 +74,9 @@ export interface MetaState {
 }
 
 export interface MetaContextState extends MetaState {
-  isLoading: boolean;
+  isLoadingMetaplex: boolean;
+  isLoadingDatabase: boolean;
+  liveDataAuctions: { [key: string]: ItemAuction };
   update: (
     auctionAddress?: any,
     bidderAddress?: any,
@@ -105,23 +107,50 @@ export type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean;
 
 export class ItemAuction {
   id: string;
+  name: string;
   id_nft: string;
   token_mint: string;
   price_floor: number;
   img_nft: string;
+  startAt: number;
+  endAt: number;
+  highestBid: number;
+  price_tick: number;
+  gapTime: number;
+  tickExtend: number;
+  vault: string;
+  arweave_link: string;
 
   constructor(
     id: string,
+    name: string,
     id_nft: string,
     token_mint: string,
     price_floor: number,
     img_nft: string,
+    startAt: number,
+    endAt: number,
+    highestBid: number,
+    price_tick: number,
+    gapTime: number,
+    tickExtend: number,
+    vault: string,
+    arweave_link: string,
   ) {
     this.id = id;
+    this.name = name;
     this.id_nft = id_nft;
     this.token_mint = token_mint;
     this.price_floor = price_floor;
     this.img_nft = img_nft;
+    this.startAt = startAt;
+    this.endAt = endAt;
+    this.highestBid = highestBid;
+    this.price_tick = price_tick;
+    this.gapTime = gapTime;
+    this.tickExtend = tickExtend;
+    this.vault = vault;
+    this.arweave_link = arweave_link;
   }
 }
 

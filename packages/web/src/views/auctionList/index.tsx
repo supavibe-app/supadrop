@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
 import BN from 'bn.js';
 import { Link } from 'react-router-dom';
-import { AuctionRenderCard } from '../../components/AuctionRenderCard';
+import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
 import { CardLoader } from '../../components/MyLoader';
 import { useMeta } from '../../contexts';
 import { AuctionView, AuctionViewState, useAuctions } from '../../hooks';
@@ -15,65 +15,31 @@ const AuctionListView = () => {
   const auctions = useAuctions(AuctionViewState.Live);
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
   const [activeKey, setActiveKey] = useState(auctions.length > 0 ? '1' : '2');
-  const { isLoading } = useMeta();
+  const { isLoadingMetaplex, isLoadingDatabase, liveDataAuctions } = useMeta();
+  const now = Math.floor(new Date().getTime()/1000)
+   
+  const liveAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => {
+    if(data.endAt > now) return true
+    return false
+  })
+  const endAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => {
+    if(data.endAt < now) return true
+    return false
+  })
 
-  // Check if the auction is primary sale or not
-  const checkPrimarySale = (auc: AuctionView) => {
-    var flag = 0;
-    auc.items.forEach(i => {
-      i.forEach(j => {
-        if (j.metadata.info.primarySaleHappened == true) {
-          flag = 1;
-          return true;
-        }
-      });
-      if (flag == 1) return true;
-    });
-    if (flag == 1) return true;
-    else return false;
-  };
-  const resaleAuctions = auctions
-    .sort(
-      (a, b) =>
-        a.auction.info.endedAt
-          ?.sub(b.auction.info.endedAt || new BN(0))
-          .toNumber() || 0,
-    )
-    .filter(m => checkPrimarySale(m) == true);
-  // Removed resales from live auctions
-  const liveAuctions = auctions
-    .sort(
-      (a, b) =>
-        a.auction.info.endedAt
-          ?.sub(b.auction.info.endedAt || new BN(0))
-          .toNumber() || 0,
-    )
-    .filter(a => !resaleAuctions.includes(a));
-
-  const heroAuction = useMemo(
-    () =>
-      auctions.filter(a => {
-        // const now = moment().unix();
-        return !a.auction.info.ended() && !resaleAuctions.includes(a);
-        // filter out auction for banner that are further than 30 days in the future
-        // return Math.floor(delta / 86400) <= 30;
-      })?.[0],
-    [auctions],
-  );
+  
 
   const auctionList = list => {
-    if (isLoading) return [...Array(8)].map((_, idx) => <Col key={idx} span={6}><CardLoader key={idx} /></Col>)
+    if (isLoadingMetaplex && isLoadingDatabase) return [...Array(8)].map((_, idx) => <Col key={idx} span={6}><CardLoader key={idx} /></Col>)
 
     return (
       <>
-        {list.map((m, idx) => {
-          if (m === heroAuction) return;
+        {list.map(([key,m], idx) => {
 
-          const id = m.auction.pubkey;
           return (
             <Col key={idx} span={6}>
-              <Link to={`/auction/${id}`}>
-                <AuctionRenderCard auctionView={m} />
+              <Link to={`/auction/${m.id}`}>
+                <AuctionRenderCard2 auctionView={m} />
               </Link>
             </Col>
           );
@@ -124,14 +90,14 @@ const AuctionListView = () => {
           <div className={LiveDot(activeKey === '1')} />live auctions
         </div>)}>
           <Row gutter={[24, 24]}>{auctionList(liveAuctions)}</Row>
-          {!Boolean(liveAuctions.length) && !isLoading && emptyAuction}
+          {!Boolean(liveAuctions.length) && !isLoadingMetaplex && emptyAuction}
         </TabPane>
 
         <TabPane key="2" tab={(
           <div className={TitleWrapper}>ended auctions</div>
         )}>
-          <Row gutter={[24, 24]}>{auctionList(auctionsEnded)}</Row>
-          {!Boolean(auctionsEnded.length) && !isLoading && emptyAuction}
+          <Row gutter={[24, 24]}>{auctionList(endAuctions)}</Row>
+          {!Boolean(endAuctions.length) && !isLoadingMetaplex && emptyAuction}
         </TabPane>
       </Tabs>
     </Col >
