@@ -27,7 +27,7 @@ exports.BalanceStyle = css_1.css `
 `;
 exports.ProfilePopover = css_1.css `
   .ant-popover-inner {
-    border: 1px solid yellow;
+    border: 2px solid #ccff00;
     border-radius: 4px;
   }
 
