@@ -167,6 +167,8 @@ export const useAuctions = (state?: AuctionViewState) => {
         },
         { delay: 1, sequence: 2 },
       );
+      console.log(auctionViews);
+
       setAuctionViews(auctionViews.sort(sortByEnded));
     })();
   }, [

@@ -2,8 +2,9 @@ import React from 'react';
 import { Col, Input, Row } from 'antd';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { formatNumber, formatTokenAmount, fromLamports, PriceFloorType, useMint, useNativeAccount } from '@oyster/common';
-import { BidInput, BidRuleInformation, Information, PlaceBidTitle, WhiteColor } from './style';
+import { BidInput, BidRuleInformation, Information, PlaceBidTitle } from './style';
 import { AuctionView, useHighestBidForAuction } from '../../hooks';
+import { WhiteColor } from '../../styles';
 
 const PlaceBid = ({ auction, setBidAmount }: {
   auction: AuctionView | undefined;
@@ -13,13 +14,10 @@ const PlaceBid = ({ auction, setBidAmount }: {
   const bid = useHighestBidForAuction(auction?.auction.pubkey || '');
 
   const mintInfo = useMint(auction?.auction.info.tokenMint);
-  const participationFixedPrice = auction?.auctionManager.participationConfig?.fixedPrice || 0;
   const priceFloor =
     auction?.auction.info.priceFloor.type === PriceFloorType.Minimum
       ? auction?.auction.info.priceFloor.minPrice?.toNumber() || 0
       : 0;
-
-  console.log(fromLamports(participationFixedPrice, mintInfo));
 
   const balance = formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL);
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);

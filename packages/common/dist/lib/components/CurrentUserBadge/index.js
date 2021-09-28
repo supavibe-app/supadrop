@@ -44,14 +44,6 @@ const CurrentUserBadge = (props) => {
         setShowEditProfile(true);
         setShowPopover(false);
     };
-    const baseWalletKey = {
-        height: props.iconSize,
-        cursor: 'pointer',
-        userSelect: 'none',
-    };
-    const walletKeyStyle = props.showAddress
-        ? baseWalletKey
-        : { ...baseWalletKey, paddingLeft: 0 };
     return (react_1.default.createElement(react_1.default.Fragment, null,
         react_1.default.createElement("div", { className: "wallet-wrapper" },
             react_1.default.createElement(antd_1.Popover, { overlayClassName: style_1.ProfilePopover, color: "#000000", content: react_1.default.createElement(Settings_1.Settings, { setShowEdit: handleShowEditProfile }), trigger: "click", placement: "bottomRight", onVisibleChange: visible => setShowPopover(visible), visible: showPopover },

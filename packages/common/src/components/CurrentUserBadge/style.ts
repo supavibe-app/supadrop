@@ -29,7 +29,7 @@ export const BalanceStyle = css`
 
 export const ProfilePopover = css`
   .ant-popover-inner {
-    border: 1px solid yellow;
+    border: 2px solid #ccff00;
     border-radius: 4px;
   }
 

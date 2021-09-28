@@ -90,6 +90,7 @@ export function MetaProvider({ children = null as any }) {
         
         setDataAuction(listData)
         setIsLoadingDatabase(false)
+
       }
     })
 
