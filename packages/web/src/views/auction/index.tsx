@@ -20,7 +20,6 @@ import {
   useConnectionConfig,
   fromLamports,
   useMint,
-  useMeta,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ArtType } from '../../types';
@@ -29,6 +28,7 @@ import { BN } from 'bn.js';
 import BidDetails from './bidDetails';
 import PlaceBid from './placeBid';
 import ArtDetails from './artDetails';
+import { useMeta } from '../../contexts';
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
@@ -69,7 +69,7 @@ export const AuctionView = () => {
   if (isUpcoming || bids) {
     currentBid = fromLamports(
       participationOnly ? participationFixedPrice : priceFloor,
-      mintInfo,
+      mintInfo
     );
   }
 
