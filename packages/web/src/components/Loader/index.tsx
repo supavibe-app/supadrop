@@ -2,11 +2,11 @@ import { useMeta } from '@oyster/common';
 import React, { FC } from 'react';
 
 export const LoaderProvider: FC = ({ children }) => {
-  const { isLoading } = useMeta();
+  const { isLoadingMetaplex } = useMeta();
 
   return (
     <>
-      <div className={`loader-container ${isLoading ? 'active' : ''}`}>
+      <div className={`loader-container ${isLoadingMetaplex ? 'active' : ''}`}>
         <div className="loader-block">
           <div className="loader-title">loading</div>
           <Spinner />

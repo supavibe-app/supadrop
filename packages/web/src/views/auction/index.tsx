@@ -115,8 +115,6 @@ export const AuctionView = () => {
     );
   });
 
-  console.log('link')
-
   const options = (
     <div>
       <List>
