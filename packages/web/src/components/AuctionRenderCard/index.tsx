@@ -20,6 +20,7 @@ import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
 import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, OwnerContainer, UserWrapper } from './style';
 import { WhiteColor } from '../../styles';
+import {supabase} from '../../../supabaseClient'
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
@@ -173,6 +174,10 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
       mintInfo,
     );
   }
+
+  // supabase.from('action_bidding')
+  //   .update({is_redeem:true,})
+  //   .eq('id', 'test123').then(() => console.log('testdb', 'lewat'));
 
   if (!isUpcoming && bids.length > 0) {
     label = ended ? 'Winning bid' : 'Current bid';

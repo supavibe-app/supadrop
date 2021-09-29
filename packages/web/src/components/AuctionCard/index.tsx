@@ -325,7 +325,14 @@ export const AuctionCard = ({
                       prizeTrackingTickets,
                       bidRedemptions,
                       bids,
-                    ).then(() => setShowRedeemedBidModal(true));
+                    ).then(() => {
+                      setShowRedeemedBidModal(true)
+                      // TODO ADD FLAG TO DB
+                      supabase.from('action_bidding')
+                      .update({is_redeem:true,})
+                      .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`);
+                      
+                    });
                   } else {
                     await sendCancelBid(
                       connection,
