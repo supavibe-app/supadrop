@@ -19,16 +19,6 @@ export const ButtonContainer = css`
   display: -webkit-box;
 `;
 
-export const CircleButton = css`
-  height: 42px;
-  width: 42px;
-  border-radius: 24px;
-  border: 2px solid #444444;
-  margin-left: 12px;
-  padding-top: 9px;
-  vertical-align: -4px;
-`;
-
 export const LinkButton = css`
   font-weight: bold;
   color: #fafafb;
@@ -44,24 +34,4 @@ export const RoundButton = css`
   box-sizing: border-box;
   font-size: 14px;
   font-weight: 700;
-`;
-
-export const NotificationPopover = css`
-  .ant-popover-inner {
-    border: 1px solid yellow;
-    border-radius: 4px;
-    padding: 16px 20px;
-    background: #000000;
-  }
-
-  .ant-popover-title {
-    border: unset;
-    padding: 0;
-  }
-
-  .ant-popover-inner-content {
-    width: 378px;
-    height: 318px;
-    padding: 0;
-  }
 `;

@@ -120,6 +120,8 @@ export class ItemAuction {
   tickExtend: number;
   vault: string;
   arweave_link: string;
+  owner: string;
+  mint_key: string;
 
   constructor(
     id: string,
@@ -136,6 +138,8 @@ export class ItemAuction {
     tickExtend: number,
     vault: string,
     arweave_link: string,
+    owner: string,
+    mint_key: string,
   ) {
     this.id = id;
     this.name = name;
@@ -151,6 +155,8 @@ export class ItemAuction {
     this.tickExtend = tickExtend;
     this.vault = vault;
     this.arweave_link = arweave_link;
+    this.owner = owner;
+    this.mint_key = mint_key;
   }
 }
 

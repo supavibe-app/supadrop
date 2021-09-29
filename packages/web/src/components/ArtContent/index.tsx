@@ -177,13 +177,13 @@ const HTMLContent = ({
   files?: (MetadataFile | string)[];
   artView?: boolean;
 }) => {
-  if (!artView){
+  if (!artView) {
     return <CachedImageContent
-    uri={uri}
-    className={className}
-    preview={preview}
-    style={style}
-  />
+      uri={uri}
+      className={className}
+      preview={preview}
+      style={style}
+    />
   }
   const htmlURL =
     files && files.length > 0 && typeof files[0] === 'string'
@@ -275,46 +275,46 @@ export const ArtContent = ({
         active={active}
       />
     ) :
-//     (category === 'html' || animationUrlExt === 'html') ? (
-//       <HTMLContent
-//         uri={uri}
-//         animationUrl={animationURL}
-//         className={className}
-//         preview={preview}
-//         style={style}
-//         files={files}
-//         artView={artView}
-//       />
-//     ) :
-//     (
-//       <CachedImageContent
-//         uri={uri}
-//         className={className}
-//         preview={preview}
-//         style={style}
-//       />
-//     );
-//
-//   return (
-//     <div
-//       ref={ref as any}
-//       style={{
-//         display: 'flex',
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//       }}
-//     >
-//       {content}
-//     </div>
-//   );
-(
-      <CachedImageContent
-        uri={uri}
-        className={className}
-        preview={preview}
-        style={style}
-      />
-    );
+      //     (category === 'html' || animationUrlExt === 'html') ? (
+      //       <HTMLContent
+      //         uri={uri}
+      //         animationUrl={animationURL}
+      //         className={className}
+      //         preview={preview}
+      //         style={style}
+      //         files={files}
+      //         artView={artView}
+      //       />
+      //     ) :
+      //     (
+      //       <CachedImageContent
+      //         uri={uri}
+      //         className={className}
+      //         preview={preview}
+      //         style={style}
+      //       />
+      //     );
+      //
+      //   return (
+      //     <div
+      //       ref={ref as any}
+      //       style={{
+      //         display: 'flex',
+      //         alignItems: 'center',
+      //         justifyContent: 'center',
+      //       }}
+      //     >
+      //       {content}
+      //     </div>
+      //   );
+      (
+        <CachedImageContent
+          uri={uri}
+          className={className}
+          preview={preview}
+          style={style}
+        />
+      );
 
   return (
     <div

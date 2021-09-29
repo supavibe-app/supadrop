@@ -17,6 +17,26 @@ export const ArtContainer = css`
   }
 `;
 
+export const OptionsPopover = css`
+  .ant-popover-inner {
+    border: 2px solid yellow;
+    border-radius: 4px;
+    background: #000000;
+  }
+
+  .ant-popover-inner-content {
+    padding: 0 20px;
+    padding-right: 0;
+  }
+
+  .ant-btn-link {
+    padding: 0;
+    padding-right: 32px;
+    color: #fafafb;
+    font-weight: bold;
+  }
+`;
+
 export const BackButton = css`
   display: flex;
   align-items: center;
@@ -31,7 +51,10 @@ export const ArtDetailsColumn = css`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
+
+  @media (min-width: 768px) {
+    height: 100%;
+  }
 `;
 
 export const OverflowYAuto = css`
@@ -42,12 +65,19 @@ export const ColumnBox = css`
   border: 1px solid #2b2b2b;
   border-bottom: none;
   border-left: none;
-  height: 100%;
   overflow-y: auto;
+
+  @media (min-width: 768px) {
+    height: 100%;
+  }
 `;
 
 export const PaddingBox = css`
   padding: 32px 28px;
+`;
+
+export const SmallPaddingBox = css`
+  padding: 16px 28px 32px 28px;
 `;
 
 export const ArtDetailsHeader = css`
@@ -90,7 +120,6 @@ export const BidStatus = css`
   align-items: center;
   font-weight: bold;
   font-size: 14px;
-
   color: #7e7c7c;
 
   .ant-avatar {
@@ -98,16 +127,16 @@ export const BidStatus = css`
   }
 `;
 
+export const BidStatusEmpty = css`
+  display: flex;
+  margin-bottom: 22px;
+  font-weight: bold;
+  font-size: 14px;
+  color: #7e7c7c;
+`;
+
 export const CurrentBid = css`
   font-size: 18px;
-`;
-
-export const WhiteColor = css`
-  color: #fafafb;
-`;
-
-export const YellowGlowColor = css`
-  color: #ccff00;
 `;
 
 export const NormalFont = css`
@@ -115,17 +144,11 @@ export const NormalFont = css`
   font-style: normal;
 `;
 
-export const BoldFont = css`
-  font-weight: bold;
-`;
-
 export const ButtonWrapper = css`
   padding: 0 8px 8px 0;
 `;
 
 export const Activity = css`
-  display: flex;
-  justify-content: space-between;
   font-size: 14px;
   color: #fafafb;
   margin-bottom: 12px;
@@ -133,6 +156,10 @@ export const Activity = css`
 
   .ant-avatar {
     margin-right: 4px;
+  }
+
+  div:last-child {
+    text-align: end;
   }
 `;
 

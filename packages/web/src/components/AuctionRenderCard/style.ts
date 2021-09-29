@@ -75,3 +75,10 @@ export const BidPrice = css`
     font-size: 20px;
   }
 `;
+
+export const OwnerContainer = css`
+  font-size: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fafafb;
+`;
