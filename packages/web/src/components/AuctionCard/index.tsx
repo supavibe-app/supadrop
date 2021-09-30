@@ -258,6 +258,8 @@ export const AuctionCard = ({
     auctionView.auction.info.state === AuctionState.Created;
 
   //if instant sale auction bid and claimed hide buttons
+  //NOTE: if ini buat validasi udah pernah ambil/belum
+  //kalau udah jgn tampilin tombolnya
   if (
     (auctionView.isInstantSale &&
       Number(auctionView.myBidderPot?.info.emptied) !== 0 &&

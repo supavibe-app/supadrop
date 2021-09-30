@@ -1,19 +1,55 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Avatar, Col, Row, Tabs } from 'antd';
 import { ActivityCard, NFTDescription, ImageCard, PageTitle, TabStyle, NFTStatus, NFTName, NFTOwner, Label, StatusValue, Price, ButtonWrapper, SubTitle, Content } from './style';
 
 import ActionButton from '../../components/ActionButton';
 import { AuctionViewState, useAuctions } from '../../hooks';
-
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useMeta, VaultState } from '@oyster/common';
 const { TabPane } = Tabs;
 
 const ActivityView = () => {
+  const { publicKey } = useWallet();
+  const {vaults,isLoadingMetaplex} = useMeta();
+
   const allAuctions = [
     ...useAuctions(AuctionViewState.Live),
     ...useAuctions(AuctionViewState.Ended),
     ...useAuctions(AuctionViewState.Upcoming),
     ...useAuctions(AuctionViewState.BuyNow),
   ];
+  //NOTE: blm ketemu buat filter yg blm settle 
+  const allOnSale = allAuctions.filter(v => v.auctionManager.authority === publicKey?.toBase58())
+
+  // NOTE: buat nentuin sudah pernah redeem atau blm cek -> m.vault.info.tokenTypeCount > 0
+  // besok rencananya kucobain semua scenario, buat mastiin udah fix atau blm
+  const activeBids = allAuctions
+  .filter(
+    (m, idx) =>
+      (m.myBidderMetadata?.info.bidderPubkey == publicKey?.toBase58()) && (m.vault.info.state != VaultState.Deactivated || m.vault.info.tokenTypeCount > 0),
+  );
+
+  const onSale = allAuctions
+  .filter(
+    (m, idx) =>
+    m.vault.info.authority === publicKey?.toBase58() &&
+    (m.vault.info.state !== VaultState.Deactivated ||
+    m.vault.info.tokenTypeCount > 0),
+  );
+  const complete = allAuctions
+  .filter(
+    (m, idx) =>
+    (m.vault.info.state == VaultState.Deactivated ),
+  );
+  if (!isLoadingMetaplex) {
+    console.log("🚀 ~ file: index.tsx ~ line 57 ~ ActivityView ~ complete", complete)
+    console.log("🚀 ~ file: index.tsx ~ line 33 ~ ActivityView ~ onSale",allAuctions.length, onSale)
+    console.log("🚀 ~ file: index.tsx ~ line 27 ~ ActivityView ~ activeBids", activeBids)
+    console.log("🚀 ~ file: index.tsx ~ line 23 ~ ActivityView ~ allOnSale", allOnSale)
+  
+    console.log('==============================================');
+  }
+  
   return (
     <Row justify="center">
       <Col span={14}>
