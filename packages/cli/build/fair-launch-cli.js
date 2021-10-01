@@ -846,7 +846,7 @@ commander_1.program
                 i++;
                 return [3 /*break*/, 5];
             case 8: return [4 /*yield*/, Promise.all(various_1.chunks(Array.from(Array(seqKeys.length).keys()), 1000).map(function (allIndexesInSlice) { return __awaiter(void 0, void 0, void 0, function () {
-                    var ticketKeys, i, slice, result;
+                    var ticketKeys, i, slice, result, tries, done, e_2;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
@@ -854,22 +854,44 @@ commander_1.program
                                 i = 0;
                                 _a.label = 1;
                             case 1:
-                                if (!(i < allIndexesInSlice.length)) return [3 /*break*/, 4];
+                                if (!(i < allIndexesInSlice.length)) return [3 /*break*/, 10];
                                 console.log('Pulling ticket seqs for slice', allIndexesInSlice[i], allIndexesInSlice[i + 100]);
                                 slice = allIndexesInSlice
                                     .slice(i, i + 100)
                                     .map(function (index) { return seqKeys[index]; });
-                                return [4 /*yield*/, various_1.getMultipleAccounts(anchorProgram.provider.connection, slice.map(function (s) { return s.toBase58(); }), 'recent')];
+                                result = void 0;
+                                tries = 0;
+                                done = false;
+                                _a.label = 2;
                             case 2:
+                                if (!(tries < 3 && !done)) return [3 /*break*/, 8];
+                                _a.label = 3;
+                            case 3:
+                                _a.trys.push([3, 5, , 7]);
+                                return [4 /*yield*/, various_1.getMultipleAccounts(anchorProgram.provider.connection, slice.map(function (s) { return s.toBase58(); }), 'recent')];
+                            case 4:
                                 result = _a.sent();
+                                done = true;
+                                return [3 /*break*/, 7];
+                            case 5:
+                                e_2 = _a.sent();
+                                console.log(e_2);
+                                console.log('Failed, retrying after 10s sleep');
+                                return [4 /*yield*/, various_1.sleep(10000)];
+                            case 6:
+                                _a.sent();
+                                tries += 1;
+                                return [3 /*break*/, 7];
+                            case 7: return [3 /*break*/, 2];
+                            case 8:
                                 ticketKeys = ticketKeys.concat(result.array.map(function (a) {
                                     return new anchor.web3.PublicKey(new Uint8Array(a.data.slice(8, 8 + 32)));
                                 }));
-                                return [2 /*return*/, ticketKeys];
-                            case 3:
+                                _a.label = 9;
+                            case 9:
                                 i += 100;
                                 return [3 /*break*/, 1];
-                            case 4: return [2 /*return*/];
+                            case 10: return [2 /*return*/, ticketKeys];
                         }
                     });
                 }); }))];
@@ -877,13 +899,13 @@ commander_1.program
                 ticketKeys = _d.sent();
                 ticketsFlattened = ticketKeys.flat();
                 return [4 /*yield*/, Promise.all(various_1.chunks(Array.from(Array(ticketsFlattened.length).keys()), 1000).map(function (allIndexesInSlice) { return __awaiter(void 0, void 0, void 0, function () {
-                        var states, _loop_1, i, state_1;
+                        var states, _loop_1, i;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     states = [];
                                     _loop_1 = function (i) {
-                                        var slice, result;
+                                        var slice, result, tries, done, e_3;
                                         return __generator(this, function (_b) {
                                             switch (_b.label) {
                                                 case 0:
@@ -891,14 +913,35 @@ commander_1.program
                                                     slice = allIndexesInSlice
                                                         .slice(i, i + 100)
                                                         .map(function (index) { return ticketsFlattened[index]; });
-                                                    return [4 /*yield*/, various_1.getMultipleAccounts(anchorProgram.provider.connection, slice.map(function (s) { return s.toBase58(); }), 'recent')];
+                                                    tries = 0;
+                                                    done = false;
+                                                    _b.label = 1;
                                                 case 1:
+                                                    if (!(tries < 3 && !done)) return [3 /*break*/, 7];
+                                                    _b.label = 2;
+                                                case 2:
+                                                    _b.trys.push([2, 4, , 6]);
+                                                    return [4 /*yield*/, various_1.getMultipleAccounts(anchorProgram.provider.connection, slice.map(function (s) { return s.toBase58(); }), 'recent')];
+                                                case 3:
                                                     result = _b.sent();
+                                                    done = true;
+                                                    return [3 /*break*/, 6];
+                                                case 4:
+                                                    e_3 = _b.sent();
+                                                    console.log(e_3);
+                                                    console.log('Failed, retrying after 10s sleep');
+                                                    return [4 /*yield*/, various_1.sleep(10000)];
+                                                case 5:
+                                                    _b.sent();
+                                                    tries += 1;
+                                                    return [3 /*break*/, 6];
+                                                case 6: return [3 /*break*/, 1];
+                                                case 7:
                                                     states = states.concat(result.array.map(function (a, i) { return ({
                                                         key: new anchor.web3.PublicKey(result.keys[i]),
                                                         model: anchorProgram.coder.accounts.decode('FairLaunchTicket', a.data),
                                                     }); }));
-                                                    return [2 /*return*/, { value: states }];
+                                                    return [2 /*return*/];
                                             }
                                         });
                                     };
@@ -908,14 +951,12 @@ commander_1.program
                                     if (!(i < allIndexesInSlice.length)) return [3 /*break*/, 4];
                                     return [5 /*yield**/, _loop_1(i)];
                                 case 2:
-                                    state_1 = _a.sent();
-                                    if (typeof state_1 === "object")
-                                        return [2 /*return*/, state_1.value];
+                                    _a.sent();
                                     _a.label = 3;
                                 case 3:
                                     i += 100;
                                     return [3 /*break*/, 1];
-                                case 4: return [2 /*return*/];
+                                case 4: return [2 /*return*/, states];
                             }
                         });
                     }); }))];
@@ -923,20 +964,20 @@ commander_1.program
                 ticketData = _d.sent();
                 ticketDataFlat = ticketData.flat();
                 return [4 /*yield*/, Promise.all(various_1.chunks(Array.from(Array(ticketDataFlat.length).keys()), 1000).map(function (allIndexesInSlice) { return __awaiter(void 0, void 0, void 0, function () {
-                        var i, ticket, myByte, positionFromRight, mask, isWinner, diff, tries, buyerTokenAccount, e_2;
+                        var i, ticket, myByte, positionFromRight, mask, isWinner, diff, e_4, tries, buyerTokenAccount, e_5;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     i = 0;
                                     _a.label = 1;
                                 case 1:
-                                    if (!(i < allIndexesInSlice.length)) return [3 /*break*/, 16];
+                                    if (!(i < allIndexesInSlice.length)) return [3 /*break*/, 18];
                                     ticket = ticketDataFlat[allIndexesInSlice[i]];
-                                    if (!ticket.model.state.unpunched) return [3 /*break*/, 14];
+                                    if (!ticket.model.state.unpunched) return [3 /*break*/, 16];
                                     if (!(ticket.model.amount.toNumber() <
                                         //@ts-ignore
                                         fairLaunchObj.currentMedian.toNumber())) return [3 /*break*/, 3];
-                                    console.log('Refunding ticket for buyer', ticket.model.buyer.toBase58());
+                                    console.log('Refunding ticket for buyer', allIndexesInSlice[i], ticket.model.buyer.toBase58());
                                     return [4 /*yield*/, adjustTicket({
                                             amountNumber: 0,
                                             fairLaunchObj: fairLaunchObj,
@@ -950,20 +991,23 @@ commander_1.program
                                         })];
                                 case 2:
                                     _a.sent();
-                                    return [3 /*break*/, 13];
+                                    return [3 /*break*/, 15];
                                 case 3:
                                     myByte = fairLaunchLotteryBitmapObj.data[FAIR_LAUNCH_LOTTERY_SIZE +
                                         Math.floor(ticket.model.seq.toNumber() / 8)];
                                     positionFromRight = 7 - (ticket.model.seq.toNumber() % 8);
                                     mask = Math.pow(2, positionFromRight);
                                     isWinner = myByte & mask;
-                                    if (!(isWinner > 0)) return [3 /*break*/, 11];
-                                    console.log('Punching ticket for buyer', ticket.model.buyer.toBase58());
+                                    if (!(isWinner > 0)) return [3 /*break*/, 13];
+                                    console.log('Punching ticket for buyer', allIndexesInSlice[i], ticket.model.buyer.toBase58());
                                     diff = ticket.model.amount.toNumber() -
                                         //@ts-ignore
                                         fairLaunchObj.currentMedian.toNumber();
-                                    if (!(diff > 0)) return [3 /*break*/, 5];
-                                    console.log('Refunding first', diff, 'to buyer before punching');
+                                    if (!(diff > 0)) return [3 /*break*/, 7];
+                                    console.log('Refunding first', diff, 'to buyer', allIndexesInSlice[i], 'before punching');
+                                    _a.label = 4;
+                                case 4:
+                                    _a.trys.push([4, 6, , 7]);
                                     return [4 /*yield*/, adjustTicket({
                                             //@ts-ignore
                                             amountNumber: fairLaunchObj.currentMedian.toNumber(),
@@ -976,14 +1020,18 @@ commander_1.program
                                             payer: walletKeyPair,
                                             adjustMantissa: false,
                                         })];
-                                case 4:
-                                    _a.sent();
-                                    _a.label = 5;
                                 case 5:
-                                    tries = 0;
-                                    _a.label = 6;
+                                    _a.sent();
+                                    return [3 /*break*/, 7];
                                 case 6:
-                                    _a.trys.push([6, 8, , 10]);
+                                    e_4 = _a.sent();
+                                    console.log('Adjusting ticket failed', ticket.key.toBase58());
+                                    return [3 /*break*/, 7];
+                                case 7:
+                                    tries = 0;
+                                    _a.label = 8;
+                                case 8:
+                                    _a.trys.push([8, 10, , 12]);
                                     return [4 /*yield*/, punchTicket({
                                             payer: walletKeyPair,
                                             puncher: ticket.model.buyer,
@@ -993,26 +1041,26 @@ commander_1.program
                                             fairLaunchLotteryBitmap: fairLaunchLotteryBitmap,
                                             fairLaunchObj: fairLaunchObj,
                                         })];
-                                case 7:
+                                case 9:
                                     buyerTokenAccount = _a.sent();
-                                    console.log("Punched ticket and placed token in new account " + buyerTokenAccount.toBase58() + ".");
-                                    return [3 /*break*/, 10];
-                                case 8:
-                                    e_2 = _a.sent();
+                                    console.log("Punched ticket and placed token in new account " + buyerTokenAccount.toBase58() + " for buyer ", allIndexesInSlice[i]);
+                                    return [3 /*break*/, 12];
+                                case 10:
+                                    e_5 = _a.sent();
                                     if (tries > 3) {
-                                        throw e_2;
+                                        throw e_5;
                                     }
                                     else {
                                         tries++;
                                     }
                                     console.log('Ticket failed to punch, trying one more time');
                                     return [4 /*yield*/, various_1.sleep(1000)];
-                                case 9:
-                                    _a.sent();
-                                    return [3 /*break*/, 10];
-                                case 10: return [3 /*break*/, 13];
                                 case 11:
-                                    console.log('Buyer ', ticket.model.buyer.toBase58(), 'was eligible but lost lottery, refunding');
+                                    _a.sent();
+                                    return [3 /*break*/, 12];
+                                case 12: return [3 /*break*/, 15];
+                                case 13:
+                                    console.log('Buyer ', allIndexesInSlice[i], ticket.model.buyer.toBase58(), 'was eligible but lost lottery, refunding');
                                     return [4 /*yield*/, adjustTicket({
                                             //@ts-ignore
                                             amountNumber: 0,
@@ -1025,23 +1073,23 @@ commander_1.program
                                             payer: walletKeyPair,
                                             adjustMantissa: true,
                                         })];
-                                case 12:
+                                case 14:
                                     _a.sent();
                                     console.log('Refunded.');
-                                    _a.label = 13;
-                                case 13: return [3 /*break*/, 15];
-                                case 14:
+                                    _a.label = 15;
+                                case 15: return [3 /*break*/, 17];
+                                case 16:
                                     if (ticket.model.state.withdrawn) {
-                                        console.log('Buyer', ticket.model.buyer.toBase58(), 'withdrawn already');
+                                        console.log('Buyer', allIndexesInSlice[i], ticket.model.buyer.toBase58(), 'withdrawn already');
                                     }
                                     else if (ticket.model.state.punched) {
-                                        console.log('Buyer', ticket.model.buyer.toBase58(), 'punched already');
+                                        console.log('Buyer', allIndexesInSlice[i], ticket.model.buyer.toBase58(), 'punched already');
                                     }
-                                    _a.label = 15;
-                                case 15:
+                                    _a.label = 17;
+                                case 17:
                                     i++;
                                     return [3 /*break*/, 1];
-                                case 16: return [2 /*return*/];
+                                case 18: return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -1096,7 +1144,7 @@ commander_1.program
     .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
     .option('-f, --fair-launch <string>', 'fair launch id')
     .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, keypair, fairLaunch, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, fairLaunchTicket, fairLaunchLotteryBitmap, ticket, diff, buyerTokenAccount;
+    var _a, env, keypair, fairLaunch, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, fairLaunchTicket, fairLaunchLotteryBitmap, ticket, diff, tries, buyerTokenAccount, e_6;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -1143,19 +1191,38 @@ commander_1.program
             case 6:
                 _b.sent();
                 _b.label = 7;
-            case 7: return [4 /*yield*/, punchTicket({
-                    puncher: walletKeyPair.publicKey,
-                    payer: walletKeyPair,
-                    anchorProgram: anchorProgram,
-                    fairLaunchTicket: fairLaunchTicket,
-                    fairLaunch: fairLaunch,
-                    fairLaunchLotteryBitmap: fairLaunchLotteryBitmap,
-                    fairLaunchObj: fairLaunchObj,
-                })];
+            case 7:
+                tries = 0;
+                _b.label = 8;
             case 8:
+                _b.trys.push([8, 10, , 12]);
+                return [4 /*yield*/, punchTicket({
+                        puncher: walletKeyPair.publicKey,
+                        payer: walletKeyPair,
+                        anchorProgram: anchorProgram,
+                        fairLaunchTicket: fairLaunchTicket,
+                        fairLaunch: fairLaunch,
+                        fairLaunchLotteryBitmap: fairLaunchLotteryBitmap,
+                        fairLaunchObj: fairLaunchObj,
+                    })];
+            case 9:
                 buyerTokenAccount = _b.sent();
                 console.log("Punched ticket and placed token in new account " + buyerTokenAccount.toBase58() + ".");
-                return [2 /*return*/];
+                return [3 /*break*/, 12];
+            case 10:
+                e_6 = _b.sent();
+                if (tries > 3) {
+                    throw e_6;
+                }
+                else {
+                    tries++;
+                }
+                console.log('Ticket failed to punch, trying one more time');
+                return [4 /*yield*/, various_1.sleep(1000)];
+            case 11:
+                _b.sent();
+                return [3 /*break*/, 12];
+            case 12: return [2 /*return*/];
         }
     });
 }); });
@@ -1486,11 +1553,11 @@ commander_1.program
                                 ticketKeys = ticketKeys.concat(result.array.map(function (a) {
                                     return new anchor.web3.PublicKey(new Uint8Array(a.data.slice(8, 8 + 32)));
                                 }));
-                                return [2 /*return*/, ticketKeys];
+                                _a.label = 3;
                             case 3:
                                 i += 100;
                                 return [3 /*break*/, 1];
-                            case 4: return [2 /*return*/];
+                            case 4: return [2 /*return*/, ticketKeys];
                         }
                     });
                 }); }))];
@@ -1525,11 +1592,11 @@ commander_1.program
                                                     fairLaunchObj.currentMedian.toNumber()),
                                         };
                                     }));
-                                    return [2 /*return*/, states];
+                                    _a.label = 3;
                                 case 3:
                                     i += 100;
                                     return [3 /*break*/, 1];
-                                case 4: return [2 /*return*/];
+                                case 4: return [2 /*return*/, states];
                             }
                         });
                     }); }))];

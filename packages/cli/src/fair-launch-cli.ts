@@ -1028,11 +1028,24 @@ program
             const slice = allIndexesInSlice
               .slice(i, i + 100)
               .map(index => seqKeys[index]);
-            const result = await getMultipleAccounts(
-              anchorProgram.provider.connection,
-              slice.map(s => s.toBase58()),
-              'recent',
-            );
+            let result;
+            let tries = 0;
+            let done = false;
+            while (tries < 3 && !done) {
+              try {
+                result = await getMultipleAccounts(
+                  anchorProgram.provider.connection,
+                  slice.map(s => s.toBase58()),
+                  'recent',
+                );
+                done = true;
+              } catch (e) {
+                console.log(e);
+                console.log('Failed, retrying after 10s sleep');
+                await sleep(10000);
+                tries += 1;
+              }
+            }
             ticketKeys = ticketKeys.concat(
               result.array.map(
                 a =>
@@ -1041,8 +1054,8 @@ program
                   ),
               ),
             );
-            return ticketKeys;
           }
+          return ticketKeys;
         },
       ),
     );
@@ -1063,11 +1076,25 @@ program
               const slice = allIndexesInSlice
                 .slice(i, i + 100)
                 .map(index => ticketsFlattened[index]);
-              const result = await getMultipleAccounts(
-                anchorProgram.provider.connection,
-                slice.map(s => s.toBase58()),
-                'recent',
-              );
+
+              let result;
+              let tries = 0;
+              let done = false;
+              while (tries < 3 && !done) {
+                try {
+                  result = await getMultipleAccounts(
+                    anchorProgram.provider.connection,
+                    slice.map(s => s.toBase58()),
+                    'recent',
+                  );
+                  done = true;
+                } catch (e) {
+                  console.log(e);
+                  console.log('Failed, retrying after 10s sleep');
+                  await sleep(10000);
+                  tries += 1;
+                }
+              }
               states = states.concat(
                 result.array.map((a, i) => ({
                   key: new anchor.web3.PublicKey(result.keys[i]),
@@ -1077,8 +1104,8 @@ program
                   ),
                 })),
               );
-              return states;
             }
+            return states;
           },
         ),
       );
@@ -1098,6 +1125,7 @@ program
               ) {
                 console.log(
                   'Refunding ticket for buyer',
+                  allIndexesInSlice[i],
                   ticket.model.buyer.toBase58(),
                 );
                 await adjustTicket({
@@ -1124,6 +1152,7 @@ program
                 if (isWinner > 0) {
                   console.log(
                     'Punching ticket for buyer',
+                    allIndexesInSlice[i],
                     ticket.model.buyer.toBase58(),
                   );
                   const diff =
@@ -1134,20 +1163,29 @@ program
                     console.log(
                       'Refunding first',
                       diff,
-                      'to buyer before punching',
+                      'to buyer',
+                      allIndexesInSlice[i],
+                      'before punching',
                     );
-                    await adjustTicket({
-                      //@ts-ignore
-                      amountNumber: fairLaunchObj.currentMedian.toNumber(),
-                      fairLaunchObj,
-                      adjuster: ticket.model.buyer,
-                      fairLaunch,
-                      fairLaunchTicket: ticket.key,
-                      fairLaunchLotteryBitmap,
-                      anchorProgram,
-                      payer: walletKeyPair,
-                      adjustMantissa: false,
-                    });
+                    try {
+                      await adjustTicket({
+                        //@ts-ignore
+                        amountNumber: fairLaunchObj.currentMedian.toNumber(),
+                        fairLaunchObj,
+                        adjuster: ticket.model.buyer,
+                        fairLaunch,
+                        fairLaunchTicket: ticket.key,
+                        fairLaunchLotteryBitmap,
+                        anchorProgram,
+                        payer: walletKeyPair,
+                        adjustMantissa: false,
+                      });
+                    } catch (e) {
+                      console.log(
+                        'Adjusting ticket failed',
+                        ticket.key.toBase58(),
+                      );
+                    }
                   }
                   let tries = 0;
                   try {
@@ -1162,7 +1200,8 @@ program
                     });
 
                     console.log(
-                      `Punched ticket and placed token in new account ${buyerTokenAccount.toBase58()}.`,
+                      `Punched ticket and placed token in new account ${buyerTokenAccount.toBase58()} for buyer `,
+                      allIndexesInSlice[i],
                     );
                   } catch (e) {
                     if (tries > 3) {
@@ -1176,6 +1215,7 @@ program
                 } else {
                   console.log(
                     'Buyer ',
+                    allIndexesInSlice[i],
                     ticket.model.buyer.toBase58(),
                     'was eligible but lost lottery, refunding',
                   );
@@ -1197,12 +1237,14 @@ program
             } else if (ticket.model.state.withdrawn) {
               console.log(
                 'Buyer',
+                allIndexesInSlice[i],
                 ticket.model.buyer.toBase58(),
                 'withdrawn already',
               );
             } else if (ticket.model.state.punched) {
               console.log(
                 'Buyer',
+                allIndexesInSlice[i],
                 ticket.model.buyer.toBase58(),
                 'punched already',
               );
@@ -1736,8 +1778,9 @@ program
                   ),
               ),
             );
-            return ticketKeys;
           }
+
+          return ticketKeys;
         },
       ),
     );
@@ -1781,8 +1824,9 @@ program
                   };
                 }),
               );
-              return states;
             }
+
+            return states;
           },
         ),
       );

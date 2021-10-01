@@ -92,11 +92,15 @@ var web3_js_1 = require("@solana/web3.js");
 var constants_1 = require("./helpers/constants");
 var accounts_1 = require("./helpers/accounts");
 var upload_1 = require("./commands/upload");
+var verifyTokenMetadata_1 = require("./commands/verifyTokenMetadata");
+var generateConfigurations_1 = require("./commands/generateConfigurations");
 var cache_1 = require("./helpers/cache");
 var mint_1 = require("./commands/mint");
 var sign_1 = require("./commands/sign");
 var signAll_1 = require("./commands/signAll");
 var loglevel_1 = __importDefault(require("loglevel"));
+var metadata_1 = require("./helpers/metadata");
+var createArt_1 = require("./commands/createArt");
 commander_1.program.version('0.0.2');
 if (!fs.existsSync(constants_1.CACHE_PATH)) {
     fs.mkdirSync(constants_1.CACHE_PATH);
@@ -108,8 +112,8 @@ programCommand('upload')
 })
     .option('-n, --number <number>', 'Number of images to upload')
     .option('-s, --storage <string>', 'Database to use for storage (arweave, ipfs)', 'arweave')
-    .option('--ipfs-infura-project-id', 'Infura IPFS project id (required if using IPFS)')
-    .option('--ipfs-infura-secret', 'Infura IPFS scret key (required if using IPFS)')
+    .option('--ipfs-infura-project-id <string>', 'Infura IPFS project id (required if using IPFS)')
+    .option('--ipfs-infura-secret <string>', 'Infura IPFS scret key (required if using IPFS)')
     .option('--no-retain-authority', 'Do not retain authority to update metadata')
     .action(function (files, options, cmd) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, number, keypair, env, cacheName, storage, ipfsInfuraProjectId, ipfsInfuraSecret, retainAuthority, ipfsCredentials, pngFileCount, jsonFileCount, parsedNumber, elemCount, startMs, warn, successful, endMs, timeTaken;
@@ -164,12 +168,28 @@ programCommand('upload')
                 timeTaken = new Date(endMs - startMs).toISOString().substr(11, 8);
                 loglevel_1.default.info("ended at: " + new Date(endMs).toISOString() + ". time taken: " + timeTaken);
                 if (warn) {
-                    loglevel_1.default.info('not all images have been uplaoded, rerun this step.');
+                    loglevel_1.default.info('not all images have been uploaded, rerun this step.');
                 }
                 return [2 /*return*/];
         }
     });
 }); });
+programCommand('verify_token_metadata')
+    .argument('<directory>', 'Directory containing images and metadata files named from 0-n', function (val) {
+    return fs
+        .readdirSync("" + val)
+        .map(function (file) { return path.join(process.cwd(), val, file); });
+})
+    .option('-n, --number <number>', 'Number of images to upload')
+    .action(function (files, options, cmd) {
+    var number = cmd.opts().number;
+    var startMs = Date.now();
+    loglevel_1.default.info('started at: ' + startMs.toString());
+    verifyTokenMetadata_1.verifyTokenMetadata({ files: files, uploadElementsCount: number });
+    var endMs = Date.now();
+    var timeTaken = new Date(endMs - startMs).toISOString().substr(11, 8);
+    loglevel_1.default.info("ended at: " + new Date(endMs).toString() + ". time taken: " + timeTaken);
+});
 programCommand('verify').action(function (directory, cmd) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, env, keypair, cacheName, cacheContent, walletKeyPair, anchorProgram, configAddress, config, allGood, keys, i, key, thisSlice, name_1, uri, cacheItem, json, body, parsed, check, text, configData, lineCount;
     return __generator(this, function (_b) {
@@ -349,7 +369,9 @@ programCommand('show')
                 //@ts-ignore
                 loglevel_1.default.info('wallet: ', machine.wallet.toBase58());
                 //@ts-ignore
-                loglevel_1.default.info('tokenMint: ', machine.tokenMint.toBase58());
+                loglevel_1.default.info('tokenMint: ', 
+                //@ts-ignore
+                machine.tokenMint ? machine.tokenMint.toBase58() : null);
                 //@ts-ignore
                 loglevel_1.default.info('config: ', machine.config.toBase58());
                 //@ts-ignore
@@ -374,7 +396,7 @@ programCommand('show')
                 config = _c.sent();
                 loglevel_1.default.info('...Config...');
                 //@ts-ignore
-                loglevel_1.default.info('authority: ', config.authority);
+                loglevel_1.default.info('authority: ', config.authority.toBase58());
                 //@ts-ignore
                 loglevel_1.default.info('symbol: ', config.data.symbol);
                 //@ts-ignore
@@ -579,6 +601,57 @@ programCommand('sign_all')
                 return [4 /*yield*/, signAll_1.signAllMetadataFromCandyMachine(anchorProgram.provider.connection, walletKeyPair, candyAddress, batchSizeParsed, daemon)];
             case 2:
                 _b.sent();
+                return [2 /*return*/];
+        }
+    });
+}); });
+programCommand('generate_art_configurations')
+    .argument('<directory>', 'Directory containing traits named from 0-n', function (val) {
+    return fs.readdirSync("" + val);
+})
+    .action(function (files) { return __awaiter(void 0, void 0, void 0, function () {
+    var startMs, successful, endMs, timeTaken;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                loglevel_1.default.info('creating traits configuration file');
+                startMs = Date.now();
+                return [4 /*yield*/, generateConfigurations_1.generateConfigurations(files)];
+            case 1:
+                successful = _a.sent();
+                endMs = Date.now();
+                timeTaken = new Date(endMs - startMs).toISOString().substr(11, 8);
+                if (successful) {
+                    loglevel_1.default.info('traits-configuration.json has been created!');
+                    loglevel_1.default.info("ended at: " + new Date(endMs).toISOString() + ". time taken: " + timeTaken);
+                }
+                else {
+                    loglevel_1.default.info('The art configuration file was not created');
+                }
+                return [2 /*return*/];
+        }
+    });
+}); });
+programCommand('create_generative_art')
+    .option('-n, --number-of-images <string>', 'Number of images to be generated', '100')
+    .option('-c, --config-location <string>', 'Location of the traits configuration file', './traits-configuration.json')
+    .action(function (directory, cmd) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, numberOfImages, configLocation, randomSets;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = cmd.opts(), numberOfImages = _a.numberOfImages, configLocation = _a.configLocation;
+                loglevel_1.default.info('Loaded configuration file');
+                return [4 /*yield*/, metadata_1.createMetadataFiles(numberOfImages, configLocation)];
+            case 1:
+                randomSets = _b.sent();
+                loglevel_1.default.info('JSON files have been created within the assets directory');
+                // 2. piecemeal generate the images
+                return [4 /*yield*/, createArt_1.createGenerativeArt(configLocation, randomSets)];
+            case 2:
+                // 2. piecemeal generate the images
+                _b.sent();
+                loglevel_1.default.info('Images have been created successfully!');
                 return [2 /*return*/];
         }
     });
