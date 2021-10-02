@@ -130,8 +130,6 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
     )
   );
 
-  console.log(art.title, ended);
-
   return (
     <Row className={ActivityCardStyle}>
       <Col className={NFTDescription} span={18}>

@@ -12,7 +12,7 @@ export const Title = css`
   letter-spacing: 0.24em;
   -webkit-text-stroke: 0.75px #ffffff;
   margin: 20px;
-  color: white;
+  color: #fafafb;
 `;
 
 export const ButtonContainer = css`
@@ -21,9 +21,7 @@ export const ButtonContainer = css`
 
 export const LinkButton = css`
   font-weight: bold;
-  color: #fafafb;
   font-size: 14px;
-  margin: 0 18px;
 `;
 
 export const RoundButton = css`
@@ -34,4 +32,5 @@ export const RoundButton = css`
   box-sizing: border-box;
   font-size: 14px;
   font-weight: 700;
+  margin-left: 12px;
 `;

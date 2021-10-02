@@ -24,7 +24,7 @@ export const ArtContentStyle = css`
 
   .ant-image-img {
     object-fit: contain;
-    filter: drop-shadow(0px 8px 48px rgba(255, 255, 255, 0.16));
+    filter: drop-shadow(2px 4px 16px rgba(255, 255, 255, 0.12));
     border-radius: 2px;
     max-height: 100%;
   }
