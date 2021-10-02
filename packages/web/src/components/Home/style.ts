@@ -1,5 +1,10 @@
 import { css } from '@emotion/css';
 
+export const HomeStyle = css`
+  overflow-y: hidden;
+  margin-top: 88px;
+`;
+
 export const Title = css`
   font-size: 64px;
   font-weight: 700;
@@ -42,8 +47,14 @@ export const ImageStyle = css`
   max-height: 512px;
   max-width: 512px;
   object-fit: contain;
-  filter: drop-shadow(0px 8px 48px rgba(255, 255, 255, 0.16));
+  filter: drop-shadow(2px 4px 16px rgba(255, 255, 255, 0.12));
   border-radius: 2px;
+`;
+
+export const CarouselStyle = css`
+  .ant-image {
+    padding-bottom: 48px;
+  }
 `;
 
 export const TwitterButton = css`
