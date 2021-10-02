@@ -77,7 +77,6 @@ const ActivityView = () => {
     console.log("🚀 ~ file: index.tsx ~ line 33 ~ ActivityView ~ onSale",allAuctions.length, onSale)
     console.log("🚀 ~ file: index.tsx ~ line 27 ~ ActivityView ~ activeBids", activeBids)
     console.log("🚀 ~ file: index.tsx ~ line 23 ~ ActivityView ~ allOnSale", allOnSale)
-  
     console.log('==============================================');
   }
   

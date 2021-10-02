@@ -23,7 +23,7 @@ import {
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ArtType } from '../../types';
-import { Activity, ActivityHeader, ArtContainer, OverflowYAuto, ArtDetailsColumn, ColumnBox, Container, ContentSection, ArtDetailsHeader, IsMyBid, Label, PaddingBox, StatusContainer, BackButton, OptionsPopover } from './style';
+import { Activity, ActivityHeader, ArtContainer, OverflowYAuto, ArtDetailsColumn, ColumnBox, Container, ContentSection, ArtDetailsHeader, IsMyBid, Label, PaddingBox, StatusContainer, BackButton, OptionsPopover, ArtContentStyle } from './style';
 import BidDetails from './bidDetails';
 import PlaceBid from './placeBid';
 import ArtDetails from './artDetails';
@@ -34,9 +34,7 @@ import BN from 'bn.js';
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
   active?: boolean;
-}) => (
-  <ArtContent pubkey={item.metadata.pubkey} active={active} allowMeshRender={true} />
-);
+}) => <ArtContent className={ArtContentStyle} pubkey={item.metadata.pubkey} active={active} allowMeshRender={true} />;
 
 export const AuctionView = () => {
   const { id } = useParams<{ id: string }>();
@@ -107,12 +105,7 @@ export const AuctionView = () => {
       return null;
     }
 
-    return (
-      <AuctionItem
-        key={item.metadata.pubkey}
-        item={item}
-      />
-    );
+    return <AuctionItem key={item.metadata.pubkey} item={item} />;
   });
 
   const moreOptions = (
