@@ -193,6 +193,11 @@ const loadAccounts = async (connection) => {
     const state = getEmptyMetaState_1.getEmptyMetaState();
     const updateState = exports.makeSetter(state);
     const forEachAccount = exports.processingAccounts(updateState);
+    const forEach = (fn) => async (accounts) => {
+        for (const account of accounts) {
+            await fn(account, updateState);
+        }
+    };
     const loadVaults = () => web3_1.getProgramAccounts(connection, ids_1.VAULT_ID).then(forEachAccount(processVaultData_1.processVaultData));
     const loadAuctions = () => web3_1.getProgramAccounts(connection, ids_1.AUCTION_ID).then(forEachAccount(processAuctions_1.processAuctions));
     const loadMetaplex = () => web3_1.getProgramAccounts(connection, ids_1.METAPLEX_ID).then(forEachAccount(processMetaplexAccounts_1.processMetaplexAccounts));
@@ -202,7 +207,7 @@ const loadAccounts = async (connection) => {
                 dataSize: models_1.MAX_WHITELISTED_CREATOR_SIZE,
             },
         ],
-    }).then(forEachAccount(processMetaplexAccounts_1.processMetaplexAccounts));
+    }).then(forEach(processMetaplexAccounts_1.processMetaplexAccounts));
     const loadMetadata = () => pullMetadataByCreators(connection, state, updateState);
     const loadEditions = () => pullEditions(connection, updateState, state);
     const loading = [

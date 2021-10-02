@@ -19,6 +19,8 @@ import {
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
 import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, OwnerContainer, UserWrapper } from './style';
+import { WhiteColor } from '../../styles';
+import {supabase} from '../../../supabaseClient'
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
@@ -150,6 +152,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
   const [state, setState] = useState<CountdownState>();
   const bids = useBidsForAuction(auctionView.id);
   const mintInfo = useMint(auctionView.token_mint);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const participationFixedPrice = 0;
   const participationOnly = false;
@@ -171,6 +174,10 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
     );
   }
 
+  // supabase.from('action_bidding')
+  //   .update({is_redeem:true,})
+  //   .eq('id', 'test123').then(() => console.log('testdb', 'lewat'));
+
   if (!isUpcoming && bids.length > 0) {
     label = ended ? 'Winning bid' : 'Current bid';
     currentBid =
@@ -185,13 +192,16 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
       className={CardStyle}
       cover={
 
-        <ArtContent2
-          className={AuctionImage}
+        <div ref={cardRef}>
+          <ArtContent2
+          className={AuctionImage(cardRef.current?.offsetWidth)}
           preview={false}
           pubkey={id}
           uri={auctionView.img_nft}
           allowMeshRender={false}
         />
+        </div>
+      
       }
     >
       <Meta

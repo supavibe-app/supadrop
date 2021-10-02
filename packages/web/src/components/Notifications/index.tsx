@@ -316,6 +316,7 @@ export const Notifications = ({ }) => {
   const connection = useConnection();
   const wallet = useWallet();
 
+  //NOTE: notifications untuk kasih tau seller sol yg bisa diambil (settle)
   const notifications: NotificationCard[] = [];
 
   const walletPubkey = wallet.publicKey?.toBase58() || '';

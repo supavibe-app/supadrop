@@ -258,6 +258,8 @@ export const AuctionCard = ({
     auctionView.auction.info.state === AuctionState.Created;
 
   //if instant sale auction bid and claimed hide buttons
+  //NOTE: if ini buat validasi udah pernah ambil/belum
+  //kalau udah jgn tampilin tombolnya
   if (
     (auctionView.isInstantSale &&
       Number(auctionView.myBidderPot?.info.emptied) !== 0 &&
@@ -325,7 +327,14 @@ export const AuctionCard = ({
                       prizeTrackingTickets,
                       bidRedemptions,
                       bids,
-                    ).then(() => setShowRedeemedBidModal(true));
+                    ).then(() => {
+                      setShowRedeemedBidModal(true)
+                      // TODO ADD FLAG TO DB
+                      supabase.from('action_bidding')
+                      .update({is_redeem:true,})
+                      .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`);
+                      
+                    });
                   } else {
                     await sendCancelBid(
                       connection,
