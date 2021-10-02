@@ -147,7 +147,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
             <Row style={{ width: '100%' }}>
               <Col span={12}>
                 <div>reserve price</div>
-                <div className={`${WhiteColor} ${uFontSize24}`}>{currentBid}</div>
+                <div className={`${WhiteColor} ${uFontSize24}`}>{currentBid} SOL</div>
               </Col>
 
               <Col span={12}>
