@@ -1,7 +1,13 @@
 import { css } from '@emotion/css';
 
-export const AuctionImage = css`
+export const AuctionImage = height => css`
+  height: ${height}px;
   width: 100%;
+
+  .ant-image-img {
+    object-fit: cover;
+    height: 100% !important;
+  }
 `;
 
 export const CardStyle = css`

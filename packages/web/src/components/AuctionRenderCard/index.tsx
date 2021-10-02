@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, LegacyRef } from 'react';
 import { Avatar, Card, Col, CardProps, Row, Statistic } from 'antd';
 import {
   formatTokenAmount,
@@ -19,7 +19,6 @@ import {
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
 import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, OwnerContainer, UserWrapper } from './style';
-import { WhiteColor } from '../../styles';
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
@@ -38,6 +37,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   const bids = useBidsForAuction(auctionView.auction.pubkey);
   const mintInfo = useMint(auctionView.auction.info.tokenMint);
   const owner = auctionView.auctionManager.authority.toString();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const participationFixedPrice =
     auctionView.auctionManager.participationConfig?.fixedPrice || 0;
@@ -69,13 +69,8 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 
   const auction = auctionView.auction.info;
   useEffect(() => {
-    const calc = () => {
-      setState(auction.timeToEnd());
-    };
-
-    const interval = setInterval(() => {
-      calc();
-    }, 1000);
+    const calc = () => setState(auction.timeToEnd());
+    const interval = setInterval(() => calc(), 1000);
 
     calc();
     return () => clearInterval(interval);
@@ -86,12 +81,14 @@ export const AuctionRenderCard = (props: AuctionCard) => {
       hoverable={true}
       className={CardStyle}
       cover={
-        <ArtContent
-          className={AuctionImage}
-          preview={false}
-          pubkey={id}
-          allowMeshRender={false}
-        />
+        <div ref={cardRef}>
+          <ArtContent
+            className={AuctionImage(cardRef.current?.offsetWidth)}
+            preview={false}
+            pubkey={id}
+            allowMeshRender={false}
+          />
+        </div>
       }
     >
       <Meta
