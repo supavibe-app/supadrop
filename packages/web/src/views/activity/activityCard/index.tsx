@@ -65,7 +65,7 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
   const reservePrice = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
 
   const isButtonDisabled = !myPayingAccount ||
-    (auctionView.myBidderMetadata && !isAuctionManagerAuthorityWalletOwner) ||
+    (!auctionView.myBidderMetadata && !isAuctionManagerAuthorityWalletOwner) ||
     !!auctionView.items.find(i => i.find(item => !item.metadata));
 
   const isOwner = publicKey?.toBase58() === auctionView.auctionManager.pubkey;
@@ -130,10 +130,12 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
     )
   );
 
+  console.log(art.title, ended);
+
   return (
-    <Link to={`/auction/${auctionView.auction.pubkey}`}>
-      <Row className={ActivityCardStyle}>
-        <Col className={NFTDescription} span={18}>
+    <Row className={ActivityCardStyle}>
+      <Col className={NFTDescription} span={18}>
+        <Link to={`/auction/${auctionView.auction.pubkey}`}>
           <Row>
             <Col flex={1}>{items}</Col>
             <Col flex={3}>
@@ -166,7 +168,7 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
                 )}
 
                 {/* case 2: my bids - auction ended */}
-                {ended && isOwner && (
+                {ended && !isOwner && (
                   <>
                     <div>
                       <div className={Label}>highest bid</div>
@@ -246,37 +248,49 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
               </div>
             </Col>
           </Row>
-        </Col>
+        </Link>
+      </Col>
 
-        <Col className={ButtonWrapper} span={6}>
-          <div className={Label}>your bid</div>
-          <div className={Price}>
-            {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
-              formatTokenAmount(bids[0].info.lastBid, mint)
-            )}
-          </div>
+      <Col className={ButtonWrapper} span={6}>
+        <div className={Label}>your bid</div>
+        <div className={Price}>
+          {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
+            formatTokenAmount(bids[0].info.lastBid, mint)
+          )} SOL
+        </div>
 
-          {/* case 1: auction still live */}
-          {!ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>}
+        {/* case 1: auction still live */}
+        {!ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>}
 
-          {/* case 2.1: auction ended & win */}
-          {/* claim, terus ke kongretulesen page */}
-          {ended && eligibleForAnything && (
-            <ActionButton disabled={isButtonDisabled} onClick={redeemBid}>
-              {isOwner ? 'settle' : 'claim your NFT'}
-            </ActionButton>
-          )}
+        {/* case 2.1: auction ended & win */}
+        {/* claim, terus ke kongretulesen page */}
+        {ended && eligibleForAnything && (
+          <ActionButton
+            disabled={isButtonDisabled}
+            onClick={e => {
+              e.stopPropagation();
+              redeemBid();
+            }}
+          >
+            {isOwner ? 'settle' : 'claim your NFT'}
+          </ActionButton>
+        )}
 
-          {/* case 2.2: auction ended & lose */}
-          {ended && !eligibleForAnything && (
-            <ActionButton disabled={isButtonDisabled} onClick={cancelBid}>
-              {isOwner ? 'reclaim NFT' : 'refund bid'}
-            </ActionButton>
-          )}
+        {/* case 2.2: auction ended & lose */}
+        {ended && !eligibleForAnything && (
+          <ActionButton
+            disabled={isButtonDisabled}
+            onClick={e => {
+              e.stopPropagation();
+              cancelBid();
+            }}
+          >
+            {isOwner ? 'reclaim NFT' : 'refund bid'}
+          </ActionButton>
+        )}
 
-        </Col>
-      </Row>
-    </Link >
+      </Col>
+    </Row>
   );
 };
 
