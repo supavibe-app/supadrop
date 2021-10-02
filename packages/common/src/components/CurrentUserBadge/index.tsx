@@ -7,7 +7,7 @@ import { useNativeAccount } from '../../contexts/accounts';
 import { formatNumber } from '../../utils';
 import { Settings } from '../Settings';
 import { AddressStyle, BalanceStyle, DetailBox, ModalEditProfile, ProfileContainer, ProfilePopover } from './style';
-
+import { supabase } from '../../supabaseClient';
 export const CurrentUserBadge = (props: {
   showBalance?: boolean;
   showAddress?: boolean;
@@ -17,6 +17,12 @@ export const CurrentUserBadge = (props: {
   const { account } = useNativeAccount();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showPopover, setShowPopover] = useState(false);
+
+  const [name,setName] = useState('')
+  const [username,setUsername] = useState('')
+  const [twitter,setTwitter] = useState('')
+  const [website,setWebsite] = useState('')
+  const [bio,setBio] = useState('')
 
   const base58 = publicKey?.toBase58() || '';
   const keyToDisplay =
@@ -65,12 +71,60 @@ export const CurrentUserBadge = (props: {
         visible={showEditProfile}
         onCancel={() => setShowEditProfile(false)}
         footer={[
-          <Button key="save" type="link" style={{ fontWeight: 'bold' }} disabled>
+          <Button key="save" type="link" style={{ fontWeight: 'bold' }} onClick={()=>{
+            console.log(name);
+            console.log(username);
+            console.log(twitter);
+            console.log(website);
+            console.log(bio);
+            supabase.from('user_data')
+            .update({
+              name,twitter,username,website,bio
+            })
+            .eq('wallet_address',base58)
+            .then()
+            setShowEditProfile(false)
+          }} >
             save
           </Button>,
         ]}
       >
-        huyu
+        <input type="text" style={{ 
+      color:'black',
+    	borderColor: 'gray', 
+    	borderWidth: 1,
+    }} 
+    onChange={text => setName(text.target.value)}
+    />
+        <input type="text" style={{ 
+      color:'black',
+    	borderColor: 'gray', 
+    	borderWidth: 1,
+    }} 
+    onChange={text => setUsername(text.target.value)}
+    />
+        <input type="text" style={{ 
+      color:'black',
+    	borderColor: 'gray', 
+    	borderWidth: 1,
+    }} 
+    onChange={text => setTwitter(text.target.value)}
+    />
+        <input type="text" style={{ 
+      color:'black',
+    	borderColor: 'gray', 
+    	borderWidth: 1,
+    }} 
+    onChange={text => setWebsite(text.target.value)}
+    />
+        <input type="text" style={{ 
+      color:'black',
+    	borderColor: 'gray', 
+    	borderWidth: 1,
+    }} 
+    onChange={text => setBio(text.target.value)}
+    />
+
       </Modal>
     </>
   );
