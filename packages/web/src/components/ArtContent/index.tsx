@@ -7,7 +7,6 @@ import { useCachedImage, useExtendedArt } from '../../hooks';
 import { Stream, StreamPlayerApi } from '@cloudflare/stream-react';
 import { PublicKey } from '@solana/web3.js';
 import { getLast } from '../../utils/utils';
-import { ImageStyle } from './style';
 
 const MeshArtContent = ({
   uri,
@@ -59,7 +58,6 @@ const CachedImageContent = ({
   return (
     <Image
       src={cachedBlob}
-      className={ImageStyle}
       preview={preview}
       wrapperClassName={className}
       loading="lazy"
@@ -329,6 +327,7 @@ export const ArtContent = ({
     </div>
   );
 };
+
 export const ArtContent2 = ({
   category,
   className,

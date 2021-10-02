@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Avatar, Button, Modal, Popover } from 'antd';
 
-import { useNativeAccount } from '../../contexts/accounts';
-import { formatNumber } from '../../utils';
 import { Settings } from '../Settings';
-import { AddressStyle, BalanceStyle, DetailBox, ModalEditProfile, ProfileContainer, ProfilePopover } from './style';
 import { supabase } from '../../supabaseClient';
+import { ModalEditProfile, ProfilePopover, WalletWrapper } from './style';
+
 export const CurrentUserBadge = (props: {
   showBalance?: boolean;
   showAddress?: boolean;
   iconSize?: number;
 }) => {
   const { wallet, publicKey } = useWallet();
-  const { account } = useNativeAccount();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showPopover, setShowPopover] = useState(false);
 
@@ -44,7 +41,7 @@ export const CurrentUserBadge = (props: {
 
   return (
     <>
-      <div className="wallet-wrapper">
+      <div className={WalletWrapper}>
         <Popover
           overlayClassName={ProfilePopover}
           color="#000000"
@@ -54,14 +51,7 @@ export const CurrentUserBadge = (props: {
           onVisibleChange={visible => setShowPopover(visible)}
           visible={showPopover}
         >
-          <div className={ProfileContainer}>
-            <div className={DetailBox}>
-              <div className={BalanceStyle}>{formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL)} SOL</div>
-              <div className={AddressStyle}>{keyToDisplay}</div>
-            </div>
-
-            <Avatar src={wallet.icon} size={42} style={{ cursor: 'pointer' }} />
-          </div>
+          <Avatar src={wallet.icon} size={42} style={{ cursor: 'pointer' }} />
         </Popover>
       </div>
 

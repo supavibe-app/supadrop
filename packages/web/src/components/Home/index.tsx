@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Carousel, Col, Image, Row } from 'antd';
 import { CountdownState } from '@oyster/common/dist/lib';
-import moment from 'moment';
 
 import ActionButton from '../ActionButton';
 import Discord from '../../assets/icons/discord';
 import Twitter from '../../assets/icons/twitter';
-import { ButtonWrapper, Description, DiscordButton, ImageStyle, SocialMediaButton, Title, TwitterButton } from './style';
+import countDown from '../../helpers/countdown';
+import { ButtonWrapper, CarouselStyle, Description, DiscordButton, HomeStyle, ImageStyle, SocialMediaButton, Title, TwitterButton } from './style';
 import Numbers from './numbers';
 import isEnded from './helpers/isEnded';
 
@@ -25,50 +25,33 @@ const images = [
 
 const Home = () => {
   const [state, setState] = useState<CountdownState>();
-  const now = moment().unix();
   // TODO-Iyai: get endAt from DB
   const endAt = 1632763291;
 
-  const countDown = () => {
-    const ended = { days: 0, hours: 0, minutes: 0, seconds: 0 };
-
-    let delta = endAt - now;
-    if (!endAt || delta <= 0)
-      return ended;
-    const days = Math.floor(delta / 86400);
-    delta -= days * 86400;
-    const hours = Math.floor(delta / 3600) % 24;
-    delta -= hours * 3600;
-    const minutes = Math.floor(delta / 60) % 60;
-    delta -= minutes * 60;
-    const seconds = Math.floor(delta % 60);
-    return { days, hours, minutes, seconds };
-  }
-
   useEffect(() => {
-    const calc = () => setState(countDown());
+    const calc = () => setState(countDown(endAt));
 
     const interval = setInterval(() => calc(), 1000);
     calc();
 
     return () => clearInterval(interval);
-  });
+  }, []);
 
   return (
-    <Row style={{ marginTop: 88 }}>
-      <Col span={12} md={12}>
+    <Row className={HomeStyle}>
+      <Col span={12} md={12} xs={24}>
         <div style={{ textAlign: 'center' }}>
-          <Carousel autoplay effect="fade">
+          <Carousel className={CarouselStyle} autoplay effect="fade">
             {images.map((img, idx) => (
               <div key={idx}>
-                <Image src={img} className={ImageStyle} height={512} />
+                <Image src={img} className={ImageStyle} />
               </div>
             ))}
           </Carousel>
         </div>
       </Col>
 
-      <Col span={12} md={12}>
+      <Col span={12} md={12} xs={24}>
         <div className={Title}>CRYSTAL GODS</div>
         <Row>
           <Col className={Description} span={16}>limited collection 111 of crystal gods</Col>
