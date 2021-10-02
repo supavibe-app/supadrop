@@ -9,7 +9,7 @@ const Numbers = ({ state }: { state: CountdownState | undefined; }) => {
   return (
     <div style={{ marginBottom: 48 }}>
       <Row>
-        <Col span={8}>
+        <Col span={8} md={8} sm={24} xs={24}>
           <Statistic
             className={CreateStatistic}
             title="reserve price"
@@ -20,7 +20,7 @@ const Numbers = ({ state }: { state: CountdownState | undefined; }) => {
           <div className={Availability}>24/111 left</div>
         </Col>
 
-        <Col span={16}>
+        <Col span={16} md={16} sm={24} xs={24}>
           <Countdown state={state} />
         </Col>
       </Row>

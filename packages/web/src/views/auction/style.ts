@@ -17,6 +17,19 @@ export const ArtContainer = css`
   }
 `;
 
+export const ArtContentStyle = css`
+  display: flex;
+  height: 100%;
+  max-width: 85%;
+
+  .ant-image-img {
+    object-fit: contain;
+    filter: drop-shadow(0px 8px 48px rgba(255, 255, 255, 0.16));
+    border-radius: 2px;
+    max-height: 100%;
+  }
+`;
+
 export const OptionsPopover = css`
   .ant-popover-inner {
     border: 2px solid yellow;

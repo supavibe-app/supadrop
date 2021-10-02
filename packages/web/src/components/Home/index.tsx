@@ -52,23 +52,23 @@ const Home = () => {
     calc();
 
     return () => clearInterval(interval);
-  });
+  }, []);
 
   return (
     <Row style={{ marginTop: 88 }}>
-      <Col span={12} md={12}>
+      <Col span={12} md={12} xs={24}>
         <div style={{ textAlign: 'center' }}>
           <Carousel autoplay effect="fade">
             {images.map((img, idx) => (
               <div key={idx}>
-                <Image src={img} className={ImageStyle} height={512} />
+                <Image src={img} className={ImageStyle} />
               </div>
             ))}
           </Carousel>
         </div>
       </Col>
 
-      <Col span={12} md={12}>
+      <Col span={12} md={12} xs={24}>
         <div className={Title}>CRYSTAL GODS</div>
         <Row>
           <Col className={Description} span={16}>limited collection 111 of crystal gods</Col>
