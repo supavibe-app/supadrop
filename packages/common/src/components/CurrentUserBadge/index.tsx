@@ -62,11 +62,6 @@ export const CurrentUserBadge = (props: {
         onCancel={() => setShowEditProfile(false)}
         footer={[
           <Button key="save" type="link" style={{ fontWeight: 'bold' }} onClick={()=>{
-            console.log(name);
-            console.log(username);
-            console.log(twitter);
-            console.log(website);
-            console.log(bio);
             supabase.from('user_data')
             .update({
               name,twitter,username,website,bio
