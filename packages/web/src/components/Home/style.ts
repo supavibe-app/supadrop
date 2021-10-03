@@ -2,6 +2,7 @@ import { css } from '@emotion/css';
 
 export const HomeStyle = css`
   overflow-y: hidden;
+  overflow-x: hidden;
   margin-top: 88px;
 `;
 
