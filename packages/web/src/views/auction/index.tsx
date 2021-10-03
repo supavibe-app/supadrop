@@ -1,86 +1,95 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Row, Col, Button, Skeleton, List, Popover, Avatar } from 'antd';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { EllipsisOutlined } from '@ant-design/icons';
-import moment from 'moment';
-
 import { AuctionViewItem } from '@oyster/common/dist/lib/models/metaplex/index';
 import {
+  AuctionViewState,
   useArt,
   useAuction,
   useBidsForAuction,
-  useCreators,
   useExtendedArt,
   useHighestBidForAuction,
 } from '../../hooks';
+import { ArtContent } from '../../components/ArtContent';
+import { ArrowLeftOutlined, EllipsisOutlined } from '@ant-design/icons';
 
 import {
   formatTokenAmount,
   shortenAddress,
   useConnectionConfig,
+  PriceFloorType,
   useMint,
-  CountdownState,
-  useMeta,
+  fromLamports,
 } from '@oyster/common';
-
-import ActionButton from '../../components/ActionButton';
-import { ArtContent } from '../../components/ArtContent';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { ArtType } from '../../types';
-import { Activity, ActivityHeader, ArtContainer, ArtDescription, ArtDetails, ArtDetailsColumn, ArtTitle, Attribute, AttributeRarity, BidStatus, BoldFont, ButtonWrapper, ColumnBox, Container, ContentSection, CurrentBid, EditionContainer, IsMyBid, Label, NormalFont, PaddingBox, StatusContainer, UserThumbnail, WhiteColor, YellowGlowColor } from './style';
+import { Activity, ActivityHeader, ArtContainer, OverflowYAuto, ArtDetailsColumn, ColumnBox, Container, ContentSection, ArtDetailsHeader, IsMyBid, Label, PaddingBox, StatusContainer, BackButton, OptionsPopover, ArtContentStyle } from './style';
+import BidDetails from './bidDetails';
+import PlaceBid from './placeBid';
+import ArtDetails from './artDetails';
+import { GreyColor, uBoldFont, uFlexAlignItemsCenter, YellowGlowColor } from '../../styles';
+import { useMeta } from '../../contexts';
+import BN from 'bn.js';
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
   active?: boolean;
-}) => (
-  <ArtContent pubkey={item.metadata.pubkey} active={active} allowMeshRender={true} />
-);
+}) => <ArtContent className={ArtContentStyle} pubkey={item.metadata.pubkey} active={active} allowMeshRender={true} />;
 
 export const AuctionView = () => {
   const { id } = useParams<{ id: string }>();
   const { env } = useConnectionConfig();
-  const { publicKey } = useWallet();
+  const { connected, publicKey } = useWallet();
   const auction = useAuction(id);
-  const { isLoading } = useMeta();
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [state, setState] = useState<CountdownState>();
+  const { liveDataAuctions } = useMeta();
+  const dataAuction = liveDataAuctions[id];
+  const [bidAmount, setBidAmount] = useState(0);
+  const setBidAmountNumber = useCallback((num: number) => setBidAmount(num), [setBidAmount]);
+  const [showPlaceBid, setShowPlaceBid] = useState(false);
+  const setPlaceBidVisibility = useCallback((visible: boolean) => setShowPlaceBid(visible), [setShowPlaceBid]);
 
   const { ref, data } = useExtendedArt(auction?.thumbnail.metadata.pubkey);
   const art = useArt(auction?.thumbnail.metadata.pubkey);
   const bids = useBidsForAuction(auction?.auction.pubkey || '');
-  const creators = useCreators(auction);
-  const owner = auction?.auction.account.owner.toString();
   const mint = useMint(auction?.auction.info.tokenMint);
+  const mintInfo = useMint(auction?.auction.info.tokenMint);
+
+  const participationFixedPrice = auction?.auctionManager.participationConfig?.fixedPrice || 0;
+  const participationOnly = auction?.auctionManager.numWinners.eq(new BN(0));
+  const priceFloor =
+    auction?.auction.info.priceFloor.type === PriceFloorType.Minimum
+      ? auction?.auction.info.priceFloor.minPrice?.toNumber() || 0
+      : 0;
+  const isUpcoming = auction?.state === AuctionViewState.Upcoming;
   const highestBid = useHighestBidForAuction(auction?.auction.pubkey || '');
 
-  const hasDescription = data === undefined || data.description === undefined;
-  const description = data?.description;
-  const attributes = data?.attributes;
-
-  const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
-
-  let edition = '';
-  if (art.type === ArtType.NFT) {
-    edition = 'Unique';
-  } else if (art.type === ArtType.Master) {
-    edition = 'NFT 0';
-  } else if (art.type === ArtType.Print) {
-    edition = `edition ${art.edition} of ${art.supply} `;
+  let currentBid: number | string = 0;
+  if (isUpcoming || bids) {
+    currentBid = fromLamports(
+      participationOnly ? participationFixedPrice : priceFloor,
+      mintInfo
+    );
   }
 
-  useEffect(() => {
-    const calc = () => {
-      setState(auction?.auction.info.timeToEnd());
-    };
+  if (!isUpcoming && bids.length > 0) {
+    currentBid =
+      highestBid && Number.isFinite(highestBid.info.lastBid?.toNumber())
+        ? formatTokenAmount(highestBid.info.lastBid)
+        : 'No Bid';
+  }
 
-    const interval = setInterval(() => {
-      calc();
-    }, 1000);
-
-    calc();
-    return () => clearInterval(interval);
-  }, [auction, setState]);
+  let edition = '';
+  switch (art.type) {
+    case ArtType.NFT:
+      edition = 'Unique';
+      break;
+    case ArtType.Master:
+      edition = 'NFT 0';
+      break;
+    case ArtType.Print:
+      edition = `edition ${art.edition} of ${art.supply} `;
+      break;
+  }
 
   const items = [
     ...(auction?.items
@@ -91,21 +100,15 @@ export const AuctionView = () => {
       }, new Map<string, AuctionViewItem>())
       .values() || []),
     auction?.participationItem,
-  ].map((item, index) => {
+  ].map(item => {
     if (!item || !item?.metadata || !item.metadata?.pubkey) {
       return null;
     }
 
-    return (
-      <AuctionItem
-        key={item.metadata.pubkey}
-        item={item}
-        active={index === currentIndex}
-      />
-    );
+    return <AuctionItem key={item.metadata.pubkey} item={item} />;
   });
 
-  const options = (
+  const moreOptions = (
     <div>
       <List>
         <List.Item>
@@ -131,7 +134,7 @@ export const AuctionView = () => {
     </div>
   );
 
-  const ArtDetailSkeleton = () => (
+  const ArtDetailSkeleton = (
     <div>
       <div className={ContentSection}>
         <Skeleton paragraph={{ rows: 2 }} />
@@ -164,15 +167,9 @@ export const AuctionView = () => {
     </div>
   );
 
-  const BidStatusSkeleton = () => (
-    <Skeleton avatar paragraph={{ rows: 0 }} />
-  );
-
-  const BidsHistorySkeleton = () => (
+  const BidsHistorySkeleton = (
     <div>
-      {[...Array(3)].map(i => (
-        <Skeleton avatar paragraph={{ rows: 0 }} />
-      ))}
+      {[...Array(3)].map(i => <Skeleton avatar paragraph={{ rows: 0 }} />)}
     </div>
   );
 
@@ -184,12 +181,22 @@ export const AuctionView = () => {
 
       <Col className={ColumnBox} span={24} md={7}>
         <div className={ArtDetailsColumn}>
-          <div className={`${ArtDetails} ${PaddingBox} `}>
-            <div className={`${EditionContainer} ${Label} `}>
+          <div className={`${OverflowYAuto} ${PaddingBox} `}>
+            <div className={`${ArtDetailsHeader} ${Label} `}>
               {!art.title && <Skeleton paragraph={{ rows: 0 }} />}
-              {art.title && <div>{edition}</div>}
 
-              <Popover trigger="click" placement="bottomRight" content={options}>
+              {/* Show edition if showing art details */}
+              {art.title && !showPlaceBid && <div>{edition}</div>}
+
+              {/* Show back button if showing place bid */}
+              {art.title && showPlaceBid && connected && (
+                <div className={BackButton} onClick={() => setPlaceBidVisibility(false)}>
+                  <ArrowLeftOutlined />
+                  <span className={YellowGlowColor}>{art.title}</span>
+                </div>
+              )}
+
+              <Popover overlayClassName={OptionsPopover} trigger="click" placement="bottomRight" content={moreOptions}>
                 <div style={{ cursor: 'pointer', color: '#FAFAFB' }}>
                   <EllipsisOutlined />
                 </div>
@@ -197,117 +204,22 @@ export const AuctionView = () => {
             </div>
 
             {/* Show Skeleton when Loading */}
-            {!art.title && ArtDetailSkeleton()}
+            {!art.title && ArtDetailSkeleton}
 
-            {art.title && (
-              <>
-                <div className={ArtTitle}>{art.title}</div>
-
-                {hasDescription && (
-                  <div className={`${ArtDescription} ${ContentSection}`}>
-                    {description}
-                  </div>
-                )}
-
-                <Row>
-                  {Boolean(creators.length) && (
-                    <Col span={12}>
-                      <div className={ContentSection}>
-                        <div className={Label}>{creators.length > 1 ? 'creators' : 'creator'}</div>
-                        {creators.map(creator => {
-                          if (creator.address) {
-                            return (
-                              <div className={UserThumbnail} key={creator.address}>
-                                <Avatar size={40} /> {shortenAddress(creator.address)}
-                              </div>
-                            );
-                          }
-                          return null;
-                        })}
-                      </div>
-                    </Col>
-                  )}
-
-                  {owner && (
-                    <Col span={12}>
-                      <div className={Label}>owner</div>
-                      <div className={UserThumbnail}>
-                        <Avatar size={40} /> {shortenAddress(owner)}
-                      </div>
-                    </Col>
-                  )}
-                </Row>
-
-                {attributes && <div className={ContentSection}>
-                  <div className={Label}>attributes</div>
-                  <Row gutter={[12, 12]}>
-                    {attributes.map(attribute =>
-                      <Col key={attribute.trait_type}>
-                        <Button className={Attribute} shape="round">
-                          <span>{attribute.value} –</span>
-                          <span className={AttributeRarity}>{attribute.trait_type}</span>
-                        </Button>
-                      </Col>
-                    )}
-                  </Row>
-                </div>}
-              </>
-            )}
+            {art.title && showPlaceBid && <PlaceBid auction={auction} setBidAmount={setBidAmountNumber} />}
+            {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} highestBid={highestBid} />}
           </div>
 
-
-          <div className={`${StatusContainer} ${PaddingBox} `}>
-            <div className={BidStatus}>
-              {!art.title && BidStatusSkeleton()}
-
-              {art.title && (
-                <>
-                  <div>
-                    <Avatar size={40} />
-                  </div>
-
-                  <div>
-                    {ended ? (
-                      <>
-                        <div>
-                          winning bid by{' '}
-                          <span className={WhiteColor}>{highestBid && shortenAddress(highestBid.info.bidderPubkey)}</span>
-                        </div>
-                        <div className={CurrentBid}>
-                          <span className={WhiteColor}>{highestBid && `${formatTokenAmount(highestBid.info.lastBid)} SOL`}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div>
-                          current bid by{' '}
-                          <span className={WhiteColor}>{highestBid && shortenAddress(highestBid.info.bidderPubkey)}</span>
-                          <span className={NormalFont}>・{highestBid && moment.unix(highestBid.info.lastBidTimestamp.toNumber()).fromNow()}</span>
-                        </div>
-
-                        <div className={CurrentBid}>
-                          <span className={WhiteColor}>{highestBid && formatTokenAmount(highestBid.info.lastBid)} SOL</span>
-
-                          {' '}ending in{' '}
-
-                          {state && (
-                            <span className={WhiteColor}>
-                              {state.hours} :{' '}
-                              {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
-                              {state.minutes > 0 ? state.minutes : `0${state.minutes}`}
-                            </span>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className={ButtonWrapper}>
-              <ActionButton disabled={ended} width="100%">{ended ? 'auction ended' : 'place a bid'}</ActionButton>
-            </div>
+          <div className={StatusContainer}>
+            <BidDetails
+              auction={auction}
+              art={art}
+              highestBid={highestBid}
+              bids={bids}
+              showPlaceBid={showPlaceBid}
+              setShowPlaceBid={setPlaceBidVisibility}
+              currentBidAmount={bidAmount}
+            />
           </div>
         </div>
       </Col >
@@ -318,19 +230,28 @@ export const AuctionView = () => {
           {/* <div>activity</div> */}
         </div>
 
-        {!art.title && BidsHistorySkeleton()}
+        {!art.title && BidsHistorySkeleton}
+
+        {art.title && !Boolean(bids.length) && (
+          <div className={GreyColor}>
+            <div>no one bid yet</div>
+            <div>be the first to make a bid!</div>
+          </div>
+        )}
 
         {bids.map((bid, idx) => (
           <div key={idx}>
             {publicKey?.toBase58() === bid.info.bidderPubkey && <div className={IsMyBid} />}
-            <div className={Activity}>
-              <div>
-                <Avatar size={24} /> {shortenAddress(bid.info.bidderPubkey)}
-              </div>
-              <div className={BoldFont}>
-                {formatTokenAmount(bid.info.lastBid, mint)} SOL
-              </div>
-            </div>
+            <Row className={Activity} justify="space-between" align="middle">
+              <Col className={uFlexAlignItemsCenter} span={12}>
+                <Avatar size={24} />
+                <span>{shortenAddress(bid.info.bidderPubkey)}</span>
+              </Col>
+
+              <Col className={uBoldFont} span={12}>
+                <span>{formatTokenAmount(bid.info.lastBid, mint)} SOL</span>
+              </Col>
+            </Row>
           </div>
         ))}
       </Col>

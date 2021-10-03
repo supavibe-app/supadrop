@@ -17,14 +17,60 @@ export const ArtContainer = css`
   }
 `;
 
+export const ArtContentStyle = css`
+  display: flex;
+  height: 100%;
+  max-width: 85%;
+
+  .ant-image-img {
+    object-fit: contain;
+    filter: drop-shadow(2px 4px 16px rgba(255, 255, 255, 0.12));
+    border-radius: 2px;
+    max-height: 100%;
+  }
+`;
+
+export const OptionsPopover = css`
+  .ant-popover-inner {
+    border: 2px solid yellow;
+    border-radius: 4px;
+    background: #000000;
+  }
+
+  .ant-popover-inner-content {
+    padding: 0 20px;
+    padding-right: 0;
+  }
+
+  .ant-btn-link {
+    padding: 0;
+    padding-right: 32px;
+    color: #fafafb;
+    font-weight: bold;
+  }
+`;
+
+export const BackButton = css`
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  .anticon {
+    margin-right: 8px;
+  }
+`;
+
 export const ArtDetailsColumn = css`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
+
+  @media (min-width: 768px) {
+    height: 100%;
+  }
 `;
 
-export const ArtDetails = css`
+export const OverflowYAuto = css`
   overflow-y: auto;
 `;
 
@@ -32,15 +78,22 @@ export const ColumnBox = css`
   border: 1px solid #2b2b2b;
   border-bottom: none;
   border-left: none;
-  height: 100%;
   overflow-y: auto;
+
+  @media (min-width: 768px) {
+    height: 100%;
+  }
 `;
 
 export const PaddingBox = css`
   padding: 32px 28px;
 `;
 
-export const EditionContainer = css`
+export const SmallPaddingBox = css`
+  padding: 16px 28px 32px 28px;
+`;
+
+export const ArtDetailsHeader = css`
   display: flex;
   justify-content: space-between;
 `;
@@ -80,7 +133,6 @@ export const BidStatus = css`
   align-items: center;
   font-weight: bold;
   font-size: 14px;
-
   color: #7e7c7c;
 
   .ant-avatar {
@@ -88,16 +140,16 @@ export const BidStatus = css`
   }
 `;
 
+export const BidStatusEmpty = css`
+  display: flex;
+  margin-bottom: 22px;
+  font-weight: bold;
+  font-size: 14px;
+  color: #7e7c7c;
+`;
+
 export const CurrentBid = css`
   font-size: 18px;
-`;
-
-export const WhiteColor = css`
-  color: #fafafb;
-`;
-
-export const YellowGlowColor = css`
-  color: #ccff00;
 `;
 
 export const NormalFont = css`
@@ -105,17 +157,11 @@ export const NormalFont = css`
   font-style: normal;
 `;
 
-export const BoldFont = css`
-  font-weight: bold;
-`;
-
 export const ButtonWrapper = css`
   padding: 0 8px 8px 0;
 `;
 
 export const Activity = css`
-  display: flex;
-  justify-content: space-between;
   font-size: 14px;
   color: #fafafb;
   margin-bottom: 12px;
@@ -123,6 +169,10 @@ export const Activity = css`
 
   .ant-avatar {
     margin-right: 4px;
+  }
+
+  div:last-child {
+    text-align: end;
   }
 `;
 
@@ -185,4 +235,60 @@ export const Attribute = css`
 export const AttributeRarity = css`
   margin-left: 4px;
   color: #ccff00;
+`;
+
+// place bid styles
+export const PlaceBidTitle = css`
+  font-weight: bold;
+  font-size: 36px;
+  color: #fafafb;
+  margin-bottom: 16px;
+`;
+
+export const Information = css`
+  font-weight: bold;
+  font-size: 18px;
+  color: #7e7c7c;
+  margin-bottom: 28px;
+`;
+
+export const BidRuleInformation = css`
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 17px;
+  color: #fafafb;
+`;
+
+export const BidInput = css`
+  padding: unset;
+  height: 78px;
+  margin-bottom: 24px;
+  border-radius: 2px;
+  border: 2px solid #ccff00;
+  background: transparent;
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  .ant-input {
+    font-weight: bold;
+    background: transparent;
+    padding-left: 32px !important;
+    font-size: 24px;
+  }
+
+  .ant-input-suffix {
+    padding: 0 32px;
+    background: #fafafb;
+    color: #161f26;
+    font-weight: bold;
+    font-size: 24px;
+  }
 `;

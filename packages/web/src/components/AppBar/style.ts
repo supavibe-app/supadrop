@@ -12,28 +12,16 @@ export const Title = css`
   letter-spacing: 0.24em;
   -webkit-text-stroke: 0.75px #ffffff;
   margin: 20px;
-  color: white;
+  color: #fafafb;
 `;
 
 export const ButtonContainer = css`
   display: -webkit-box;
 `;
 
-export const CircleButton = css`
-  height: 42px;
-  width: 42px;
-  border-radius: 24px;
-  border: 2px solid #444444;
-  margin-left: 12px;
-  padding-top: 9px;
-  vertical-align: -4px;
-`;
-
 export const LinkButton = css`
   font-weight: bold;
-  color: #fafafb;
   font-size: 14px;
-  margin: 0 18px;
 `;
 
 export const RoundButton = css`
@@ -44,4 +32,5 @@ export const RoundButton = css`
   box-sizing: border-box;
   font-size: 14px;
   font-weight: 700;
+  margin-left: 12px;
 `;

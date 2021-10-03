@@ -93,9 +93,11 @@ var sendTransactionWithRetryWithKeypair = function (connection, wallet, instruct
                             wallet.publicKey], __read(signers.map(function (s) { return s.publicKey; }))));
                     }
                     if (signers.length > 0) {
-                        transaction.partialSign.apply(transaction, __spreadArray([], __read(signers)));
+                        transaction.sign.apply(transaction, __spreadArray([wallet], __read(signers)));
                     }
-                    transaction.sign(wallet);
+                    else {
+                        transaction.sign(wallet);
+                    }
                     if (beforeSend) {
                         beforeSend();
                     }
@@ -311,7 +313,7 @@ function awaitTransactionSignatureConfirmation(txid, timeout, connection, commit
                                                                 loglevel_1.default.error('REST no confirmations for', txid, status);
                                                             }
                                                             else {
-                                                                loglevel_1.default.info('REST confirmation for', txid, status);
+                                                                loglevel_1.default.debug('REST confirmation for', txid, status);
                                                                 done = true;
                                                                 resolve(status);
                                                             }

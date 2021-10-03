@@ -4,7 +4,7 @@ exports.processMetaData = void 0;
 const isValidHttpUrl_1 = require("../../utils/isValidHttpUrl");
 const actions_1 = require("../../actions");
 const utils_1 = require("../../utils");
-const processMetaData = ({ account, pubkey }, setter) => {
+const processMetaData = async ({ account, pubkey }, setter) => {
     if (!isMetadataAccount(account))
         return;
     try {
@@ -17,7 +17,7 @@ const processMetaData = ({ account, pubkey }, setter) => {
                     account,
                     info: metadata,
                 };
-                setter('metadataByMint', metadata.mint, parsedAccount);
+                await setter('metadataByMint', metadata.mint, parsedAccount);
             }
         }
         if (isEditionV1Account(account)) {
@@ -57,9 +57,7 @@ const processMetaData = ({ account, pubkey }, setter) => {
     }
 };
 exports.processMetaData = processMetaData;
-const isMetadataAccount = (account) => {
-    return account.owner === utils_1.METADATA_PROGRAM_ID;
-};
+const isMetadataAccount = (account) => account && utils_1.pubkeyToString(account.owner) === utils_1.METADATA_PROGRAM_ID;
 const isMetadataV1Account = (account) => account.data[0] === actions_1.MetadataKey.MetadataV1;
 const isEditionV1Account = (account) => account.data[0] === actions_1.MetadataKey.EditionV1;
 const isMasterEditionAccount = (account) => account.data[0] === actions_1.MetadataKey.MasterEditionV1 ||

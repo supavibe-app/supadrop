@@ -24,9 +24,6 @@ import {
 } from '../../models/metaplex';
 import { PublicKeyStringAndAccount } from '../../utils';
 import { ParsedAccount } from '../accounts/types';
-export interface MetaState {
-  metadata: ParsedAccount<Metadata>[];
-}
 
 export interface MetaState {
   metadata: ParsedAccount<Metadata>[];
@@ -74,15 +71,20 @@ export interface MetaState {
     ParsedAccount<WhitelistedCreator>
   >;
   payoutTickets: Record<string, ParsedAccount<PayoutTicket>>;
-  stores: Record<string, ParsedAccount<Store>>;
-  creators: Record<string, ParsedAccount<WhitelistedCreator>>;
 }
 
 export interface MetaContextState extends MetaState {
-  isLoading: boolean;
-}
-export interface MetaContextState extends MetaState {
+  isLoadingMetaplex: boolean;
+  isLoadingDatabase: boolean;
   liveDataAuctions: { [key: string]: ItemAuction };
+  update: (
+    auctionAddress?: any,
+    bidderAddress?: any,
+  ) => [
+    ParsedAccount<AuctionData>,
+    ParsedAccount<BidderPot>,
+    ParsedAccount<BidderMetadata>,
+  ];
 }
 
 export type AccountAndPubkey = {
@@ -90,38 +92,74 @@ export type AccountAndPubkey = {
   account: AccountInfo<Buffer>;
 };
 
-export type UpdateStateValueFunc = (
+export type UpdateStateValueFunc<T = void> = (
   prop: keyof MetaState,
   key: string,
   value: ParsedAccount<any>,
-) => void;
+) => T;
 
 export type ProcessAccountsFunc = (
   account: PublicKeyStringAndAccount<Buffer>,
   setter: UpdateStateValueFunc,
-  useAll: boolean,
 ) => void;
 
 export type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean;
 
 export class ItemAuction {
   id: string;
+  name: string;
   id_nft: string;
   token_mint: string;
   price_floor: number;
   img_nft: string;
+  startAt: number;
+  endAt: number;
+  highestBid: number;
+  price_tick: number;
+  gapTime: number;
+  tickExtend: number;
+  vault: string;
+  arweave_link: string;
+  owner: string;
+  mint_key: string;
 
   constructor(
     id: string,
+    name: string,
     id_nft: string,
     token_mint: string,
     price_floor: number,
     img_nft: string,
+    startAt: number,
+    endAt: number,
+    highestBid: number,
+    price_tick: number,
+    gapTime: number,
+    tickExtend: number,
+    vault: string,
+    arweave_link: string,
+    owner: string,
+    mint_key: string,
   ) {
     this.id = id;
+    this.name = name;
     this.id_nft = id_nft;
     this.token_mint = token_mint;
     this.price_floor = price_floor;
     this.img_nft = img_nft;
+    this.startAt = startAt;
+    this.endAt = endAt;
+    this.highestBid = highestBid;
+    this.price_tick = price_tick;
+    this.gapTime = gapTime;
+    this.tickExtend = tickExtend;
+    this.vault = vault;
+    this.arweave_link = arweave_link;
+    this.owner = owner;
+    this.mint_key = mint_key;
   }
 }
+
+export type UnPromise<T extends Promise<any>> = T extends Promise<infer U>
+  ? U
+  : never;

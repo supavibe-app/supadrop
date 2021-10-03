@@ -1,3 +1,4 @@
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   CheckCircleTwoTone,
   LoadingOutlined,
@@ -16,9 +17,10 @@ import {
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
-import { Badge, Popover, List } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Badge, Button, List, Popover } from 'antd';
+import FeatherIcon from 'feather-icons-react';
+import { Link, useLocation } from 'react-router-dom';
+
 import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
 import { decommAuctionManagerAndReturnPrizes } from '../../actions/decommAuctionManagerAndReturnPrizes';
 import { sendSignMetadata } from '../../actions/sendSignMetadata';
@@ -28,6 +30,9 @@ import { startAuctionManually } from '../../actions/startAuctionManually';
 import { QUOTE_MINT } from '../../constants';
 import { useMeta } from '../../contexts';
 import { AuctionViewState, useAuctions } from '../../hooks';
+import { BadgeStyle, CircleButton, EmptyNotification, ListStyle, NotificationPopover } from './style';
+import { GreyColor, uBoldFont, uFlexSpaceBetween, WhiteColor } from '../../styles';
+import Coffee from '../../assets/icons/coffee';
 
 interface NotificationCard {
   id: string;
@@ -137,7 +142,7 @@ export function useCollapseWrappedSol({
         if ((balance && balance.value.uiAmount) || 0 > 0) {
           setShowNotification(true);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     setTimeout(fn, 60000);
   };
@@ -182,7 +187,7 @@ export function useSettlementAuctions({
   const { accountByMint } = useUserAccounts();
   const walletPubkey = wallet?.publicKey?.toBase58();
   const { bidderPotsByAuctionAndBidder } = useMeta();
-  const auctionsNeedingSettling = useAuctions(AuctionViewState.Ended);
+  const auctionsNeedingSettling = [...useAuctions(AuctionViewState.Ended), ...useAuctions(AuctionViewState.BuyNow)];
 
   const [validDiscoveredEndedAuctions, setValidDiscoveredEndedAuctions] =
     useState<Record<string, number>>({});
@@ -190,10 +195,13 @@ export function useSettlementAuctions({
     const f = async () => {
       const nextBatch = auctionsNeedingSettling
         .filter(
-          a =>
-            walletPubkey &&
-            a.auctionManager.authority === walletPubkey &&
-            a.auction.info.ended(),
+          a => {
+            const isEndedInstantSale = a.isInstantSale && a.items.length === a.auction.info.bidState.bids.length;
+
+            return walletPubkey &&
+              a.auctionManager.authority === walletPubkey &&
+              (a.auction.info.ended() || isEndedInstantSale)
+          }
         )
         .sort(
           (a, b) =>
@@ -213,7 +221,12 @@ export function useSettlementAuctions({
                 av.auction.info.bidState.bids
                   .map(b => b.amount.toNumber())
                   .reduce((acc, r) => (acc += r), 0) > 0) ||
-              (balance.value.uiAmount || 0) > 0.01
+              // FIXME: Why 0.01? If this is used,
+              //        no auctions with lower prices (e.g. 0.0001) appear in notifications,
+              //        thus making settlement of such an auction impossible.
+              //        Temporarily making the number a lesser one.
+              // (balance.value.uiAmount || 0) > 0.01
+              (balance.value.uiAmount || 0) > 0.00001
             ) {
               setValidDiscoveredEndedAuctions(old => ({
                 ...old,
@@ -288,7 +301,7 @@ export function useSettlementAuctions({
   });
 }
 
-export function Notifications() {
+export const Notifications = ({ }) => {
   const {
     metadata,
     whitelistedCreatorsByCreator,
@@ -296,15 +309,14 @@ export function Notifications() {
     vaults,
     safetyDepositBoxesByVaultAndIndex,
   } = useMeta();
-  const possiblyBrokenAuctionManagerSetups = useAuctions(
-    AuctionViewState.Defective,
-  );
+  const possiblyBrokenAuctionManagerSetups = useAuctions(AuctionViewState.Defective);
+  const { pathname } = useLocation();
 
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
   const wallet = useWallet();
-  const { accountByMint } = useUserAccounts();
 
+  //NOTE: notifications untuk kasih tau seller sol yg bisa diambil (settle)
   const notifications: NotificationCard[] = [];
 
   const walletPubkey = wallet.publicKey?.toBase58() || '';
@@ -440,62 +452,67 @@ export function Notifications() {
     });
 
   const content = notifications.length ? (
-    <div style={{ width: '300px' }}>
+
+    <div>
       <List
         itemLayout="vertical"
         size="small"
-        dataSource={notifications.slice(0, 10)}
-        renderItem={(item: NotificationCard) => (
+        dataSource={notifications.slice(0, 2)}
+        renderItem={() => (
           <List.Item
-            extra={
-              <>
-                <RunAction
-                  id={item.id}
-                  action={item.action}
-                  icon={<PlayCircleOutlined />}
-                />
-                {item.dismiss && (
-                  <RunAction
-                    id={item.id}
-                    action={item.dismiss}
-                    icon={<PlayCircleOutlined />}
-                  />
-                )}
-              </>
-            }
+            className={ListStyle}
+            // TODO-Iyai Update with action button
+            extra={<Button className={uBoldFont} type="link">settle</Button>}
           >
-            <List.Item.Meta
-              title={<span>{item.title}</span>}
-              description={
-                <span>
-                  <i>{item.description}</i>
-                </span>
-              }
-            />
+            {/* TODO-Iyai: Update with desription and notifications time */}
+            <div>you have ended auction that needs to be settling</div>
+            <div className={GreyColor}>21 minutes ago</div>
           </List.Item>
         )}
       />
     </div>
   ) : (
-    <span>No notifications</span>
+    <div className={EmptyNotification}>
+      <Coffee />
+      <div>no notifications</div>
+    </div>
   );
 
-  const justContent = (
-    <Popover
-      className="noty-popover"
-      placement="bottomLeft"
-      content={content}
-      trigger="click"
-    >
-      <h1 className="title">M</h1>
-    </Popover>
-  );
-
-  if (notifications.length === 0) return justContent;
-  else
+  if (notifications.length === 0) {
     return (
-      <Badge count={notifications.length} style={{ backgroundColor: 'white' }}>
-        {justContent}
-      </Badge>
+      <Popover
+        overlayClassName={NotificationPopover({ empty: true })}
+        content={content}
+        trigger="focus"
+        placement="bottomRight"
+        title={(
+          <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
+            <div className={WhiteColor}>notification</div>
+            {!pathname.includes('activity') && <Link className={GreyColor} to="/activity">see all</Link>}
+          </div>
+        )}
+      >
+        <Button className={CircleButton({ active: false })} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+      </Popover>
     );
+  }
+
+  return (
+    <Badge className={BadgeStyle} dot>
+      <Popover
+        overlayClassName={NotificationPopover({ empty: false })}
+        content={content}
+        trigger="click"
+        placement="bottomRight"
+        title={(
+          <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
+            <div className={WhiteColor}>notification</div>
+            <Link className={GreyColor} to="/activity">see all</Link>
+          </div>
+        )}
+      >
+        <Button className={CircleButton({ active: true })} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+      </Popover>
+    </Badge>
+  );
 }

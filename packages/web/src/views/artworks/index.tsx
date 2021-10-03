@@ -22,7 +22,7 @@ export const ArtworksView = () => {
   const { connected, publicKey } = useWallet();
   const ownedMetadata = useUserArts();
   const createdMetadata = useCreatorArts(publicKey?.toBase58() || '');
-  const { metadata, isLoading } = useMeta();
+  const { metadata, isLoadingMetaplex } = useMeta();
   const [activeKey, setActiveKey] = useState(ArtworkViewState.Metaplex);
   const breakpointColumnsObj = {
     default: 4,
@@ -52,7 +52,7 @@ export const ArtworksView = () => {
       className="my-masonry-grid"
       columnClassName="my-masonry-grid_column"
     >
-      {!isLoading
+      {!isLoadingMetaplex
         ? items.map((m, idx) => {
             const id = m.pubkey;
             return (

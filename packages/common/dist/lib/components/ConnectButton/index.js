@@ -31,7 +31,29 @@ const ConnectButton = (props) => {
     const { setVisible } = contexts_1.useWalletModal();
     const open = react_1.useCallback(() => setVisible(true), [setVisible]);
     const handleClick = react_1.useCallback(() => (wallet ? connect().catch(() => { }) : open()), [wallet, connect, open]);
+    // only show if wallet selected or user connected
     return (react_1.default.createElement(antd_1.Button, { className: style_1.ButtonStyle, ...rest, onClick: handleClick, disabled: connected && disabled, shape: "round" }, connected ? props.children : 'CONNECT'));
+    //   if (!wallet || !allowWalletChange) {
+    //     return (
+    //       <Button {...rest} onClick={handleClick} disabled={connected && disabled}>
+    //         {connected ? props.children : 'Connect'}
+    //       </Button>
+    //     );
+    //   }
+    //
+    //   return (
+    //     <Dropdown.Button
+    //       onClick={handleClick}
+    //       disabled={connected && disabled}
+    //       overlay={
+    //         <Menu>
+    //           <Menu.Item onClick={open}>Change Wallet</Menu.Item>
+    //         </Menu>
+    //       }
+    //     >
+    //       Connect
+    //     </Dropdown.Button>
+    //   );
 };
 exports.ConnectButton = ConnectButton;
 //# sourceMappingURL=index.js.map

@@ -78,92 +78,98 @@ var constants_1 = require("../helpers/constants");
 var anchor = __importStar(require("@project-serum/anchor"));
 var spl_token_1 = require("@solana/spl-token");
 var instructions_1 = require("../helpers/instructions");
-function mint(keypair, env, configAddress, splTokenAccountKey) {
+var transactions_1 = require("../helpers/transactions");
+function mint(keypair, env, configAddress) {
     return __awaiter(this, void 0, void 0, function () {
-        var mint, userKeyPair, anchorProgram, userTokenAccountAddress, uuid, _a, candyMachineAddress, candyMachine, remainingAccounts, candyMachineTokenMintKey, token, tokenAccount, metadataAddress, masterEdition, _b, _c, _d, _e;
-        var _f, _g;
-        return __generator(this, function (_h) {
-            switch (_h.label) {
+        var mint, userKeyPair, anchorProgram, userTokenAccountAddress, uuid, _a, candyMachineAddress, candyMachine, remainingAccounts, signers, instructions, _b, _c, tokenAccount, transferAuthority, metadataAddress, masterEdition, _d, _e;
+        var _f;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
                 case 0:
                     mint = web3_js_1.Keypair.generate();
                     userKeyPair = accounts_1.loadWalletKey(keypair);
-                    return [4 /*yield*/, accounts_1.loadAnchorProgram(userKeyPair, env)];
+                    return [4 /*yield*/, accounts_1.loadCandyProgram(userKeyPair, env)];
                 case 1:
-                    anchorProgram = _h.sent();
+                    anchorProgram = _g.sent();
                     return [4 /*yield*/, accounts_1.getTokenWallet(userKeyPair.publicKey, mint.publicKey)];
                 case 2:
-                    userTokenAccountAddress = _h.sent();
+                    userTokenAccountAddress = _g.sent();
                     uuid = accounts_1.uuidFromConfigPubkey(configAddress);
                     return [4 /*yield*/, accounts_1.getCandyMachineAddress(configAddress, uuid)];
                 case 3:
-                    _a = __read.apply(void 0, [_h.sent(), 1]), candyMachineAddress = _a[0];
+                    _a = __read.apply(void 0, [_g.sent(), 1]), candyMachineAddress = _a[0];
                     return [4 /*yield*/, anchorProgram.account.candyMachine.fetch(candyMachineAddress)];
                 case 4:
-                    candyMachine = _h.sent();
+                    candyMachine = _g.sent();
                     remainingAccounts = [];
-                    if (!splTokenAccountKey) return [3 /*break*/, 6];
-                    candyMachineTokenMintKey = candyMachine.tokenMint;
-                    if (!candyMachineTokenMintKey) {
-                        throw new Error('Candy machine data does not have token mint configured. Can\'t use spl-token-account');
-                    }
-                    token = new spl_token_1.Token(anchorProgram.provider.connection, candyMachine.tokenMint, constants_1.TOKEN_PROGRAM_ID, userKeyPair);
-                    return [4 /*yield*/, token.getAccountInfo(splTokenAccountKey)];
-                case 5:
-                    tokenAccount = _h.sent();
-                    if (!candyMachine.tokenMint.equals(tokenAccount.mint)) {
-                        throw new Error("Specified spl-token-account's mint (" + tokenAccount.mint.toString() + ") does not match candy machine's token mint (" + candyMachine.tokenMint.toString() + ")");
-                    }
-                    if (!tokenAccount.owner.equals(userKeyPair.publicKey)) {
-                        throw new Error("Specified spl-token-account's owner (" + tokenAccount.owner.toString() + ") does not match user public key (" + userKeyPair.publicKey + ")");
-                    }
-                    remainingAccounts.push({ pubkey: splTokenAccountKey, isWritable: true, isSigner: false });
-                    remainingAccounts.push({ pubkey: userKeyPair.publicKey, isWritable: false, isSigner: true });
-                    _h.label = 6;
-                case 6: return [4 /*yield*/, accounts_1.getMetadata(mint.publicKey)];
-                case 7:
-                    metadataAddress = _h.sent();
-                    return [4 /*yield*/, accounts_1.getMasterEdition(mint.publicKey)];
-                case 8:
-                    masterEdition = _h.sent();
-                    _c = (_b = anchorProgram.rpc).mintNft;
+                    signers = [mint, userKeyPair];
+                    _c = (_b = anchor.web3.SystemProgram).createAccount;
                     _f = {
-                        accounts: {
-                            config: configAddress,
-                            candyMachine: candyMachineAddress,
-                            payer: userKeyPair.publicKey,
-                            //@ts-ignore
-                            wallet: candyMachine.wallet,
-                            mint: mint.publicKey,
-                            metadata: metadataAddress,
-                            masterEdition: masterEdition,
-                            mintAuthority: userKeyPair.publicKey,
-                            updateAuthority: userKeyPair.publicKey,
-                            tokenMetadataProgram: constants_1.TOKEN_METADATA_PROGRAM_ID,
-                            tokenProgram: constants_1.TOKEN_PROGRAM_ID,
-                            systemProgram: web3_js_1.SystemProgram.programId,
-                            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-                            clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-                        },
-                        signers: [mint, userKeyPair],
-                        remainingAccounts: remainingAccounts
-                    };
-                    _e = (_d = anchor.web3.SystemProgram).createAccount;
-                    _g = {
                         fromPubkey: userKeyPair.publicKey,
                         newAccountPubkey: mint.publicKey,
                         space: spl_token_1.MintLayout.span
                     };
                     return [4 /*yield*/, anchorProgram.provider.connection.getMinimumBalanceForRentExemption(spl_token_1.MintLayout.span)];
-                case 9: return [4 /*yield*/, _c.apply(_b, [(_f.instructions = [
-                            _e.apply(_d, [(_g.lamports = _h.sent(),
-                                    _g.programId = constants_1.TOKEN_PROGRAM_ID,
-                                    _g)]),
-                            spl_token_1.Token.createInitMintInstruction(constants_1.TOKEN_PROGRAM_ID, mint.publicKey, 0, userKeyPair.publicKey, userKeyPair.publicKey),
-                            instructions_1.createAssociatedTokenAccountInstruction(userTokenAccountAddress, userKeyPair.publicKey, userKeyPair.publicKey, mint.publicKey),
-                            spl_token_1.Token.createMintToInstruction(constants_1.TOKEN_PROGRAM_ID, mint.publicKey, userTokenAccountAddress, userKeyPair.publicKey, [], 1)
-                        ],
-                            _f)])];
-                case 10: return [2 /*return*/, _h.sent()];
+                case 5:
+                    instructions = [
+                        _c.apply(_b, [(_f.lamports = _g.sent(),
+                                _f.programId = constants_1.TOKEN_PROGRAM_ID,
+                                _f)]),
+                        spl_token_1.Token.createInitMintInstruction(constants_1.TOKEN_PROGRAM_ID, mint.publicKey, 0, userKeyPair.publicKey, userKeyPair.publicKey),
+                        instructions_1.createAssociatedTokenAccountInstruction(userTokenAccountAddress, userKeyPair.publicKey, userKeyPair.publicKey, mint.publicKey),
+                        spl_token_1.Token.createMintToInstruction(constants_1.TOKEN_PROGRAM_ID, mint.publicKey, userTokenAccountAddress, userKeyPair.publicKey, [], 1)
+                    ];
+                    if (!candyMachine.tokenMint) return [3 /*break*/, 7];
+                    transferAuthority = anchor.web3.Keypair.generate();
+                    return [4 /*yield*/, accounts_1.getTokenWallet(userKeyPair.publicKey, candyMachine.tokenMint)];
+                case 6:
+                    tokenAccount = _g.sent();
+                    remainingAccounts.push({
+                        pubkey: tokenAccount,
+                        isWritable: true,
+                        isSigner: false,
+                    });
+                    remainingAccounts.push({
+                        pubkey: userKeyPair.publicKey,
+                        isWritable: false,
+                        isSigner: true,
+                    });
+                    instructions.push(spl_token_1.Token.createApproveInstruction(constants_1.TOKEN_PROGRAM_ID, tokenAccount, transferAuthority.publicKey, userKeyPair.publicKey, [], candyMachine.data.price.toNumber()));
+                    _g.label = 7;
+                case 7: return [4 /*yield*/, accounts_1.getMetadata(mint.publicKey)];
+                case 8:
+                    metadataAddress = _g.sent();
+                    return [4 /*yield*/, accounts_1.getMasterEdition(mint.publicKey)];
+                case 9:
+                    masterEdition = _g.sent();
+                    _e = (_d = instructions).push;
+                    return [4 /*yield*/, anchorProgram.instruction.mintNft({
+                            accounts: {
+                                config: configAddress,
+                                candyMachine: candyMachineAddress,
+                                payer: userKeyPair.publicKey,
+                                //@ts-ignore
+                                wallet: candyMachine.wallet,
+                                mint: mint.publicKey,
+                                metadata: metadataAddress,
+                                masterEdition: masterEdition,
+                                mintAuthority: userKeyPair.publicKey,
+                                updateAuthority: userKeyPair.publicKey,
+                                tokenMetadataProgram: constants_1.TOKEN_METADATA_PROGRAM_ID,
+                                tokenProgram: constants_1.TOKEN_PROGRAM_ID,
+                                systemProgram: web3_js_1.SystemProgram.programId,
+                                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+                                clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+                            },
+                            remainingAccounts: remainingAccounts,
+                        })];
+                case 10:
+                    _e.apply(_d, [_g.sent()]);
+                    if (tokenAccount) {
+                        instructions.push(spl_token_1.Token.createRevokeInstruction(constants_1.TOKEN_PROGRAM_ID, tokenAccount, userKeyPair.publicKey, []));
+                    }
+                    return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(anchorProgram.provider.connection, userKeyPair, instructions, signers)];
+                case 11: return [2 /*return*/, (_g.sent()).txid];
             }
         });
     });

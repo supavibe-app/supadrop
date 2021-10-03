@@ -7,7 +7,6 @@ import { useCachedImage, useExtendedArt } from '../../hooks';
 import { Stream, StreamPlayerApi } from '@cloudflare/stream-react';
 import { PublicKey } from '@solana/web3.js';
 import { getLast } from '../../utils/utils';
-import { ImageStyle } from './style';
 
 const MeshArtContent = ({
   uri,
@@ -59,12 +58,13 @@ const CachedImageContent = ({
   return (
     <Image
       src={cachedBlob}
-      className={ImageStyle}
       preview={preview}
       wrapperClassName={className}
       loading="lazy"
       wrapperStyle={{ ...style }}
-      onLoad={e => setLoaded(true)}
+      onLoad={e => {
+        setLoaded(true);
+      }}
       placeholder={<ThreeDots />}
       {...(loaded ? {} : null)}
     />
@@ -158,6 +158,45 @@ const VideoArtContent = ({
   return content;
 };
 
+const HTMLContent = ({
+  uri,
+  animationUrl,
+  className,
+  preview,
+  style,
+  files,
+  artView,
+}: {
+  uri?: string;
+  animationUrl?: string;
+  className?: string;
+  preview?: boolean;
+  style?: React.CSSProperties;
+  files?: (MetadataFile | string)[];
+  artView?: boolean;
+}) => {
+  if (!artView) {
+    return <CachedImageContent
+      uri={uri}
+      className={className}
+      preview={preview}
+      style={style}
+    />
+  }
+  const htmlURL =
+    files && files.length > 0 && typeof files[0] === 'string'
+      ? files[0]
+      : animationUrl;
+  return (
+    <iframe allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+      sandbox="allow-scripts"
+      frameBorder="0"
+      src={htmlURL}
+      className={className}
+      style={style}></iframe>);
+};
+
+
 export const ArtContent = ({
   category,
   className,
@@ -166,10 +205,10 @@ export const ArtContent = ({
   active,
   allowMeshRender,
   pubkey,
-
   uri,
   animationURL,
   files,
+  artView,
 }: {
   category?: MetadataCategory;
   className?: string;
@@ -184,6 +223,7 @@ export const ArtContent = ({
   uri?: string;
   animationURL?: string;
   files?: (MetadataFile | string)[];
+  artView?: boolean;
 }) => {
   const id = pubkeyToString(pubkey);
 
@@ -232,14 +272,47 @@ export const ArtContent = ({
         animationURL={animationURL}
         active={active}
       />
-    ) : (
-      <CachedImageContent
-        uri={uri}
-        className={className}
-        preview={preview}
-        style={style}
-      />
-    );
+    ) :
+      //     (category === 'html' || animationUrlExt === 'html') ? (
+      //       <HTMLContent
+      //         uri={uri}
+      //         animationUrl={animationURL}
+      //         className={className}
+      //         preview={preview}
+      //         style={style}
+      //         files={files}
+      //         artView={artView}
+      //       />
+      //     ) :
+      //     (
+      //       <CachedImageContent
+      //         uri={uri}
+      //         className={className}
+      //         preview={preview}
+      //         style={style}
+      //       />
+      //     );
+      //
+      //   return (
+      //     <div
+      //       ref={ref as any}
+      //       style={{
+      //         display: 'flex',
+      //         alignItems: 'center',
+      //         justifyContent: 'center',
+      //       }}
+      //     >
+      //       {content}
+      //     </div>
+      //   );
+      (
+        <CachedImageContent
+          uri={uri}
+          className={className}
+          preview={preview}
+          style={style}
+        />
+      );
 
   return (
     <div
@@ -254,6 +327,7 @@ export const ArtContent = ({
     </div>
   );
 };
+
 export const ArtContent2 = ({
   category,
   className,

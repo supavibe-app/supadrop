@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, LegacyRef } from 'react';
 import { Avatar, Card, Col, CardProps, Row, Statistic } from 'antd';
 import {
   formatTokenAmount,
@@ -7,6 +7,7 @@ import {
   fromLamports,
   useMint,
   ItemAuction,
+  shortenAddress,
 } from '@oyster/common';
 import { ArtContent, ArtContent2 } from '../ArtContent';
 import {
@@ -17,7 +18,8 @@ import {
 } from '../../hooks';
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
-import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, UserWrapper } from './style';
+import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, OwnerContainer, UserWrapper } from './style';
+import countDown from '../../helpers/countdown';
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
@@ -35,6 +37,8 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   const [state, setState] = useState<CountdownState>();
   const bids = useBidsForAuction(auctionView.auction.pubkey);
   const mintInfo = useMint(auctionView.auction.info.tokenMint);
+  const owner = auctionView.auctionManager.authority.toString();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const participationFixedPrice =
     auctionView.auctionManager.participationConfig?.fixedPrice || 0;
@@ -46,13 +50,11 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   const isUpcoming = auctionView.state === AuctionViewState.Upcoming;
 
   const winningBid = useHighestBidForAuction(auctionView.auction.pubkey);
-  const ended =
+  const ended = !auctionView.isInstantSale &&
     state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
 
   let currentBid: number | string = 0;
-  let label = '';
   if (isUpcoming || bids) {
-    label = ended ? 'Ended' : 'Starting bid';
     currentBid = fromLamports(
       participationOnly ? participationFixedPrice : priceFloor,
       mintInfo,
@@ -60,7 +62,6 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   }
 
   if (!isUpcoming && bids.length > 0) {
-    label = ended ? 'Winning bid' : 'Current bid';
     currentBid =
       winningBid && Number.isFinite(winningBid.info.lastBid?.toNumber())
         ? formatTokenAmount(winningBid.info.lastBid)
@@ -69,13 +70,8 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 
   const auction = auctionView.auction.info;
   useEffect(() => {
-    const calc = () => {
-      setState(auction.timeToEnd());
-    };
-
-    const interval = setInterval(() => {
-      calc();
-    }, 1000);
+    const calc = () => setState(auction.timeToEnd());
+    const interval = setInterval(() => calc(), 1000);
 
     calc();
     return () => clearInterval(interval);
@@ -86,12 +82,14 @@ export const AuctionRenderCard = (props: AuctionCard) => {
       hoverable={true}
       className={CardStyle}
       cover={
-        <ArtContent
-          className={AuctionImage}
-          preview={false}
-          pubkey={id}
-          allowMeshRender={false}
-        />
+        <div ref={cardRef}>
+          <ArtContent
+            className={AuctionImage(cardRef.current?.offsetWidth)}
+            preview={false}
+            pubkey={id}
+            allowMeshRender={false}
+          />
+        </div>
       }
     >
       <Meta
@@ -99,22 +97,43 @@ export const AuctionRenderCard = (props: AuctionCard) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" size={32} className={AvatarStyle} />@apri
+              <Avatar size={32} className={AvatarStyle} />
+              <span>{shortenAddress(owner)}</span>
             </div>
 
             <Row>
               <Col span={12}>
-                <div>current bid</div>
+                {/* case 1 & 3: live/ended and no bidder */}
+                {!winningBid && <div>reserve price</div>}
+                {/* case 2: live and have bidder */}
+                {winningBid && !ended && <div>current bid</div>}
+                {/* case 4: ended and have bidder */}
+                {winningBid && ended && <div>sold for</div>}
+
                 <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
               </Col>
 
               <Col span={12}>
-                <div>ending in</div>
-                <div className={NumberStyle}>
-                  {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-                  {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
-                  {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+                <div>
+                  {/* case 1 & 2: live and have/no bidder */}
+                  {!ended && <div>ending in</div>}
+                  {/* case 3: ended and no bidder */}
+                  {!winningBid && ended && <div>status</div>}
+                  {/* case 4: ended and have bidder */}
+                  {winningBid && ended && <div>owned by</div>}
                 </div>
+
+                {ended && <div className={OwnerContainer} style={{ fontSize: 20 }}>
+                  {winningBid ? shortenAddress(winningBid.info.bidderPubkey) : 'ended'}
+                </div>}
+
+                {!ended && (
+                  <div className={NumberStyle}>
+                    {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+                    {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
+                    {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+                  </div>
+                )}
               </Col>
             </Row>
           </>
@@ -128,15 +147,17 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
   let { auctionView } = props;
   const id = auctionView.id_nft;
   const art = useArt(id);
-  const name = art?.title || ' ';
+  const name = art?.title || auctionView.name;
   const [state, setState] = useState<CountdownState>();
   const bids = useBidsForAuction(auctionView.id);
   const mintInfo = useMint(auctionView.token_mint);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const participationFixedPrice = 0;
   const participationOnly = false;
-  const priceFloor = auctionView.price_floor;
+  const priceFloor = auctionView.price_floor * 1000000000;
   const isUpcoming = false;
+  const now = Math.floor(new Date().getTime() / 1000);
 
   const winningBid = useHighestBidForAuction(auctionView.id);
   const ended =
@@ -152,6 +173,19 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
     );
   }
 
+  useEffect(() => {
+    const calc = () => setState(countDown(auctionView.endAt));
+
+    const interval = setInterval(() => calc(), 1000);
+    calc();
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // supabase.from('action_bidding')
+  //   .update({is_redeem:true,})
+  //   .eq('id', 'test123').then(() => console.log('testdb', 'lewat'));
+
   if (!isUpcoming && bids.length > 0) {
     label = ended ? 'Winning bid' : 'Current bid';
     currentBid =
@@ -165,14 +199,15 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
       hoverable={true}
       className={CardStyle}
       cover={
-
-        <ArtContent2
-          className={AuctionImage}
-          preview={false}
-          pubkey={id}
-          uri={auctionView.img_nft}
-          allowMeshRender={false}
-        />
+        <div ref={cardRef}>
+          <ArtContent2
+            className={AuctionImage(cardRef.current?.offsetWidth)}
+            preview={false}
+            pubkey={id}
+            uri={auctionView.img_nft}
+            allowMeshRender={false}
+          />
+        </div>
       }
     >
       <Meta
@@ -180,22 +215,43 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" size={32} className={AvatarStyle} />@apri
+              <Avatar size={32} className={AvatarStyle} />
+              <span>{shortenAddress(auctionView.owner)}</span>
             </div>
 
             <Row>
               <Col span={12}>
-                <div>current bid</div>
+                {/* case 1 & 3: live/ended and no bidder */}
+                {!winningBid && <div>reserve price</div>}
+                {/* case 2: live and have bidder */}
+                {winningBid && !ended && <div>current bid</div>}
+                {/* case 4: ended and have bidder */}
+                {winningBid && ended && <div>sold for</div>}
+
                 <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
               </Col>
 
               <Col span={12}>
-                <div>ending in</div>
-                <div className={NumberStyle}>
-                  {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-                  {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
-                  {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+                <div>
+                  {/* case 1 & 2: live and have/no bidder */}
+                  {!ended && <div>ending in</div>}
+                  {/* case 3: ended and no bidder */}
+                  {!winningBid && ended && <div>status</div>}
+                  {/* case 4: ended and have bidder */}
+                  {winningBid && ended && <div>owned by</div>}
                 </div>
+
+                {ended && <div className={OwnerContainer} style={{ fontSize: 20 }}>
+                  {winningBid ? shortenAddress(winningBid.info.bidderPubkey) : 'ended'}
+                </div>}
+
+                {!ended && (
+                  <div className={NumberStyle}>
+                    {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+                    {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
+                    {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+                  </div>
+                )}
               </Col>
             </Row>
           </>
@@ -204,39 +260,3 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
     </Card>
   );
 };
-
-const CardCountdown = ({ state }: { state?: CountdownState }) => {
-  return (
-    <>
-      {state &&
-        <Row gutter={[16, 0]}>
-
-          <Col span={8}>
-            <div className={NumberStyle}>
-              {state.hours < 10 && <span>0</span>}
-              {state.hours}
-              :
-            </div>
-          </Col>
-
-          <Col span={8}>
-            <div className={NumberStyle}>
-              {state.minutes < 10 && <span>0</span>}
-              {state.minutes}
-              {state.days === 0 && ':'}
-            </div>
-          </Col>
-
-          {state.days === 0 && (
-            <Col span={8}>
-              <div className={NumberStyle}>
-                {state.seconds < 10 && <span>0</span>}
-                {state.seconds}
-              </div>
-            </Col>
-          )}
-        </Row>
-      }
-    </>
-  )
-}
