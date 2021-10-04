@@ -43,3 +43,11 @@ export const uFontSize24 = css`
 export const uPointer = css`
   cursor: pointer;
 `;
+
+export const uLowerCase = css`
+  text-transform: lowercase;
+`;
+
+export const uUpperCase = css`
+  text-transform: uppercase;
+`;
