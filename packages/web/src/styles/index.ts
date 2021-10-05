@@ -40,6 +40,10 @@ export const uFontSize24 = css`
   font-size: 24px;
 `;
 
+export const uFontSize18 = css`
+  font-size: 18px;
+`;
+
 export const uPointer = css`
   cursor: pointer;
 `;
