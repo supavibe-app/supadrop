@@ -6,6 +6,7 @@ import { useArt } from '../../hooks';
 import { PublicKey } from '@solana/web3.js';
 import { Artist, ArtType } from '../../types';
 import { MetaAvatar } from '../MetaAvatar';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 const { Meta } = Card;
 
@@ -47,6 +48,7 @@ export const ArtCard = (props: ArtCardProps) => {
     ...rest
   } = props;
   const art = useArt(pubkey);
+  const wallet = useWallet();
   creators = art?.creators || creators || [];
   name = art?.title || name || ' ';
 
@@ -95,19 +97,8 @@ export const ArtCard = (props: ArtCardProps) => {
         title={`${name}`}
         description={
           <>
-            <MetaAvatar creators={creators} size={32} />
-            {/* {art.type === ArtType.Master && (
-              <>
-                <br />
-                {!endAuctionAt && (
-                  <span style={{ padding: '24px' }}>
-                    {(art.maxSupply || 0) - (art.supply || 0)}/
-                    {art.maxSupply || 0} prints remaining
-                  </span>
-                )}
-              </>
-            )} */}
-            <div className="edition-badge">{badge}</div>
+            <p>owned by : {wallet.publicKey?.toBase58()}</p>
+            <p>creators : {creators[0].address}</p>
           </>
         }
       />

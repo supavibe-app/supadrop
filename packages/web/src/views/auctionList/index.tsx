@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
 import BN from 'bn.js';
 import { Link } from 'react-router-dom';
@@ -26,7 +26,11 @@ const AuctionListView = () => {
     if (data.endAt < now) return true
     return false
   })
-
+  
+  useEffect(()=>{
+    console.log("🚀 ~ file: index.tsx ~ line 25 ~ liveAuctions ~ liveAuctions", liveAuctions)
+    console.log("🚀 ~ file: index.tsx ~ line 29 ~ endAuctions ~ endAuctions", auctionsEnded)
+  },[])
 
 
   const auctionList = list => {
