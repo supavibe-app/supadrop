@@ -1,9 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  CheckCircleTwoTone,
-  LoadingOutlined,
-  SyncOutlined,
-} from '@ant-design/icons';
+import { CheckCircleTwoTone, LoadingOutlined, SyncOutlined } from '@ant-design/icons';
 import {
   findProgramAddress,
   programIds,
@@ -62,9 +58,7 @@ function RunAction({
   onFinish?: () => void;
   icon: JSX.Element;
 }) {
-  const [state, setRunState] = useState<RunActionState>(
-    RunActionState.NotRunning,
-  );
+  const [state, setRunState] = useState<RunActionState>(RunActionState.NotRunning);
 
   useMemo(() => setRunState(RunActionState.NotRunning), [id]);
 

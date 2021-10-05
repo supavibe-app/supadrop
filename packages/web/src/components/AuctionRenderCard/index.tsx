@@ -20,6 +20,7 @@ import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
 import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, OwnerContainer, UserWrapper } from './style';
 import countDown from '../../helpers/countdown';
+import { uTextAlignEnd } from '../../styles';
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
@@ -231,7 +232,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
                 <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
               </Col>
 
-              <Col span={12}>
+              <Col className={uTextAlignEnd} span={12}>
                 <div>
                   {/* case 1 & 2: live and have/no bidder */}
                   {!ended && <div>ending in</div>}
