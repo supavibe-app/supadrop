@@ -50,6 +50,8 @@ export const ArtCard = (props: ArtCardProps) => {
   const art = useArt(pubkey);
   const wallet = useWallet();
   creators = art?.creators || creators || [];
+
+  
   name = art?.title || name || ' ';
 
   let badge = '';
@@ -93,15 +95,16 @@ export const ArtCard = (props: ArtCardProps) => {
       }
       {...rest}
     >
-      <Meta
+      {(creators.length > 0 && <Meta
         title={`${name}`}
         description={
           <>
             <p>owned by : {wallet.publicKey?.toBase58()}</p>
-            <p>creators : {creators[0].address}</p>
+            <p>creators : {creators[0]?.address}</p>
+
           </>
         }
-      />
+      />)}
     </Card>
   );
 

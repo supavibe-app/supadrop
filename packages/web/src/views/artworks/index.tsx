@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ArtCard } from '../../components/ArtCard';
-import { Layout, Row, Col, Tabs } from 'antd';
+import { Layout, Row, Col, Tabs ,Button} from 'antd';
 import Masonry from 'react-masonry-css';
 import { Link } from 'react-router-dom';
 import { AuctionViewState, useAuctions, useCreatorArts, useUserArts } from '../../hooks';
@@ -68,6 +68,9 @@ export const ArtworksView = () => {
                   height={250}
                   width={250}
                 />
+                <Link to={{pathname:`/auction/create/0`,state:{idNFT:id,item:[m]}}} key={idx}>
+                  Listing
+                </Link>
               </Link>
             );
           })

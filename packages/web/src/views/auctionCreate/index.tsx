@@ -8,6 +8,7 @@ import {
   Progress,
   Radio,
 } from 'antd';
+import { useLocation } from 'react-router-dom'
 import { ArtCard } from './../../components/ArtCard';
 import { QUOTE_MINT } from './../../constants';
 import { Confetti } from './../../components/Confetti';
@@ -40,6 +41,8 @@ import { useMeta } from '../../contexts';
 import useWindowDimensions from '../../utils/layout';
 import { SystemProgram } from '@solana/web3.js';
 import { supabase } from '../../../supabaseClient';
+import { useUserArts } from '../../hooks';
+import moment from 'moment';
 const { Step } = Steps;
 
 export enum AuctionCategory {
@@ -72,6 +75,7 @@ export interface AuctionState {
 }
 
 export const AuctionCreateView = () => {
+  
   const connection = useConnection();
   const wallet = useWallet();
   const { whitelistedCreatorsByCreator } = useMeta();
@@ -305,6 +309,21 @@ const SellStep = (props: {
   const handleCategory = e => {
     setCategory(e.target.value)
   };
+  const location= useLocation()
+  const state:any= location.state
+  console.log("🚀 ~ file: index.tsx ~ line 312 ~ state", state)
+
+  const dataNFT = useUserArts();
+  useEffect(()=>{
+    if (state?.idNFT) {
+      props.setAttributes({
+        ...props.attributes,
+        items:dataNFT
+      })
+      console.log("🚀 ~ file: index.tsx ~ line 316 ~ dataNFT", dataNFT)
+    }
+  },[])
+  console.log("🚀 ~ file: index.tsx ~ line 316 ~ dataNFT", dataNFT)
   const [time,setTime] = useState(1)
   const [priceFloor,setPriceFloor] = useState<number>()
   const handleTime = e => {
@@ -329,15 +348,15 @@ const SellStep = (props: {
           }}
           allowMultiple={false}
         >
-          Select NFT
+          Select NFT 
         </ArtSelector>
       </Col>
     </Row>
     <Row>
     <label className="action-field">
-            <span className="field-title">Price Floor</span>
+            <span className="field-title">Price Floor </span>
             <span className="field-info">
-              This is the starting bid price for your auction.
+              This is the starting bid price for your auction. 
             </span>
             <Input
               type="number"
@@ -385,6 +404,7 @@ const SellStep = (props: {
             
             props.setAttributes({
               ...props.attributes,
+              startSaleTS:moment().unix(),
               priceFloor,
               priceTick:0.1,
               auctionDuration:time,

@@ -13,7 +13,7 @@ export interface ArtSelectorProps extends ButtonProps {
 }
 
 export const ArtSelector = (props: ArtSelectorProps) => {
-  const { selected, setSelected, allowMultiple, ...rest } = props;
+  const { selected,setSelected,  allowMultiple, ...rest } = props;
   let items = useUserArts();
   if (props.filter) items = items.filter(props.filter);
   const selectedItems = useMemo<Set<string>>(
@@ -65,7 +65,7 @@ export const ArtSelector = (props: ArtSelectorProps) => {
               preview={false}
               onClick={open}
               close={() => {
-                setSelected(selected.filter(_ => _.metadata.pubkey !== key));
+                setSelected(selected.filter(_ => _.metadata.pubkey === "43LHtnBRCgZmMYJSiCAvtKmabcq2y3xMj378DQ5R3QfY"));
                 confirm();
               }}
             />
