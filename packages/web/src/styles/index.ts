@@ -40,6 +40,18 @@ export const uFontSize24 = css`
   font-size: 24px;
 `;
 
+export const uFontSize18 = css`
+  font-size: 18px;
+`;
+
 export const uPointer = css`
   cursor: pointer;
+`;
+
+export const uLowerCase = css`
+  text-transform: lowercase;
+`;
+
+export const uUpperCase = css`
+  text-transform: uppercase;
 `;

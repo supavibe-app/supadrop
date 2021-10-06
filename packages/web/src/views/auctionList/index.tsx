@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
-import BN from 'bn.js';
 import { Link } from 'react-router-dom';
 import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
 import { CardLoader } from '../../components/MyLoader';
 import { useMeta } from '../../contexts';
-import { AuctionView, AuctionViewState, useAuctions } from '../../hooks';
-import { Label, LiveDot, NumberStyle, TabsStyle, Timer, TitleWrapper } from './style';
+import { AuctionViewState, useAuctions } from '../../hooks';
 import ActionButton from '../../components/ActionButton';
+import { Label, LiveDot, NumberStyle, TabsStyle, Timer, TitleWrapper } from './style';
 
 const { TabPane } = Tabs;
 
@@ -20,8 +19,9 @@ const AuctionListView = () => {
 
   const liveAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => {
     if (data.endAt > now) return true
-    return false
-  })
+    return false;
+  });
+
   const endAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => {
     if (data.endAt < now) return true
     return false
@@ -32,14 +32,12 @@ const AuctionListView = () => {
     console.log("🚀 ~ file: index.tsx ~ line 29 ~ endAuctions ~ endAuctions", auctionsEnded)
   },[])
 
-
   const auctionList = list => {
     if (isLoadingMetaplex && isLoadingDatabase) return [...Array(8)].map((_, idx) => <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}><CardLoader key={idx} /></Col>)
 
     return (
       <>
         {list.map(([key, m], idx) => {
-
           return (
             <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
               <Link to={`/auction/${m.id}`}>

@@ -250,12 +250,46 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
       </Col>
 
       <Col className={ButtonWrapper} span={6}>
-        <div className={Label}>your bid</div>
-        <div className={Price}>
-          {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
-            formatTokenAmount(bids[0].info.lastBid, mint)
-          )} SOL
-        </div>
+        {!isOwner && (
+          <>
+            <div className={Label}>your bid</div>
+            <div className={Price}>
+              {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
+                formatTokenAmount(bids[0].info.lastBid, mint)
+              )} SOL
+            </div>
+          </>
+        )}
+
+        {isOwner && ended && highestBid && (
+          <>
+            <div className={Label}>settle fund</div>
+            <div className={Price}>
+              {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
+                formatTokenAmount(bids[0].info.lastBid, mint)
+              )} SOL
+            </div>
+          </>
+        )}
+
+        {isOwner && (
+          <>
+            <div className={Label}>ending in</div>
+            {state && !ended && (
+              <div className={StatusValue}>
+                {state.hours} :{' '}
+                {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
+                {state.minutes > 0 ? state.minutes : `0${state.minutes}`}
+              </div>
+            )}
+
+            {ended && (
+              <div className={StatusValue}>
+                auction ended
+              </div>
+            )}
+          </>
+        )}
 
         {/* case 1: auction still live */}
         {!ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>}
