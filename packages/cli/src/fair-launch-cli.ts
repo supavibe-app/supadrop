@@ -1161,9 +1161,8 @@ program
       )
     )[0];
 
-    const fairLaunchLotteryBitmap = ( //@ts-ignore
-      await getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint)
-    )[0];
+    const fairLaunchLotteryBitmap = //@ts-ignore
+    (await getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint))[0];
 
     await adjustTicket({
       amountNumber,
@@ -1419,24 +1418,40 @@ program
                       allIndexesInSlice[i],
                       'before punching',
                     );
-                    try {
-                      await adjustTicket({
-                        //@ts-ignore
-                        amountNumber: fairLaunchObj.currentMedian.toNumber(),
-                        fairLaunchObj,
-                        adjuster: ticket.model.buyer,
-                        fairLaunch,
-                        fairLaunchTicket: ticket.key,
-                        fairLaunchLotteryBitmap,
-                        anchorProgram,
-                        payer: walletKeyPair,
-                        adjustMantissa: false,
-                      });
-                    } catch (e) {
-                      console.log(
-                        'Adjusting ticket failed',
-                        ticket.key.toBase58(),
-                      );
+                    let tries = 0;
+                    let done = false;
+                    while (tries < 3 && !done) {
+                      try {
+                        await adjustTicket({
+                          //@ts-ignore
+                          amountNumber: fairLaunchObj.currentMedian.toNumber(),
+                          fairLaunchObj,
+                          adjuster: ticket.model.buyer,
+                          fairLaunch,
+                          fairLaunchTicket: ticket.key,
+                          fairLaunchLotteryBitmap,
+                          anchorProgram,
+                          payer: walletKeyPair,
+                          adjustMantissa: false,
+                        });
+                        done = true;
+                        console.log(
+                          'Adjusting ticket succeeded',
+                          ticket.key.toBase58(),
+                        );
+                      } catch (e) {
+                        if (tries > 3) {
+                          throw e;
+                        } else {
+                          tries++;
+                        }
+                        console.log(e);
+                        console.log(
+                          'Adjusting ticket failed',
+                          ticket.key.toBase58(),
+                        );
+                        await sleep(1000);
+                      }
                     }
                   }
                   let tries = 0;
@@ -1477,18 +1492,41 @@ program
                     ticket.model.buyer.toBase58(),
                     'was eligible but lost lottery, refunding',
                   );
-                  await adjustTicket({
-                    //@ts-ignore
-                    amountNumber: 0,
-                    fairLaunchObj,
-                    adjuster: ticket.model.buyer,
-                    fairLaunch,
-                    fairLaunchTicket: ticket.key,
-                    fairLaunchLotteryBitmap,
-                    anchorProgram,
-                    payer: walletKeyPair,
-                    adjustMantissa: true,
-                  });
+                  let tries = 0;
+                  let done = false;
+                  while (tries < 3 && !done) {
+                    try {
+                      await adjustTicket({
+                        //@ts-ignore
+                        amountNumber: 0,
+                        fairLaunchObj,
+                        adjuster: ticket.model.buyer,
+                        fairLaunch,
+                        fairLaunchTicket: ticket.key,
+                        fairLaunchLotteryBitmap,
+                        anchorProgram,
+                        payer: walletKeyPair,
+                        adjustMantissa: true,
+                      });
+                      done = true;
+                      console.log(
+                        'Refunding  ticket succeeded',
+                        ticket.key.toBase58(),
+                      );
+                    } catch (e) {
+                      if (tries > 3) {
+                        throw e;
+                      } else {
+                        tries++;
+                      }
+                      console.log(e);
+                      console.log(
+                        'Adjusting ticket failed',
+                        ticket.key.toBase58(),
+                      );
+                      await sleep(1000);
+                    }
+                  }
                   console.log('Refunded.');
                 }
               }
@@ -1513,103 +1551,103 @@ program
     );
   });
 
-  async function getParticipationNft({
-    buyer,
-    payer,
-    anchorProgram,
-    fairLaunchTicket,
-    fairLaunch,
-    fairLaunchObj,
-    fairLaunchTicketObj,
-  }: {
-    buyer: anchor.web3.PublicKey;
-    anchorProgram: anchor.Program;
-    payer: anchor.web3.Keypair;
-    fairLaunchTicket: anchor.web3.PublicKey;
-    fairLaunch: anchor.web3.PublicKey;
-    fairLaunchObj: any;
-    fairLaunchTicketObj: any;
-  }): Promise<anchor.web3.PublicKey | null> {
-    if (
-      fairLaunchObj.participationMint &&
-      fairLaunchTicketObj.seq.toNumber() % fairLaunchObj.participationModulo == 0
-    ) {
-      console.log(buyer.toBase58(), 'gets participation token.');
-      const mint = anchor.web3.Keypair.generate();
-      let signers = [mint];
-      const tokenAccount = (
-        await getParticipationToken(
-          fairLaunchObj.authority,
-          fairLaunchObj.data.uuid,
-        )
-      )[0];
-      const buyerTokenNft = (await getAtaForMint(mint.publicKey, buyer))[0];
-      let instructions = [
-        anchor.web3.SystemProgram.createAccount({
-          fromPubkey: payer.publicKey,
-          newAccountPubkey: mint.publicKey,
-          space: MintLayout.span,
-          lamports:
-            await anchorProgram.provider.connection.getMinimumBalanceForRentExemption(
-              MintLayout.span,
-            ),
-          programId: TOKEN_PROGRAM_ID,
-        }),
-        Token.createInitMintInstruction(
-          TOKEN_PROGRAM_ID,
-          mint.publicKey,
-          0,
-          payer.publicKey,
-          payer.publicKey,
-        ),
-        createAssociatedTokenAccountInstruction(
-          buyerTokenNft,
-          payer.publicKey,
-          buyer,
-          mint.publicKey,
-        ),
-        Token.createMintToInstruction(
-          TOKEN_PROGRAM_ID,
-          mint.publicKey,
-          buyerTokenNft,
-          payer.publicKey,
-          [],
-          1,
-        ),
-      ];
-      await anchorProgram.rpc.mintParticipationNft({
-        accounts: {
-          fairLaunch,
-          fairLaunchTicket,
-          payer: payer.publicKey,
-          participationMint: fairLaunchObj.participationMint,
-          participationTokenAccount: tokenAccount,
-          buyer,
-          buyerNftTokenAccount: buyerTokenNft,
-          newMetadata: await getMetadata(mint.publicKey),
-          newEdition: await getMasterEdition(mint.publicKey),
-          newMint: mint.publicKey,
-          newMintAuthority: payer.publicKey,
-          metadata: await getMetadata(fairLaunchObj.participationMint),
-          masterEdition: await getMasterEdition(fairLaunchObj.participationMint),
-          editionMarkPda: await getEditionMarkPda(
-            fairLaunchObj.participationMint,
-            fairLaunchTicketObj.seq.toNumber(),
+async function getParticipationNft({
+  buyer,
+  payer,
+  anchorProgram,
+  fairLaunchTicket,
+  fairLaunch,
+  fairLaunchObj,
+  fairLaunchTicketObj,
+}: {
+  buyer: anchor.web3.PublicKey;
+  anchorProgram: anchor.Program;
+  payer: anchor.web3.Keypair;
+  fairLaunchTicket: anchor.web3.PublicKey;
+  fairLaunch: anchor.web3.PublicKey;
+  fairLaunchObj: any;
+  fairLaunchTicketObj: any;
+}): Promise<anchor.web3.PublicKey | null> {
+  if (
+    fairLaunchObj.participationMint &&
+    fairLaunchTicketObj.seq.toNumber() % fairLaunchObj.participationModulo == 0
+  ) {
+    console.log(buyer.toBase58(), 'gets participation token.');
+    const mint = anchor.web3.Keypair.generate();
+    let signers = [mint];
+    const tokenAccount = (
+      await getParticipationToken(
+        fairLaunchObj.authority,
+        fairLaunchObj.data.uuid,
+      )
+    )[0];
+    const buyerTokenNft = (await getAtaForMint(mint.publicKey, buyer))[0];
+    let instructions = [
+      anchor.web3.SystemProgram.createAccount({
+        fromPubkey: payer.publicKey,
+        newAccountPubkey: mint.publicKey,
+        space: MintLayout.span,
+        lamports:
+          await anchorProgram.provider.connection.getMinimumBalanceForRentExemption(
+            MintLayout.span,
           ),
-          tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          systemProgram: anchor.web3.SystemProgram.programId,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        },
-        instructions,
-        signers,
-      });
-      return buyerTokenNft;
-    } else {
-      console.log(buyer.toBase58(), 'doesnt get participation token.');
-      return null;
-    }
+        programId: TOKEN_PROGRAM_ID,
+      }),
+      Token.createInitMintInstruction(
+        TOKEN_PROGRAM_ID,
+        mint.publicKey,
+        0,
+        payer.publicKey,
+        payer.publicKey,
+      ),
+      createAssociatedTokenAccountInstruction(
+        buyerTokenNft,
+        payer.publicKey,
+        buyer,
+        mint.publicKey,
+      ),
+      Token.createMintToInstruction(
+        TOKEN_PROGRAM_ID,
+        mint.publicKey,
+        buyerTokenNft,
+        payer.publicKey,
+        [],
+        1,
+      ),
+    ];
+    await anchorProgram.rpc.mintParticipationNft({
+      accounts: {
+        fairLaunch,
+        fairLaunchTicket,
+        payer: payer.publicKey,
+        participationMint: fairLaunchObj.participationMint,
+        participationTokenAccount: tokenAccount,
+        buyer,
+        buyerNftTokenAccount: buyerTokenNft,
+        newMetadata: await getMetadata(mint.publicKey),
+        newEdition: await getMasterEdition(mint.publicKey),
+        newMint: mint.publicKey,
+        newMintAuthority: payer.publicKey,
+        metadata: await getMetadata(fairLaunchObj.participationMint),
+        masterEdition: await getMasterEdition(fairLaunchObj.participationMint),
+        editionMarkPda: await getEditionMarkPda(
+          fairLaunchObj.participationMint,
+          fairLaunchTicketObj.seq.toNumber(),
+        ),
+        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      },
+      instructions,
+      signers,
+    });
+    return buyerTokenNft;
+  } else {
+    console.log(buyer.toBase58(), 'doesnt get participation token.');
+    return null;
   }
+}
 
 async function punchTicket({
   puncher,
@@ -1679,11 +1717,19 @@ program
     '--keypair not provided',
   )
   .option('-f, --fair-launch <string>', 'fair launch id')
+  .option(
+    '-r, --rpc-url <string>',
+    'custom rpc url since this is a heavy command',
+  )
   .action(async (_, cmd) => {
-    const { env, keypair, fairLaunch } = cmd.opts();
+    const { env, keypair, fairLaunch, rpcUrl } = cmd.opts();
 
     const walletKeyPair = loadWalletKey(keypair);
-    const anchorProgram = await loadFairLaunchProgram(walletKeyPair, env);
+    const anchorProgram = await loadFairLaunchProgram(
+      walletKeyPair,
+      env,
+      rpcUrl,
+    );
 
     const fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
     const fairLaunchObj = await anchorProgram.account.fairLaunch.fetch(
@@ -1698,9 +1744,8 @@ program
       )
     )[0];
 
-    const fairLaunchLotteryBitmap = ( //@ts-ignore
-      await getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint)
-    )[0];
+    const fairLaunchLotteryBitmap = //@ts-ignore
+    (await getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint))[0];
 
     const ticket = await anchorProgram.account.fairLaunchTicket.fetch(
       fairLaunchTicket,
@@ -1713,19 +1758,37 @@ program
       fairLaunchObj.currentMedian.toNumber();
     if (diff > 0) {
       console.log('Refunding first', diff, 'to buyer before punching');
-      await adjustTicket({
-        //@ts-ignore
-        amountNumber: fairLaunchObj.currentMedian.toNumber(),
-        fairLaunchObj,
-        //@ts-ignore
-        adjuster: ticket.buyer,
-        fairLaunch,
-        fairLaunchTicket,
-        fairLaunchLotteryBitmap,
-        anchorProgram,
-        payer: walletKeyPair,
-        adjustMantissa: false,
-      });
+      
+      let tries = 0;
+      let done = false;
+      while (tries < 3 && !done) {
+        try {
+          await adjustTicket({
+            amountNumber: 0,
+            fairLaunchObj,
+            adjuster: ticket.model.buyer,
+            fairLaunch,
+            fairLaunchTicket: ticket.key,
+            fairLaunchLotteryBitmap,
+            anchorProgram,
+            payer: walletKeyPair,
+            adjustMantissa: true,
+          });
+          done = true;
+        } catch (e) {
+          if (tries > 3) {
+            throw e;
+          } else {
+            tries++;
+          }
+          console.log(e);
+          console.log(
+            'Adjusting ticket failed',
+            ticket.key.toBase58(),
+          );
+          await sleep(1000);
+        }
+      }
     }
 
     let tries = 0;
@@ -1876,20 +1939,80 @@ program
     const fairLaunchObj = await anchorProgram.account.fairLaunch.fetch(
       fairLaunchKey,
     );
-    const fairLaunchLotteryBitmap = ( //@ts-ignore
-      await getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint)
-    )[0];
+    const fairLaunchLotteryBitmap = //@ts-ignore
+    (await getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint))[0];
 
     await anchorProgram.rpc.startPhaseThree({
       accounts: {
         fairLaunch,
         fairLaunchLotteryBitmap,
         authority: walletKeyPair.publicKey,
-        clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+        //@ts-ignore
+        tokenMint: fairLaunchObj.tokenMint,
       },
     });
 
     console.log(`Dang son, phase three.`);
+  });
+
+program
+  .command('mint_flp_tokens')
+  .option(
+    '-e, --env <string>',
+    'Solana cluster env name',
+    'devnet', //mainnet-beta, testnet, devnet
+  )
+  .option(
+    '-k, --keypair <path>',
+    `Solana wallet location`,
+    '--keypair not provided',
+  )
+  .option('-f, --fair-launch <string>', 'fair launch id')
+  .option('-a, --amount <string>', 'amount')
+  .action(async (_, cmd) => {
+    const { env, keypair, fairLaunch, amount } = cmd.opts();
+
+    const walletKeyPair = loadWalletKey(keypair);
+    const amountNumber = parseInt(amount);
+    const anchorProgram = await loadFairLaunchProgram(walletKeyPair, env);
+
+    const fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
+    const fairLaunchObj = await anchorProgram.account.fairLaunch.fetch(
+      fairLaunchKey,
+    );
+    const tokenAccount = //@ts-ignore
+    (await getAtaForMint(fairLaunchObj.tokenMint, walletKeyPair.publicKey))[0];
+
+    const exists = await anchorProgram.provider.connection.getAccountInfo(
+      tokenAccount,
+    );
+
+    const instructions = [];
+    if (!exists) {
+      instructions.push(
+        createAssociatedTokenAccountInstruction(
+          tokenAccount,
+          walletKeyPair.publicKey,
+          walletKeyPair.publicKey,
+          //@ts-ignore
+          fairLaunchObj.tokenMint,
+        ),
+      );
+    }
+
+    await anchorProgram.rpc.mintTokens(new anchor.BN(amountNumber), {
+      accounts: {
+        fairLaunch: fairLaunchKey,
+        authority: walletKeyPair.publicKey,
+        //@ts-ignore
+        tokenMint: fairLaunchObj.tokenMint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        tokenAccount,
+      },
+      instructions: instructions.length ? instructions : undefined,
+    });
+
+    console.log(`Added ${amountNumber} tokens to ${tokenAccount.toBase58()}`);
   });
 
 program
@@ -2095,10 +2218,18 @@ program
     '--keypair not provided',
   )
   .option('-f, --fair-launch <string>', 'fair launch id')
+  .option(
+    '-r, --rpc-url <string>',
+    'custom rpc url since this is a heavy command',
+  )
   .action(async (_, cmd) => {
-    const { env, keypair, fairLaunch } = cmd.opts();
+    const { env, keypair, fairLaunch, rpcUrl } = cmd.opts();
     const walletKeyPair = loadWalletKey(keypair);
-    const anchorProgram = await loadFairLaunchProgram(walletKeyPair, env);
+    const anchorProgram = await loadFairLaunchProgram(
+      walletKeyPair,
+      env,
+      rpcUrl,
+    );
 
     const fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
     const fairLaunchObj = await anchorProgram.account.fairLaunch.fetch(
@@ -2230,10 +2361,19 @@ program
       );
 
     const statesFlat = states.flat();
+    const token = new Token(
+      anchorProgram.provider.connection,
+      //@ts-ignore
+      new anchor.web3.PublicKey(fairLaunchObj.tokenMint),
+      TOKEN_PROGRAM_ID,
+      walletKeyPair,
+    );
+
+    const mintInfo = await token.getMintInfo();
 
     let numWinnersRemaining = Math.min(
       //@ts-ignore;
-      fairLaunchObj.data.numberOfTokens,
+      fairLaunchObj.data.numberOfTokens.sub(mintInfo.supply),
       //@ts-ignore;
       statesFlat.filter(s => s.eligible).length,
     );
