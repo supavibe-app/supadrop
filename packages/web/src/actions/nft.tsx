@@ -285,13 +285,7 @@ export const mintNFT = async (
       payerPublicKey,
       updateInstructions,
     );
-    console.log("🚀 ~ file: nft.tsx ~ line 277 ~ masterEdition", masterEdition)
-    console.log("🚀 ~ file: nft.tsx ~ line 277 ~ mintInstructions", {
-      TOKEN_PROGRAM_ID,
-      mintKey,
-      recipientKey,
-      payerPublicKey,
-    })
+
 
     // TODO: enable when using payer account to avoid 2nd popup
     /*  if (maxSupply !== undefined)
@@ -352,7 +346,6 @@ export const mintNFT = async (
   // 1. Jordan: --- upload file and metadata to storage API
   // 2. pay for storage by hashing files and attaching memo for each file
 
-  console.log("🚀 ~ file: nft.tsx ~ line 355 ~ metadataAccount", metadataAccount)
   return { metadataAccount };
 };
 

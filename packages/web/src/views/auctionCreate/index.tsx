@@ -311,7 +311,6 @@ const SellStep = (props: {
   };
   const location= useLocation()
   const state:any= location.state
-  console.log("🚀 ~ file: index.tsx ~ line 312 ~ state", state)
 
   const dataNFT = useUserArts();
   useEffect(()=>{
@@ -320,10 +319,8 @@ const SellStep = (props: {
         ...props.attributes,
         items:dataNFT
       })
-      console.log("🚀 ~ file: index.tsx ~ line 316 ~ dataNFT", dataNFT)
     }
   },[])
-  console.log("🚀 ~ file: index.tsx ~ line 316 ~ dataNFT", dataNFT)
   const [time,setTime] = useState(1)
   const [priceFloor,setPriceFloor] = useState<number>()
   const handleTime = e => {

@@ -27,11 +27,6 @@ const AuctionListView = () => {
     return false
   })
   
-  useEffect(()=>{
-    console.log("🚀 ~ file: index.tsx ~ line 25 ~ liveAuctions ~ liveAuctions", liveAuctions)
-    console.log("🚀 ~ file: index.tsx ~ line 29 ~ endAuctions ~ endAuctions", auctionsEnded)
-  },[])
-
   const auctionList = list => {
     if (isLoadingMetaplex && isLoadingDatabase) return [...Array(8)].map((_, idx) => <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}><CardLoader key={idx} /></Col>)
 
