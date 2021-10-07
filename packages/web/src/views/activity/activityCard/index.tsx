@@ -295,10 +295,10 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
         )}
 
         {/* case 1: auction still live */}
-        {/* {!ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>} */}
+        {!ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>}
 
         {/* case 2.1: auction ended & win */}
-        {!ended && (
+        {ended && eligibleForAnything && (
           <ActionButton
             disabled={isButtonDisabled}
             onClick={e => {

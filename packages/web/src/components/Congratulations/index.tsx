@@ -6,12 +6,14 @@ import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
 import { ContinueButton, Description, HeaderStyle, ShareButton } from './style';
 import { uFontSize18 } from '../../styles';
 import { TwitterOutlined } from '@ant-design/icons';
+import { useArt } from '../../hooks';
 
-const TweetURL = urlToNFT => `https://twitter.com/intent/tweet?text=I%20just%20won%20nft%20auction%20for%20CRYSTAL%20GODS%2007%20on%20%40supadropnft%E2%80%A8%0A${urlToNFT}`;
+const TweetURL = (title, urlToNFT) => `https://twitter.com/intent/tweet?text=I%20just%20won%20an%20NFT%20auction%20for%20${title}%20on%20%40supadropnft%E2%80%A8%0A${urlToNFT}`;
 
 const Congratulations = ({ id }) => {
   const { liveDataAuctions } = useMeta();
   const auctionView = liveDataAuctions[id];
+  const art = useArt(auctionView.id_nft);
 
   return (
     <Row justify="center" >
@@ -37,7 +39,7 @@ const Congratulations = ({ id }) => {
             </div>
 
             <div className={uFontSize18}>
-              <Link to={{ pathname: TweetURL(`https://supadrop.com/auction/${id}`) }} target="_blank">
+              <Link to={{ pathname: TweetURL(art.title, `https://supadrop.com/auction/${id}`) }} target="_blank">
                 <Button
                   className={ShareButton}
                   type="default"
