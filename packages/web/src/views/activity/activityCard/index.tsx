@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Avatar, Col, Row } from 'antd';
 import { Link } from 'react-router-dom';
 import { NFTStatus, NFTName, Label, StatusValue, Price, ButtonWrapper, ActivityCardStyle, NFTDescription, ImageCard, UserContainer } from './style';
+import { useHistory } from 'react-router';
 
 import ActionButton from '../../../components/ActionButton';
 import { AuctionView, useArt, useBidsForAuction, useHighestBidForAuction, useUserBalance } from '../../../hooks';
@@ -17,11 +18,12 @@ export const AuctionItem = ({ item, active }: {
   active?: boolean;
 }) => <ArtContent className={ImageCard} pubkey={item.metadata.pubkey} active={active} allowMeshRender={true} />;
 
-const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
+const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionView, setAuctionView: React.Dispatch<React.SetStateAction<string>> }) => {
   const wallet = useWallet();
   const connection = useConnection();
   const { bidRedemptions, prizeTrackingTickets } = useMeta();
   const isAuctionManagerAuthorityWalletOwner = auctionView.auctionManager.authority === wallet?.publicKey?.toBase58();
+  const { push } = useHistory();
 
   const mintKey = auctionView.auction.info.tokenMint;
   const balance = useUserBalance(mintKey);
@@ -113,8 +115,8 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
       // setShowRedeemedBidModal(true)
       // TODO ADD FLAG TO DB
       supabase.from('action_bidding')
-      .update({is_redeem:true,})
-      .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`);
+        .update({ is_redeem: true, })
+        .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`);
     })
   );
 
@@ -158,8 +160,8 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
                       {state && (
                         <div className={StatusValue}>
                           {state.hours} :{' '}
-                          {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
-                          {state.minutes > 0 ? state.minutes : `0${state.minutes}`}
+                          {state.minutes > 9 ? state.minutes : `0${state.minutes}`} :{' '}
+                          {state.seconds > 9 ? state.seconds : `0${state.seconds}`}
                         </div>
                       )}
                     </div>
@@ -293,16 +295,16 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
         )}
 
         {/* case 1: auction still live */}
-        {!ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>}
+        {/* {!ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>} */}
 
         {/* case 2.1: auction ended & win */}
-        {/* claim, terus ke kongretulesen page */}
-        {ended && eligibleForAnything && (
+        {!ended && (
           <ActionButton
             disabled={isButtonDisabled}
             onClick={e => {
               e.stopPropagation();
               redeemBid();
+              setAuctionView(auctionView.auction.pubkey);
             }}
           >
             {isOwner ? 'settle' : 'claim your NFT'}

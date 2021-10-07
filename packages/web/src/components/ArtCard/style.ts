@@ -59,10 +59,8 @@ export const CardStyle = css`
   }
 `;
 
-export const NumberStyle = css`
-  font-size: 20px;
-  color: #fafafb;
-  font-weight: bold;
+export const AvatarStyle = css`
+  margin-right: 10px;
 `;
 
 export const UserWrapper = css`
@@ -70,25 +68,4 @@ export const UserWrapper = css`
   margin-bottom: 18px;
   color: #fafafb;
   align-items: center;
-`;
-
-export const AvatarStyle = css`
-  margin-right: 10px;
-`;
-
-export const BidPrice = css`
-  color: #fafafb;
-  font-weight: bold;
-
-  .ant-statistic-content {
-    color: #fafafb;
-    font-size: 20px;
-  }
-`;
-
-export const OwnerContainer = css`
-  font-size: 20px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #fafafb;
 `;

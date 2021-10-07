@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { useParams } from 'react-router';
 import Home from './components/Home';
 import { Providers } from './providers';
 import {
@@ -15,7 +16,27 @@ import { AdminView } from './views/admin';
 import { BillingView } from './views/auction/billing';
 import ActivityView from './views/activity';
 import AuctionListView from './views/auctionList';
-import ClaimPage from './views/claim';
+import Profile from './views/profile';
+
+const DirectPath = () => {
+  const { path } = useParams<{ path: string }>();
+  const paths = ['auction', 'activity', 'market'];
+  const visitedPath = paths.indexOf(path);
+
+  switch (visitedPath) {
+    case 0:
+      return <AuctionListView />
+
+    case 1:
+      return <ActivityView />
+
+    case 2:
+      return <div />
+
+    default:
+      return <Profile userId={path} />
+  }
+};
 
 export function Routes() {
   return (
@@ -54,11 +75,10 @@ export function Routes() {
             />
 
             {/* Updated Path */}
-            <Route exact path="/claim/:id" component={() => <ClaimPage />} />
-            <Route exact path="/auction/:id" component={() => <AuctionView />} />
-            <Route path="/auction" component={() => <AuctionListView />} />
-            <Route path="/activity" component={() => <ActivityView />} />
             <Route exact path="/" component={() => <Home />} />
+            <Route exact path="/:path" component={DirectPath} />
+
+            <Route path="/auction/:id" component={() => <AuctionView />} />
           </Switch>
         </Providers>
       </BrowserRouter>

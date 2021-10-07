@@ -1,6 +1,5 @@
 import { useMeta } from '@oyster/common';
 import React from 'react';
-import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import { Button, Col, Row } from 'antd';
 import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
@@ -8,10 +7,9 @@ import { ContinueButton, Description, HeaderStyle, ShareButton } from './style';
 import { uFontSize18 } from '../../styles';
 import { TwitterOutlined } from '@ant-design/icons';
 
-const TweetURL = urlToNFT => `I%20just%20won%20nft%20auction%20for%20CRYSTAL%20GODS%2007%20on%20%40supadropnft%E2%80%A8%0A%5Binsert%20link%20to%20nft%5D${urlToNFT}`;
+const TweetURL = urlToNFT => `https://twitter.com/intent/tweet?text=I%20just%20won%20nft%20auction%20for%20CRYSTAL%20GODS%2007%20on%20%40supadropnft%E2%80%A8%0A${urlToNFT}`;
 
-const ClaimPage = () => {
-  const { id } = useParams<{ id: string }>();
+const Congratulations = ({ id }) => {
   const { liveDataAuctions } = useMeta();
   const auctionView = liveDataAuctions[id];
 
@@ -39,15 +37,16 @@ const ClaimPage = () => {
             </div>
 
             <div className={uFontSize18}>
-              <Button
-                className={ShareButton}
-                type="default"
-                shape="round"
-                icon={<TwitterOutlined style={{ color: '#1DA1F2' }} />}
-                href={TweetURL(`https://supadrop.com/auction/${id}`)}
-              >
-                tweet
-              </Button>
+              <Link to={{ pathname: TweetURL(`https://supadrop.com/auction/${id}`) }} target="_blank">
+                <Button
+                  className={ShareButton}
+                  type="default"
+                  shape="round"
+                  icon={<TwitterOutlined style={{ color: '#1DA1F2' }} />}
+                >
+                  tweet
+                </Button>
+              </Link>
 
               {/* TODO: Insert URL to user profile*/}
               <Button className={ContinueButton} type="link">continue</Button>
@@ -59,4 +58,4 @@ const ClaimPage = () => {
   );
 };
 
-export default ClaimPage;
+export default Congratulations;
