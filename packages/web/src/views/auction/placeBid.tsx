@@ -6,6 +6,11 @@ import { BidInput, BidRuleInformation, Information, PlaceBidTitle } from './styl
 import { AuctionView, useHighestBidForAuction } from '../../hooks';
 import { WhiteColor } from '../../styles';
 
+function getMinimumBid(bid) {
+  let minimumBid = bid + (bid*0.1)
+  return Math.ceil(minimumBid * 10)/10
+}
+
 const PlaceBid = ({ auction, setBidAmount }: {
   auction: AuctionView | undefined;
   setBidAmount: (num: number) => void;
@@ -21,7 +26,7 @@ const PlaceBid = ({ auction, setBidAmount }: {
 
   const balance = formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL);
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
-  const minimumBid = currentBid + currentBid * 0.1;
+  const minimumBid = getMinimumBid(currentBid);
 
   return (
     <>
