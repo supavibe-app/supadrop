@@ -778,7 +778,6 @@ const InfoStep = (props: {
                   nftAttribute.value = newValue;
                 }
               }
-              console.log('Adding NFT attributes:', nftAttributes);
               props.setAttributes({
                 ...props.attributes,
                 attributes: nftAttributes,

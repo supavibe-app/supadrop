@@ -116,7 +116,6 @@ export const AuctionCreateView = () => {
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
     if (attributes.category === AuctionCategory.InstantSale) {
-      console.log('masuk instant sale');
       
       if (attributes.items.length > 0) {
         const item = attributes.items[0];
@@ -236,7 +235,7 @@ export const AuctionCreateView = () => {
     .insert([{
       id:_auctionObj.auction,
       start_auction:attributes.startSaleTS,
-      end_auction:(attributes.startSaleTS || 0 + (auctionSettings.endAuctionAt?.toNumber() || 0)),
+      end_auction:((attributes.startSaleTS || 0 )+ (auctionSettings.endAuctionAt?.toNumber() || 0)),
       highest_bid:0,
       id_nft:attributes.items[0].metadata.pubkey,
       price_floor:attributes.priceFloor,
@@ -402,6 +401,7 @@ const SellStep = (props: {
             props.setAttributes({
               ...props.attributes,
               startSaleTS:moment().unix(),
+              startListTS:moment().unix(),
               priceFloor,
               priceTick:0.1,
               auctionDuration:time,
@@ -431,7 +431,7 @@ const WaitingStep = (props: {
       const inte = setInterval(
         () => setProgress(prog => Math.min(prog + 1, 99)),
         600,
-      );
+        );
       
       await props.createAuction();
       clearInterval(inte);

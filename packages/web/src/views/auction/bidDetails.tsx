@@ -51,8 +51,6 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
   const minimumBid = currentBid + currentBid * 0.1;
 
-  // console.log('auctionView', auction);
-  // console.log('auctionView', auction?.auction.info);
 
   useEffect(() => {
     if (!connected && showPlaceBid) setShowPlaceBid(false);

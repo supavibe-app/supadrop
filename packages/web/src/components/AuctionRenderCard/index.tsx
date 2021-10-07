@@ -183,10 +183,6 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
     return () => clearInterval(interval);
   }, []);
 
-  // supabase.from('action_bidding')
-  //   .update({is_redeem:true,})
-  //   .eq('id', 'test123').then(() => console.log('testdb', 'lewat'));
-
   if (!isUpcoming && bids.length > 0) {
     label = ended ? 'Winning bid' : 'Current bid';
     currentBid =
