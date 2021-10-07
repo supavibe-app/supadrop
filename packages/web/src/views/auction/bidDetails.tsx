@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Avatar, Col, Row, Skeleton } from 'antd';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox } from './style';
-import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, fromLamports } from '@oyster/common';
+import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports } from '@oyster/common';
 import moment from 'moment';
 
 import ActionButton from '../../components/ActionButton';
@@ -11,6 +11,9 @@ import { TwitterOutlined } from '@ant-design/icons';
 import { AuctionView, useHighestBidForAuction } from '../../hooks';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { uFontSize24, WhiteColor } from '../../styles';
+// import { supabase } from '../../../supabaseClient';
+import { sendPlaceBid } from '../../actions/sendPlaceBid';
+// import BN from 'bn.js';
 
 const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
   art: Art;
@@ -21,12 +24,18 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   setShowPlaceBid: (visible: boolean) => void;
   currentBidAmount: number;
 }) => {
-  const { wallet, connect, connected, publicKey } = useWallet();
+  const connection = useConnection();
+  const walletContext = useWallet();
+  const { wallet, connect, connected, publicKey } = walletContext;
   const { account } = useNativeAccount();
   const { setVisible } = useWalletModal();
+  const { accountByMint } = useUserAccounts();
   const owner = auction?.auctionManager.authority.toString();
   const [state, setState] = useState<CountdownState>();
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
+
+  // const [lastBid, setLastBid] = useState<{ amount: BN } | undefined>(undefined);
+  // const [showBidPlaced, setShowBidPlaced] = useState<boolean>(false);
 
   const open = useCallback(() => setVisible(true), [setVisible]);
 
@@ -42,8 +51,6 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
   const minimumBid = currentBid + currentBid * 0.1;
 
-  // console.log('auctionView', auction);
-  // console.log('auctionView', auction?.auction.info);
 
   useEffect(() => {
     if (!connected && showPlaceBid) setShowPlaceBid(false);
@@ -273,6 +280,18 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           <div className={ButtonWrapper}>
             <ActionButton
               width="100%"
+              onClick={ async () => {
+                const bid = await sendPlaceBid(
+                    connection,
+                    walletContext,
+                    publicKey?.toBase58(),
+                    auction!!,
+                    accountByMint,
+                    currentBidAmount,
+                  );
+                  // setLastBid(bid);
+                  // setShowBidPlaced(true);
+              }}
             >
               CONFIRM
             </ActionButton>

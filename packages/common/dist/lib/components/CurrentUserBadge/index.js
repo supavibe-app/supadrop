@@ -24,8 +24,8 @@ const react_1 = __importStar(require("react"));
 const wallet_adapter_react_1 = require("@solana/wallet-adapter-react");
 const antd_1 = require("antd");
 const Settings_1 = require("../Settings");
-const style_1 = require("./style");
 const supabaseClient_1 = require("../../supabaseClient");
+const style_1 = require("./style");
 const CurrentUserBadge = (props) => {
     const { wallet, publicKey } = wallet_adapter_react_1.useWallet();
     const [showEditProfile, setShowEditProfile] = react_1.useState(false);
@@ -52,11 +52,6 @@ const CurrentUserBadge = (props) => {
                 react_1.default.createElement(antd_1.Avatar, { src: wallet.icon, size: 42, style: { cursor: 'pointer' } }))),
         react_1.default.createElement(antd_1.Modal, { className: style_1.ModalEditProfile, title: "edit profile", visible: showEditProfile, onCancel: () => setShowEditProfile(false), footer: [
                 react_1.default.createElement(antd_1.Button, { key: "save", type: "link", style: { fontWeight: 'bold' }, onClick: () => {
-                        console.log(name);
-                        console.log(username);
-                        console.log(twitter);
-                        console.log(website);
-                        console.log(bio);
                         supabaseClient_1.supabase.from('user_data')
                             .update({
                             name, twitter, username, website, bio

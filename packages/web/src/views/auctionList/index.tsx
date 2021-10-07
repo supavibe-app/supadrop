@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
 import { Link } from 'react-router-dom';
 import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
@@ -24,9 +24,9 @@ const AuctionListView = () => {
 
   const endAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => {
     if (data.endAt < now) return true
-    return false;
-  });
-
+    return false
+  })
+  
   const auctionList = list => {
     if (isLoadingMetaplex && isLoadingDatabase) return [...Array(8)].map((_, idx) => <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}><CardLoader key={idx} /></Col>)
 

@@ -64,7 +64,6 @@ export async function deprecatedPopulatePrintingTokens(
         wallet.publicKey,
         toPublicKey(printingMint),
       );
-      console.log('Making atas');
 
       nft.draft.printingMintHolding = holdingKey;
       nft.box.tokenAccount = holdingKey;

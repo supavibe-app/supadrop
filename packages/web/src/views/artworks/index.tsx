@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { ArtCard } from '../../components/ArtCard';
-import { Layout, Row, Col, Tabs } from 'antd';
+import { Layout, Row, Col, Tabs ,Button} from 'antd';
 import Masonry from 'react-masonry-css';
 import { Link } from 'react-router-dom';
-import { useCreatorArts, useUserArts } from '../../hooks';
+import { AuctionViewState, useAuctions, useCreatorArts, useUserArts } from '../../hooks';
 import { useMeta } from '../../contexts';
 import { CardLoader } from '../../components/MyLoader';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -16,12 +16,14 @@ export enum ArtworkViewState {
   Metaplex = '0',
   Owned = '1',
   Created = '2',
+  OnSale = '3',
 }
 
 export const ArtworksView = () => {
   const { connected, publicKey } = useWallet();
   const ownedMetadata = useUserArts();
   const createdMetadata = useCreatorArts(publicKey?.toBase58() || '');
+  const onSale = useAuctions(AuctionViewState.Live).filter(m=>m.vault.info.authority === publicKey?.toBase58() )
   const { metadata, isLoadingMetaplex } = useMeta();
   const [activeKey, setActiveKey] = useState(ArtworkViewState.Metaplex);
   const breakpointColumnsObj = {
@@ -36,6 +38,8 @@ export const ArtworksView = () => {
       ? ownedMetadata.map(m => m.metadata)
       : activeKey === ArtworkViewState.Created
       ? createdMetadata
+      : activeKey === ArtworkViewState.OnSale
+      ? onSale
       : metadata;
 
   useEffect(() => {
@@ -64,6 +68,9 @@ export const ArtworksView = () => {
                   height={250}
                   width={250}
                 />
+                <Link to={{pathname:`/auction/create/0`,state:{idNFT:id,item:[m]}}} key={idx}>
+                  Listing
+                </Link>
               </Link>
             );
           })
@@ -88,7 +95,15 @@ export const ArtworksView = () => {
               </TabPane>
               {connected && (
                 <TabPane
-                  tab={<span className="tab-title">Owned</span>}
+                  tab={<span className="tab-title">Created</span>}
+                  key={ArtworkViewState.Created}
+                >
+                  {artworkGrid}
+                </TabPane>
+              )}
+              {connected && (
+                <TabPane
+                  tab={<span className="tab-title">Collected</span>}
                   key={ArtworkViewState.Owned}
                 >
                   {artworkGrid}
@@ -96,8 +111,8 @@ export const ArtworksView = () => {
               )}
               {connected && (
                 <TabPane
-                  tab={<span className="tab-title">Created</span>}
-                  key={ArtworkViewState.Created}
+                  tab={<span className="tab-title">ON Sale</span>}
+                  key={ArtworkViewState.OnSale}
                 >
                   {artworkGrid}
                 </TabPane>

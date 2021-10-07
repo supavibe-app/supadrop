@@ -10,6 +10,7 @@ import { AuctionViewItem, CountdownState, formatTokenAmount, fromLamports, Price
 import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '../../../actions/sendRedeemBid';
 import { ArtContent } from '../../../components/ArtContent';
 import { sendCancelBid } from '../../../actions/cancelBid';
+import { supabase } from '../../../../supabaseClient'
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
@@ -111,9 +112,9 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
     ).then(() => {
       // setShowRedeemedBidModal(true)
       // TODO ADD FLAG TO DB
-      // supabase.from('action_bidding')
-      // .update({is_redeem:true,})
-      // .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`);
+      supabase.from('action_bidding')
+      .update({is_redeem:true,})
+      .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`);
     })
   );
 

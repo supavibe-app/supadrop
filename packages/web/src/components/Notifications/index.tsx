@@ -263,7 +263,6 @@ export function useSettlementAuctions({
         b.info.auctionAct === auctionKey,
     );
 
-    console.log('auctionView', auctionView);
 
     if (bidsToClaim.length || validDiscoveredEndedAuctions[auctionViewKey] > 0) {
       notifications.push({

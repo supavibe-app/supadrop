@@ -63,7 +63,6 @@ export async function findEligibleParticipationBidsForRedemption(
         bid,
         bidRedemption,
       );
-      console.log(bid.pubkey, 'eligible?', eligible);
       if (eligible) {
         unredeemedParticipations.push({ bid, bidRedemption });
       }
