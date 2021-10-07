@@ -46,11 +46,9 @@ export async function filterMetadata(
       masterEdition?.info.key == MetadataKey.MasterEditionV1
     ) {
       if (batchWaitCounter == 10) {
-        console.log('Waiting 10s before continuing to avoid rate limits');
         await new Promise(resolve => setTimeout(resolve, 10000));
         batchWaitCounter = 0;
       }
-      console.log('Reviewing', masterEdition.pubkey);
       let printingBal = 0;
       try {
         const printingBalResp = await connection.getTokenSupply(
@@ -147,7 +145,6 @@ export async function convertMasterEditions(
   for (let i = 0; i < masterEditions.length; i++) {
     const masterEdition = masterEditions[i] as ParsedAccount<MasterEditionV1>;
 
-    console.log('Converting', masterEdition.pubkey);
     const printingMintAcct = accountsByMint.get(
       masterEdition.info.printingMint,
     );
@@ -239,11 +236,9 @@ export async function convertMasterEditions(
     signers.push(currSignerBatch);
     instructions.push(currInstrBatch);
   }
-  console.log('Instructions', instructions);
   for (let i = 0; i < instructions.length; i++) {
     const instructionBatch = instructions[i];
     const signerBatch = signers[i];
-    console.log('Running batch', i);
     if (instructionBatch.length >= 2)
       // Pump em through!
       await sendTransactions(
@@ -262,6 +257,5 @@ export async function convertMasterEditions(
         signerBatch[0],
         'single',
       );
-    console.log('Done');
   }
 }

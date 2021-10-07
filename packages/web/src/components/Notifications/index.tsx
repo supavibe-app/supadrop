@@ -1,10 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  CheckCircleTwoTone,
-  LoadingOutlined,
-  PlayCircleOutlined,
-  SyncOutlined,
-} from '@ant-design/icons';
+import { CheckCircleTwoTone, LoadingOutlined, SyncOutlined } from '@ant-design/icons';
 import {
   findProgramAddress,
   programIds,
@@ -17,9 +12,10 @@ import {
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
-import { Badge, Button, List, Popover } from 'antd';
+import { Badge, Button, List, Popover, Tooltip } from 'antd';
 import FeatherIcon from 'feather-icons-react';
 import { Link, useLocation } from 'react-router-dom';
+import moment from 'moment';
 
 import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
 import { decommAuctionManagerAndReturnPrizes } from '../../actions/decommAuctionManagerAndReturnPrizes';
@@ -31,7 +27,7 @@ import { QUOTE_MINT } from '../../constants';
 import { useMeta } from '../../contexts';
 import { AuctionViewState, useAuctions } from '../../hooks';
 import { BadgeStyle, CircleButton, EmptyNotification, ListStyle, NotificationPopover } from './style';
-import { GreyColor, uBoldFont, uFlexSpaceBetween, WhiteColor } from '../../styles';
+import { GreyColor, uBoldFont, uFlexSpaceBetween, uLowerCase, WhiteColor } from '../../styles';
 import Coffee from '../../assets/icons/coffee';
 
 interface NotificationCard {
@@ -40,6 +36,8 @@ interface NotificationCard {
   description: string | JSX.Element;
   action: () => Promise<boolean>;
   dismiss?: () => Promise<boolean>;
+  textButton: string;
+  notifiedAt?: number;
 }
 
 enum RunActionState {
@@ -60,9 +58,7 @@ function RunAction({
   onFinish?: () => void;
   icon: JSX.Element;
 }) {
-  const [state, setRunState] = useState<RunActionState>(
-    RunActionState.NotRunning,
-  );
+  const [state, setRunState] = useState<RunActionState>(RunActionState.NotRunning);
 
   useMemo(() => setRunState(RunActionState.NotRunning), [id]);
 
@@ -154,6 +150,7 @@ export function useCollapseWrappedSol({
     notifications.push({
       id: 'unsettled',
       title: 'Unsettled funds!',
+      textButton: 'settle',
       description:
         'You have unsettled royalties in your personal escrow account.',
       action: async () => {
@@ -189,8 +186,8 @@ export function useSettlementAuctions({
   const { bidderPotsByAuctionAndBidder } = useMeta();
   const auctionsNeedingSettling = [...useAuctions(AuctionViewState.Ended), ...useAuctions(AuctionViewState.BuyNow)];
 
-  const [validDiscoveredEndedAuctions, setValidDiscoveredEndedAuctions] =
-    useState<Record<string, number>>({});
+  const [validDiscoveredEndedAuctions, setValidDiscoveredEndedAuctions] = useState<Record<string, number>>({});
+
   useMemo(() => {
     const f = async () => {
       const nextBatch = auctionsNeedingSettling
@@ -265,15 +262,19 @@ export function useSettlementAuctions({
         !b.info.emptied &&
         b.info.auctionAct === auctionKey,
     );
-    if (bidsToClaim.length || validDiscoveredEndedAuctions[auctionViewKey] > 0)
+
+
+    if (bidsToClaim.length || validDiscoveredEndedAuctions[auctionViewKey] > 0) {
       notifications.push({
         id: auctionViewKey,
-        title: 'You have an ended auction that needs settling!',
+        title: 'You have an ended auction that needs settling',
+        textButton: 'settle',
+        notifiedAt: auctionView.auction.info.endedAt?.toNumber(),
         description: (
           <span>
             One of your auctions ended and it has monies that can be claimed.
             For more detail,{' '}
-            <Link to={`/auction/${auctionKey}/billing`}>click here.</Link>
+            <Link to={`/auction/${auctionKey}`}>click here.</Link>
           </span>
         ),
         action: async () => {
@@ -298,6 +299,7 @@ export function useSettlementAuctions({
           return true;
         },
       });
+    }
   });
 }
 
@@ -340,6 +342,7 @@ export const Notifications = ({ }) => {
     notifications.push({
       id: v.pubkey,
       title: 'You have items locked in a defective auction!',
+      textButton: 'claim',
       description: (
         <span>
           During an auction creation process that probably had some issues, you
@@ -369,6 +372,7 @@ export const Notifications = ({ }) => {
       notifications.push({
         id: v.auctionManager.pubkey,
         title: 'You have items locked in a defective auction!',
+        textButton: 'refund',
         description: (
           <span>
             During an auction creation process that probably had some issues,
@@ -412,6 +416,7 @@ export const Notifications = ({ }) => {
     notifications.push({
       id: m.pubkey,
       title: 'You have a new artwork to approve!',
+      textButton: 'approve',
       description: (
         <span>
           {whitelistedCreatorsByCreator[m.info.updateAuthority]?.info?.name ||
@@ -438,6 +443,7 @@ export const Notifications = ({ }) => {
       notifications.push({
         id: v.auctionManager.pubkey,
         title: 'You have an auction which is not started yet!',
+        textButton: 'activate',
         description: <span>You can activate it now if you wish.</span>,
         action: async () => {
           try {
@@ -452,21 +458,21 @@ export const Notifications = ({ }) => {
     });
 
   const content = notifications.length ? (
-
     <div>
       <List
         itemLayout="vertical"
         size="small"
         dataSource={notifications.slice(0, 2)}
-        renderItem={() => (
+        renderItem={notification => (
           <List.Item
             className={ListStyle}
-            // TODO-Iyai Update with action button
-            extra={<Button className={uBoldFont} type="link">settle</Button>}
+            extra={<Button className={uBoldFont} onClick={notification.action} type="link">{notification.textButton}</Button>}
           >
-            {/* TODO-Iyai: Update with desription and notifications time */}
-            <div>you have ended auction that needs to be settling</div>
-            <div className={GreyColor}>21 minutes ago</div>
+            <Tooltip title={<div className={uLowerCase}>{notification.description}</div>}>
+              <div className={uLowerCase}>{notification.title}</div>
+            </Tooltip>
+
+            <div className={GreyColor}>{moment((notification.notifiedAt || 0) * 1000).fromNow()}</div>
           </List.Item>
         )}
       />

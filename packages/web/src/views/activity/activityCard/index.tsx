@@ -10,6 +10,7 @@ import { AuctionViewItem, CountdownState, formatTokenAmount, fromLamports, Price
 import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '../../../actions/sendRedeemBid';
 import { ArtContent } from '../../../components/ArtContent';
 import { sendCancelBid } from '../../../actions/cancelBid';
+import { supabase } from '../../../../supabaseClient'
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
@@ -111,9 +112,9 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
     ).then(() => {
       // setShowRedeemedBidModal(true)
       // TODO ADD FLAG TO DB
-      // supabase.from('action_bidding')
-      // .update({is_redeem:true,})
-      // .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`);
+      supabase.from('action_bidding')
+      .update({is_redeem:true,})
+      .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`);
     })
   );
 
@@ -250,12 +251,46 @@ const ActivityCard = ({ auctionView }: { auctionView: AuctionView }) => {
       </Col>
 
       <Col className={ButtonWrapper} span={6}>
-        <div className={Label}>your bid</div>
-        <div className={Price}>
-          {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
-            formatTokenAmount(bids[0].info.lastBid, mint)
-          )} SOL
-        </div>
+        {!isOwner && (
+          <>
+            <div className={Label}>your bid</div>
+            <div className={Price}>
+              {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
+                formatTokenAmount(bids[0].info.lastBid, mint)
+              )} SOL
+            </div>
+          </>
+        )}
+
+        {isOwner && ended && highestBid && (
+          <>
+            <div className={Label}>settle fund</div>
+            <div className={Price}>
+              {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
+                formatTokenAmount(bids[0].info.lastBid, mint)
+              )} SOL
+            </div>
+          </>
+        )}
+
+        {isOwner && (
+          <>
+            <div className={Label}>ending in</div>
+            {state && !ended && (
+              <div className={StatusValue}>
+                {state.hours} :{' '}
+                {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
+                {state.minutes > 0 ? state.minutes : `0${state.minutes}`}
+              </div>
+            )}
+
+            {ended && (
+              <div className={StatusValue}>
+                auction ended
+              </div>
+            )}
+          </>
+        )}
 
         {/* case 1: auction still live */}
         {!ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>}

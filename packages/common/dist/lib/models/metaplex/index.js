@@ -438,7 +438,7 @@ class BidRedemptionTicketV2 {
             this.winnerIndex = null;
         }
         else {
-            this.winnerIndex = new bn_js_1.default(this.data.slice(1, 9), 'le');
+            this.winnerIndex = new bn_js_1.default(this.data.slice(2, 8), 'le');
             offset += 8;
         }
         this.auctionManager = bs58_1.default.encode(this.data.slice(offset, offset + 32));

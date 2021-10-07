@@ -15,6 +15,7 @@ import { AdminView } from './views/admin';
 import { BillingView } from './views/auction/billing';
 import ActivityView from './views/activity';
 import AuctionListView from './views/auctionList';
+import ClaimPage from './views/claim';
 
 export function Routes() {
   return (
@@ -48,16 +49,13 @@ export function Routes() {
             />
             <Route
               exact
-              path="/auction/:id"
-              component={() => <AuctionView />}
-            />
-            <Route
-              exact
               path="/auction/:id/billing"
               component={() => <BillingView />}
             />
 
             {/* Updated Path */}
+            <Route exact path="/claim/:id" component={() => <ClaimPage />} />
+            <Route exact path="/auction/:id" component={() => <AuctionView />} />
             <Route path="/auction" component={() => <AuctionListView />} />
             <Route path="/activity" component={() => <ActivityView />} />
             <Route exact path="/" component={() => <Home />} />

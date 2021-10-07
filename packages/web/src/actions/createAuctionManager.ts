@@ -498,7 +498,6 @@ async function buildSafetyDepositArray(
       });
     }
   }
-  console.log('Temps', safetyDepositTemplates);
   return safetyDepositTemplates;
 }
 
