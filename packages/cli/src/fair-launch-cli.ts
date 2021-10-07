@@ -1190,10 +1190,18 @@ program
     '--keypair not provided',
   )
   .option('-f, --fair-launch <string>', 'fair launch id')
+  .option(
+    '-r, --rpc-url <string>',
+    'custom rpc url since this is a heavy command',
+  )
   .action(async (_, cmd) => {
-    const { env, keypair, fairLaunch } = cmd.opts();
+    const { env, keypair, fairLaunch, rpcUrl } = cmd.opts();
     const walletKeyPair = loadWalletKey(keypair);
-    const anchorProgram = await loadFairLaunchProgram(walletKeyPair, env);
+    const anchorProgram = await loadFairLaunchProgram(
+      walletKeyPair,
+      env,
+      rpcUrl,
+    );
 
     const fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
     const fairLaunchObj = await anchorProgram.account.fairLaunch.fetch(
@@ -1379,17 +1387,36 @@ program
                   allIndexesInSlice[i],
                   ticket.model.buyer.toBase58(),
                 );
-                await adjustTicket({
-                  amountNumber: 0,
-                  fairLaunchObj,
-                  adjuster: ticket.model.buyer,
-                  fairLaunch,
-                  fairLaunchTicket: ticket.key,
-                  fairLaunchLotteryBitmap,
-                  anchorProgram,
-                  payer: walletKeyPair,
-                  adjustMantissa: true,
-                });
+                let tries = 0;
+                let done = false;
+                while (tries < 3 && !done) {
+                  try {
+                    await adjustTicket({
+                      amountNumber: 0,
+                      fairLaunchObj,
+                      adjuster: ticket.model.buyer,
+                      fairLaunch,
+                      fairLaunchTicket: ticket.key,
+                      fairLaunchLotteryBitmap,
+                      anchorProgram,
+                      payer: walletKeyPair,
+                      adjustMantissa: true,
+                    });
+                    done = true;
+                  } catch (e) {
+                    if (tries > 3) {
+                      throw e;
+                    } else {
+                      tries++;
+                    }
+                    console.log(e);
+                    console.log(
+                      'Adjusting ticket failed',
+                      ticket.key.toBase58(),
+                    );
+                    await sleep(1000);
+                  }
+                }
               } else {
                 const myByte =
                   fairLaunchLotteryBitmapObj.data[
@@ -1717,19 +1744,11 @@ program
     '--keypair not provided',
   )
   .option('-f, --fair-launch <string>', 'fair launch id')
-  .option(
-    '-r, --rpc-url <string>',
-    'custom rpc url since this is a heavy command',
-  )
   .action(async (_, cmd) => {
-    const { env, keypair, fairLaunch, rpcUrl } = cmd.opts();
+    const { env, keypair, fairLaunch } = cmd.opts();
 
     const walletKeyPair = loadWalletKey(keypair);
-    const anchorProgram = await loadFairLaunchProgram(
-      walletKeyPair,
-      env,
-      rpcUrl,
-    );
+    const anchorProgram = await loadFairLaunchProgram(walletKeyPair, env);
 
     const fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
     const fairLaunchObj = await anchorProgram.account.fairLaunch.fetch(
@@ -1758,37 +1777,19 @@ program
       fairLaunchObj.currentMedian.toNumber();
     if (diff > 0) {
       console.log('Refunding first', diff, 'to buyer before punching');
-      
-      let tries = 0;
-      let done = false;
-      while (tries < 3 && !done) {
-        try {
-          await adjustTicket({
-            amountNumber: 0,
-            fairLaunchObj,
-            adjuster: ticket.model.buyer,
-            fairLaunch,
-            fairLaunchTicket: ticket.key,
-            fairLaunchLotteryBitmap,
-            anchorProgram,
-            payer: walletKeyPair,
-            adjustMantissa: true,
-          });
-          done = true;
-        } catch (e) {
-          if (tries > 3) {
-            throw e;
-          } else {
-            tries++;
-          }
-          console.log(e);
-          console.log(
-            'Adjusting ticket failed',
-            ticket.key.toBase58(),
-          );
-          await sleep(1000);
-        }
-      }
+      await adjustTicket({
+        //@ts-ignore
+        amountNumber: fairLaunchObj.currentMedian.toNumber(),
+        fairLaunchObj,
+        //@ts-ignore
+        adjuster: ticket.buyer,
+        fairLaunch,
+        fairLaunchTicket,
+        fairLaunchLotteryBitmap,
+        anchorProgram,
+        payer: walletKeyPair,
+        adjustMantissa: false,
+      });
     }
 
     let tries = 0;
