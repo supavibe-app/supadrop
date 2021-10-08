@@ -32,7 +32,7 @@ export const ArtContentStyle = css`
 
 export const OptionsPopover = css`
   .ant-popover-inner {
-    border: 2px solid yellow;
+    border: 2px solid #ccff00;
     border-radius: 4px;
     background: #000000;
   }
