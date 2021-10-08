@@ -78,9 +78,15 @@ const Profile = ({ userId }: { userId: string; }) => {
           <TabPane tab="On Sale" key="4">
             {onSale.map(art => (
                 <Col key={art.auction.pubkey} span={8}>
-                  <Link to={`/auction/${art.auction.pubkey}`}>
+                    {art.isInstantSale && <>
+                      <Link to={`/auction/${art.auction.pubkey}`}>
                     <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
                   </Link>
+                      <Button onClick={()=>console.log('click')}>Unlisting</Button>
+                    </>}
+                  {!art.isInstantSale && <Link to={`/auction/${art.auction.pubkey}`}>
+                    <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
+                  </Link>}
                 </Col>
               ))}
           </TabPane>
