@@ -4,15 +4,20 @@ import { TwitterOutlined } from '@ant-design/icons';
 import FeatherIcon from 'feather-icons-react';
 import { Link } from 'react-router-dom';
 
-import { useCreatorArts } from '../../hooks';
+import { AuctionViewState, useAuctions, useCreatorArts, useUserArts } from '../../hooks';
 import { ArtCard } from '../../components/ArtCard';
 
 const { TabPane } = Tabs;
 
 const Profile = ({ userId }: { userId: string; }) => {
   const artwork = useCreatorArts(userId);
-
-  console.log(artwork)
+  const ownedMetadata = useUserArts();
+  const allAuctions = [
+    ...useAuctions(AuctionViewState.Live),
+  ]
+  console.log("🚀 ~ file: index.tsx ~ line 20 ~ Profile ~ allAuctions", allAuctions.filter(m=>m.auction.pubkey==="8WkqoCD8Z171v6dLX2hwucckEdm4dpimAx6VfFhmWbCB"))
+  const onSale = useAuctions(AuctionViewState.Live).filter(m=>m.auctionManager.authority===userId)
+  console.log("🚀 ~ file: index.tsx ~ line 16 ~ Profile ~ onSale", onSale)
 
   return (
     <Row>
@@ -48,7 +53,7 @@ const Profile = ({ userId }: { userId: string; }) => {
           <TabPane tab="Created" key="2">
             <Row gutter={[36, 36]}>
               {artwork.map(art => (
-                <Col span={8}>
+                <Col key={art.pubkey} span={8}>
                   <Link to={`/art/${art.pubkey}`}>
                     <ArtCard key={art.pubkey} pubkey={art.pubkey} preview={false} />
                   </Link>
@@ -57,10 +62,27 @@ const Profile = ({ userId }: { userId: string; }) => {
             </Row>
           </TabPane>
           <TabPane tab="Collected" key="3">
-            Content of Tab Pane 3
+          <Row gutter={[36, 36]}>
+              {ownedMetadata.map(art => (
+                <Col key={art.metadata.pubkey} span={8}>
+                  <Link to={`/art/${art.metadata.pubkey}`}>
+                    <ArtCard key={art.metadata.pubkey} pubkey={art.metadata.pubkey} preview={false} />
+                  </Link>
+                  <Link to={{pathname:`/auction/create/0`,state:{idNFT:art.metadata.pubkey,item:[art]}}} key={art.metadata.pubkey}>
+                  Listing
+                </Link>
+                </Col>
+              ))}
+            </Row>
           </TabPane>
           <TabPane tab="On Sale" key="4">
-            Content of Tab Pane 4
+            {onSale.map(art => (
+                <Col key={art.auction.pubkey} span={8}>
+                  <Link to={`/auction/${art.auction.pubkey}`}>
+                    <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
+                  </Link>
+                </Col>
+              ))}
           </TabPane>
         </Tabs>
       </Col>
