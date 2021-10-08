@@ -12,6 +12,7 @@ import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '.
 import { ArtContent } from '../../../components/ArtContent';
 import { sendCancelBid } from '../../../actions/cancelBid';
 import { supabase } from '../../../../supabaseClient'
+import { sendPlaceBid } from '../../../actions/sendPlaceBid';
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
@@ -21,7 +22,7 @@ export const AuctionItem = ({ item, active }: {
 const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionView, setAuctionView: React.Dispatch<React.SetStateAction<string>> }) => {
   const wallet = useWallet();
   const connection = useConnection();
-  const { bidRedemptions, prizeTrackingTickets } = useMeta();
+  const { update, bidRedemptions, prizeTrackingTickets } = useMeta();
   const isAuctionManagerAuthorityWalletOwner = auctionView.auctionManager.authority === wallet?.publicKey?.toBase58();
   const { push } = useHistory();
 
@@ -71,7 +72,12 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
     (!auctionView.myBidderMetadata && !isAuctionManagerAuthorityWalletOwner) ||
     !!auctionView.items.find(i => i.find(item => !item.metadata));
 
-  const isOwner = publicKey?.toBase58() === auctionView.auctionManager.pubkey;
+  const isOwner = publicKey?.toBase58() === auctionView?.auctionManager.authority.toString();
+
+  const baseInstantSalePrice =
+    auctionView.auctionDataExtended?.info.instantSalePrice;
+
+  const instantSalePrice = (baseInstantSalePrice?.toNumber() || 0) / Math.pow(10, 9)
 
   // countdown
   useEffect(() => {
@@ -295,7 +301,7 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
         )}
 
         {/* case 1: auction still live */}
-        {!ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>}
+        {!ended && !isOwner&& <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>}
 
         {/* case 2.1: auction ended & win */}
         {ended && eligibleForAnything && (
@@ -312,18 +318,66 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
         )}
 
         {/* case 2.2: auction ended & lose */}
-        {ended && !eligibleForAnything && (
+        {ended && !eligibleForAnything && auctionView.isInstantSale && (
           <ActionButton
             disabled={isButtonDisabled}
-            onClick={e => {
-              e.stopPropagation();
-              cancelBid();
+            onClick=
+            // {() => console.log(isOwner)}
+            // {e => {
+            //   e.stopPropagation();
+            //   cancelBid();
+            // }}
+            {async () => {
+              try {
+                await sendPlaceBid(
+                  connection,
+                  wallet,
+                  publicKey?.toBase58(),
+                  auctionView,
+                  accountByMint,
+                  instantSalePrice,
+                );
+              } catch (e) {
+                console.error('sendPlaceBid', e);
+                return
+              }
+          
+              const newAuctionState = await update(
+                auctionView.auction.pubkey,
+                publicKey,
+              );
+              auctionView.auction = newAuctionState[0];
+              auctionView.myBidderPot = newAuctionState[1];
+              auctionView.myBidderMetadata = newAuctionState[2];
+              // Claim the purchase
+              try {
+                await sendRedeemBid(
+                  connection,
+                  wallet,
+                  myPayingAccount.pubkey,
+                  auctionView,
+                  accountByMint,
+                  prizeTrackingTickets,
+                  bidRedemptions,
+                  bids,
+                ).then(async () => {
+                  await update();
+                  // setShowBidModal(false);
+                  // setShowRedeemedBidModal(true);
+                });
+              } catch (e) {
+                console.error(e);
+              }
+          
+              // setLoading(false);
             }}
           >
-            {isOwner ? 'reclaim NFT' : 'refund bid'}
+            {isOwner ? 'UNLIST' : 'refund bid'}
           </ActionButton>
         )}
 
+        {/* case 2.3: owner */}
+        {isOwner && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>view auction</ActionButton>}
       </Col>
     </Row>
   );
