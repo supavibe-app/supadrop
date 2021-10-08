@@ -23,7 +23,6 @@ import {
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ArtType } from '../../types';
-import { ClickToCopy  } from '../../components/ClickToCopy';
 import { Activity, ActivityHeader, ArtContainer, OverflowYAuto, ArtDetailsColumn, ColumnBox, Container, ContentSection, ArtDetailsHeader, IsMyBid, Label, PaddingBox, StatusContainer, BackButton, OptionsPopover, ArtContentStyle } from './style';
 import BidDetails from './bidDetails';
 import PlaceBid from './placeBid';
@@ -245,8 +244,10 @@ export const AuctionView = () => {
             {publicKey?.toBase58() === bid.info.bidderPubkey && <div className={IsMyBid} />}
             <Row className={Activity} justify="space-between" align="middle">
               <Col className={uFlexAlignItemsCenter} span={12}>
-                <Avatar size={24} />
-                <span>{shortenAddress(bid.info.bidderPubkey)}</span>
+                <div>
+                  <Avatar size={24} />
+                </div>
+                <div>{shortenAddress(bid.info.bidderPubkey)}</div>
               </Col>
 
               <Col className={uBoldFont} span={12}>

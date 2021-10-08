@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Row, Button, Modal, ButtonProps } from 'antd';
-import { ArtCard } from './../../components/ArtCard';
+import { ArtCardCreate } from './../../components/ArtCardCreate';
 import { useUserArts } from '../../hooks';
 import Masonry from 'react-masonry-css';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
@@ -59,7 +59,7 @@ export const ArtSelector = (props: ArtSelectorProps) => {
           let key = m?.metadata.pubkey || '';
 
           return (
-            <ArtCard
+            <ArtCardCreate
               key={key}
               pubkey={m.metadata.pubkey}
               preview={false}
@@ -129,7 +129,7 @@ export const ArtSelector = (props: ArtSelectorProps) => {
               };
 
               return (
-                <ArtCard
+                <ArtCardCreate
                   key={id}
                   pubkey={m.metadata.pubkey}
                   preview={false}

@@ -55,7 +55,7 @@ const ArtDetails = ({ auction, artData, highestBid }: {
               <div className={UserThumbnail}>
                 <Avatar size={40} />
                 {/* auction still live */}
-                {!ended || !highestBid && <span>{shortenAddress(owner)}</span>}
+                {(!ended || !highestBid) && <span>{shortenAddress(owner)}</span>}
                 {/* auction ended and have winner */}
                 {ended && highestBid && <span>{shortenAddress(highestBid.info.bidderPubkey)}</span>}
               </div>

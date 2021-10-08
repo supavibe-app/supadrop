@@ -11,11 +11,15 @@ import { Label, LiveDot, NumberStyle, TabsStyle, Timer, TitleWrapper } from './s
 const { TabPane } = Tabs;
 
 const AuctionListView = () => {
-  const auctions = useAuctions(AuctionViewState.Live);
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
-  const [activeKey, setActiveKey] = useState(auctions.length > 0 ? '1' : '2');
   const { isLoadingMetaplex, isLoadingDatabase, liveDataAuctions } = useMeta();
-  const now = Math.floor(new Date().getTime() / 1000)
+  const now = Math.floor(new Date().getTime() / 1000);
+  const [activeKey, setActiveKey] = useState(Object.entries(liveDataAuctions).length > 0 ? '1' : '2');
+
+  useEffect(() => {
+    if (Object.entries(liveDataAuctions).length) setActiveKey('1');
+    else setActiveKey('2');
+  }, [liveDataAuctions]);
 
   const liveAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => {
     if (data.endAt > now) return true
@@ -24,15 +28,15 @@ const AuctionListView = () => {
 
   const endAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => {
     if (data.endAt < now) return true
-    return false
+    return false;
   })
-  
+
   const auctionList = list => {
     if (isLoadingMetaplex && isLoadingDatabase) return [...Array(8)].map((_, idx) => <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}><CardLoader key={idx} /></Col>)
 
     return (
       <>
-        {list.map(([key, m], idx) => {
+        {list.map(([_, m], idx) => {
           return (
             <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
               <Link to={`/auction/${m.id}`}>
@@ -84,7 +88,7 @@ const AuctionListView = () => {
   return (
     <Row justify="center">
       <Col style={{ margin: '24px 0 48px 0' }} span={20} xs={20} sm={20} md={20} lg={20} xl={18} xxl={16}>
-        <Tabs defaultActiveKey={liveAuctions.length > 0 ? '1' : '2'} className={TabsStyle} onChange={key => setActiveKey(key)}>
+        <Tabs activeKey={activeKey} className={TabsStyle} onChange={key => setActiveKey(key)}>
           <TabPane key="1" tab={(<div className={TitleWrapper}>
             <div className={LiveDot(activeKey === '1')} />live auctions
           </div>)}>

@@ -145,14 +145,12 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 
                 <div className={CurrentBid}>
                   <span className={WhiteColor}>{formatTokenAmount(highestBid.info.lastBid)} SOL</span>
-
                   {' '}ending in{' '}
-
                   {!auction?.isInstantSale && state && (
                     <span className={WhiteColor}>
                       {state.hours} :{' '}
-                      {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
-                      {state.minutes > 0 ? state.minutes : `0${state.minutes}`}
+                      {state.minutes > 9 ? state.minutes : `0${state.minutes}`} :{' '}
+                      {state.seconds > 9 ? state.seconds : `0${state.seconds}`}
                     </span>
                   )}
                 </div>
@@ -172,8 +170,8 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
                 {!auction?.isInstantSale && state && (
                   <div className={`${WhiteColor} ${uFontSize24}`}>
                     {state.hours} :{' '}
-                    {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
-                    {state.minutes > 0 ? state.minutes : `0${state.minutes}`}
+                    {state.minutes > 9 ? state.minutes : `0${state.minutes}`} :{' '}
+                    {state.seconds > 9 ? state.seconds : `0${state.seconds}`}
                   </div>
                 )}
               </Col>
