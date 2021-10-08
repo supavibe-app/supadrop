@@ -16,7 +16,7 @@ import {
   Space,
   Card,
 } from 'antd';
-import { ArtCard } from './../../components/ArtCard';
+import { ArtCardCreate } from './../../components/ArtCardCreate';
 import { UserSearch, UserValue } from './../../components/UserSearch';
 import { Confetti } from './../../components/Confetti';
 import { mintNFT } from '../../actions';
@@ -639,7 +639,7 @@ const InfoStep = (props: {
       <Row className="content-action" justify="space-around">
         <Col>
           {props.attributes.image && (
-            <ArtCard
+            <ArtCardCreate
               image={image}
               animationURL={animation_url}
               category={props.attributes.properties?.category}
@@ -1110,7 +1110,7 @@ const LaunchStep = (props: {
       <Row className="content-action" justify="space-around">
         <Col>
           {props.attributes.image && (
-            <ArtCard
+            <ArtCardCreate
               image={image}
               animationURL={animation_url}
               category={props.attributes.properties?.category}

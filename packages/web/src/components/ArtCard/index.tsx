@@ -123,7 +123,7 @@ export const ArtCard = (props: ArtCardProps) => {
           <>
             <div className={UserWrapper}>
               <Avatar size={32} className={AvatarStyle} />
-              <span>{creators[0].address && shortenAddress(creators[0].address)}</span>
+              {/* <span>{creators[0]?.address && shortenAddress(creators[0].address)}</span> */}
             </div>
 
             <Row>
