@@ -18,12 +18,39 @@ const Profile = ({ userId }: { userId: string; }) => {
   const [onEdit, setOnEdit] = useState(false);
   const artwork = useCreatorArts(userId);
   const ownedMetadata = useUserArts();
-  const allAuctions = [...useAuctions(AuctionViewState.Live)];
+  const onSale = useAuctions(AuctionViewState.Live).filter(m => m.auctionManager.authority === userId)
+  const allData: any = {}
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
 
-  console.log("🚀 ~ file: index.tsx ~ line 20 ~ Profile ~ allAuctions", allAuctions.filter(m => m.auction.pubkey === "8WkqoCD8Z171v6dLX2hwucckEdm4dpimAx6VfFhmWbCB"))
-  const onSale = useAuctions(AuctionViewState.Live).filter(m => m.auctionManager.authority === userId)
-  console.log("🚀 ~ file: index.tsx ~ line 16 ~ Profile ~ onSale", onSale);
+
+  onSale.forEach(data => {
+    if (!allData[data.thumbnail.metadata.pubkey]) {
+      allData[data.thumbnail.metadata.pubkey] = {
+        type: "onSale",
+        item: data
+      }
+    }
+  })
+
+  ownedMetadata.forEach(data => {
+    if (!allData[data.metadata.pubkey]) {
+      allData[data.metadata.pubkey] = {
+        type: "owned",
+        item: data
+      }
+    }
+  })
+
+  artwork.forEach(data => {
+    if (!allData[data.pubkey]) {
+      allData[data.pubkey] = {
+        type: "created",
+        item: data
+      }
+    }
+  })
+
+  console.log("🚀 ~ file: index.tsx ~ line 16 ~ Profile ~ onSale", onSale)
 
   return (
     <Row>
@@ -71,7 +98,40 @@ const Profile = ({ userId }: { userId: string; }) => {
       <Col className={ArtsContent} span={18}>
         <Tabs className={TabsStyle} defaultActiveKey="1">
           <TabPane tab={<>All <span>{[...artwork, ...ownedMetadata, ...onSale].length}</span></>} key="1">
-            Content of Tab Pane 1
+            <Row gutter={[36, 36]}>
+              {
+                Object.entries(allData).map(([key, auction]: any) => {
+                  const item = auction.item
+                  if (auction.type === 'onSale') {
+                    return <Col key={item.auction.pubkey} span={8}>
+
+                      {item.isInstantSale && <ArtCardOnSale auctionView={item} />}
+                      {!item.isInstantSale && <Link to={`/auction/${item.auction.pubkey}`}>
+                        <ArtCard key={item.auction.pubkey} pubkey={item.auction.pubkey} preview={false} />
+                      </Link>}
+                    </Col>
+                  } else if (auction.type === 'owned') {
+                    return <Col key={item.metadata.pubkey} span={8}>
+                      <Link to={`/art/${item.metadata.pubkey}`}>
+                        <ArtCard key={item.metadata.pubkey} pubkey={item.metadata.pubkey} preview={false} />
+                      </Link>
+                      <Link to={{
+                        pathname: `/auction/create/0`,
+                        state: { idNFT: item.metadata.pubkey, item: [item] }
+                      }} key={item.metadata.pubkey}>
+                        Listing
+                      </Link>
+                    </Col>
+                  } else {
+                    return <Col key={item.pubkey} span={8}>
+                      <Link to={`/art/${item.pubkey}`}>
+                        <ArtCard key={item.pubkey} pubkey={item.pubkey} preview={false} />
+                      </Link>
+                    </Col>
+                  }
+                })
+              }
+            </Row>
           </TabPane>
 
           <TabPane tab={<>Created <span>{artwork.length}</span></>} key="2">
@@ -94,26 +154,31 @@ const Profile = ({ userId }: { userId: string; }) => {
                   <Link to={`/art/${art.metadata.pubkey}`}>
                     <ArtCard key={art.metadata.pubkey} pubkey={art.metadata.pubkey} preview={false} />
                   </Link>
-                  <Link to={{ pathname: `/auction/create/0`, state: { idNFT: art.metadata.pubkey, item: [art] } }} key={art.metadata.pubkey}>
+                  <Link to={{
+                    pathname: `/auction/create/0`, state: { idNFT: art.metadata.pubkey, item: [art] }
+                  }} key={art.metadata.pubkey}>
                     Listing
                   </Link>
                 </Col>
               ))}
             </Row>
           </TabPane>
+
           <TabPane tab={<>On Sale <span>{onSale.length}</span></>} key="4">
-            {onSale.map(art => (
-              <Col key={art.auction.pubkey} span={8}>
-                {art.isInstantSale && <ArtCardOnSale auctionView={art} />}
-                {!art.isInstantSale && <Link to={`/auction/${art.auction.pubkey}`}>
-                  <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
-                </Link>}
-              </Col>
-            ))}
+            <Row gutter={[36, 36]}>
+              {onSale.map(art => (
+                <Col key={art.auction.pubkey} span={8}>
+                  {art.isInstantSale && <ArtCardOnSale auctionView={art} />}
+                  {!art.isInstantSale && <Link to={`/auction/${art.auction.pubkey}`}>
+                    <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
+                  </Link>}
+                </Col>
+              ))}
+            </Row>
           </TabPane>
         </Tabs>
-      </Col>
-    </Row>
+      </Col >
+    </Row >
   );
 };
 

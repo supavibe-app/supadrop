@@ -30,11 +30,13 @@ const wallet_adapter_react_1 = require("@solana/wallet-adapter-react");
 const connection_1 = require("../../contexts/connection");
 const contexts_1 = require("../../contexts");
 const style_1 = require("./style");
-const Settings = ({ additionalSettings, setShowEdit = () => { } }) => {
+const react_router_dom_1 = require("react-router-dom");
+const Settings = ({ additionalSettings, setShowPopover = () => { } }) => {
     const { connected, disconnect, publicKey } = wallet_adapter_react_1.useWallet();
     const { endpoint, setEndpoint } = connection_1.useConnectionConfig();
     const { setVisible } = contexts_1.useWalletModal();
     const open = react_1.useCallback(() => setVisible(true), [setVisible]);
+    const { push } = react_router_dom_1.useHistory();
     //   return (
     //     <>
     //       <div style={{ display: 'grid' }}>
@@ -89,9 +91,13 @@ const Settings = ({ additionalSettings, setShowEdit = () => { } }) => {
     //   );
     return (react_1.default.createElement(react_1.default.Fragment, null,
         react_1.default.createElement(antd_1.List, { className: style_1.ListStyle },
-            react_1.default.createElement(antd_1.List.Item, { onClick: () => setShowEdit() },
-                react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon, src: "https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" }),
-                "edit profile"),
+            react_1.default.createElement(antd_1.List.Item, null,
+                react_1.default.createElement("div", { onClick: () => {
+                        setShowPopover(false);
+                        push(`/${publicKey}`);
+                    } },
+                    react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon, src: "https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" }),
+                    "view profile")),
             react_1.default.createElement(antd_1.List.Item, { onClick: () => disconnect().catch() },
                 react_1.default.createElement(feather_icons_react_1.default, { icon: "power", className: style_1.ItemIcon }),
                 "disconnect")),
