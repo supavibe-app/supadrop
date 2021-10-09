@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
 
 export const ProfileSection = css`
-  padding: 36px 50px;
+  padding: 56px;
   overflow: auto;
   height: calc(100vh - 80px);
 `;
@@ -66,7 +66,13 @@ export const EditProfileButton = css`
 `;
 
 export const ArtsContent = css`
-  padding: 36px;
+  padding: 56px 56px 56px 16px;
+`;
+
+export const UploadStyle = css`
+  .ant-upload-list {
+    display: none;
+  }
 `;
 
 export const TabsStyle = css`
@@ -75,12 +81,25 @@ export const TabsStyle = css`
     margin-bottom: 36px;
   }
 
-  .ant-tabs-nav-list {
+  .ant-tabs-tab {
     text-transform: uppercase;
     font-style: normal;
     font-weight: bold;
-    font-size: 24px;
+    font-size: 18px;
     line-height: 22px;
+    color: #7e7c7c;
+    margin-bottom: 16px;
+    padding: unset;
+
+    span {
+      color: #444444;
+    }
+  }
+
+  .ant-tabs-tab-active {
+    span {
+      color: #fafafb;
+    }
   }
 `;
 
@@ -98,7 +117,7 @@ export const UploadImageContainer = css`
   margin-bottom: 36px;
 
   div:first-child {
-    margin-right: 16px;
+    margin-right: 12px;
   }
 `;
 
@@ -175,7 +194,7 @@ export const FormItemStyle = css`
 
 export const ChooseFileButton = css`
   padding: unset;
-  margin-top: 24px;
+  margin-top: 12px;
 `;
 
 export const BioLabel = css`
@@ -190,4 +209,10 @@ export const BioLabel = css`
     font-size: 14px;
     color: #7e7c7c;
   }
+`;
+
+export const CancelButton = css`
+  margin-top: 24px;
+  width: 100%;
+  color: #fafafb;
 `;

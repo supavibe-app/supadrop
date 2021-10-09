@@ -18,10 +18,7 @@ const Profile = ({ userId }: { userId: string; }) => {
   const [onEdit, setOnEdit] = useState(false);
   const artwork = useCreatorArts(userId);
   const ownedMetadata = useUserArts();
-  const allAuctions = [
-    ...useAuctions(AuctionViewState.Live),
-  ];
-
+  const allAuctions = [...useAuctions(AuctionViewState.Live)];
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
 
   console.log("🚀 ~ file: index.tsx ~ line 20 ~ Profile ~ allAuctions", allAuctions.filter(m => m.auction.pubkey === "8WkqoCD8Z171v6dLX2hwucckEdm4dpimAx6VfFhmWbCB"))
@@ -46,7 +43,7 @@ const Profile = ({ userId }: { userId: string; }) => {
               className={AddressSection}
               onClick={() => {
                 navigator.clipboard.writeText(userId);
-                message.success('address has copied to clipboard')
+                message.success('address has copied to clipboard');
               }}
             >
               <div>{shortenAddress(userId)}</div>
@@ -73,10 +70,11 @@ const Profile = ({ userId }: { userId: string; }) => {
 
       <Col className={ArtsContent} span={18}>
         <Tabs className={TabsStyle} defaultActiveKey="1">
-          <TabPane tab="All" key="1">
+          <TabPane tab={<>All <span>{[...artwork, ...ownedMetadata, ...onSale].length}</span></>} key="1">
             Content of Tab Pane 1
           </TabPane>
-          <TabPane tab="Created" key="2">
+
+          <TabPane tab={<>Created <span>{artwork.length}</span></>} key="2">
             <Row gutter={[36, 36]}>
               {artwork.map(art => (
                 <Col key={art.pubkey} span={8}>
@@ -87,7 +85,9 @@ const Profile = ({ userId }: { userId: string; }) => {
               ))}
             </Row>
           </TabPane>
-          <TabPane tab="Collected" key="3">
+
+          <TabPane tab={<>Collected <span>{ownedMetadata.length}</span></>} key="3"
+          >
             <Row gutter={[36, 36]}>
               {ownedMetadata.map(art => (
                 <Col key={art.metadata.pubkey} span={8}>
@@ -101,10 +101,9 @@ const Profile = ({ userId }: { userId: string; }) => {
               ))}
             </Row>
           </TabPane>
-          <TabPane tab="On Sale" key="4">
+          <TabPane tab={<>On Sale <span>{onSale.length}</span></>} key="4">
             {onSale.map(art => (
               <Col key={art.auction.pubkey} span={8}>
-
                 {art.isInstantSale && <ArtCardOnSale auctionView={art} />}
                 {!art.isInstantSale && <Link to={`/auction/${art.auction.pubkey}`}>
                   <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
