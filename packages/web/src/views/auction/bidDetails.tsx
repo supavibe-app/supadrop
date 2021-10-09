@@ -203,16 +203,16 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
       auction?.auction.pubkey,
       publicKey,
     );
-    auction.auction = newAuctionState[0];
-    auction.myBidderPot = newAuctionState[1];
-    auction.myBidderMetadata = newAuctionState[2];
+    auction!!.auction = newAuctionState[0];
+    auction!!.myBidderPot = newAuctionState[1];
+    auction!!.myBidderMetadata = newAuctionState[2];
     // Claim the purchase
     try {
       await sendRedeemBid(
         connection,
         walletContext,
         myPayingAccount.pubkey,
-        auction,
+        auction!!,
         accountByMint,
         prizeTrackingTickets,
         bidRedemptions,
@@ -245,6 +245,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 
   // if auction ended
   if (ended) {
+    if (!auction?.isInstantSale) {
     // case 1: you win the bid
     if (highestBid && publicKey && publicKey?.toBase58() === highestBid?.info.bidderPubkey) {
       return (
@@ -270,7 +271,6 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     }
 
     // case 3: auction ended but not participated
-    if (!auction?.isInstantSale) {
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
@@ -279,6 +279,10 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         </BidDetailsContent>
       );
     }
+    // case : instant sale end
+    return (
+      <></>
+    )
   }
 
   // case 4: your nft on sale
@@ -361,6 +365,18 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           <div className={ButtonWrapper}>
             <ActionButton width="100%" disabled>
               insufficient balance
+            </ActionButton>
+          </div>
+        </BidDetailsContent>
+      )
+    }
+
+    if (currentBidAmount == 0) {
+      return (
+        <BidDetailsContent>
+          <div className={ButtonWrapper}>
+            <ActionButton width="100%" disabled>
+              enter your bid amount
             </ActionButton>
           </div>
         </BidDetailsContent>
