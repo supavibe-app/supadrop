@@ -184,6 +184,51 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     );
   };
 
+  const instantSale = async () => {
+    try {
+      await sendPlaceBid(
+        connection,
+        walletContext,
+        publicKey?.toBase58(),
+        auction!!,
+        accountByMint,
+        instantSalePrice,
+      );
+    } catch (e) {
+      console.error('sendPlaceBid', e);
+      return
+    }
+
+    const newAuctionState = await update(
+      auction?.auction.pubkey,
+      publicKey,
+    );
+    auction!!.auction = newAuctionState[0];
+    auction!!.myBidderPot = newAuctionState[1];
+    auction!!.myBidderMetadata = newAuctionState[2];
+    // Claim the purchase
+    try {
+      await sendRedeemBid(
+        connection,
+        walletContext,
+        myPayingAccount.pubkey,
+        auction!!,
+        accountByMint,
+        prizeTrackingTickets,
+        bidRedemptions,
+        bids,
+      ).then(async () => {
+        await update();
+        // setShowBidModal(false);
+        // setShowRedeemedBidModal(true);
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    // setLoading(false);
+  }
+
   // case 0: loading
   if (!art.title) {
     return (
@@ -243,6 +288,22 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     const twitterText = `gm%21%E2%80%A8i%20just%20list%20my%20NFT%20on%20supadrop%20marketplace%2C%20check%20this%20out%21%E2%80%A8%20${auctionURL}`;
     const twitterIntent = `https://twitter.com/intent/tweet?text=${twitterText}`;
 
+    // console.log("instantsale: ", auction?.isInstantSale)
+    // console.log("bidderpot: ", auction?.myBidderPot)
+    if (auction?.isInstantSale) {
+      return (
+        <BidDetailsContent>
+          <a className={ButtonWrapper}>
+            <ActionButton width="100%" onClick={() =>
+                      auction?.isInstantSale && instantSale()
+                    }>
+              UNLIST
+            </ActionButton>
+          </a>
+        </BidDetailsContent>
+      );
+    }
+
     return (
       <BidDetailsContent>
         <a className={ButtonWrapper} href={twitterIntent}>
@@ -268,50 +329,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         <div className={ButtonWrapper}>
           <ActionButton
             width="100%"
-            onClick={async () => {
-              try {
-                await sendPlaceBid(
-                  connection,
-                  walletContext,
-                  publicKey?.toBase58(),
-                  auction!!,
-                  accountByMint,
-                  instantSalePrice,
-                );
-              } catch (e) {
-                console.error('sendPlaceBid', e);
-                return
-              }
-
-              const newAuctionState = await update(
-                auction?.auction.pubkey,
-                publicKey,
-              );
-              auction.auction = newAuctionState[0];
-              auction.myBidderPot = newAuctionState[1];
-              auction.myBidderMetadata = newAuctionState[2];
-              // Claim the purchase
-              try {
-                await sendRedeemBid(
-                  connection,
-                  walletContext,
-                  myPayingAccount.pubkey,
-                  auction,
-                  accountByMint,
-                  prizeTrackingTickets,
-                  bidRedemptions,
-                  bids,
-                ).then(async () => {
-                  await update();
-                  // setShowBidModal(false);
-                  // setShowRedeemedBidModal(true);
-                });
-              } catch (e) {
-                console.error(e);
-              }
-
-              // setLoading(false);
-            }}
+            onClick={instantSale}
 
           >
             BUY NOW

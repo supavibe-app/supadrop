@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState }  from 'react';
 import {
   Steps,
   Row,
@@ -9,7 +9,6 @@ import {
   Radio,
 } from 'antd';
 import { useLocation } from 'react-router-dom'
-import { ArtCard } from './../../components/ArtCard';
 import { QUOTE_MINT } from './../../constants';
 import { Confetti } from './../../components/Confetti';
 import { ArtSelector } from './artSelector';
@@ -20,6 +19,7 @@ import {
   toLamports,
   useMint,
   Creator,
+  constants,
   PriceFloor,
   PriceFloorType,
   IPartialCreateAuctionArgs,
@@ -43,7 +43,14 @@ import { SystemProgram } from '@solana/web3.js';
 import { supabase } from '../../../supabaseClient';
 import { useUserArts } from '../../hooks';
 import moment from 'moment';
-const { Step } = Steps;
+
+const { ZERO } = constants;
+
+enum InstantSaleType {
+  Limited,
+  Single,
+  Open,
+}
 
 export enum AuctionCategory {
   InstantSale,
@@ -72,6 +79,7 @@ export interface AuctionState {
   spots?: number;
   winnersCount: number;
   instantSalePrice?: number;
+  instantSaleType?: InstantSaleType;
 }
 
 export const AuctionCreateView = () => {
@@ -115,11 +123,29 @@ export const AuctionCreateView = () => {
 
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
-    if (attributes.category === AuctionCategory.InstantSale) {
-      
-      if (attributes.items.length > 0) {
-        const item = attributes.items[0];
-        if (!attributes.editions) {
+    if (
+      attributes.category === AuctionCategory.InstantSale &&
+      attributes.instantSaleType === InstantSaleType.Open
+    ) {
+      const { items, instantSalePrice } = attributes;
+
+      if (items.length > 0 && items[0].participationConfig) {
+        items[0].participationConfig.fixedPrice = new BN(
+          toLamports(instantSalePrice, mint) || 0,
+        );
+      }
+
+      winnerLimit = new WinnerLimit({
+        type: WinnerLimitType.Unlimited,
+        usize: ZERO,
+      });
+    } else if (attributes.category === AuctionCategory.InstantSale) {
+      const { items, editions } = attributes;
+
+      if (items.length > 0) {
+        const item = items[0];
+
+        if (!editions) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
             (wallet?.publicKey || SystemProgram.programId).toBase58()
@@ -129,13 +155,13 @@ export const AuctionCreateView = () => {
         item.amountRanges = [
           new AmountRange({
             amount: new BN(1),
-            length: new BN(attributes.editions || 1),
+            length: new BN(editions || 1),
           }),
         ];
       }
       winnerLimit = new WinnerLimit({
         type: WinnerLimitType.Capped,
-        usize: new BN(attributes.editions || 1),
+        usize: new BN(editions || 1),
       });
     } else {
       if (attributes.items.length > 0) {
