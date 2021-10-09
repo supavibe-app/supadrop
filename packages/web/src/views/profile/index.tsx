@@ -21,7 +21,7 @@ const Profile = ({ userId }: { userId: string; }) => {
   const onSale = useAuctions(AuctionViewState.Live).filter(m => m.auctionManager.authority === userId)
   const allData: any = {}
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
-  
+
 
   onSale.forEach(data => {
     if (!allData[data.thumbnail.metadata.pubkey]) {
@@ -70,7 +70,7 @@ const Profile = ({ userId }: { userId: string; }) => {
               className={AddressSection}
               onClick={() => {
                 navigator.clipboard.writeText(userId);
-                message.success('address has copied to clipboard')
+                message.success('address has copied to clipboard');
               }}
             >
               <div>{shortenAddress(userId)}</div>
@@ -97,43 +97,44 @@ const Profile = ({ userId }: { userId: string; }) => {
 
       <Col className={ArtsContent} span={18}>
         <Tabs className={TabsStyle} defaultActiveKey="1">
-          <TabPane tab="All" key="1">
-          <Row gutter={[36, 36]}>
-            {
-              Object.entries(allData).map(([key, auction]:any) => {
-                const item = auction.item
-                if (auction.type === 'onSale') {
-                  return <Col key={item.auction.pubkey} span={8}>
+          <TabPane tab={<>All <span>{[...artwork, ...ownedMetadata, ...onSale].length}</span></>} key="1">
+            <Row gutter={[36, 36]}>
+              {
+                Object.entries(allData).map(([key, auction]: any) => {
+                  const item = auction.item
+                  if (auction.type === 'onSale') {
+                    return <Col key={item.auction.pubkey} span={8}>
 
-                    {item.isInstantSale && <ArtCardOnSale auctionView={item} />}
-                    {!item.isInstantSale && <Link to={`/auction/${item.auction.pubkey}`}>
-                      <ArtCard key={item.auction.pubkey} pubkey={item.auction.pubkey} preview={false} />
-                    </Link>}
-                  </Col>
-                } else if (auction.type === 'owned') {
-                  return <Col key={item.metadata.pubkey} span={8}>
-                    <Link to={`/art/${item.metadata.pubkey}`}>
-                      <ArtCard key={item.metadata.pubkey} pubkey={item.metadata.pubkey} preview={false} />
-                    </Link>
-                    <Link to={{
-                      pathname: `/auction/create/0`, 
-                      state: { idNFT: item.metadata.pubkey, item: [item] }
-                    }} key={item.metadata.pubkey}>
-                      Listing
-                    </Link>
-                  </Col>
-                } else {
-                  return <Col key={item.pubkey} span={8}>
-                    <Link to={`/art/${item.pubkey}`}>
-                      <ArtCard key={item.pubkey} pubkey={item.pubkey} preview={false} />
-                    </Link>
-                  </Col>
-                }
-              })
-            }
+                      {item.isInstantSale && <ArtCardOnSale auctionView={item} />}
+                      {!item.isInstantSale && <Link to={`/auction/${item.auction.pubkey}`}>
+                        <ArtCard key={item.auction.pubkey} pubkey={item.auction.pubkey} preview={false} />
+                      </Link>}
+                    </Col>
+                  } else if (auction.type === 'owned') {
+                    return <Col key={item.metadata.pubkey} span={8}>
+                      <Link to={`/art/${item.metadata.pubkey}`}>
+                        <ArtCard key={item.metadata.pubkey} pubkey={item.metadata.pubkey} preview={false} />
+                      </Link>
+                      <Link to={{
+                        pathname: `/auction/create/0`,
+                        state: { idNFT: item.metadata.pubkey, item: [item] }
+                      }} key={item.metadata.pubkey}>
+                        Listing
+                      </Link>
+                    </Col>
+                  } else {
+                    return <Col key={item.pubkey} span={8}>
+                      <Link to={`/art/${item.pubkey}`}>
+                        <ArtCard key={item.pubkey} pubkey={item.pubkey} preview={false} />
+                      </Link>
+                    </Col>
+                  }
+                })
+              }
             </Row>
           </TabPane>
-          <TabPane tab="Created" key="2">
+
+          <TabPane tab={<>Created <span>{artwork.length}</span></>} key="2">
             <Row gutter={[36, 36]}>
               {artwork.map(art => (
                 <Col key={art.pubkey} span={8}>
@@ -144,7 +145,9 @@ const Profile = ({ userId }: { userId: string; }) => {
               ))}
             </Row>
           </TabPane>
-          <TabPane tab="Collected" key="3">
+
+          <TabPane tab={<>Collected <span>{ownedMetadata.length}</span></>} key="3"
+          >
             <Row gutter={[36, 36]}>
               {ownedMetadata.map(art => (
                 <Col key={art.metadata.pubkey} span={8}>
@@ -160,22 +163,22 @@ const Profile = ({ userId }: { userId: string; }) => {
               ))}
             </Row>
           </TabPane>
-          <TabPane tab="On Sale" key="4">
-          <Row gutter={[36, 36]}>
-            {onSale.map(art => (
-              <Col key={art.auction.pubkey} span={8}>
 
-                {art.isInstantSale && <ArtCardOnSale auctionView={art} />}
-                {!art.isInstantSale && <Link to={`/auction/${art.auction.pubkey}`}>
-                  <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
-                </Link>}
-              </Col>
-            ))}
+          <TabPane tab={<>On Sale <span>{onSale.length}</span></>} key="4">
+            <Row gutter={[36, 36]}>
+              {onSale.map(art => (
+                <Col key={art.auction.pubkey} span={8}>
+                  {art.isInstantSale && <ArtCardOnSale auctionView={art} />}
+                  {!art.isInstantSale && <Link to={`/auction/${art.auction.pubkey}`}>
+                    <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
+                  </Link>}
+                </Col>
+              ))}
             </Row>
           </TabPane>
         </Tabs>
-      </Col>
-    </Row>
+      </Col >
+    </Row >
   );
 };
 

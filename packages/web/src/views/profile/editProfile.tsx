@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import FeatherIcon from 'feather-icons-react';
 import { Avatar, Button, Form, Input, Upload } from 'antd';
 import ActionButton from '../../components/ActionButton';
-import { BioLabel, ChooseFileButton, EditProfileTitle, FormItemStyle, InputPrefixStyle, InputStyle, TextAreaStyle, UploadImageContainer } from './style';
+import { BioLabel, CancelButton, ChooseFileButton, EditProfileTitle, FormItemStyle, InputPrefixStyle, InputStyle, TextAreaStyle, UploadImageContainer, UploadStyle } from './style';
 
 const { TextArea } = Input;
 
@@ -17,17 +17,15 @@ const EditProfile = ({ closeEdit }: { closeEdit: () => void }) => {
       <div>
         <div className={UploadImageContainer}>
           <div>
-            <Upload>
-              <Avatar size={128} icon={<FeatherIcon icon="image" size="42" />} style={{ cursor: 'pointer' }} />
+            <Upload className={UploadStyle}>
+              <Avatar size={86} icon={<FeatherIcon icon="image" size="32" />} style={{ cursor: 'pointer' }} />
             </Upload>
           </div>
 
           <div>
-            <span>
-              We recommend an image of at least 400x400.
-            </span>
+            <div>We recommend an image of at least 400x400.</div>
 
-            <Upload>
+            <Upload className={UploadStyle}>
               <Button className={ChooseFileButton} type="link">choose file</Button>
             </Upload>
           </div>
@@ -94,6 +92,7 @@ const EditProfile = ({ closeEdit }: { closeEdit: () => void }) => {
 
           <Form.Item>
             <ActionButton width="100%" size="small" onClick={closeEdit}>SAVE CHANGE</ActionButton>
+            <Button className={CancelButton} type="link" onClick={closeEdit}>CANCEL</Button>
           </Form.Item>
         </Form>
       </div>
