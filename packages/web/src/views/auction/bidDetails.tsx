@@ -13,7 +13,7 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { uFontSize24, WhiteColor } from '../../styles';
 // import { supabase } from '../../../supabaseClient';
 import { sendPlaceBid } from '../../actions/sendPlaceBid';
-import { sendRedeemBid } from '../../actions/sendRedeemBid';
+import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '../../actions/sendRedeemBid';
 // import BN from 'bn.js';
 
 
@@ -54,6 +54,20 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
   const minimumBid = currentBid + currentBid * 0.1;
   const myPayingAccount = useUserBalance(auction?.auction.info.tokenMint).accounts[0]
+
+  let winnerIndex: number | null = null;
+  if (auction?.myBidderPot?.pubkey)
+    winnerIndex = auction?.auction.info.bidState.getWinnerIndex(
+      auction?.myBidderPot?.info.bidderAct,
+    );
+  const eligibleForOpenEdition = eligibleForParticipationPrizeGivenWinningIndex(
+    winnerIndex,
+    auction,
+    auction?.myBidderMetadata,
+    auction?.myBidRedemption,
+  );
+
+  const eligibleForAnything = winnerIndex !== null || eligibleForOpenEdition;
 
 
   useEffect(() => {
@@ -245,6 +259,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 
   // if auction ended
   if (ended) {
+    if (!auction?.isInstantSale) {
     // case 1: you win the bid
     if (highestBid && publicKey && publicKey?.toBase58() === highestBid?.info.bidderPubkey) {
       return (
@@ -270,7 +285,6 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     }
 
     // case 3: auction ended but not participated
-    if (!auction?.isInstantSale) {
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
@@ -288,9 +302,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     const twitterText = `gm%21%E2%80%A8i%20just%20list%20my%20NFT%20on%20supadrop%20marketplace%2C%20check%20this%20out%21%E2%80%A8%20${auctionURL}`;
     const twitterIntent = `https://twitter.com/intent/tweet?text=${twitterText}`;
 
-    // console.log("instantsale: ", auction?.isInstantSale)
-    // console.log("bidderpot: ", auction?.myBidderPot)
-    if (auction?.isInstantSale) {
+    if (auction?.isInstantSale && !eligibleForAnything) {
       return (
         <BidDetailsContent>
           <a className={ButtonWrapper}>
@@ -302,45 +314,43 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           </a>
         </BidDetailsContent>
       );
+
+      
     }
 
-    return (
-      <BidDetailsContent>
-        <a className={ButtonWrapper} href={twitterIntent}>
-          <ActionButton width="100%">
-            <TwitterOutlined style={{ color: 'white', marginRight: 8 }} />
-            share on twitter
-          </ActionButton>
-        </a>
-      </BidDetailsContent>
-    );
+    if (!ended) {
+      return (
+        <BidDetailsContent>
+          <a className={ButtonWrapper} href={twitterIntent}>
+            <ActionButton width="100%">
+              <TwitterOutlined style={{ color: 'white', marginRight: 8 }} />
+              share on twitter
+            </ActionButton>
+          </a>
+        </BidDetailsContent>
+      );
+    }
   }
-
-  // console.log('instant sale: ', instantSalePrice)
-  // console.log('instant sale: ', balance > instantSalePrice)
-  // console.log('instant sale: ', balance) 
-  // console.log('instant sale: ', instantSalePrice) 
-  // console.log('instant sale: ', minimumBid) 
 
   // case : instant sale
-  if (auction?.isInstantSale && !(publicKey?.toBase58() === owner) && !auction.myBidderPot && balance > instantSalePrice) {
-    return (
-      <BidDetailsContent>
-        <div className={ButtonWrapper}>
-          <ActionButton
-            width="100%"
-            onClick={instantSale}
-
-          >
-            BUY NOW
-          </ActionButton>
-        </div>
-      </BidDetailsContent>
-    );
-  }
-
-  //
-  if (auction?.isInstantSale && !(publicKey?.toBase58() === owner) && !auction.myBidderPot && balance < instantSalePrice) {
+  if (auction?.isInstantSale && !(publicKey?.toBase58() === owner)) {
+    if (!auction.myBidderPot && balance > instantSalePrice) {
+      return (
+        <BidDetailsContent>
+          <div className={ButtonWrapper}>
+            <ActionButton
+              width="100%"
+              onClick={instantSale}
+  
+            >
+              BUY NOW
+            </ActionButton>
+          </div>
+        </BidDetailsContent>
+      );
+    }
+    
+    // !auction.myBidderPot && balance < instantSalePrice
     return (
       <BidDetailsContent>
         <div className={ButtonWrapper}>
@@ -361,6 +371,19 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           <div className={ButtonWrapper}>
             <ActionButton width="100%" disabled>
               insufficient balance
+            </ActionButton>
+          </div>
+        </BidDetailsContent>
+      )
+    }
+
+    // case first open page detail
+    if (currentBidAmount == 0) {
+      return (
+        <BidDetailsContent>
+          <div className={ButtonWrapper}>
+            <ActionButton width="100%" disabled>
+              enter your bid amount
             </ActionButton>
           </div>
         </BidDetailsContent>
@@ -419,6 +442,13 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     );
   }
 
+  // case : instant sale end
+  if (auction?.isInstantSale && ended && eligibleForAnything) {
+    return (
+      <></>
+    )
+  }
+
   // default case
   return (
     <BidDetailsContent>
@@ -438,3 +468,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 };
 
 export default BidDetails;
+function useAuctionExtended(auction: AuctionView | undefined) {
+  throw new Error('Function not implemented.');
+}
+
