@@ -12,7 +12,7 @@ import { Link, useHistory } from 'react-router-dom';
 
 export const Settings = ({ additionalSettings, setShowPopover = () => { } }: {
   additionalSettings?: JSX.Element;
-  setShowEdit?: Function;
+  setShowPopover?: Function;
 }) => {
   const { connected, disconnect, publicKey } = useWallet();
   const { endpoint, setEndpoint } = useConnectionConfig();
