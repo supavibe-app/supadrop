@@ -10,6 +10,7 @@ import { AddressSection, ArtsContent, BioSection, EditProfileButton, IconURL, Na
 import { shortenAddress } from '@oyster/common';
 import EditProfile from './editProfile';
 import { uTextAlignCenter } from '../../styles';
+import { ArtCardOnSale } from '../../components/ArtCardOnSale';
 
 const { TabPane } = Tabs;
 
@@ -103,12 +104,8 @@ const Profile = ({ userId }: { userId: string; }) => {
           <TabPane tab="On Sale" key="4">
             {onSale.map(art => (
               <Col key={art.auction.pubkey} span={8}>
-                {art.isInstantSale && <>
-                  <Link to={`/auction/${art.auction.pubkey}`}>
-                    <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
-                  </Link>
-                  <Button onClick={() => console.log('click')}>Unlisting</Button>
-                </>}
+
+                {art.isInstantSale && <ArtCardOnSale auctionView={art} />}
                 {!art.isInstantSale && <Link to={`/auction/${art.auction.pubkey}`}>
                   <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
                 </Link>}
