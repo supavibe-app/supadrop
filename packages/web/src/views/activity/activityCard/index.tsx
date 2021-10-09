@@ -283,7 +283,7 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
 
         {isOwner && (
           <>
-            <div className={Label}>ending in</div>
+            {!auctionView.isInstantSale && (<div className={Label}>ending in</div>)}
             {state && !ended && (
               <div className={StatusValue}>
                 {state.hours} :{' '}
@@ -292,7 +292,7 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
               </div>
             )}
 
-            {ended && (
+            {ended && !auctionView.isInstantSale &&(
               <div className={StatusValue}>
                 auction ended
               </div>
@@ -318,7 +318,7 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
         )}
 
         {/* case 2.2: auction ended & lose */}
-        {ended && !eligibleForAnything && auctionView.isInstantSale && (
+        {!eligibleForAnything && (
           <ActionButton
             disabled={isButtonDisabled}
             onClick=
@@ -372,12 +372,12 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
               // setLoading(false);
             }}
           >
-            {isOwner ? 'UNLIST' : 'refund bid'}
+            {isOwner && auctionView.isInstantSale? 'UNLIST' : 'refund bid'}
           </ActionButton>
         )}
 
         {/* case 2.3: owner */}
-        {isOwner && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>view auction</ActionButton>}
+        {isOwner && ended && eligibleForAnything && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>view auction</ActionButton>}
       </Col>
     </Row>
   );

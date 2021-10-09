@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 
 import { AuctionViewState, useAuctions, useCreatorArts, useUserArts } from '../../hooks';
 import { ArtCard } from '../../components/ArtCard';
+import { ArtCardOnSale } from '../../components/ArtCardOnSale';
 
 const { TabPane } = Tabs;
 
@@ -15,8 +16,8 @@ const Profile = ({ userId }: { userId: string; }) => {
   const allAuctions = [
     ...useAuctions(AuctionViewState.Live),
   ]
-  console.log("🚀 ~ file: index.tsx ~ line 20 ~ Profile ~ allAuctions", allAuctions.filter(m=>m.auction.pubkey==="8WkqoCD8Z171v6dLX2hwucckEdm4dpimAx6VfFhmWbCB"))
-  const onSale = useAuctions(AuctionViewState.Live).filter(m=>m.auctionManager.authority===userId)
+  console.log("🚀 ~ file: index.tsx ~ line 20 ~ Profile ~ allAuctions", allAuctions.filter(m => m.auction.pubkey === "8WkqoCD8Z171v6dLX2hwucckEdm4dpimAx6VfFhmWbCB"))
+  const onSale = useAuctions(AuctionViewState.Live).filter(m => m.auctionManager.authority === userId)
   console.log("🚀 ~ file: index.tsx ~ line 16 ~ Profile ~ onSale", onSale)
 
   return (
@@ -62,33 +63,29 @@ const Profile = ({ userId }: { userId: string; }) => {
             </Row>
           </TabPane>
           <TabPane tab="Collected" key="3">
-          <Row gutter={[36, 36]}>
+            <Row gutter={[36, 36]}>
               {ownedMetadata.map(art => (
                 <Col key={art.metadata.pubkey} span={8}>
                   <Link to={`/art/${art.metadata.pubkey}`}>
                     <ArtCard key={art.metadata.pubkey} pubkey={art.metadata.pubkey} preview={false} />
                   </Link>
-                  <Link to={{pathname:`/auction/create/0`,state:{idNFT:art.metadata.pubkey,item:[art]}}} key={art.metadata.pubkey}>
-                  Listing
-                </Link>
+                  <Link to={{ pathname: `/auction/create/0`, state: { idNFT: art.metadata.pubkey, item: [art] } }} key={art.metadata.pubkey}>
+                    Listing
+                  </Link>
                 </Col>
               ))}
             </Row>
           </TabPane>
           <TabPane tab="On Sale" key="4">
             {onSale.map(art => (
-                <Col key={art.auction.pubkey} span={8}>
-                    {art.isInstantSale && <>
-                      <Link to={`/auction/${art.auction.pubkey}`}>
-                    <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
-                  </Link>
-                      <Button onClick={()=>console.log('click')}>Unlisting</Button>
-                    </>}
-                  {!art.isInstantSale && <Link to={`/auction/${art.auction.pubkey}`}>
-                    <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
-                  </Link>}
-                </Col>
-              ))}
+              <Col key={art.auction.pubkey} span={8}>
+
+                {art.isInstantSale && <ArtCardOnSale auctionView={art} />}
+                {!art.isInstantSale && <Link to={`/auction/${art.auction.pubkey}`}>
+                  <ArtCard key={art.auction.pubkey} pubkey={art.auction.pubkey} preview={false} />
+                </Link>}
+              </Col>
+            ))}
           </TabPane>
         </Tabs>
       </Col>
