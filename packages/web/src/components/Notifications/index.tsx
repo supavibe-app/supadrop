@@ -274,7 +274,7 @@ export function useSettlementAuctions({
           <span>
             One of your auctions ended and it has monies that can be claimed.
             For more detail,{' '}
-            <Link to={`/auction/${auctionKey}`}>click here.</Link>
+            <Link to={`/auction/${auctionKey}/billing`}>click here.</Link>
           </span>
         ),
         action: async () => {
@@ -303,7 +303,7 @@ export function useSettlementAuctions({
   });
 }
 
-export const Notifications = ({ }) => {
+export const Notifications = () => {
   const {
     metadata,
     whitelistedCreatorsByCreator,
@@ -456,14 +456,15 @@ export const Notifications = ({ }) => {
         },
       });
     });
-
+  console.log(notifications.length);
+  
   const content = notifications.length ? (
     <div>
       <List
         itemLayout="vertical"
         size="small"
-        dataSource={notifications.slice(0, 2)}
-        renderItem={notification => (
+        dataSource={notifications.slice(0, 5)}
+        renderItem={(notification:NotificationCard) => (
           <List.Item
             className={ListStyle}
             extra={<Button className={uBoldFont} onClick={notification.action} type="link">{notification.textButton}</Button>}
