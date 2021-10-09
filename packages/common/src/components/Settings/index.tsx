@@ -8,8 +8,9 @@ import { useWalletModal } from '../../contexts';
 import { notify, shortenAddress } from '../../utils';
 import { CopyOutlined } from '@ant-design/icons';
 import { ItemIcon, ListStyle } from './style';
+import { Link, useHistory } from 'react-router-dom';
 
-export const Settings = ({ additionalSettings, setShowEdit = () => { } }: {
+export const Settings = ({ additionalSettings, setShowPopover = () => { } }: {
   additionalSettings?: JSX.Element;
   setShowEdit?: Function;
 }) => {
@@ -17,6 +18,7 @@ export const Settings = ({ additionalSettings, setShowEdit = () => { } }: {
   const { endpoint, setEndpoint } = useConnectionConfig();
   const { setVisible } = useWalletModal();
   const open = useCallback(() => setVisible(true), [setVisible]);
+  const { push } = useHistory();
 
   //   return (
   //     <>
@@ -87,9 +89,14 @@ export const Settings = ({ additionalSettings, setShowEdit = () => { } }: {
           ))}
         </Select> */}
       <List className={ListStyle}>
-        <List.Item onClick={() => setShowEdit()}>
-          <Avatar className={ItemIcon} src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" />
-          edit profile
+        <List.Item>
+            <div onClick={() => {
+              setShowPopover(false);
+              push(`/${publicKey}`)
+            }}>
+              <Avatar className={ItemIcon} src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" />
+              view profile
+            </div>
         </List.Item>
 
         <List.Item onClick={() => disconnect().catch()}>
