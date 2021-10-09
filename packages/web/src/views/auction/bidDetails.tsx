@@ -333,7 +333,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   }
 
   // case : instant sale
-  if (auction?.isInstantSale && !(publicKey?.toBase58() === owner)) {
+  if (auction?.isInstantSale && !(publicKey?.toBase58() === owner && !eligibleForAnything)) {
     if (!auction.myBidderPot && balance > instantSalePrice) {
       return (
         <BidDetailsContent>
