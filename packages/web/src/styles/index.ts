@@ -22,6 +22,10 @@ export const uTextAlignEnd = css`
   text-align: end;
 `;
 
+export const uTextAlignCenter = css`
+  text-align: center;
+`;
+
 export const uFlex = css`
   display: flex;
 `;
