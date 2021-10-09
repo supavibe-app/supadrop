@@ -203,16 +203,16 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
       auction?.auction.pubkey,
       publicKey,
     );
-    auction.auction = newAuctionState[0];
-    auction.myBidderPot = newAuctionState[1];
-    auction.myBidderMetadata = newAuctionState[2];
+    auction!!.auction = newAuctionState[0];
+    auction!!.myBidderPot = newAuctionState[1];
+    auction!!.myBidderMetadata = newAuctionState[2];
     // Claim the purchase
     try {
       await sendRedeemBid(
         connection,
         walletContext,
         myPayingAccount.pubkey,
-        auction,
+        auction!!,
         accountByMint,
         prizeTrackingTickets,
         bidRedemptions,
