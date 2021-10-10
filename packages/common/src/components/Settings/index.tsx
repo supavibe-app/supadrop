@@ -31,13 +31,15 @@ export const Settings = ({ additionalSettings, setShowPopover = () => { } }: {
       </List.Item>
 
       <List.Item>
-        <a href={`https://explorer.solana.com/address/${publicKey.toBase58()}`} target="_blank">
-          <div className={BalanceInfo}>{balance} SOL</div>
-          <div className={AddressInfo}>
-            <div>{publicKey && shortenAddress(publicKey.toBase58())}{' '}</div>
-            <FeatherIcon icon="external-link" size="16" />
-          </div>
-        </a>
+        {publicKey && (
+          <a href={`https://explorer.solana.com/address/${publicKey.toBase58()}`} target="_blank">
+            <div className={BalanceInfo}>{balance} SOL</div>
+            <div className={AddressInfo}>
+              <div>{publicKey && shortenAddress(publicKey.toBase58())}{' '}</div>
+              <FeatherIcon icon="external-link" size="16" />
+            </div>
+          </a>
+        )}
       </List.Item>
 
       <List.Item onClick={() => disconnect().catch()}>
