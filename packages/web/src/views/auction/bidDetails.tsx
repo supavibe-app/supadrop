@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Avatar, Col, Row, Skeleton } from 'antd';
+import { Avatar, Col, Row, Skeleton, message } from 'antd';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox } from './style';
 import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta } from '@oyster/common';
 import moment from 'moment';
@@ -8,14 +8,11 @@ import ActionButton from '../../components/ActionButton';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Art } from '../../types';
 import { TwitterOutlined } from '@ant-design/icons';
-import { AuctionView, useHighestBidForAuction, useUserBalance } from '../../hooks';
+import { AuctionView, useHighestBidForAuction, useUserArts, useUserBalance } from '../../hooks';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { uFontSize24, WhiteColor } from '../../styles';
-// import { supabase } from '../../../supabaseClient';
 import { sendPlaceBid } from '../../actions/sendPlaceBid';
 import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '../../actions/sendRedeemBid';
-// import BN from 'bn.js';
-
 
 const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
   art: Art;
@@ -36,6 +33,11 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const owner = auction?.auctionManager.authority.toString();
   const [state, setState] = useState<CountdownState>();
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
+
+  const ownedMetadata = useUserArts();
+
+  console.log(ownedMetadata);
+  console.log(art);
 
   // const [lastBid, setLastBid] = useState<{ amount: BN } | undefined>(undefined);
   // const [showBidPlaced, setShowBidPlaced] = useState<boolean>(false);
@@ -260,35 +262,56 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   // if auction ended
   if (ended) {
     if (!auction?.isInstantSale) {
-    // case 1: you win the bid
-    if (highestBid && publicKey && publicKey?.toBase58() === highestBid?.info.bidderPubkey) {
-      return (
-        <BidDetailsContent>
-          <div className={ButtonWrapper}>
-            <ActionButton width="100%">claim your NFT</ActionButton>
-          </div>
-        </BidDetailsContent>
-      )
-    }
+      // case 1: you win the bid
+      if (highestBid && publicKey && publicKey?.toBase58() === highestBid?.info.bidderPubkey) {
+        const filterMetadata = ownedMetadata.filter(metadata => metadata.metadata.info.mint === art.mint);
 
-    const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
+        // if NFT claimed
+        if (filterMetadata.length > 0) {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton width="100%">LIST NFT</ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        }
 
-    // case 2: auction ended but not winning 
-    if (isParticipated) {
-      return (
-        <BidDetailsContent>
-          <div className={ButtonWrapper}>
-            <ActionButton width="100%">refund bid</ActionButton>
-          </div>
-        </BidDetailsContent>
-      )
-    }
+        return (
+          <BidDetailsContent>
+            <div className={ButtonWrapper}>
+              <ActionButton width="100%">claim your NFT</ActionButton>
+            </div>
+          </BidDetailsContent>
+        );
+      }
 
-    // case 3: auction ended but not participated
+      const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
+
+      // case 2: auction ended but not winning 
+      if (isParticipated) {
+        return (
+          <BidDetailsContent>
+            <div className={ButtonWrapper}>
+              <ActionButton width="100%">refund bid</ActionButton>
+            </div>
+          </BidDetailsContent>
+        );
+      }
+
+      // case 3: auction ended but not participated
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
             <ActionButton disabled width="100%">ended auction</ActionButton>
+          </div>
+        </BidDetailsContent>
+      );
+    } else {
+      return (
+        <BidDetailsContent>
+          <div className={ButtonWrapper}>
+            <ActionButton disabled width="100%">not for sale</ActionButton>
           </div>
         </BidDetailsContent>
       );
@@ -307,15 +330,15 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         <BidDetailsContent>
           <a className={ButtonWrapper}>
             <ActionButton width="100%" onClick={() =>
-                      auction?.isInstantSale && instantSale()
-                    }>
+              auction?.isInstantSale && instantSale()
+            }>
               UNLIST
             </ActionButton>
           </a>
         </BidDetailsContent>
       );
 
-      
+
     }
 
     if (!ended) {
@@ -338,24 +361,20 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
-            <ActionButton
-              width="100%"
-              onClick={instantSale}
-  
-            >
+            <ActionButton width="100%" onClick={instantSale}>
               BUY NOW
             </ActionButton>
           </div>
         </BidDetailsContent>
       );
     }
-    
+
     // !auction.myBidderPot && balance < instantSalePrice
     return (
       <BidDetailsContent>
         <div className={ButtonWrapper}>
-          <ActionButton width="100%" disabled>
-            insufficient balance
+          <ActionButton width="100%" onClick={() => message.error('not enough SOL')}>
+            BUY NOW
           </ActionButton>
         </div>
       </BidDetailsContent>

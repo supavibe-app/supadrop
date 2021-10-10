@@ -7,7 +7,7 @@ export const ProfilePopover = css`
   }
 
   .ant-popover-inner-content {
-    padding-right: 0;
+    padding: 4px 0 4px 24px;
   }
 `;
 

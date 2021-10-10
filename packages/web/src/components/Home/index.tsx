@@ -9,10 +9,9 @@ import countDown from '../../helpers/countdown';
 import { ButtonWrapper, CarouselStyle, Description, DiscordButton, HomeStyle, ImageStyle, SocialMediaButton, Title, TwitterButton } from './style';
 import Numbers from './numbers';
 import isEnded from './helpers/isEnded';
+import { TwitterURL } from '../../constants';
 
-const TwitterURL = 'https://twitter.com/intent/user?original_referer=http%3A%2F%2Fsupadrop.com%2F&ref_src=twsrc%5Etfw&region=count_link&screen_name=supadropnft&tw_p=followbutton';
-
-// TODO-Iyai: Get images from backend
+// TODO: Get images from backend
 const images = [
   'https://cdn.discordapp.com/attachments/459348449415004161/888271413381832734/0x26fd3e176c260e7fef019966622419dabfebb299_20.webp',
   'https://cdn.discordapp.com/attachments/459348449415004161/888271475033915432/0x26fd3e176c260e7fef019966622419dabfebb299_17.png',
@@ -25,7 +24,7 @@ const images = [
 
 const Home = () => {
   const [state, setState] = useState<CountdownState>();
-  // TODO-Iyai: get endAt from DB
+  // TODO: get endAt from DB
   const endAt = 1632763291;
 
   useEffect(() => {

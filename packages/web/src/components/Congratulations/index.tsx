@@ -2,16 +2,19 @@ import { useMeta } from '@oyster/common';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Col, Row } from 'antd';
+import { useWallet } from '@solana/wallet-adapter-react';
+
 import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
-import { ContinueButton, Description, HeaderStyle, ShareButton } from './style';
 import { uFontSize18 } from '../../styles';
 import { TwitterOutlined } from '@ant-design/icons';
 import { useArt } from '../../hooks';
+import { ContinueButton, Description, HeaderStyle, ShareButton } from './style';
 
 const TweetURL = (title, urlToNFT) => `https://twitter.com/intent/tweet?text=I%20just%20won%20an%20NFT%20auction%20for%20${title}%20on%20%40supadropnft%E2%80%A8%0A${urlToNFT}`;
 
 const Congratulations = ({ id }) => {
   const { liveDataAuctions } = useMeta();
+  const { publicKey } = useWallet();
   const auctionView = liveDataAuctions[id];
   const art = useArt(auctionView.id_nft);
 
@@ -50,8 +53,9 @@ const Congratulations = ({ id }) => {
                 </Button>
               </Link>
 
-              {/* TODO: Insert URL to user profile*/}
-              <Button className={ContinueButton} type="link">continue</Button>
+              <Link to={`/${publicKey}`}>
+                <span className={ContinueButton}>continue</span>
+              </Link>
             </div>
           </Col>
         </Row>

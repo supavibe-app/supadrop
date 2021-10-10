@@ -59,3 +59,7 @@ export const uLowerCase = css`
 export const uUpperCase = css`
   text-transform: uppercase;
 `;
+
+export const uHeightMax = css`
+  height: 100%;
+`;
