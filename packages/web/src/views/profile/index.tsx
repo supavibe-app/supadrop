@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 
 import { AuctionViewState, useAuctions, useCreatorArts, useUserArts } from '../../hooks';
 import { ArtCard } from '../../components/ArtCard';
-import { AddressSection, ArtsContent, BioSection, EditProfileButton, IconURL, NameStyle, ProfileSection, TabsStyle, UsernameSection } from './style';
+import { AddressSection, ArtsContent, BioSection, EditProfileButton, EmptyRow, EmptyStyle, IconURL, NameStyle, ProfileSection, TabsStyle, UsernameSection } from './style';
 import { shortenAddress } from '@oyster/common';
 import EditProfile from './editProfile';
 import { uTextAlignCenter } from '../../styles';
@@ -22,16 +22,6 @@ const Profile = ({ userId }: { userId: string; }) => {
   const allData: any = {}
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
 
-
-  onSale.forEach(data => {
-    if (!allData[data.thumbnail.metadata.pubkey]) {
-      allData[data.thumbnail.metadata.pubkey] = {
-        type: "onSale",
-        item: data
-      }
-    }
-  })
-
   ownedMetadata.forEach(data => {
     if (!allData[data.metadata.pubkey]) {
       allData[data.metadata.pubkey] = {
@@ -39,7 +29,7 @@ const Profile = ({ userId }: { userId: string; }) => {
         item: data
       }
     }
-  })
+  });
 
   artwork.forEach(data => {
     if (!allData[data.pubkey]) {
@@ -48,9 +38,14 @@ const Profile = ({ userId }: { userId: string; }) => {
         item: data
       }
     }
-  })
+  });
 
-  console.log("🚀 ~ file: index.tsx ~ line 16 ~ Profile ~ onSale", onSale)
+  const EmptyState = () => (
+    <Col className={EmptyStyle} span={24}>
+      <div>nothing to show</div>
+      <div>haven't collect or create any NFTs yet</div>
+    </Col>
+  );
 
   return (
     <Row>
@@ -74,6 +69,7 @@ const Profile = ({ userId }: { userId: string; }) => {
               }}
             >
               <div>{shortenAddress(userId)}</div>
+
               <div>
                 <FeatherIcon icon="copy" size="16" />
               </div>
@@ -97,45 +93,40 @@ const Profile = ({ userId }: { userId: string; }) => {
 
       <Col className={ArtsContent} span={18}>
         <Tabs className={TabsStyle} defaultActiveKey="1">
-          <TabPane tab={<>All <span>{[...artwork, ...ownedMetadata, ...onSale].length}</span></>} key="1">
-            <Row gutter={[36, 36]}>
-              {
-                Object.entries(allData).map(([key, auction]: any) => {
-                  const item = auction.item
-                  if (auction.type === 'onSale') {
-                    return <Col key={item.auction.pubkey} span={8}>
+          <TabPane tab={<>All <span>{Object.entries(allData).length}</span></>} key="1">
+            <Row className={Object.entries(allData).length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
+              {Object.entries(allData).length === 0 && <EmptyState />}
 
-                      {item.isInstantSale && <ArtCardOnSale auctionView={item} />}
-                      {!item.isInstantSale && <Link to={`/auction/${item.auction.pubkey}`}>
-                        <ArtCard key={item.auction.pubkey} pubkey={item.auction.pubkey} preview={false} />
-                      </Link>}
-                    </Col>
-                  } else if (auction.type === 'owned') {
-                    return <Col key={item.metadata.pubkey} span={8}>
-                      <Link to={`/art/${item.metadata.pubkey}`}>
-                        <ArtCard key={item.metadata.pubkey} pubkey={item.metadata.pubkey} preview={false} />
-                      </Link>
-                      <Link to={{
-                        pathname: `/auction/create/0`,
-                        state: { idNFT: item.metadata.pubkey, item: [item] }
-                      }} key={item.metadata.pubkey}>
-                        Listing
-                      </Link>
-                    </Col>
-                  } else {
-                    return <Col key={item.pubkey} span={8}>
-                      <Link to={`/art/${item.pubkey}`}>
-                        <ArtCard key={item.pubkey} pubkey={item.pubkey} preview={false} />
-                      </Link>
-                    </Col>
-                  }
-                })
-              }
+              {Object.entries(allData).map(([key, auction]: any) => {
+                const item = auction.item
+                if (auction.type === 'onSale') {
+                  return <Col key={item.auction.pubkey} span={8}>
+                    {item.isInstantSale && <ArtCardOnSale auctionView={item} />}
+                    {!item.isInstantSale && <Link to={`/auction/${item.auction.pubkey}`}>
+                      <ArtCard key={item.auction.pubkey} pubkey={item.auction.pubkey} preview={false} />
+                    </Link>}
+                  </Col>
+                } else if (auction.type === 'owned') {
+                  return <Col key={item.metadata.pubkey} span={8}>
+                    <Link to={`/art/${item.metadata.pubkey}`}>
+                      <ArtCard key={item.metadata.pubkey} pubkey={item.metadata.pubkey} preview={false} />
+                    </Link>
+                  </Col>
+                } else {
+                  return <Col key={item.pubkey} span={8}>
+                    <Link to={`/art/${item.pubkey}`}>
+                      <ArtCard key={item.pubkey} pubkey={item.pubkey} preview={false} />
+                    </Link>
+                  </Col>
+                }
+              })}
             </Row>
           </TabPane>
 
           <TabPane tab={<>Created <span>{artwork.length}</span></>} key="2">
-            <Row gutter={[36, 36]}>
+            <Row className={artwork.length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
+              {artwork.length === 0 && <EmptyState />}
+
               {artwork.map(art => (
                 <Col key={art.pubkey} span={8}>
                   <Link to={`/art/${art.pubkey}`}>
@@ -146,18 +137,14 @@ const Profile = ({ userId }: { userId: string; }) => {
             </Row>
           </TabPane>
 
-          <TabPane tab={<>Collected <span>{ownedMetadata.length}</span></>} key="3"
-          >
-            <Row gutter={[36, 36]}>
+          <TabPane tab={<>Collected <span>{ownedMetadata.length}</span></>} key="3">
+            <Row className={ownedMetadata.length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
+              {ownedMetadata.length === 0 && <EmptyState />}
+
               {ownedMetadata.map(art => (
                 <Col key={art.metadata.pubkey} span={8}>
                   <Link to={`/art/${art.metadata.pubkey}`}>
                     <ArtCard key={art.metadata.pubkey} pubkey={art.metadata.pubkey} preview={false} />
-                  </Link>
-                  <Link to={{
-                    pathname: `/auction/create/0`, state: { idNFT: art.metadata.pubkey, item: [art] }
-                  }} key={art.metadata.pubkey}>
-                    Listing
                   </Link>
                 </Col>
               ))}
@@ -165,7 +152,9 @@ const Profile = ({ userId }: { userId: string; }) => {
           </TabPane>
 
           <TabPane tab={<>On Sale <span>{onSale.length}</span></>} key="4">
-            <Row gutter={[36, 36]}>
+            <Row className={onSale.length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
+              {onSale.length === 0 && <EmptyState />}
+
               {onSale.map(art => (
                 <Col key={art.auction.pubkey} span={8}>
                   {art.isInstantSale && <ArtCardOnSale auctionView={art} />}

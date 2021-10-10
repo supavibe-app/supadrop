@@ -36,7 +36,7 @@ const ActivityView = () => {
 
   const onSale = allAuctions.filter(m =>
     m.auctionManager.authority === wallet.publicKey?.toBase58() &&
-    (m.state === AuctionViewState.Live ),
+    (m.state === AuctionViewState.Live),
   );
 
   //   isAuctionManagerAuthorityNotWalletOwner &&
