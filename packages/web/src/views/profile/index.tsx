@@ -49,6 +49,7 @@ const Profile = ({ userId }: { userId: string; }) => {
 
   return (
     <Row>
+      <Col className="profile-section_mask" span={6} />
       <Col className={ProfileSection} span={6}>
         {onEdit && <EditProfile closeEdit={closeEdit} />}
 
