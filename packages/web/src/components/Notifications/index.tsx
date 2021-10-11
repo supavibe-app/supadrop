@@ -14,7 +14,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
 import { Badge, Button, List, Popover, Tooltip } from 'antd';
 import FeatherIcon from 'feather-icons-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import moment from 'moment';
 
 import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
@@ -312,7 +312,6 @@ export const Notifications = () => {
     safetyDepositBoxesByVaultAndIndex,
   } = useMeta();
   const possiblyBrokenAuctionManagerSetups = useAuctions(AuctionViewState.Defective);
-  const { pathname } = useLocation();
 
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
@@ -456,15 +455,14 @@ export const Notifications = () => {
         },
       });
     });
-  console.log(notifications.length);
-  
+
   const content = notifications.length ? (
     <div>
       <List
         itemLayout="vertical"
         size="small"
         dataSource={notifications.slice(0, 5)}
-        renderItem={(notification:NotificationCard) => (
+        renderItem={(notification: NotificationCard) => (
           <List.Item
             className={ListStyle}
             extra={<Button className={uBoldFont} onClick={notification.action} type="link">{notification.textButton}</Button>}
@@ -488,14 +486,13 @@ export const Notifications = () => {
   if (notifications.length === 0) {
     return (
       <Popover
-        overlayClassName={NotificationPopover({ empty: true })}
+        overlayClassName={NotificationPopover}
         content={content}
-        trigger="focus"
+        trigger="click"
         placement="bottomRight"
         title={(
           <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
             <div className={WhiteColor}>notification</div>
-            {!pathname.includes('activity') && <Link className={GreyColor} to="/activity">see all</Link>}
           </div>
         )}
       >
@@ -507,14 +504,13 @@ export const Notifications = () => {
   return (
     <Badge className={BadgeStyle} dot>
       <Popover
-        overlayClassName={NotificationPopover({ empty: false })}
+        overlayClassName={NotificationPopover}
         content={content}
         trigger="click"
         placement="bottomRight"
         title={(
           <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
             <div className={WhiteColor}>notification</div>
-            <Link className={GreyColor} to="/activity">see all</Link>
           </div>
         )}
       >

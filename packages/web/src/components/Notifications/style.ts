@@ -16,7 +16,7 @@ export const CircleButton = ({ active }) => css`
   }
 `;
 
-export const NotificationPopover = ({ empty }) => css`
+export const NotificationPopover = css`
   .ant-popover-inner {
     border: 2px solid #ccff00;
     border-radius: 4px;
@@ -29,8 +29,9 @@ export const NotificationPopover = ({ empty }) => css`
   }
 
   .ant-popover-inner-content {
-    height: ${empty ? '318px' : 'fit-content'};
+    height: 318px;
     width: 378px;
+    overflow-y: auto;
 
     padding: 0 0 16px 20px;
   }
@@ -63,6 +64,7 @@ export const EmptyNotification = css`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding-right: 20px;
 
   color: #7e7c7c;
   height: 100%;

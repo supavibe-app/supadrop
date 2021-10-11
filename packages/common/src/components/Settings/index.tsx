@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Avatar, List } from 'antd';
 import FeatherIcon from 'feather-icons-react';
 import { useWallet } from '@solana/wallet-adapter-react';

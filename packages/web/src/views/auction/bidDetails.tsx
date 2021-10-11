@@ -271,7 +271,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           return (
             <BidDetailsContent>
               <div className={ButtonWrapper}>
-                <ActionButton width="100%">LIST NFT</ActionButton>
+                <ActionButton to="/create/0" width="100%">LIST NFT</ActionButton>
               </div>
             </BidDetailsContent>
           );
