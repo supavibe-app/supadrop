@@ -67,7 +67,7 @@ const Home = () => {
           )}
 
           <div className={SocialMediaButton}>
-            <a href="https://discord.gg/YEk83tSw" target="_blank">
+            <a href="https://discord.gg/HRKp4q4Zxy" target="_blank">
               <div className={DiscordButton}>
                 <Discord />
               </div>

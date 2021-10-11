@@ -455,7 +455,6 @@ export const Notifications = () => {
         },
       });
     });
-  console.log(notifications.length);
 
   const content = notifications.length ? (
     <div>
@@ -487,9 +486,9 @@ export const Notifications = () => {
   if (notifications.length === 0) {
     return (
       <Popover
-        overlayClassName={NotificationPopover({ empty: true })}
+        overlayClassName={NotificationPopover}
         content={content}
-        trigger="focus"
+        trigger="click"
         placement="bottomRight"
         title={(
           <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
@@ -505,7 +504,7 @@ export const Notifications = () => {
   return (
     <Badge className={BadgeStyle} dot>
       <Popover
-        overlayClassName={NotificationPopover({ empty: false })}
+        overlayClassName={NotificationPopover}
         content={content}
         trigger="click"
         placement="bottomRight"
