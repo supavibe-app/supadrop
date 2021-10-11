@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Avatar, Card, CardProps, Button, Badge, Row, Col } from 'antd';
 import { MetadataCategory, shortenAddress, StringPublicKey } from '@oyster/common';
-import { ArtContent, ArtContent2 } from './../ArtContent';
+import { ArtContent } from './../ArtContent';
 import { useArt } from '../../hooks';
 import { Artist, ArtType } from '../../types';
 
@@ -90,7 +90,6 @@ export const ArtCard = (props: ArtCardProps) => {
               </Col>
 
               <Col className={uTextAlignEnd} span={12}>
-
                 <Link to={{ pathname: `/auction/create/0`, state: { idNFT: pubkey, item: [art] } }}>
                   <Button shape="round">LIST</Button>
                 </Link>

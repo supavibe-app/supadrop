@@ -68,6 +68,7 @@ export const EditProfileButton = css`
 
 export const ArtsContent = css`
   padding: 56px 56px 56px 16px;
+  height: 100%;
 `;
 
 export const UploadStyle = css`

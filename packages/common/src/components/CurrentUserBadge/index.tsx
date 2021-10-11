@@ -28,7 +28,7 @@ export const CurrentUserBadge = (props: {
         onVisibleChange={visible => setShowPopover(visible)}
         visible={showPopover}
       >
-        <Avatar src={wallet.icon} size={42} style={{ cursor: 'pointer' }} />
+        <Avatar size={42} style={{ cursor: 'pointer' }} />
       </Popover>
     </div>
   );

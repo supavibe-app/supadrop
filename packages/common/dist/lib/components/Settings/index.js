@@ -1,14 +1,14 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function (o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
+    Object.defineProperty(o, k2, { enumerable: true, get: function () { return m[k]; } });
+}) : (function (o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
 }));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function (o, v) {
     Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
+}) : function (o, v) {
     o["default"] = v;
 });
 var __importStar = (this && this.__importStar) || function (mod) {
@@ -92,11 +92,13 @@ const Settings = ({ additionalSettings, setShowPopover = () => { } }) => {
     return (react_1.default.createElement(react_1.default.Fragment, null,
         react_1.default.createElement(antd_1.List, { className: style_1.ListStyle },
             react_1.default.createElement(antd_1.List.Item, null,
-                react_1.default.createElement("div", { onClick: () => {
+                react_1.default.createElement("div", {
+                    onClick: () => {
                         setShowPopover(false);
                         push(`/${publicKey}`);
-                    } },
-                    react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon, src: "https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" }),
+                    }
+                },
+                    react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon }),
                     "view profile")),
             react_1.default.createElement(antd_1.List.Item, { onClick: () => disconnect().catch() },
                 react_1.default.createElement(feather_icons_react_1.default, { icon: "power", className: style_1.ItemIcon }),
