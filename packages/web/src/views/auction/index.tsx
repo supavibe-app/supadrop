@@ -1,18 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import { Row, Col, Button, Skeleton, List, Popover, Avatar } from 'antd';
 import { AuctionViewItem } from '@oyster/common/dist/lib/models/metaplex/index';
-import {
-  AuctionViewState,
-  useArt,
-  useAuction,
-  useBidsForAuction,
-  useExtendedArt,
-  useHighestBidForAuction,
-} from '../../hooks';
-import { ArtContent } from '../../components/ArtContent';
-import { ArrowLeftOutlined, EllipsisOutlined } from '@ant-design/icons';
-
+import FeatherIcon from 'feather-icons-react';
 import {
   formatTokenAmount,
   shortenAddress,
@@ -22,6 +12,17 @@ import {
   fromLamports,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
+
+import {
+  AuctionViewState,
+  useArt,
+  useAuction,
+  useBidsForAuction,
+  useExtendedArt,
+  useHighestBidForAuction,
+} from '../../hooks';
+import { ArtContent } from '../../components/ArtContent';
+
 import { ArtType } from '../../types';
 import { Activity, ActivityHeader, ArtContainer, OverflowYAuto, ArtDetailsColumn, ColumnBox, Container, ContentSection, ArtDetailsHeader, IsMyBid, Label, PaddingBox, StatusContainer, BackButton, OptionsPopover, ArtContentStyle } from './style';
 import BidDetails from './bidDetails';
@@ -37,15 +38,19 @@ export const AuctionItem = ({ item, active }: {
 }) => <ArtContent className={ArtContentStyle} pubkey={item.metadata.pubkey} active={active} allowMeshRender={true} />;
 
 export const AuctionView = () => {
+  const { location } = useHistory();
+  const queryParams = new URLSearchParams(location.search);
+  const action = queryParams.get('action');
+
   const { id } = useParams<{ id: string }>();
   const { env } = useConnectionConfig();
   const { connected, publicKey } = useWallet();
   const auction = useAuction(id);
   const { liveDataAuctions } = useMeta();
   const dataAuction = liveDataAuctions[id];
-  const [bidAmount, setBidAmount] = useState(0);
+  const [bidAmount, setBidAmount] = useState<number>();
   const setBidAmountNumber = useCallback((num: number) => setBidAmount(num), [setBidAmount]);
-  const [showPlaceBid, setShowPlaceBid] = useState(false);
+  const [showPlaceBid, setShowPlaceBid] = useState(action === 'bid');
   const setPlaceBidVisibility = useCallback((visible: boolean) => setShowPlaceBid(visible), [setShowPlaceBid]);
 
   const { ref, data } = useExtendedArt(auction?.thumbnail.metadata.pubkey);
@@ -189,14 +194,14 @@ export const AuctionView = () => {
               {/* Show back button if showing place bid */}
               {art.title && showPlaceBid && connected && (
                 <div className={BackButton} onClick={() => setPlaceBidVisibility(false)}>
-                  <ArrowLeftOutlined />
+                  <FeatherIcon icon="arrow-left" size={20} />
                   <span className={YellowGlowColor}>{art.title}</span>
                 </div>
               )}
 
               <Popover overlayClassName={OptionsPopover} trigger="click" placement="bottomRight" content={moreOptions}>
                 <div style={{ cursor: 'pointer', color: '#FAFAFB' }}>
-                  <EllipsisOutlined />
+                  <FeatherIcon icon="more-horizontal" size={20} />
                 </div>
               </Popover>
             </div>
@@ -204,7 +209,7 @@ export const AuctionView = () => {
             {/* Show Skeleton when Loading */}
             {!art.title && ArtDetailSkeleton}
 
-            {art.title && showPlaceBid && <PlaceBid auction={auction} setBidAmount={setBidAmountNumber} />}
+            {art.title && showPlaceBid && <PlaceBid auction={auction} bidAmount={bidAmount} setBidAmount={setBidAmountNumber} />}
             {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} highestBid={highestBid} setBidAmount={setBidAmountNumber} />}
           </div>
 

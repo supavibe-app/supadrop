@@ -40,7 +40,7 @@ const Home = () => {
     <Row className={HomeStyle}>
       <Col span={12} md={12} xs={24}>
         <div style={{ textAlign: 'center' }}>
-          <Carousel className={CarouselStyle} autoplay effect="fade">
+          <Carousel className={CarouselStyle} autoplay effect="fade" autoplaySpeed={1000}>
             {images.map((img, idx) => (
               <div key={idx}>
                 <Image src={img} className={ImageStyle} />

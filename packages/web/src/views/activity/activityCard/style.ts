@@ -84,8 +84,8 @@ export const Price = css`
 
 export const ButtonWrapper = css`
   padding-right: 8px;
-  padding-bottom: 8px;
+  padding-bottom: 32px;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: space-between;
 `;

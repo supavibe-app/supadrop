@@ -76,8 +76,8 @@ const ArtDetails = ({ auction, artData, highestBid, setBidAmount }: {
               {attributes.map(attribute =>
                 <Col key={attribute.trait_type}>
                   <Button className={Attribute} shape="round">
-                    <span>{attribute.value} –</span>
-                    <span className={AttributeRarity}>{attribute.trait_type}</span>
+                    <span>{attribute.trait_type} –</span>
+                    <span className={AttributeRarity}>{attribute.value}</span>
                   </Button>
                 </Col>
               )}
