@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Avatar, Col, Row, Skeleton } from 'antd';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox } from './style';
-import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta } from '@oyster/common';
+import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta, AuctionState, VaultState, BidStateType } from '@oyster/common';
 import moment from 'moment';
 
 import ActionButton from '../../components/ActionButton';
@@ -99,6 +99,46 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const instantSalePrice = (baseInstantSalePrice?.toNumber() || minimumBid) / Math.pow(10, 9)
 
   const BidDetailsContent = ({ children }) => {
+    const isAuctionNotStarted =
+      auction?.auction.info.state === AuctionState.Created;
+
+    const isOpenEditionSale =
+      auction?.auction.info.bidState.type === BidStateType.OpenEdition;
+    const doesInstantSaleHasNoItems =
+      Number(auction?.myBidderPot?.info.emptied) !== 0 &&
+      auction?.auction.info.bidState.max.toNumber() === bids.length;
+
+    const shouldHideInstantSale =
+      !isOpenEditionSale &&
+      auction?.isInstantSale &&
+      !owner &&
+      doesInstantSaleHasNoItems;
+
+    const shouldHide =
+      shouldHideInstantSale ||
+      auction?.vault.info.state === VaultState.Deactivated;
+
+    if (shouldHideInstantSale && isAuctionNotStarted) {
+      return (<BidDetailsContent>
+        <div className={ButtonWrapper}>
+          <ActionButton disabled width="100%">ended auction</ActionButton>
+        </div>
+      </BidDetailsContent>
+      )
+    }
+    if (shouldHide) {
+      if (eligibleForAnything) {
+        return (
+          <BidDetailsContent>
+            <div className={ButtonWrapper}>
+              <ActionButton width="100%">LISTING</ActionButton>
+            </div>
+          </BidDetailsContent>
+        )
+      }
+      return <></>;
+    }
+
     if (ended && !auction?.isInstantSale) {
       return (
         <div className={art.title && highestBid ? PaddingBox : SmallPaddingBox}>
@@ -260,31 +300,31 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   // if auction ended
   if (ended) {
     if (!auction?.isInstantSale) {
-    // case 1: you win the bid
-    if (highestBid && publicKey && publicKey?.toBase58() === highestBid?.info.bidderPubkey) {
-      return (
-        <BidDetailsContent>
-          <div className={ButtonWrapper}>
-            <ActionButton width="100%">claim your NFT</ActionButton>
-          </div>
-        </BidDetailsContent>
-      )
-    }
+      // case 1: you win the bid
+      if (highestBid && publicKey && publicKey?.toBase58() === highestBid?.info.bidderPubkey) {
+        return (
+          <BidDetailsContent>
+            <div className={ButtonWrapper}>
+              <ActionButton width="100%">claim your NFT</ActionButton>
+            </div>
+          </BidDetailsContent>
+        )
+      }
 
-    const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
+      const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
 
-    // case 2: auction ended but not winning 
-    if (isParticipated) {
-      return (
-        <BidDetailsContent>
-          <div className={ButtonWrapper}>
-            <ActionButton width="100%">refund bid</ActionButton>
-          </div>
-        </BidDetailsContent>
-      )
-    }
+      // case 2: auction ended but not winning 
+      if (isParticipated) {
+        return (
+          <BidDetailsContent>
+            <div className={ButtonWrapper}>
+              <ActionButton width="100%">refund bid</ActionButton>
+            </div>
+          </BidDetailsContent>
+        )
+      }
 
-    // case 3: auction ended but not participated
+      // case 3: auction ended but not participated
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
@@ -307,15 +347,15 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         <BidDetailsContent>
           <a className={ButtonWrapper}>
             <ActionButton width="100%" onClick={() =>
-                      auction?.isInstantSale && instantSale()
-                    }>
+              auction?.isInstantSale && instantSale()
+            }>
               UNLIST
             </ActionButton>
           </a>
         </BidDetailsContent>
       );
 
-      
+
     }
 
     if (!ended) {
@@ -341,7 +381,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
             <ActionButton
               width="100%"
               onClick={instantSale}
-  
+
             >
               BUY NOW
             </ActionButton>
@@ -349,8 +389,9 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         </BidDetailsContent>
       );
     }
-    
+
     // !auction.myBidderPot && balance < instantSalePrice
+
     return (
       <BidDetailsContent>
         <div className={ButtonWrapper}>
