@@ -4,6 +4,7 @@ export const ProfileSection = css`
   padding: 56px;
   overflow: auto;
   height: calc(100vh - 80px);
+  position: fixed;
 `;
 
 export const NameStyle = css`
@@ -67,6 +68,7 @@ export const EditProfileButton = css`
 
 export const ArtsContent = css`
   padding: 56px 56px 56px 16px;
+  height: 100%;
 `;
 
 export const UploadStyle = css`

@@ -36,9 +36,6 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 
   const ownedMetadata = useUserArts();
 
-  console.log(ownedMetadata);
-  console.log(art);
-
   // const [lastBid, setLastBid] = useState<{ amount: BN } | undefined>(undefined);
   // const [showBidPlaced, setShowBidPlaced] = useState<boolean>(false);
 
@@ -98,7 +95,8 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const baseInstantSalePrice =
     auction?.auctionDataExtended?.info.instantSalePrice;
 
-  const instantSalePrice = (baseInstantSalePrice?.toNumber() || minimumBid) / Math.pow(10, 9)
+  const instantSalePrice = (baseInstantSalePrice?.toNumber() || minimumBid) / Math.pow(10, 9);
+  const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
 
   const BidDetailsContent = ({ children }) => {
     if (ended && !auction?.isInstantSale) {
@@ -286,8 +284,6 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         );
       }
 
-      const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
-
       // case 2: auction ended but not winning 
       if (isParticipated) {
         return (
@@ -415,9 +411,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         return (
           <BidDetailsContent>
             <div className={ButtonWrapper}>
-              <ActionButton width="100%" disabled>
-                insufficient bid
-              </ActionButton>
+              <ActionButton width="100%" disabled>bid at least {minimumBid} SOL</ActionButton>
             </div>
           </BidDetailsContent>
         )
@@ -437,9 +431,8 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
                   auction!!,
                   accountByMint,
                   currentBidAmount,
-                );
+                ).then(() => setShowPlaceBid(false));
                 // setLastBid(bid);
-                // setShowBidPlaced(true);
               }}
             >
               CONFIRM
@@ -479,7 +472,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
             else setShowPlaceBid(true);
           }}
         >
-          place a bid
+          {isParticipated ? 'bid again' : 'place a bid'}
         </ActionButton>
       </div>
     </BidDetailsContent>
