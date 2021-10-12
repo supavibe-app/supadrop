@@ -1,19 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta, AuctionState, VaultState, BidStateType } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
-import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox, SpinnerStyle } from './style';
 import { TwitterOutlined } from '@ant-design/icons';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
 import moment from 'moment';
 
-import { getMinimumBid } from './placeBid';
-import ActionButton from '../../components/ActionButton';
-import { Art } from '../../types';
-import { AuctionView, useHighestBidForAuction, useUserArts, useUserBalance } from '../../hooks';
-import { sendPlaceBid } from '../../actions/sendPlaceBid';
-import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '../../actions/sendRedeemBid';
-import { uFontSize24, uTextAlignEnd, WhiteColor } from '../../styles';
+import getMinimumBid from '../../../helpers/getMinimumBid';
+import ActionButton from '../../../components/ActionButton';
+import { Art } from '../../../types';
+import { AuctionView, useHighestBidForAuction, useUserArts, useUserBalance } from '../../../hooks';
+import { sendPlaceBid } from '../../../actions/sendPlaceBid';
+import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '../../../actions/sendRedeemBid';
+import { uFontSize24, uTextAlignEnd, WhiteColor } from '../../../styles';
+import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox, SpinnerStyle } from './style';
 
 const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
   art: Art;

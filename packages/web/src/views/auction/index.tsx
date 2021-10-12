@@ -3,18 +3,10 @@ import { useParams, useHistory } from 'react-router-dom';
 import { Row, Col, Button, Skeleton, List, Popover, Avatar } from 'antd';
 import { AuctionViewItem } from '@oyster/common/dist/lib/models/metaplex/index';
 import FeatherIcon from 'feather-icons-react';
-import {
-  formatTokenAmount,
-  shortenAddress,
-  useConnectionConfig,
-  PriceFloorType,
-  useMint,
-  fromLamports,
-} from '@oyster/common';
+import { useConnectionConfig } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import {
-  AuctionViewState,
   useArt,
   useAuction,
   useBidsForAuction,
@@ -24,13 +16,27 @@ import {
 import { ArtContent } from '../../components/ArtContent';
 
 import { ArtType } from '../../types';
-import { Activity, ActivityHeader, ArtContainer, OverflowYAuto, ArtDetailsColumn, ColumnBox, Container, ContentSection, ArtDetailsHeader, IsMyBid, Label, PaddingBox, StatusContainer, BackButton, OptionsPopover, ArtContentStyle } from './style';
-import BidDetails from './bidDetails';
-import PlaceBid from './placeBid';
-import ArtDetails from './artDetails';
-import { GreyColor, uBoldFont, uFlexAlignItemsCenter, YellowGlowColor } from '../../styles';
+import ArtDetails from '../../components/Details/ArtDetails';
+import BidDetails from '../../components/Details/BidDetails';
+import PlaceBid from '../../components/Details/PlaceBid';
+import TransactionHistory from '../../components/Details/TransactionHistory';
+import { YellowGlowColor } from '../../styles';
 import { useMeta } from '../../contexts';
-import BN from 'bn.js';
+import {
+  ArtContainer,
+  ArtContentStyle,
+  ArtDetailsColumn,
+  ArtDetailsHeader,
+  BackButton,
+  ColumnBox,
+  Container,
+  ContentSection,
+  Label,
+  OverflowYAuto,
+  OptionsPopover,
+  PaddingBox,
+  StatusContainer,
+} from './style';
 
 export const AuctionItem = ({ item, active }: {
   item: AuctionViewItem;
@@ -56,32 +62,7 @@ export const AuctionView = () => {
   const { ref, data } = useExtendedArt(auction?.thumbnail.metadata.pubkey);
   const art = useArt(auction?.thumbnail.metadata.pubkey);
   const bids = useBidsForAuction(auction?.auction.pubkey || '');
-  const mint = useMint(auction?.auction.info.tokenMint);
-  const mintInfo = useMint(auction?.auction.info.tokenMint);
-
-  const participationFixedPrice = auction?.auctionManager.participationConfig?.fixedPrice || 0;
-  const participationOnly = auction?.auctionManager.numWinners.eq(new BN(0));
-  const priceFloor =
-    auction?.auction.info.priceFloor.type === PriceFloorType.Minimum
-      ? auction?.auction.info.priceFloor.minPrice?.toNumber() || 0
-      : 0;
-  const isUpcoming = auction?.state === AuctionViewState.Upcoming;
   const highestBid = useHighestBidForAuction(auction?.auction.pubkey || '');
-
-  let currentBid: number | string = 0;
-  if (isUpcoming || bids) {
-    currentBid = fromLamports(
-      participationOnly ? participationFixedPrice : priceFloor,
-      mintInfo
-    );
-  }
-
-  if (!isUpcoming && bids.length > 0) {
-    currentBid =
-      highestBid && Number.isFinite(highestBid.info.lastBid?.toNumber())
-        ? formatTokenAmount(highestBid.info.lastBid)
-        : 'No Bid';
-  }
 
   let edition = '';
   switch (art.type) {
@@ -96,6 +77,7 @@ export const AuctionView = () => {
       break;
   }
 
+  // Additional Components
   const items = [
     ...(auction?.items
       .flat()
@@ -169,12 +151,7 @@ export const AuctionView = () => {
       </Row>
     </div>
   );
-
-  const BidsHistorySkeleton = (
-    <div>
-      {[...Array(3)].map(i => <Skeleton avatar paragraph={{ rows: 0 }} />)}
-    </div>
-  );
+  // EOF Additional Components
 
   return (
     <Row className={Container} ref={ref}>
@@ -210,7 +187,7 @@ export const AuctionView = () => {
             {!art.title && ArtDetailSkeleton}
 
             {art.title && showPlaceBid && <PlaceBid auction={auction} bidAmount={bidAmount} setBidAmount={setBidAmountNumber} />}
-            {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} highestBid={highestBid} setBidAmount={setBidAmountNumber} />}
+            {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} highestBid={highestBid} />}
           </div>
 
           <div className={StatusContainer}>
@@ -228,37 +205,7 @@ export const AuctionView = () => {
       </Col >
 
       <Col className={`${ColumnBox} ${PaddingBox} `} span={24} md={4}>
-        <div className={ActivityHeader}>
-          <div className={YellowGlowColor}>bids history</div>
-          {/* <div>activity</div> */}
-        </div>
-
-        {!art.title && BidsHistorySkeleton}
-
-        {art.title && !Boolean(bids.length) && (
-          <div className={GreyColor}>
-            <div>no one bid yet</div>
-            <div>be the first to make a bid!</div>
-          </div>
-        )}
-
-        {bids.map((bid, idx) => (
-          <div key={idx}>
-            {publicKey?.toBase58() === bid.info.bidderPubkey && <div className={IsMyBid} />}
-            <Row className={Activity} justify="space-between" align="middle">
-              <Col className={uFlexAlignItemsCenter} span={12}>
-                <div>
-                  <Avatar size={24} />
-                </div>
-                <div>{shortenAddress(bid.info.bidderPubkey)}</div>
-              </Col>
-
-              <Col className={uBoldFont} span={12}>
-                <span>{formatTokenAmount(bid.info.lastBid, mint)} SOL</span>
-              </Col>
-            </Row>
-          </div>
-        ))}
+        <TransactionHistory auction={auction} />
       </Col>
     </Row >
   );
