@@ -4,10 +4,11 @@ import { ArtDescription, ArtTitle, Attribute, AttributeRarity, ContentSection, L
 import { BidderMetadata, IMetadataExtension, ParsedAccount, shortenAddress } from '@oyster/common';
 import { AuctionView, useArt, useCreators } from '../../hooks';
 
-const ArtDetails = ({ auction, artData, highestBid }: {
+const ArtDetails = ({ auction, artData, highestBid, setBidAmount }: {
   auction: AuctionView | undefined;
   artData: IMetadataExtension | undefined;
   highestBid: ParsedAccount<BidderMetadata> | undefined;
+  setBidAmount: (num: number) => void;
 }) => {
   const creators = useCreators(auction);
   const art = useArt(auction?.thumbnail.metadata.pubkey);
@@ -17,6 +18,9 @@ const ArtDetails = ({ auction, artData, highestBid }: {
   const owner = auction?.auctionManager.authority.toString();
   const state = auction?.auction.info.timeToEnd();
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
+
+  //TODO
+  setBidAmount(0) // fix bug bid detail, but is it the best practice ?
 
   return (
     <>

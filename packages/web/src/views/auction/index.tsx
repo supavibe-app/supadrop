@@ -205,7 +205,7 @@ export const AuctionView = () => {
             {!art.title && ArtDetailSkeleton}
 
             {art.title && showPlaceBid && <PlaceBid auction={auction} setBidAmount={setBidAmountNumber} />}
-            {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} highestBid={highestBid} />}
+            {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} highestBid={highestBid} setBidAmount={setBidAmountNumber} />}
           </div>
 
           <div className={StatusContainer}>

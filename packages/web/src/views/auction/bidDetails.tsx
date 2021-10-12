@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Avatar, Col, Row, Skeleton, message } from 'antd';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox } from './style';
-import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta } from '@oyster/common';
+import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta, AuctionState, VaultState, BidStateType } from '@oyster/common';
 import moment from 'moment';
 
 import ActionButton from '../../components/ActionButton';
@@ -51,7 +51,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 
   const balance = parseFloat(formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL));
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
-  const minimumBid = currentBid + currentBid * 0.1;
+  const minimumBid = parseFloat((currentBid + currentBid * 0.1).toFixed(2)); // updated minimum bid
   const myPayingAccount = useUserBalance(auction?.auction.info.tokenMint).accounts[0]
 
   let winnerIndex: number | null = null;
@@ -99,6 +99,46 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
 
   const BidDetailsContent = ({ children }) => {
+    const isAuctionNotStarted =
+      auction?.auction.info.state === AuctionState.Created;
+
+    const isOpenEditionSale =
+      auction?.auction.info.bidState.type === BidStateType.OpenEdition;
+    const doesInstantSaleHasNoItems =
+      Number(auction?.myBidderPot?.info.emptied) !== 0 &&
+      auction?.auction.info.bidState.max.toNumber() === bids.length;
+
+    const shouldHideInstantSale =
+      !isOpenEditionSale &&
+      auction?.isInstantSale &&
+      !owner &&
+      doesInstantSaleHasNoItems;
+
+    const shouldHide =
+      shouldHideInstantSale ||
+      auction?.vault.info.state === VaultState.Deactivated;
+
+    if (shouldHideInstantSale && isAuctionNotStarted) {
+      return (<BidDetailsContent>
+        <div className={ButtonWrapper}>
+          <ActionButton disabled width="100%">ended auction</ActionButton>
+        </div>
+      </BidDetailsContent>
+      )
+    }
+    if (shouldHide) {
+      if (eligibleForAnything) {
+        return (
+          <BidDetailsContent>
+            <div className={ButtonWrapper}>
+              <ActionButton width="100%">LISTING</ActionButton>
+            </div>
+          </BidDetailsContent>
+        )
+      }
+      return <></>;
+    }
+
     if (ended && !auction?.isInstantSale) {
       return (
         <div className={art.title && highestBid ? PaddingBox : SmallPaddingBox}>
@@ -366,6 +406,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     }
 
     // !auction.myBidderPot && balance < instantSalePrice
+
     return (
       <BidDetailsContent>
         <div className={ButtonWrapper}>
@@ -470,8 +511,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           onClick={() => {
             if (!connected) handleConnect();
             else setShowPlaceBid(true);
-          }}
-        >
+          }}>
           {isParticipated ? 'bid again' : 'place a bid'}
         </ActionButton>
       </div>

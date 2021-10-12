@@ -1,109 +1,43 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function (o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function () { return m[k]; } });
-}) : (function (o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function (o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function (o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Settings = void 0;
-const react_1 = __importStar(require("react"));
+const react_1 = __importDefault(require("react"));
 const antd_1 = require("antd");
 const feather_icons_react_1 = __importDefault(require("feather-icons-react"));
 const wallet_adapter_react_1 = require("@solana/wallet-adapter-react");
-const connection_1 = require("../../contexts/connection");
-const contexts_1 = require("../../contexts");
-const style_1 = require("./style");
 const react_router_dom_1 = require("react-router-dom");
+const utils_1 = require("../../utils");
+const __1 = require("../..");
+const style_1 = require("./style");
+const web3_js_1 = require("@solana/web3.js");
 const Settings = ({ additionalSettings, setShowPopover = () => { } }) => {
-    const { connected, disconnect, publicKey } = wallet_adapter_react_1.useWallet();
-    const { endpoint, setEndpoint } = connection_1.useConnectionConfig();
-    const { setVisible } = contexts_1.useWalletModal();
-    const open = react_1.useCallback(() => setVisible(true), [setVisible]);
+    const { disconnect, publicKey } = wallet_adapter_react_1.useWallet();
     const { push } = react_router_dom_1.useHistory();
-    //   return (
-    //     <>
-    //       <div style={{ display: 'grid' }}>
-    //         Network:{' '}
-    //         <Select
-    //           onSelect={setEndpoint}
-    //           value={endpoint}
-    //           style={{ marginBottom: 20 }}
-    //         >
-    //           {ENDPOINTS.map(({ name, endpoint }) => (
-    //             <Select.Option value={endpoint} key={endpoint}>
-    //               {name}
-    //             </Select.Option>
-    //           ))}
-    //         </Select>
-    //         {connected && (
-    //           <>
-    //             <span>Wallet:</span>
-    //             {publicKey && (
-    //               <Button
-    //                 style={{ marginBottom: 5 }}
-    //                 onClick={async () => {
-    //                   if (publicKey) {
-    //                     await navigator.clipboard.writeText(publicKey.toBase58());
-    //                     notify({
-    //                       message: 'Wallet update',
-    //                       description: 'Address copied to clipboard',
-    //                     });
-    //                   }
-    //                 }}
-    //               >
-    //                 <CopyOutlined />
-    //                 {shortenAddress(publicKey.toBase58())}
-    //               </Button>
-    //             )}
-    //
-    //             <Button onClick={open} style={{ marginBottom: 5 }}>
-    //               Change
-    //             </Button>
-    //             <Button
-    //               type="primary"
-    //               onClick={() => disconnect().catch()}
-    //               style={{ marginBottom: 5 }}
-    //             >
-    //               Disconnect
-    //             </Button>
-    //           </>
-    //         )}
-    //         {additionalSettings}
-    //       </div>
-    //     </>
-    //   );
-    return (react_1.default.createElement(react_1.default.Fragment, null,
-        react_1.default.createElement(antd_1.List, { className: style_1.ListStyle },
-            react_1.default.createElement(antd_1.List.Item, null,
-                react_1.default.createElement("div", {
-                    onClick: () => {
-                        setShowPopover(false);
-                        push(`/${publicKey}`);
-                    }
-                },
-                    react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon }),
-                    "view profile")),
-            react_1.default.createElement(antd_1.List.Item, { onClick: () => disconnect().catch() },
-                react_1.default.createElement(feather_icons_react_1.default, { icon: "power", className: style_1.ItemIcon }),
-                "disconnect")),
-        additionalSettings));
+    const { account } = __1.useNativeAccount();
+    const balance = __1.formatNumber.format(((account === null || account === void 0 ? void 0 : account.lamports) || 0) / web3_js_1.LAMPORTS_PER_SOL);
+    return (react_1.default.createElement(antd_1.List, { className: style_1.ListStyle },
+        react_1.default.createElement(antd_1.List.Item, null,
+            react_1.default.createElement("div", { onClick: () => {
+                    setShowPopover(false);
+                    push(`/${publicKey}`);
+                } },
+                react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon }),
+                "view profile")),
+        react_1.default.createElement(antd_1.List.Item, null, publicKey && (react_1.default.createElement("a", { href: `https://explorer.solana.com/address/${publicKey.toBase58()}`, target: "_blank" },
+            react_1.default.createElement("div", { className: style_1.BalanceInfo },
+                balance,
+                " SOL"),
+            react_1.default.createElement("div", { className: style_1.AddressInfo },
+                react_1.default.createElement("div", null,
+                    publicKey && utils_1.shortenAddress(publicKey.toBase58()),
+                    ' '),
+                react_1.default.createElement(feather_icons_react_1.default, { icon: "external-link", size: "16" }))))),
+        react_1.default.createElement(antd_1.List.Item, { onClick: () => disconnect().catch() },
+            react_1.default.createElement(feather_icons_react_1.default, { icon: "power", className: style_1.ItemIcon }),
+            "disconnect")));
 };
 exports.Settings = Settings;
 //# sourceMappingURL=index.js.map

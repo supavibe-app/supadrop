@@ -13,6 +13,8 @@ import { uTextAlignCenter } from '../../styles';
 import { ArtCardOnSale } from '../../components/ArtCardOnSale';
 import { useWallet } from '@solana/wallet-adapter-react';
 
+import { supabase } from '../../../supabaseClient';
+
 const { TabPane } = Tabs;
 
 const Profile = ({ userId }: { userId: string; }) => {
@@ -25,6 +27,79 @@ const Profile = ({ userId }: { userId: string; }) => {
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
 
   const isAccountOwner = publicKey?.toBase58() === userId;
+
+  const getProfileData = async () => {
+    let { data: user_data, error } = await supabase.from('user_data')
+      .select('*')
+      .eq('wallet_address', userId)
+      .limit(1)
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    if (user_data != null) {
+      console.log('data_profile', user_data[0])
+      return user_data[0]
+    } else {
+      initProfileData()
+      return null
+    }
+  }
+
+  const setProfileData = async () => {
+    let { data, error } = await supabase.from('user_data')
+      .update([{ name: '', twitter: '', img_profile: '', username: '', website: '', bio: '' }])
+      .eq('wallet_address', userId)
+      .limit(1)
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    if (data != null) {
+      console.log('data_profile', data[0])
+      return data[0]
+    } else return null
+  }
+
+  const initProfileData = async () => {
+    let { data, error } = await supabase.from('user_data')
+      .insert([{ wallet_address: userId }])
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    if (data != null) {
+      console.log('data_profile', data[0])
+    }
+  }
+
+  // TODO function OR from supabase
+  // supabase.from('user_data')
+  //   .select('*')
+  //   .eq('wallet_address', userId)
+  //   .then(data => {
+  //     console.log('publickey', userId)
+  //     if (data.body != null) {
+  //       console.log('data_profile', data.body)
+  //     }
+  //   })
+
+  // TODO function OR from supabase
+  // supabase.from('user_data')
+  //   .select('*')
+  //   .eq('username', userId)
+  //   .then(data => {
+  //     console.log('publickey', userId)
+  //     if (data.body != null) {
+  //       console.log('data_profile', data.body)
+  //     }
+  //   })
 
   ownedMetadata.forEach(data => {
     if (!allData[data.metadata.pubkey]) {

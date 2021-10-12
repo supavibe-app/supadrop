@@ -3,6 +3,7 @@ import FeatherIcon from 'feather-icons-react';
 import { Avatar, Button, Form, Input, Upload } from 'antd';
 import ActionButton from '../../components/ActionButton';
 import { BioLabel, CancelButton, ChooseFileButton, EditProfileTitle, FormItemStyle, InputPrefixStyle, InputStyle, TextAreaStyle, UploadImageContainer, UploadStyle } from './style';
+import { supabase } from '../../../supabaseClient';
 
 const { TextArea } = Input;
 
@@ -65,6 +66,7 @@ const EditProfile = ({ closeEdit }: { closeEdit: () => void }) => {
             <Input className={InputPrefixStyle} prefix="@" />
           </Form.Item>
 
+          {/* TODO insert regex to a variable if it possible */}
           <Form.Item
             className={FormItemStyle}
             label="website"

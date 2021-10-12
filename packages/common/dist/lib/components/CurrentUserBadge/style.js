@@ -9,7 +9,7 @@ exports.ProfilePopover = css_1.css `
   }
 
   .ant-popover-inner-content {
-    padding-right: 0;
+    padding: 4px 0 4px 24px;
   }
 `;
 exports.ModalEditProfile = css_1.css `
