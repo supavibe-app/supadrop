@@ -18,7 +18,7 @@ export const ArtCardOnSale = ({ auctionView }: { auctionView: AuctionView; }) =>
     const baseInstantSalePrice =
         auctionView.auctionDataExtended?.info.instantSalePrice;
 
-    const instantSalePrice = (baseInstantSalePrice?.toNumber() || 0) / Math.pow(10, 9)
+    const instantSalePrice = (baseInstantSalePrice?.toNumber() || 0) / Math.pow(10, 9);
 
     const instantSale = async () => {
         try {

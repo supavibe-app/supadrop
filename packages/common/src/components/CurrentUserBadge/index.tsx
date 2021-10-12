@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Avatar, Button, Modal, Popover } from 'antd';
+import { Avatar, Popover } from 'antd';
 
 import { Settings } from '../Settings';
-import { supabase } from '../../supabaseClient';
-import { ModalEditProfile, ProfilePopover, WalletWrapper } from './style';
+import { ProfilePopover, WalletWrapper } from './style';
 
 export const CurrentUserBadge = (props: {
   showBalance?: boolean;
@@ -29,7 +28,7 @@ export const CurrentUserBadge = (props: {
         onVisibleChange={visible => setShowPopover(visible)}
         visible={showPopover}
       >
-        <Avatar src={wallet.icon} size={42} style={{ cursor: 'pointer' }} />
+        <Avatar size={42} style={{ cursor: 'pointer' }} />
       </Popover>
     </div>
   );

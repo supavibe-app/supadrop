@@ -1,5 +1,5 @@
 import React, { MouseEventHandler } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 
 import { ButtonStyle } from './style';
 
@@ -13,6 +13,7 @@ interface IActionButton {
 }
 
 const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionButton) => {
+  const { push } = useHistory();
   let height = 60;
   let fontSize = 16;
   let padding = 16;
@@ -31,14 +32,22 @@ const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionB
   }
 
   if (!disabled && onClick) {
-    return <div onClick={onClick} className={ButtonStyle({ height, width, fontSize, padding, disabled })}>
-      {children}
-    </div>
+    return (
+      <div onClick={onClick}>
+        <div className={ButtonStyle({ height, width, fontSize, padding, disabled })}>
+          {children}
+        </div>
+      </div>
+    );
   }
 
   if (!disabled && to) {
     return (
-      <Link className={ButtonStyle({ height, width, fontSize, padding, disabled })} to={to}>{children}</Link>
+      <div onClick={() => push(to)}>
+        <div className={ButtonStyle({ height, width, fontSize, padding, disabled })}>
+          {children}
+        </div>
+      </div>
     );
   }
 

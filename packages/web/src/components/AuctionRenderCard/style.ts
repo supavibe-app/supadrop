@@ -42,7 +42,6 @@ export const CardStyle = css`
     padding: 20px 24px;
     margin-bottom: unset !important;
     color: #fafafb;
-    text-transform: uppercase;
   }
 
   .ant-card-meta-description {

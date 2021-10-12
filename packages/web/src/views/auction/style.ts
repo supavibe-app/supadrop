@@ -38,15 +38,19 @@ export const OptionsPopover = css`
   }
 
   .ant-popover-inner-content {
-    padding: 0 20px;
+    padding: 8px 20px;
     padding-right: 0;
   }
 
   .ant-btn-link {
     padding: 0;
-    padding-right: 32px;
+    padding-right: 20px;
     color: #fafafb;
     font-weight: bold;
+  }
+
+  .ant-list-item {
+    padding: 12px 0;
   }
 `;
 
@@ -102,7 +106,6 @@ export const ArtTitle = css`
   font-weight: bold;
   font-size: 36px;
   color: #fafafb;
-  text-transform: uppercase;
   margin-bottom: 16px;
   line-height: 48px;
 `;

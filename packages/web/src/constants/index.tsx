@@ -4,3 +4,5 @@ export * from './labels';
 export * from './style';
 
 export const QUOTE_MINT = WRAPPED_SOL_MINT;
+
+export const TwitterURL = 'https://twitter.com/intent/user?original_referer=http%3A%2F%2Fsupadrop.com%2F&ref_src=twsrc%5Etfw&region=count_link&screen_name=supadropnft&tw_p=followbutton';

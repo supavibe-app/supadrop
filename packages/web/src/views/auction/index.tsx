@@ -109,29 +109,27 @@ export const AuctionView = () => {
   });
 
   const moreOptions = (
-    <div>
-      <List>
-        <List.Item>
-          <Button type="link" onClick={() => window.open(art.uri || '', '_blank')}>
-            View on Arweave
-          </Button>
-        </List.Item>
-        <List.Item>
-          <Button
-            type="link"
-            onClick={() =>
-              window.open(
-                `https://explorer.solana.com/account/${art?.mint || ''}${env.indexOf('main') >= 0 ? '' : `?cluster=${env}`
-                }`,
-                '_blank',
-              )
-            }
-          >
-            View on Solana
-          </Button>
-        </List.Item>
-      </List>
-    </div>
+    <List>
+      <List.Item>
+        <Button type="link" onClick={() => window.open(art.uri || '', '_blank')}>
+          view on arweave
+        </Button>
+      </List.Item>
+      <List.Item>
+        <Button
+          type="link"
+          onClick={() =>
+            window.open(
+              `https://explorer.solana.com/account/${art?.mint || ''}${env.indexOf('main') >= 0 ? '' : `?cluster=${env}`
+              }`,
+              '_blank',
+            )
+          }
+        >
+          view on solana
+        </Button>
+      </List.Item>
+    </List>
   );
 
   const ArtDetailSkeleton = (
@@ -207,7 +205,7 @@ export const AuctionView = () => {
             {!art.title && ArtDetailSkeleton}
 
             {art.title && showPlaceBid && <PlaceBid auction={auction} setBidAmount={setBidAmountNumber} />}
-            {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} highestBid={highestBid} />}
+            {art.title && !showPlaceBid && <ArtDetails auction={auction} artData={data} highestBid={highestBid} setBidAmount={setBidAmountNumber} />}
           </div>
 
           <div className={StatusContainer}>

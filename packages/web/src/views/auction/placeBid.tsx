@@ -7,8 +7,8 @@ import { AuctionView, useHighestBidForAuction } from '../../hooks';
 import { WhiteColor } from '../../styles';
 
 function getMinimumBid(bid) {
-  let minimumBid = bid + (bid*0.1)
-  return Math.ceil(minimumBid * 10)/10
+  let minimumBid = (bid + bid * 0.1).toFixed(2) // updated minimum bid
+  return minimumBid
 }
 
 const PlaceBid = ({ auction, setBidAmount }: {

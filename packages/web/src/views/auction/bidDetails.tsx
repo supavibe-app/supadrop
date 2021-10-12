@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Avatar, Col, Row, Skeleton } from 'antd';
+import { Avatar, Col, Row, Skeleton, message } from 'antd';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox } from './style';
 import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta, AuctionState, VaultState, BidStateType } from '@oyster/common';
 import moment from 'moment';
@@ -8,14 +8,11 @@ import ActionButton from '../../components/ActionButton';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Art } from '../../types';
 import { TwitterOutlined } from '@ant-design/icons';
-import { AuctionView, useHighestBidForAuction, useUserBalance } from '../../hooks';
+import { AuctionView, useHighestBidForAuction, useUserArts, useUserBalance } from '../../hooks';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { uFontSize24, WhiteColor } from '../../styles';
-// import { supabase } from '../../../supabaseClient';
 import { sendPlaceBid } from '../../actions/sendPlaceBid';
 import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '../../actions/sendRedeemBid';
-// import BN from 'bn.js';
-
 
 const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
   art: Art;
@@ -37,6 +34,8 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const [state, setState] = useState<CountdownState>();
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
 
+  const ownedMetadata = useUserArts();
+
   // const [lastBid, setLastBid] = useState<{ amount: BN } | undefined>(undefined);
   // const [showBidPlaced, setShowBidPlaced] = useState<boolean>(false);
 
@@ -52,7 +51,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 
   const balance = parseFloat(formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL));
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
-  const minimumBid = currentBid + currentBid * 0.1;
+  const minimumBid = (currentBid + currentBid * 0.1).toFixed(2); // updated minimum bid
   const myPayingAccount = useUserBalance(auction?.auction.info.tokenMint).accounts[0]
 
   let winnerIndex: number | null = null;
@@ -96,7 +95,8 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const baseInstantSalePrice =
     auction?.auctionDataExtended?.info.instantSalePrice;
 
-  const instantSalePrice = (baseInstantSalePrice?.toNumber() || minimumBid) / Math.pow(10, 9)
+  const instantSalePrice = (baseInstantSalePrice?.toNumber() || minimumBid) / Math.pow(10, 9);
+  const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
 
   const BidDetailsContent = ({ children }) => {
     const isAuctionNotStarted =
@@ -302,16 +302,27 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     if (!auction?.isInstantSale) {
       // case 1: you win the bid
       if (highestBid && publicKey && publicKey?.toBase58() === highestBid?.info.bidderPubkey) {
+        const filterMetadata = ownedMetadata.filter(metadata => metadata.metadata.info.mint === art.mint);
+
+        // if NFT claimed
+        if (filterMetadata.length > 0) {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton to="/create/0" width="100%">LIST NFT</ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        }
+
         return (
           <BidDetailsContent>
             <div className={ButtonWrapper}>
               <ActionButton width="100%">claim your NFT</ActionButton>
             </div>
           </BidDetailsContent>
-        )
+        );
       }
-
-      const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
 
       // case 2: auction ended but not winning 
       if (isParticipated) {
@@ -321,7 +332,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
               <ActionButton width="100%">refund bid</ActionButton>
             </div>
           </BidDetailsContent>
-        )
+        );
       }
 
       // case 3: auction ended but not participated
@@ -329,6 +340,14 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         <BidDetailsContent>
           <div className={ButtonWrapper}>
             <ActionButton disabled width="100%">ended auction</ActionButton>
+          </div>
+        </BidDetailsContent>
+      );
+    } else {
+      return (
+        <BidDetailsContent>
+          <div className={ButtonWrapper}>
+            <ActionButton disabled width="100%">not for sale</ActionButton>
           </div>
         </BidDetailsContent>
       );
@@ -378,11 +397,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
-            <ActionButton
-              width="100%"
-              onClick={instantSale}
-
-            >
+            <ActionButton width="100%" onClick={instantSale}>
               BUY NOW
             </ActionButton>
           </div>
@@ -395,8 +410,8 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     return (
       <BidDetailsContent>
         <div className={ButtonWrapper}>
-          <ActionButton width="100%" disabled>
-            insufficient balance
+          <ActionButton width="100%" onClick={() => message.error('not enough SOL')}>
+            BUY NOW
           </ActionButton>
         </div>
       </BidDetailsContent>
@@ -437,9 +452,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         return (
           <BidDetailsContent>
             <div className={ButtonWrapper}>
-              <ActionButton width="100%" disabled>
-                insufficient bid
-              </ActionButton>
+              <ActionButton width="100%" disabled>bid at least {minimumBid} SOL</ActionButton>
             </div>
           </BidDetailsContent>
         )
@@ -459,9 +472,8 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
                   auction!!,
                   accountByMint,
                   currentBidAmount,
-                );
+                ).then(() => setShowPlaceBid(false));
                 // setLastBid(bid);
-                // setShowBidPlaced(true);
               }}
             >
               CONFIRM
@@ -499,9 +511,8 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           onClick={() => {
             if (!connected) handleConnect();
             else setShowPlaceBid(true);
-          }}
-        >
-          place a bid
+          }}>
+          {isParticipated ? 'bid again' : 'place a bid'}
         </ActionButton>
       </div>
     </BidDetailsContent>

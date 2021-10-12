@@ -7,6 +7,7 @@ import { useMeta } from '../../contexts';
 import { AuctionViewState, useAuctions } from '../../hooks';
 import ActionButton from '../../components/ActionButton';
 import { Label, LiveDot, NumberStyle, TabsStyle, Timer, TitleWrapper } from './style';
+import { TwitterURL } from '../../constants';
 
 const { TabPane } = Tabs;
 
@@ -81,7 +82,10 @@ const AuctionListView = () => {
         </Col>
       </Row>
 
-      <ActionButton to={"/testing"}>notify me</ActionButton>
+
+      <a href={TwitterURL}>
+        <ActionButton size="large">notify me</ActionButton>
+      </a>
     </div>
   );
 

@@ -4,6 +4,7 @@ export const ProfileSection = css`
   padding: 56px;
   overflow: auto;
   height: calc(100vh - 80px);
+  position: fixed;
 `;
 
 export const NameStyle = css`
@@ -67,6 +68,7 @@ export const EditProfileButton = css`
 
 export const ArtsContent = css`
   padding: 56px 56px 56px 16px;
+  height: 100%;
 `;
 
 export const UploadStyle = css`
@@ -76,6 +78,8 @@ export const UploadStyle = css`
 `;
 
 export const TabsStyle = css`
+  height: 100%;
+
   .ant-tabs-nav {
     margin: unset;
     margin-bottom: 36px;
@@ -100,6 +104,32 @@ export const TabsStyle = css`
     span {
       color: #fafafb;
     }
+  }
+
+  .ant-tabs-content,
+  .ant-row {
+    height: 100%;
+  }
+`;
+
+export const EmptyRow = css`
+  align-content: center;
+  text-align: center;
+`;
+
+export const EmptyStyle = css`
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 22px;
+  text-align: center;
+  color: #7e7c7c;
+
+  div:first-child {
+    font-weight: bold;
+    font-size: 24px;
+    color: #fafafb;
+    margin-bottom: 12px;
   }
 `;
 

@@ -1,12 +1,13 @@
 import React, { useRef } from 'react';
 import { Avatar, Card, CardProps, Button, Badge, Row, Col } from 'antd';
 import { MetadataCategory, shortenAddress, StringPublicKey } from '@oyster/common';
-import { ArtContent, ArtContent2 } from './../ArtContent';
+import { ArtContent } from './../ArtContent';
 import { useArt } from '../../hooks';
 import { Artist, ArtType } from '../../types';
 
 import { uTextAlignEnd } from '../../styles';
 import { AuctionImage, AvatarStyle, CardStyle, UserWrapper } from './style';
+import { Link } from 'react-router-dom';
 
 const { Meta } = Card;
 
@@ -55,50 +56,6 @@ export const ArtCard = (props: ArtCardProps) => {
     badge = `edition ${art.edition} of ${art.supply}`;
   }
 
-  // const card = (
-  //   <Card
-  //     hoverable={true}
-  //     className={`art-card ${small ? 'small' : ''} ${className ?? ''}`}
-  //     cover={
-  //       <>
-  //         {close && (
-  //           <Button
-  //             className="card-close-button"
-  //             shape="circle"
-  //             onClick={e => {
-  //               e.stopPropagation();
-  //               e.preventDefault();
-  //               close && close();
-  //             }}
-  //           >
-  //             X
-  //           </Button>
-  //         )}
-  //         <ArtContent
-  //           pubkey={pubkey}
-  //           uri={image}
-  //           animationURL={animationURL}
-  //           category={category}
-  //           preview={preview}
-  //           height={height}
-  //           width={width}
-  //         />
-  //       </>
-  //     }
-  //     {...rest}
-  //   >
-  //     {(creators.length > 0 && <Meta
-  //       title={`${name}`}
-  //       description={
-  //         <>
-  //           <p>owned by : {wallet.publicKey?.toBase58()}</p>
-  //           <p>creators : {creators[0]?.address}</p>
-  //         </>
-  //       }
-  //     />)}
-  //   </Card>
-  // );
-
   const card = (
     <Card
       hoverable
@@ -123,16 +80,19 @@ export const ArtCard = (props: ArtCardProps) => {
           <>
             <div className={UserWrapper}>
               <Avatar size={32} className={AvatarStyle} />
-              {/* <span>{creators[0]?.address && shortenAddress(creators[0].address)}</span> */}
+              <span>{creators[0]?.address && shortenAddress(creators[0].address)}</span>
             </div>
 
             <Row>
               <Col span={12}>
+                <div>sold for</div>
+                <div>81 SOL</div>
               </Col>
 
               <Col className={uTextAlignEnd} span={12}>
-                <div>
-                </div>
+                <Link to={{ pathname: `/auction/create/0`, state: { idNFT: pubkey, item: [art] } }}>
+                  <Button shape="round">LIST</Button>
+                </Link>
               </Col>
             </Row>
           </>
