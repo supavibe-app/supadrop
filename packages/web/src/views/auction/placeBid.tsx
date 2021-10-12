@@ -6,13 +6,14 @@ import { BidInput, BidRuleInformation, Information, PlaceBidTitle } from './styl
 import { AuctionView, useHighestBidForAuction } from '../../hooks';
 import { WhiteColor } from '../../styles';
 
-function getMinimumBid(bid) {
-  let minimumBid = bid + (bid*0.1)
-  return Math.ceil(minimumBid * 10)/10
-}
+export const getMinimumBid = bid => {
+  let minimumBid = bid + (bid * 0.1);
+  return Math.ceil(minimumBid * 10) / 10;
+};
 
-const PlaceBid = ({ auction, setBidAmount }: {
+const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
   auction: AuctionView | undefined;
+  bidAmount: number | undefined;
   setBidAmount: (num: number) => void;
 }) => {
   const { account } = useNativeAccount();
@@ -39,6 +40,7 @@ const PlaceBid = ({ auction, setBidAmount }: {
 
       <Input
         className={BidInput}
+        defaultValue={bidAmount}
         placeholder="0"
         suffix="SOL"
         type="number"
