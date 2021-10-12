@@ -51,7 +51,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 
   const balance = parseFloat(formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL));
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
-  const minimumBid = (currentBid + currentBid * 0.1).toFixed(2); // updated minimum bid
+  const minimumBid = parseFloat((currentBid + currentBid * 0.1).toFixed(2)); // updated minimum bid
   const myPayingAccount = useUserBalance(auction?.auction.info.tokenMint).accounts[0]
 
   let winnerIndex: number | null = null;
