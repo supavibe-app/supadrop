@@ -477,7 +477,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
                   setShowPlaceBid(false);
                   setConfirmTrigger(false);
                 }).catch(() => {
-                  // user click cacel
+                  // user click cancel
                   setConfirmTrigger(false);
                 });
               }}

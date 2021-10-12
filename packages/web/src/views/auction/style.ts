@@ -144,7 +144,7 @@ export const BidStatus = css`
   }
 `;
 
-export const BidStatusEmpty = css`s
+export const BidStatusEmpty = css`
   display: flex;
   margin-bottom: 22px;
   font-weight: bold;
