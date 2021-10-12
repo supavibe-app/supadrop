@@ -1,18 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Avatar, Col, Row, Skeleton, message } from 'antd';
-import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox } from './style';
 import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta, AuctionState, VaultState, BidStateType } from '@oyster/common';
+import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
+import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox, SpinnerStyle } from './style';
+import { TwitterOutlined } from '@ant-design/icons';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { useWallet } from '@solana/wallet-adapter-react';
 import moment from 'moment';
 
+import { getMinimumBid } from './placeBid';
 import ActionButton from '../../components/ActionButton';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { Art } from '../../types';
-import { TwitterOutlined } from '@ant-design/icons';
 import { AuctionView, useHighestBidForAuction, useUserArts, useUserBalance } from '../../hooks';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { uFontSize24, WhiteColor } from '../../styles';
 import { sendPlaceBid } from '../../actions/sendPlaceBid';
 import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '../../actions/sendRedeemBid';
+import { uFontSize24, uTextAlignEnd, WhiteColor } from '../../styles';
 
 const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
   art: Art;
@@ -21,20 +22,23 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   bids: ParsedAccount<BidderMetadata>[];
   showPlaceBid: boolean;
   setShowPlaceBid: (visible: boolean) => void;
-  currentBidAmount: number;
+  currentBidAmount: number | undefined;
 }) => {
   const connection = useConnection();
-  const walletContext = useWallet();
-  const { wallet, connect, connected, publicKey } = walletContext;
-  const { account } = useNativeAccount();
   const { setVisible } = useWalletModal();
+  const { account } = useNativeAccount();
   const { accountByMint } = useUserAccounts();
   const { update, prizeTrackingTickets, bidRedemptions } = useMeta();
+  const ownedMetadata = useUserArts();
+
+  const walletContext = useWallet();
+  const { wallet, connect, connected, publicKey } = walletContext;
+
   const owner = auction?.auctionManager.authority.toString();
+
+  const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
-
-  const ownedMetadata = useUserArts();
 
   // const [lastBid, setLastBid] = useState<{ amount: BN } | undefined>(undefined);
   // const [showBidPlaced, setShowBidPlaced] = useState<boolean>(false);
@@ -42,7 +46,6 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const open = useCallback(() => setVisible(true), [setVisible]);
 
   const bid = useHighestBidForAuction(auction?.auction.pubkey || '');
-
   const mintInfo = useMint(auction?.auction.info.tokenMint);
   const priceFloor =
     auction?.auction.info.priceFloor.type === PriceFloorType.Minimum
@@ -51,7 +54,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
 
   const balance = parseFloat(formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL));
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
-  const minimumBid = parseFloat((currentBid + currentBid * 0.1).toFixed(2)); // updated minimum bid
+  const minimumBid = getMinimumBid(currentBid);
   const myPayingAccount = useUserBalance(auction?.auction.info.tokenMint).accounts[0]
 
   let winnerIndex: number | null = null;
@@ -67,7 +70,6 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   );
 
   const eligibleForAnything = winnerIndex !== null || eligibleForOpenEdition;
-
 
   useEffect(() => {
     if (!connected && showPlaceBid) setShowPlaceBid(false);
@@ -168,7 +170,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
                 <div className={`${WhiteColor} ${uFontSize24}`}>{currentBid} SOL</div>
               </Col>
 
-              <Col span={12}>
+              <Col className={uTextAlignEnd} span={12}>
                 <div>ending in</div>
                 <div className={`${WhiteColor} ${uFontSize24}`}>ended</div>
               </Col>
@@ -219,7 +221,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
                 <div className={`${WhiteColor} ${uFontSize24}`}>{currentBid} SOL</div>
               </Col>
 
-              <Col span={12}>
+              <Col className={uTextAlignEnd} span={12}>
                 {!auction?.isInstantSale && <div>ending in</div>}
                 {!auction?.isInstantSale && state && (
                   <div className={`${WhiteColor} ${uFontSize24}`}>
@@ -283,6 +285,18 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     // setLoading(false);
   }
 
+  if (confirmTrigger) {
+    return (
+      <BidDetailsContent>
+        <div className={ButtonWrapper}>
+          <ActionButton width="100%" disabled>
+            <Spin className={SpinnerStyle} />confirm your wallet
+          </ActionButton>
+        </div>
+      </BidDetailsContent>
+    );
+  }
+
   // case 0: loading
   if (!art.title) {
     return (
@@ -318,7 +332,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
         return (
           <BidDetailsContent>
             <div className={ButtonWrapper}>
-              <ActionButton width="100%">claim your NFT</ActionButton>
+              <ActionButton width="100%">claim NFT</ActionButton>
             </div>
           </BidDetailsContent>
         );
@@ -373,8 +387,6 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           </a>
         </BidDetailsContent>
       );
-
-
     }
 
     if (!ended) {
@@ -433,20 +445,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
       )
     }
 
-    // case first open page detail
-    if (currentBidAmount == 0) {
-      return (
-        <BidDetailsContent>
-          <div className={ButtonWrapper}>
-            <ActionButton width="100%" disabled>
-              enter your bid amount
-            </ActionButton>
-          </div>
-        </BidDetailsContent>
-      )
-    }
-
-    if (currentBidAmount > 0) {
+    if (currentBidAmount && currentBidAmount > 0) {
       // case 6: filled amount but not more than minimum bid
       if (currentBidAmount < minimumBid) {
         return (
@@ -465,6 +464,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
             <ActionButton
               width="100%"
               onClick={async () => {
+                setConfirmTrigger(true);
                 await sendPlaceBid(
                   connection,
                   walletContext,
@@ -472,8 +472,14 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
                   auction!!,
                   accountByMint,
                   currentBidAmount,
-                ).then(() => setShowPlaceBid(false));
-                // setLastBid(bid);
+                ).then(() => {
+                  // user click approve
+                  setShowPlaceBid(false);
+                  setConfirmTrigger(false);
+                }).catch(() => {
+                  // user click cacel
+                  setConfirmTrigger(false);
+                });
               }}
             >
               CONFIRM

@@ -260,74 +260,50 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
 
       <Col className={ButtonWrapper} span={6}>
         {!isOwner && (
-          <>
+          <div>
             <div className={Label}>your bid</div>
             <div className={Price}>
               {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
                 formatTokenAmount(bids[0].info.lastBid, mint)
               )} SOL
             </div>
-          </>
+          </div>
         )}
 
         {isOwner && ended && highestBid && (
-          <>
+          <div>
             <div className={Label}>settle fund</div>
             <div className={Price}>
               {Boolean(bids.length) && publicKey?.toBase58() === bids[0].info.bidderPubkey && (
                 formatTokenAmount(bids[0].info.lastBid, mint)
               )} SOL
             </div>
-          </>
+          </div>
         )}
 
         {isOwner && (
-          <>
+          <div>
             {!auctionView.isInstantSale && (<div className={Label}>ending in</div>)}
             {state && !ended && (
               <div className={StatusValue}>
                 {state.hours} :{' '}
                 {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
-                {state.minutes > 0 ? state.minutes : `0${state.minutes}`}
+                {state.seconds > 0 ? state.seconds : `0${state.seconds}`}
               </div>
             )}
 
-            {ended && !auctionView.isInstantSale &&(
+            {ended && !auctionView.isInstantSale && (
               <div className={StatusValue}>
                 auction ended
               </div>
             )}
-          </>
+          </div>
         )}
 
-        {/* case 1: auction still live */}
-        {!ended && !isOwner&& <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>bid again</ActionButton>}
-
-        {/* case 2.1: auction ended & win */}
-        {ended && eligibleForAnything && (
+        {/* case 0: is owner and instant sell */}
+        {isOwner && auctionView.isInstantSale && (
           <ActionButton
-            disabled={isButtonDisabled}
-            onClick={e => {
-              e.stopPropagation();
-              redeemBid();
-              setAuctionView(auctionView.auction.pubkey);
-            }}
-          >
-            {isOwner ? 'settle' : 'claim your NFT'}
-          </ActionButton>
-        )}
-
-        {/* case 2.2: auction ended & lose */}
-        {!eligibleForAnything && (
-          <ActionButton
-            disabled={isButtonDisabled}
-            onClick=
-            // {() => console.log(isOwner)}
-            // {e => {
-            //   e.stopPropagation();
-            //   cancelBid();
-            // }}
-            {async () => {
+            onClick={async () => {
               try {
                 await sendPlaceBid(
                   connection,
@@ -341,7 +317,7 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
                 console.error('sendPlaceBid', e);
                 return
               }
-          
+
               const newAuctionState = await update(
                 auctionView.auction.pubkey,
                 publicKey,
@@ -368,16 +344,45 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
               } catch (e) {
                 console.error(e);
               }
-          
               // setLoading(false);
             }}
           >
-            {isOwner && auctionView.isInstantSale? 'UNLIST' : 'refund bid'}
+            UNLIST
+          </ActionButton>
+        )}
+
+        {/* case 1: auction still live */}
+        {!ended && !isOwner && <ActionButton to={`/auction/${auctionView.auction.pubkey}?action=bid`}>bid again</ActionButton>}
+
+        {/* case 2.1: auction ended & win */}
+        {ended && eligibleForAnything && (
+          <ActionButton
+            disabled={isButtonDisabled}
+            onClick={e => {
+              e.stopPropagation();
+              redeemBid();
+              setAuctionView(auctionView.auction.pubkey);
+            }}
+          >
+            {isOwner ? 'settle' : 'claim NFT'}
+          </ActionButton>
+        )}
+
+        {/* case 2.2: auction ended & lose */}
+        {ended && !eligibleForAnything && (
+          <ActionButton
+            disabled={isButtonDisabled}
+            onClick={e => {
+              e.stopPropagation();
+              cancelBid();
+            }}
+          >
+            {isOwner ? 'reclaim NFT' : 'refund bid'}
           </ActionButton>
         )}
 
         {/* case 2.3: owner */}
-        {isOwner && ended && eligibleForAnything && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>view auction</ActionButton>}
+        {isOwner && !ended && <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>view auction</ActionButton>}
       </Col>
     </Row>
   );

@@ -58,9 +58,10 @@ export const BackButton = css`
   display: flex;
   align-items: center;
   cursor: pointer;
+  color: #fafafb;
 
-  .anticon {
-    margin-right: 8px;
+  svg {
+    margin-right: 16px;
   }
 `;
 
@@ -143,7 +144,7 @@ export const BidStatus = css`
   }
 `;
 
-export const BidStatusEmpty = css`
+export const BidStatusEmpty = css`s
   display: flex;
   margin-bottom: 22px;
   font-weight: bold;
@@ -294,4 +295,8 @@ export const BidInput = css`
     font-weight: bold;
     font-size: 24px;
   }
+`;
+
+export const SpinnerStyle = css`
+  margin-right: 12px;
 `;

@@ -14,9 +14,9 @@ interface IActionButton {
 
 const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionButton) => {
   const { push } = useHistory();
-  let height = 60;
-  let fontSize = 16;
-  let padding = 16;
+  let height = 74;
+  let fontSize = 20;
+  let padding = 18;
 
   switch (size) {
     case 'small':
@@ -27,7 +27,7 @@ const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionB
     case 'large':
       height = 78;
       fontSize = 24;
-      padding = 20;
+      padding = 16;
       break;
   }
 
