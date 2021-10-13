@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import { Row, Col, Button, Skeleton, List, Popover, Avatar } from 'antd';
 import { AuctionViewItem } from '@oyster/common/dist/lib/models/metaplex/index';
 import FeatherIcon from 'feather-icons-react';
-import { useConnectionConfig } from '@oyster/common';
+import { useConnectionConfig, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import {
@@ -21,7 +21,7 @@ import BidDetails from '../../components/Details/BidDetails';
 import PlaceBid from '../../components/Details/PlaceBid';
 import TransactionHistory from '../../components/Details/TransactionHistory';
 import { YellowGlowColor } from '../../styles';
-import { useMeta } from '../../contexts';
+// import { useMeta } from '../../contexts';
 import {
   ArtContainer,
   ArtContentStyle,
@@ -59,6 +59,11 @@ export const AuctionView = () => {
   const [showPlaceBid, setShowPlaceBid] = useState(action === 'bid');
   const setPlaceBidVisibility = useCallback((visible: boolean) => setShowPlaceBid(visible), [setShowPlaceBid]);
 
+
+  const { pullAuctionPage } = useMeta();
+  useEffect(() => {
+    pullAuctionPage(id);
+  }, []);
   const { ref, data } = useExtendedArt(auction?.thumbnail.metadata.pubkey);
   const art = useArt(auction?.thumbnail.metadata.pubkey);
   const bids = useBidsForAuction(auction?.auction.pubkey || '');

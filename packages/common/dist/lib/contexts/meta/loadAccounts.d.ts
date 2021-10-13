@@ -1,9 +1,17 @@
+import { StringPublicKey } from '../../utils/ids';
+import { TokenAccount } from '../../models';
 import { Metadata } from '../../actions';
-import { WhitelistedCreator } from '../../models/metaplex';
+import { StoreIndexer, WhitelistedCreator } from '../../models/metaplex';
 import { Connection } from '@solana/web3.js';
 import { AccountAndPubkey, MetaState, ProcessAccountsFunc, UpdateStateValueFunc } from './types';
 import { ParsedAccount } from '../accounts/types';
 export declare const USE_SPEED_RUN = false;
+export declare const pullStoreMetadata: (connection: Connection, tempCache: MetaState) => Promise<MetaState>;
+export declare const pullYourMetadata: (connection: Connection, userTokenAccounts: TokenAccount[], tempCache: MetaState) => Promise<MetaState>;
+export declare const pullPayoutTickets: (connection: Connection, tempCache: MetaState) => Promise<MetaState>;
+export declare const pullAuctionSubaccounts: (connection: Connection, auction: StringPublicKey, tempCache: MetaState) => Promise<MetaState>;
+export declare const pullPages: (connection: Connection) => Promise<ParsedAccount<StoreIndexer>[]>;
+export declare const pullPage: (connection: Connection, page: number, tempCache: MetaState) => Promise<MetaState>;
 export declare const limitedLoadAccounts: (connection: Connection) => Promise<MetaState>;
 export declare const loadAccounts: (connection: Connection) => Promise<MetaState>;
 export declare const makeSetter: (state: MetaState) => UpdateStateValueFunc<MetaState>;

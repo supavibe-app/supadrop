@@ -119,17 +119,23 @@ class Metadata {
     }
     async init() {
         const metadata = utils_1.toPublicKey(programIds_1.programIds().metadata);
+        /*
+        This nonce stuff doesnt work - we are doing something wrong here. TODO fix.
         if (this.editionNonce !== null) {
-            this.edition = (await web3_js_1.PublicKey.createProgramAddress([
-                Buffer.from(exports.METADATA_PREFIX),
+          this.edition = (
+            await PublicKey.createProgramAddress(
+              [
+                Buffer.from(METADATA_PREFIX),
                 metadata.toBuffer(),
-                utils_1.toPublicKey(this.mint).toBuffer(),
+                toPublicKey(this.mint).toBuffer(),
                 new Uint8Array([this.editionNonce || 0]),
-            ], metadata)).toBase58();
-        }
-        else {
-            this.edition = await getEdition(this.mint);
-        }
+              ],
+              metadata,
+            )
+          ).toBase58();
+        } else {*/
+        this.edition = await getEdition(this.mint);
+        //}
         this.masterEdition = this.edition;
     }
 }
@@ -274,7 +280,8 @@ exports.METADATA_SCHEMA = new Map([
                 ['mint', 'pubkeyAsString'],
                 ['data', Data],
                 ['primarySaleHappened', 'u8'],
-                ['isMutable', 'u8'], // bool
+                ['isMutable', 'u8'],
+                ['editionNonce', { kind: 'option', type: 'u8' }],
             ],
         },
     ],

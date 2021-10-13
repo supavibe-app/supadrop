@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAuctionKeys = exports.getAuctionManagerKey = exports.SCHEMA = exports.ValidateSafetyDepositBoxV2Args = exports.SafetyDepositConfig = exports.InitAuctionManagerV2Args = exports.AmountRange = exports.TupleNumericType = exports.AuctionManagerStatus = exports.BidRedemptionTicketV2 = exports.Store = exports.WhitelistedCreator = exports.decodePayoutTicket = exports.decodeSafetyDepositConfig = exports.decodeBidRedemptionTicket = exports.decodeAuctionManager = exports.decodeStore = exports.WhitelistedCreatorParser = exports.decodeWhitelistedCreator = exports.decodePrizeTrackingTicket = exports.WinningConfigType = exports.NonWinningConstraint = exports.WinningConstraint = exports.RedeemParticipationBidV3Args = exports.WithdrawMasterEditionArgs = exports.RedeemPrintingV2BidArgs = exports.DecommissionAuctionManagerArgs = exports.SetWhitelistedCreatorArgs = exports.SetStoreArgs = exports.EmptyPaymentAccountArgs = exports.RedeemUnusedWinningConfigItemsAsAuctioneerArgs = exports.ProxyCallAddress = exports.ClaimBidArgs = exports.EndAuctionArgs = exports.StartAuctionArgs = exports.RedeemFullRightsTransferBidArgs = exports.RedeemBidArgs = exports.ParticipationConfigV2 = exports.ParticipationStateV2 = exports.AuctionManagerStateV2 = exports.AuctionManagerV2 = exports.AuctionManager = exports.PayoutTicket = exports.PrizeTrackingTicket = exports.MetaplexKey = exports.MAX_WHITELISTED_CREATOR_SIZE = exports.MAX_PRIZE_TRACKING_TICKET_SIZE = exports.ORIGINAL_AUTHORITY_LOOKUP_SIZE = exports.TOTALS = exports.METAPLEX_PREFIX = void 0;
-exports.getPayoutTicket = exports.getSafetyDepositConfig = exports.getAuctionWinnerTokenTypeTracker = exports.getPrizeTrackingTicket = exports.getWhitelistedCreator = exports.isCreatorPartOfTheStore = exports.getOriginalAuthority = exports.getBidderKeys = exports.getBidRedemption = void 0;
+exports.Store = exports.WhitelistedCreator = exports.decodePayoutTicket = exports.decodeSafetyDepositConfig = exports.decodeBidRedemptionTicket = exports.decodeAuctionManager = exports.decodeStore = exports.WhitelistedCreatorParser = exports.decodeWhitelistedCreator = exports.decodePrizeTrackingTicket = exports.decodeAuctionCache = exports.decodeStoreIndexer = exports.WinningConfigType = exports.NonWinningConstraint = exports.WinningConstraint = exports.SetAuctionCacheArgs = exports.SetStoreIndexArgs = exports.RedeemParticipationBidV3Args = exports.WithdrawMasterEditionArgs = exports.RedeemPrintingV2BidArgs = exports.DecommissionAuctionManagerArgs = exports.SetWhitelistedCreatorArgs = exports.SetStoreArgs = exports.EmptyPaymentAccountArgs = exports.RedeemUnusedWinningConfigItemsAsAuctioneerArgs = exports.ProxyCallAddress = exports.ClaimBidArgs = exports.EndAuctionArgs = exports.StartAuctionArgs = exports.RedeemFullRightsTransferBidArgs = exports.RedeemBidArgs = exports.ParticipationConfigV2 = exports.ParticipationStateV2 = exports.AuctionManagerStateV2 = exports.AuctionManagerV2 = exports.AuctionManager = exports.AuctionCache = exports.StoreIndexer = exports.PayoutTicket = exports.PrizeTrackingTicket = exports.MetaplexKey = exports.MAX_PAYOUT_TICKET_SIZE = exports.MAX_WHITELISTED_CREATOR_SIZE = exports.MAX_PRIZE_TRACKING_TICKET_SIZE = exports.ORIGINAL_AUTHORITY_LOOKUP_SIZE = exports.MAX_INDEXED_ELEMENTS = exports.TOTALS = exports.CACHE = exports.INDEX = exports.METAPLEX_PREFIX = void 0;
+exports.getPayoutTicket = exports.getAuctionCache = exports.getStoreIndexer = exports.getSafetyDepositConfig = exports.getAuctionWinnerTokenTypeTracker = exports.getPrizeTrackingTicket = exports.getWhitelistedCreator = exports.isCreatorPartOfTheStore = exports.getOriginalAuthority = exports.getBidderKeys = exports.getBidRedemption = exports.getAuctionKeys = exports.getAuctionManagerKey = exports.SCHEMA = exports.ValidateSafetyDepositBoxV2Args = exports.SafetyDepositConfig = exports.InitAuctionManagerV2Args = exports.AmountRange = exports.TupleNumericType = exports.AuctionManagerStatus = exports.BidRedemptionTicketV2 = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const bn_js_1 = __importDefault(require("bn.js"));
 const bs58_1 = __importDefault(require("bs58"));
@@ -33,10 +33,14 @@ __exportStar(require("./redeemPrintingV2Bid"), exports);
 __exportStar(require("./withdrawMasterEdition"), exports);
 __exportStar(require("./deprecatedStates"), exports);
 exports.METAPLEX_PREFIX = 'metaplex';
+exports.INDEX = 'index';
+exports.CACHE = 'cache';
 exports.TOTALS = 'totals';
+exports.MAX_INDEXED_ELEMENTS = 100;
 exports.ORIGINAL_AUTHORITY_LOOKUP_SIZE = 33;
 exports.MAX_PRIZE_TRACKING_TICKET_SIZE = 1 + 32 + 8 + 8 + 8 + 50;
 exports.MAX_WHITELISTED_CREATOR_SIZE = 2 + 32 + 10;
+exports.MAX_PAYOUT_TICKET_SIZE = 1 + 32 + 8;
 var MetaplexKey;
 (function (MetaplexKey) {
     MetaplexKey[MetaplexKey["Uninitialized"] = 0] = "Uninitialized";
@@ -52,6 +56,8 @@ var MetaplexKey;
     MetaplexKey[MetaplexKey["AuctionManagerV2"] = 10] = "AuctionManagerV2";
     MetaplexKey[MetaplexKey["BidRedemptionTicketV2"] = 11] = "BidRedemptionTicketV2";
     MetaplexKey[MetaplexKey["AuctionWinnerTokenTypeTrackerV1"] = 12] = "AuctionWinnerTokenTypeTrackerV1";
+    MetaplexKey[MetaplexKey["StoreIndexerV1"] = 13] = "StoreIndexerV1";
+    MetaplexKey[MetaplexKey["AuctionCacheV1"] = 14] = "AuctionCacheV1";
 })(MetaplexKey = exports.MetaplexKey || (exports.MetaplexKey = {}));
 class PrizeTrackingTicket {
     constructor(args) {
@@ -73,6 +79,29 @@ class PayoutTicket {
     }
 }
 exports.PayoutTicket = PayoutTicket;
+class StoreIndexer {
+    constructor(args) {
+        this.key = MetaplexKey.StoreIndexerV1;
+        this.key = MetaplexKey.StoreIndexerV1;
+        this.store = args.store;
+        this.page = args.page;
+        this.auctionCaches = args.auctionCaches;
+    }
+}
+exports.StoreIndexer = StoreIndexer;
+class AuctionCache {
+    constructor(args) {
+        this.key = MetaplexKey.AuctionCacheV1;
+        this.key = MetaplexKey.AuctionCacheV1;
+        this.store = args.store;
+        this.timestamp = args.timestamp;
+        this.metadata = args.metadata;
+        this.auction = args.auction;
+        this.vault = args.vault;
+        this.auctionManager = args.auctionManager;
+    }
+}
+exports.AuctionCache = AuctionCache;
 class AuctionManager {
     constructor(args) {
         var _a;
@@ -325,6 +354,20 @@ class RedeemParticipationBidV3Args {
     }
 }
 exports.RedeemParticipationBidV3Args = RedeemParticipationBidV3Args;
+class SetStoreIndexArgs {
+    constructor(args) {
+        this.instruction = 21;
+        this.page = args.page;
+        this.offset = args.offset;
+    }
+}
+exports.SetStoreIndexArgs = SetStoreIndexArgs;
+class SetAuctionCacheArgs {
+    constructor() {
+        this.instruction = 22;
+    }
+}
+exports.SetAuctionCacheArgs = SetAuctionCacheArgs;
 var WinningConstraint;
 (function (WinningConstraint) {
     WinningConstraint[WinningConstraint["NoParticipationPrize"] = 0] = "NoParticipationPrize";
@@ -363,6 +406,14 @@ var WinningConfigType;
     /// Means you are using a MasterEditionV2 as a participation prize.
     WinningConfigType[WinningConfigType["Participation"] = 4] = "Participation";
 })(WinningConfigType = exports.WinningConfigType || (exports.WinningConfigType = {}));
+const decodeStoreIndexer = (buffer) => {
+    return borsh_1.deserializeUnchecked(exports.SCHEMA, StoreIndexer, buffer);
+};
+exports.decodeStoreIndexer = decodeStoreIndexer;
+const decodeAuctionCache = (buffer) => {
+    return borsh_1.deserializeUnchecked(exports.SCHEMA, AuctionCache, buffer);
+};
+exports.decodeAuctionCache = decodeAuctionCache;
 const decodePrizeTrackingTicket = (buffer) => {
     return borsh_1.deserializeUnchecked(exports.SCHEMA, PrizeTrackingTicket, buffer);
 };
@@ -591,6 +642,33 @@ class ValidateSafetyDepositBoxV2Args {
 exports.ValidateSafetyDepositBoxV2Args = ValidateSafetyDepositBoxV2Args;
 exports.SCHEMA = new Map([
     ...deprecatedStates_1.DEPRECATED_SCHEMA,
+    [
+        StoreIndexer,
+        {
+            kind: 'struct',
+            fields: [
+                ['key', 'u8'],
+                ['store', 'pubkeyAsString'],
+                ['page', 'u64'],
+                ['auctionCaches', ['pubkeyAsString']],
+            ],
+        },
+    ],
+    [
+        AuctionCache,
+        {
+            kind: 'struct',
+            fields: [
+                ['key', 'u8'],
+                ['store', 'pubkeyAsString'],
+                ['timestamp', 'u64'],
+                ['metadata', ['pubkeyAsString']],
+                ['auction', 'pubkeyAsString'],
+                ['vault', 'pubkeyAsString'],
+                ['auctionManager', 'pubkeyAsString'],
+            ],
+        },
+    ],
     [
         PrizeTrackingTicket,
         {
@@ -822,6 +900,24 @@ exports.SCHEMA = new Map([
         },
     ],
     [
+        SetAuctionCacheArgs,
+        {
+            kind: 'struct',
+            fields: [['instruction', 'u8']],
+        },
+    ],
+    [
+        SetStoreIndexArgs,
+        {
+            kind: 'struct',
+            fields: [
+                ['instruction', 'u8'],
+                ['page', 'u64'],
+                ['offset', 'u64'],
+            ],
+        },
+    ],
+    [
         EmptyPaymentAccountArgs,
         {
             kind: 'struct',
@@ -962,6 +1058,37 @@ async function getSafetyDepositConfig(auctionManager, safetyDeposit) {
     ], utils_1.toPublicKey(PROGRAM_IDS.metaplex)))[0];
 }
 exports.getSafetyDepositConfig = getSafetyDepositConfig;
+async function getStoreIndexer(page) {
+    const PROGRAM_IDS = utils_1.programIds();
+    const store = PROGRAM_IDS.store;
+    if (!store) {
+        throw new Error('Store not initialized');
+    }
+    return (await utils_1.findProgramAddress([
+        Buffer.from(exports.METAPLEX_PREFIX),
+        utils_1.toPublicKey(PROGRAM_IDS.metaplex).toBuffer(),
+        utils_1.toPublicKey(store).toBuffer(),
+        Buffer.from(exports.INDEX),
+        Buffer.from(page.toString()),
+    ], utils_1.toPublicKey(PROGRAM_IDS.metaplex)))[0];
+}
+exports.getStoreIndexer = getStoreIndexer;
+async function getAuctionCache(auction) {
+    const PROGRAM_IDS = utils_1.programIds();
+    const store = PROGRAM_IDS.store;
+    if (!store) {
+        throw new Error('Store not initialized');
+    }
+    console.log('Auction', auction);
+    return (await utils_1.findProgramAddress([
+        Buffer.from(exports.METAPLEX_PREFIX),
+        utils_1.toPublicKey(PROGRAM_IDS.metaplex).toBuffer(),
+        utils_1.toPublicKey(store).toBuffer(),
+        utils_1.toPublicKey(auction).toBuffer(),
+        Buffer.from(exports.CACHE),
+    ], utils_1.toPublicKey(PROGRAM_IDS.metaplex)))[0];
+}
+exports.getAuctionCache = getAuctionCache;
 async function getPayoutTicket(auctionManager, winnerConfigIndex, winnerConfigItemIndex, creatorIndex, safetyDepositBox, recipient) {
     const PROGRAM_IDS = utils_1.programIds();
     return (await utils_1.findProgramAddress([

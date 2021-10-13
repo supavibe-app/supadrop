@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ItemAuction = void 0;
 class ItemAuction {
-    constructor(id, name, id_nft, token_mint, price_floor, img_nft, startAt, endAt, highestBid, price_tick, gapTime, tickExtend, vault, arweave_link, owner, mint_key) {
+    constructor(id, name, id_nft, token_mint, price_floor, img_nft, startAt, endAt, highestBid, price_tick, gapTime, tickExtend, vault, arweave_link, owner, mint_key, isInstantSale) {
         this.id = id;
         this.name = name;
         this.id_nft = id_nft;
@@ -19,6 +19,7 @@ class ItemAuction {
         this.arweave_link = arweave_link;
         this.owner = owner;
         this.mint_key = mint_key;
+        this.isInstantSale = isInstantSale;
     }
 }
 exports.ItemAuction = ItemAuction;

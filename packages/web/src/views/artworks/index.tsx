@@ -24,7 +24,7 @@ export const ArtworksView = () => {
   const ownedMetadata = useUserArts();
   const createdMetadata = useCreatorArts(publicKey?.toBase58() || '');
   const onSale = useAuctions(AuctionViewState.Live).filter(m=>m.vault.info.authority === publicKey?.toBase58() )
-  const { metadata, isLoadingMetaplex } = useMeta();
+  const { metadata, isLoadingMetaplex, pullAllMetadata, storeIndexer } = useMeta();
   const [activeKey, setActiveKey] = useState(ArtworkViewState.Metaplex);
   const breakpointColumnsObj = {
     default: 4,
@@ -118,6 +118,9 @@ export const ArtworksView = () => {
                 </TabPane>
               )}
             </Tabs>
+            {connected && storeIndexer.length && (
+              <a onClick={() => pullAllMetadata()}>Load all metadata</a>
+            )}
           </Row>
         </Col>
       </Content>
