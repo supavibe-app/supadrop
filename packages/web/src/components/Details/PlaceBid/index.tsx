@@ -2,14 +2,10 @@ import React from 'react';
 import { Col, Input, Row } from 'antd';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { formatNumber, formatTokenAmount, fromLamports, PriceFloorType, useMint, useNativeAccount } from '@oyster/common';
+import { AuctionView, useHighestBidForAuction } from '../../../hooks';
+import getMinimumBid from '../../../helpers/getMinimumBid';
+import { WhiteColor } from '../../../styles';
 import { BidInput, BidRuleInformation, Information, PlaceBidTitle } from './style';
-import { AuctionView, useHighestBidForAuction } from '../../hooks';
-import { WhiteColor } from '../../styles';
-
-export const getMinimumBid = bid => {
-  let minimumBid = (bid + bid * 0.1).toFixed(2) // updated minimum bid
-  return minimumBid;
-};
 
 const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
   auction: AuctionView | undefined;

@@ -8,12 +8,13 @@ import { AuctionViewState, useAuctions, useCreatorArts, useUserArts } from '../.
 import { ArtCard } from '../../components/ArtCard';
 import { AddressSection, ArtsContent, BioSection, EditProfileButton, EmptyRow, EmptyStyle, IconURL, NameStyle, ProfileSection, TabsStyle, UsernameSection } from './style';
 import { shortenAddress } from '@oyster/common';
-import EditProfile from './editProfile';
-import { uTextAlignCenter } from '../../styles';
+import EditProfile from '../../components/Profile/EditProfile';
+import { uTextAlignCenter, WhiteColor } from '../../styles';
 import { ArtCardOnSale } from '../../components/ArtCardOnSale';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import { supabase } from '../../../supabaseClient';
+import getUserData from '../../database/userData';
 
 const { TabPane } = Tabs;
 
@@ -27,43 +28,27 @@ const Profile = ({ userId }: { userId: string; }) => {
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
 
   const isAccountOwner = publicKey?.toBase58() === userId;
+  const { data: userData, loading, refetch } = getUserData(userId);
 
   const getProfileData = async () => {
     let { data: user_data, error } = await supabase.from('user_data')
       .select('*')
       .eq('wallet_address', userId)
-      .limit(1)
+      .limit(1);
 
     if (error) {
       console.log(error)
-      return
+      return null;
     }
 
     if (user_data != null) {
       console.log('data_profile', user_data[0])
-      return user_data[0]
+      return user_data[0];
     } else {
-      initProfileData()
-      return null
+      initProfileData();
+      return null;
     }
-  }
-
-  const setProfileData = async () => {
-    let { data, error } = await supabase.from('user_data')
-      .update([{ name: '', twitter: '', img_profile: '', username: '', website: '', bio: '' }])
-      .eq('wallet_address', userId)
-      .limit(1)
-
-    if (error) {
-      console.log(error)
-      return
-    }
-
-    if (data != null) {
-      console.log('data_profile', data[0])
-      return data[0]
-    } else return null
-  }
+  };
 
   const initProfileData = async () => {
     let { data, error } = await supabase.from('user_data')
@@ -88,7 +73,7 @@ const Profile = ({ userId }: { userId: string; }) => {
   //     if (data.body != null) {
   //       console.log('data_profile', data.body)
   //     }
-  //   })
+  //   });
 
   // TODO function OR from supabase
   // supabase.from('user_data')
@@ -130,16 +115,15 @@ const Profile = ({ userId }: { userId: string; }) => {
     <Row>
       <Col className="profile-section_mask" span={6} xs={24} sm={24} md={12} lg={6} xl={6} xxl={6} />
       <Col className={ProfileSection} span={6} xs={24} sm={24} md={12} lg={6} xl={6} xxl={6}>
-        {onEdit && <EditProfile closeEdit={closeEdit} />}
+        {onEdit && <EditProfile userData={userData} closeEdit={closeEdit} refetch={refetch} />}
 
-        {/* TODO: Ambil Data profile dari database */}
-        {!onEdit && (
+        {!onEdit && userData && (
           <div className={uTextAlignCenter}>
             <div>
               <Avatar size={128} />
             </div>
 
-            <div className={NameStyle}>ExnD</div>
+            <div className={NameStyle}>{userData.name}</div>
 
             <div
               className={AddressSection}
@@ -155,16 +139,23 @@ const Profile = ({ userId }: { userId: string; }) => {
               </div>
             </div>
 
-            <div className={UsernameSection}>@exnd</div>
+            <div className={UsernameSection}>@{userData.username}</div>
 
             <div className={IconURL}>
-              <TwitterOutlined />
-              <FeatherIcon icon="globe" />
+              {userData.twitter && (
+                <a className={WhiteColor} href={`https://twitter.com/${userData.twitter}`} target="_blank">
+                  <TwitterOutlined />
+                </a>
+              )}
+
+              {userData.website && (
+                <a className={WhiteColor} href={userData.website} target="_blank">
+                  <FeatherIcon icon="globe" />
+                </a>
+              )}
             </div>
 
-            <div className={BioSection}>
-              hissartwork’s digital art has always been a form of ventilation from his fine art background and his career in consumer marketing. His 1/1s are not always a specific curation of his work, but rather arcane concepts that allow him to experiment with both form and aesthetic without focusing on a specific style or concept. Although mostly implicit, always purposefully crafted for open interpretation.
-            </div>
+            <div className={BioSection}>{userData.bio}</div>
 
             {isAccountOwner && <Button className={EditProfileButton} shape="round" onClick={() => setOnEdit(true)}>edit profile</Button>}
           </div>
@@ -248,8 +239,8 @@ const Profile = ({ userId }: { userId: string; }) => {
             </Row>
           </TabPane>
         </Tabs>
-      </Col >
-    </Row >
+      </Col>
+    </Row>
   );
 };
 
