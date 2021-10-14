@@ -64,7 +64,7 @@ const Profile = ({ userId }: { userId: string; }) => {
   //   }
   // }
 
-  // TODO function OR from supabase
+  // TODO add function OR from supabase
   // supabase.from('user_data')
   //   .select('*')
   //   .eq('wallet_address', userId)
@@ -75,7 +75,7 @@ const Profile = ({ userId }: { userId: string; }) => {
   //     }
   //   });
 
-  // TODO function OR from supabase
+  // TODO add function OR from supabase
   // supabase.from('user_data')
   //   .select('*')
   //   .eq('username', userId)

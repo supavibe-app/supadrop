@@ -135,12 +135,12 @@ function MetaProvider({ children = null }) {
             window.loadingData = true;
             setIsLoadingMetaplex(true);
         }
-        console.log('-----> Query started');
+        console.log('-----> Query started', new Date());
         let nextState = await _1.pullPage(connection, page, state);
         if (nextState.storeIndexer.length) {
             if (loadAccounts_1.USE_SPEED_RUN) {
                 nextState = await loadAccounts_1.limitedLoadAccounts(connection);
-                console.log('------->Query finished');
+                console.log('------->Query finished', new Date());
                 setState(nextState);
                 //@ts-ignore
                 window.loadingData = false;
@@ -191,7 +191,7 @@ function MetaProvider({ children = null }) {
             nextState = !loadAccounts_1.USE_SPEED_RUN
                 ? await loadAccounts_1.loadAccounts(connection)
                 : await loadAccounts_1.limitedLoadAccounts(connection);
-            console.log('------->Query finished');
+            console.log('------->Query finished', new Date());
             setState(nextState);
             //@ts-ignore
             window.loadingData = false;

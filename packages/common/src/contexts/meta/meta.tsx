@@ -144,7 +144,7 @@ export function MetaProvider({ children = null as any }) {
       setIsLoadingMetaplex(true);
     }
 
-    console.log('-----> Query started');
+    console.log('-----> Query started', new Date());
 
     let nextState = await pullPage(connection, page, state);
 
@@ -152,7 +152,7 @@ export function MetaProvider({ children = null as any }) {
       if (USE_SPEED_RUN) {
         nextState = await limitedLoadAccounts(connection);
 
-        console.log('------->Query finished');
+        console.log('------->Query finished', new Date());
 
         setState(nextState);
 
@@ -225,7 +225,7 @@ export function MetaProvider({ children = null as any }) {
         ? await loadAccounts(connection)
         : await limitedLoadAccounts(connection);
 
-      console.log('------->Query finished');
+      console.log('------->Query finished', new Date());
 
       setState(nextState);
 

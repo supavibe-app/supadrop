@@ -46,6 +46,45 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     }
   };
 
+  // TODO request storage
+  // supabase
+  //   .storage
+  //   .getBucket('profile')
+
+  // TODO upload file here
+  const props = {
+    action: '',
+    multiple: false,
+    onStart(file) {
+      console.log('onStart', file, file.name);
+      supabase
+        .storage
+        .from('profile')
+        .upload(`public/filename.png`, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+    },
+    onSuccess(ret) {
+      console.log('onSuccess', ret);
+    },
+    onError(err) {
+      console.log('onError', err);
+    },
+    beforeUpload(file) {
+      console.log(file);
+      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+      if (!isJpgOrPng) {
+        message.error('You can only upload JPG/PNG file!');
+      }
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        message.error('Image must smaller than 2MB!');
+      }
+      return isJpgOrPng && isLt2M;
+    },
+  };
+
   return (
     <div>
       <div className={EditProfileTitle}>edit profile</div>
@@ -53,7 +92,7 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
       <div>
         <div className={UploadImageContainer}>
           <div>
-            <Upload className={UploadStyle}>
+            <Upload {...props} className={UploadStyle}>
               <Avatar size={86} icon={<FeatherIcon icon="image" size="32" />} style={{ cursor: 'pointer' }} />
             </Upload>
           </div>

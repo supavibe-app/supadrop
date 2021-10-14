@@ -13,6 +13,7 @@ import { ArtContent, ArtContent2 } from '../ArtContent';
 import { AuctionView, AuctionViewState, useArt } from '../../hooks';
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
+import { useAuctionStatus } from './hooks/useAuctionStatus';
 import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, OwnerContainer, UserWrapper } from './style';
 import countDown from '../../helpers/countdown';
 import { uTextAlignEnd } from '../../styles';

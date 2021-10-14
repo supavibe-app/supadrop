@@ -280,7 +280,7 @@ class StartAuctionArgs {
 exports.StartAuctionArgs = StartAuctionArgs;
 class EndAuctionArgs {
     constructor(args) {
-        this.instruction = 21;
+        this.instruction = 20;
         this.reveal = args.reveal;
     }
 }
