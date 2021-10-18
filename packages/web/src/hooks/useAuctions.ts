@@ -294,14 +294,14 @@ export function processAccountsIntoAuctionView(
     if (
       desiredState === AuctionViewState.Defective &&
       auctionManagerInstance.info.state.status !==
-        AuctionManagerStatus.Initialized
+      AuctionManagerStatus.Initialized
     )
       return undefined;
     // Generally the only way an initialized auction manager can get through is if you are asking for defective ones.
     else if (
       desiredState !== AuctionViewState.Defective &&
       auctionManagerInstance.info.state.status ===
-        AuctionManagerStatus.Initialized
+      AuctionManagerStatus.Initialized
     )
       return undefined;
 
@@ -330,7 +330,7 @@ export function processAccountsIntoAuctionView(
     const auctionDataExtendedKey =
       auctionManagerInstance.info.key == MetaplexKey.AuctionManagerV2
         ? (auctionManagerInstance as ParsedAccount<AuctionManagerV2>).info
-            .auctionDataExtended
+          .auctionDataExtended
         : null;
     const auctionDataExt = auctionDataExtendedKey
       ? auctionDataExtended[auctionDataExtendedKey]
@@ -341,8 +341,8 @@ export function processAccountsIntoAuctionView(
     const bidRedemption: ParsedAccount<BidRedemptionTicket> | undefined =
       cachedRedemptionKeysByWallet[auction.pubkey]?.info
         ? (cachedRedemptionKeysByWallet[
-            auction.pubkey
-          ] as ParsedAccount<BidRedemptionTicket>)
+          auction.pubkey
+        ] as ParsedAccount<BidRedemptionTicket>)
         : undefined;
 
     const bidderMetadata =
@@ -372,8 +372,8 @@ export function processAccountsIntoAuctionView(
       // and case of v2 master edition where the edition itself is stored
       participationMetadata =
         metadataByMasterEdition[
-          masterEditionsByOneTimeAuthMint[participationBox.info.tokenMint]
-            ?.pubkey
+        masterEditionsByOneTimeAuthMint[participationBox.info.tokenMint]
+          ?.pubkey
         ] || metadataByMint[participationBox.info.tokenMint];
       if (participationMetadata) {
         participationMaster =
@@ -400,12 +400,12 @@ export function processAccountsIntoAuctionView(
       participationItem:
         participationMetadata && participationBox
           ? {
-              metadata: participationMetadata,
-              safetyDeposit: participationBox,
-              masterEdition: participationMaster,
-              amount: new BN(1),
-              winningConfigType: WinningConfigType.Participation,
-            }
+            metadata: participationMetadata,
+            safetyDeposit: participationBox,
+            masterEdition: participationMaster,
+            amount: new BN(1),
+            winningConfigType: WinningConfigType.Participation,
+          }
           : undefined,
       myBidderMetadata: bidderMetadata,
       myBidderPot: bidderPot,
@@ -417,8 +417,8 @@ export function processAccountsIntoAuctionView(
       view.participationItem ||
       (metadataByAuction[auction.pubkey]
         ? {
-            metadata: metadataByAuction[auction.pubkey][0],
-          }
+          metadata: metadataByAuction[auction.pubkey][0],
+        }
         : null);
 
     view.isInstantSale = isInstantSale(auctionDataExt, auction);
@@ -426,11 +426,11 @@ export function processAccountsIntoAuctionView(
     view.totallyComplete = !!(
       view.thumbnail &&
       boxesExpected ===
-        (view.items || []).length +
-          (auctionManager.participationConfig === null ||
-          auctionManager.participationConfig === undefined
-            ? 0
-            : 1) &&
+      (view.items || []).length +
+      (auctionManager.participationConfig === null ||
+        auctionManager.participationConfig === undefined
+        ? 0
+        : 1) &&
       (auctionManager.participationConfig === null ||
         auctionManager.participationConfig === undefined ||
         (auctionManager.participationConfig !== null &&

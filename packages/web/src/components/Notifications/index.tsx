@@ -331,7 +331,7 @@ export function useSettlementAuctions({
               metadataByAuction,
               undefined,
             );
-            if(completeAuctionView) {
+            if (completeAuctionView) {
               await settle(
                 connection,
                 wallet,
@@ -363,6 +363,7 @@ export function Notifications() {
     store,
     vaults,
     safetyDepositBoxesByVaultAndIndex,
+    pullAllSiteData,
   } = useMeta();
   const possiblyBrokenAuctionManagerSetups = useAuctions(
     AuctionViewState.Defective,
@@ -371,7 +372,6 @@ export function Notifications() {
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
   const wallet = useWallet();
-  const { accountByMint } = useUserAccounts();
 
   //NOTE: notifications untuk kasih tau seller sol yg bisa diambil (settle)
   const notifications: NotificationCard[] = [];
@@ -419,6 +419,26 @@ export function Notifications() {
         return true;
       },
     });
+  });
+
+  notifications.push({
+    id: 'none',
+    title: 'Search for other auctions.',
+    description: (
+      <span>
+        Load all auctions (including defectives) by pressing here. Then you can
+        close them.
+      </span>
+    ),
+    action: async () => {
+      try {
+        await pullAllSiteData();
+      } catch (e) {
+        console.error(e);
+        return false;
+      }
+      return true;
+    },
   });
 
   possiblyBrokenAuctionManagerSetups
@@ -631,7 +651,7 @@ export function Notifications() {
 //   if (notifications.length === 0) return justContent;
 //   else
 //     return (
-//       <Badge count={notifications.length} style={{ backgroundColor: 'white' }}>
+//       <Badge count={notifications.length - 1} style={{ backgroundColor: 'white' }}>
 //         {justContent}
 //       </Badge>
 //     );
