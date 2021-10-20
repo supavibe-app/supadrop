@@ -10,7 +10,7 @@ const onChangeAccount = (process, setter) => async (info) => {
         account: {
             ...account,
             // to make sure these accounts get processed by processAuctions, processVaultData, etc
-            owner: account.owner.toBase58()
+            owner: account.owner.toBase58(),
         },
     }, setter);
 };

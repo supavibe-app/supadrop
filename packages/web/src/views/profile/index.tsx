@@ -9,12 +9,13 @@ import { ArtCard } from '../../components/ArtCard';
 import { AddressSection, ArtsContent, BioSection, EditProfileButton, EmptyRow, EmptyStyle, IconURL, NameStyle, ProfileSection, TabsStyle, UsernameSection } from './style';
 import { shortenAddress } from '@oyster/common';
 import EditProfile from '../../components/Profile/EditProfile';
-import { uTextAlignCenter, WhiteColor } from '../../styles';
+import { uFlexJustifyCenter, uTextAlignCenter, WhiteColor } from '../../styles';
 import { ArtCardOnSale } from '../../components/ArtCardOnSale';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import { supabase } from '../../../supabaseClient';
 import getUserData from '../../database/userData';
+import DefaultAvatar from '../../components/DefaultAvatar';
 
 const { TabPane } = Tabs;
 
@@ -119,8 +120,9 @@ const Profile = ({ userId }: { userId: string; }) => {
 
         {!onEdit && userData && (
           <div className={uTextAlignCenter}>
-            <div>
-              <Avatar size={128} />
+            <div className={uFlexJustifyCenter}>
+              {userData.img_profile && <Avatar size={128} src={userData.img_profile} />}
+              {!userData.img_profile && <DefaultAvatar size={128} iconSize="48" />}
             </div>
 
             <div className={NameStyle}>{userData.name}</div>
@@ -139,7 +141,7 @@ const Profile = ({ userId }: { userId: string; }) => {
               </div>
             </div>
 
-            <div className={UsernameSection}>@{userData.username}</div>
+            {userData.username && <div className={UsernameSection}>@{userData.username}</div>}
 
             <div className={IconURL}>
               {userData.twitter && (
@@ -164,7 +166,7 @@ const Profile = ({ userId }: { userId: string; }) => {
 
       <Col className={ArtsContent} span={18} xs={24} sm={24} md={12} lg={18} xl={18} xxl={18}>
         <Tabs className={TabsStyle} defaultActiveKey="1">
-          <TabPane tab={<>All <span>{Object.entries(allData).length}</span></>} key="1">
+          <TabPane tab={<>All <span>{Object.entries(allData).length < 10 ? `0${Object.entries(allData).length}` : Object.entries(allData).length}</span></>} key="1">
             <Row className={Object.entries(allData).length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
               {Object.entries(allData).length === 0 && <EmptyState />}
 
@@ -195,7 +197,7 @@ const Profile = ({ userId }: { userId: string; }) => {
             </Row>
           </TabPane>
 
-          <TabPane tab={<>Created <span>{artwork.length}</span></>} key="2">
+          <TabPane tab={<>Created <span>{artwork.length < 10 ? `0${artwork.length}` : artwork.length}</span></>} key="2">
             <Row className={artwork.length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
               {artwork.length === 0 && <EmptyState />}
 
@@ -209,7 +211,7 @@ const Profile = ({ userId }: { userId: string; }) => {
             </Row>
           </TabPane>
 
-          <TabPane tab={<>Collected <span>{ownedMetadata.length}</span></>} key="3">
+          <TabPane tab={<>Collected <span>{ownedMetadata.length < 10 ? `0${ownedMetadata.length}` : ownedMetadata.length}</span></>} key="3">
             <Row className={ownedMetadata.length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
               {ownedMetadata.length === 0 && <EmptyState />}
 
@@ -223,7 +225,7 @@ const Profile = ({ userId }: { userId: string; }) => {
             </Row>
           </TabPane>
 
-          <TabPane tab={<>On Sale <span>{onSale.length}</span></>} key="4">
+          <TabPane tab={<>On Sale <span>{onSale.length < 10 ? `0${onSale.length}` : onSale.length}</span></>} key="4">
             <Row className={onSale.length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
               {onSale.length === 0 && <EmptyState />}
 

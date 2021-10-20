@@ -90,7 +90,7 @@ export const ArtCard = (props: ArtCardProps) => {
               </Col>
 
               <Col className={uTextAlignEnd} span={12}>
-                <Link to={{ pathname: `/auction/create/0`, state: { idNFT: pubkey, item: [art] } }}>
+                <Link to={{ pathname: `/list/create`, state: { idNFT: pubkey, item: [art] } }}>
                   <Button shape="round">LIST</Button>
                 </Link>
               </Col>

@@ -18,14 +18,15 @@ import {
   UploadImageContainer,
   UploadStyle,
 } from './style';
+import { IUserData } from '../../../database/userData';
 
 const { TextArea } = Input;
 const maxChar = 280;
 
-const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: object; }) => {
+const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: IUserData; }) => {
   const { publicKey } = useWallet();
   const [form] = Form.useForm();
-  const [bio, setBio] = useState(''); // to get the length of bio
+  const [bio, setBio] = useState(userData.bio || ''); // to get the length of bio
 
   const saveProfile = async (values) => {
     let { data, error } = await supabase.from('user_data')
@@ -113,7 +114,14 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
           autoComplete="off"
           onFinish={saveProfile}
         >
-          <Form.Item className={FormItemStyle} name="name" label="name">
+          <Form.Item
+            className={FormItemStyle}
+            name="name"
+            label="name"
+            rules={[
+              { type: 'string', max: 52, message: 'max 52 characters' },
+            ]}
+          >
             <Input className={InputStyle} />
           </Form.Item>
 

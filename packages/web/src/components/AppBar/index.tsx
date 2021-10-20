@@ -11,7 +11,7 @@ import { ButtonContainer, LinkButton, LogoWrapper, RoundButton, Title } from './
 import { GreyColor, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
-  const { connected } = useWallet();
+  const { publicKey, connected } = useWallet();
   const { pathname } = useLocation();
 
   if (connected) {
@@ -45,7 +45,7 @@ export const AppBar = () => {
 
           <CurrentUserBadge showBalance={true} showAddress={true} />
 
-          <Link to={`/auction/create/0`}>
+          <Link to={`/${publicKey}`}>
             <Button className={RoundButton} type="default" shape="round">
               SELL
             </Button>

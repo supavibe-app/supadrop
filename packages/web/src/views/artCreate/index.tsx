@@ -8,7 +8,6 @@ import {
   Input,
   Statistic,
   Slider,
-  Progress,
   Spin,
   InputNumber,
   Form,
@@ -24,7 +23,6 @@ import {
   MAX_METADATA_LEN,
   useConnection,
   IMetadataExtension,
-  Attribute,
   MetadataCategory,
   useConnectionConfig,
   Creator,
@@ -39,11 +37,10 @@ import { getAssetCostToStore, LAMPORT_MULTIPLIER } from '../../utils/assets';
 import { Connection } from '@solana/web3.js';
 import { MintLayout } from '@solana/spl-token';
 import { useHistory, useParams } from 'react-router-dom';
-import { cleanName, getLast } from '../../utils/utils';
+import { getLast } from '../../utils/utils';
 import { AmountLabel } from '../../components/AmountLabel';
 import useWindowDimensions from '../../utils/layout';
 import { LoadingOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import {supabase} from '../../../supabaseClient'
 const { Step } = Steps;
 const { Dragger } = Upload;
 const { Text } = Typography;
@@ -61,7 +58,6 @@ export const ArtCreateView = () => {
   const [step, setStep] = useState<number>(0);
   const [stepsVisible, setStepsVisible] = useState<boolean>(true);
   const [isMinting, setMinting] = useState<boolean>(false);
-   const [progress, setProgress] = useState<number>(0);
   const [nft, setNft] =
     useState<{ metadataAccount: StringPublicKey } | undefined>(undefined);
   const [files, setFiles] = useState<File[]>([]);
@@ -133,23 +129,23 @@ export const ArtCreateView = () => {
     }
   };
 
-//   const inte = setInterval(
-//         () => setProgress(prog => Math.min(prog + 1, 99)),
-//         600,
-//       );
-//       // Update progress inside mintNFT
-//       const _nft = await mintNFT(
-//         connection,
-//         wallet,
-//         env,
-//         files,
-//         metadata,
-//         attributes.properties?.maxSupply,
-//       );
-//
-//       if (_nft) setNft(_nft);
-//       clearInterval(inte);
-//     };
+  //   const inte = setInterval(
+  //         () => setProgress(prog => Math.min(prog + 1, 99)),
+  //         600,
+  //       );
+  //       // Update progress inside mintNFT
+  //       const _nft = await mintNFT(
+  //         connection,
+  //         wallet,
+  //         env,
+  //         files,
+  //         metadata,
+  //         attributes.properties?.maxSupply,
+  //       );
+  //
+  //       if (_nft) setNft(_nft);
+  //       clearInterval(inte);
+  //     };
 
   return (
     <>
@@ -412,7 +408,7 @@ const UploadStep = (props: {
           fileList={coverFile ? [coverFile as any] : []}
           onChange={async info => {
             const file = info.file.originFileObj;
-            
+
             if (!file) {
               return;
             }
@@ -1192,13 +1188,13 @@ const WaitingStep = (props: {
         <Steps direction="vertical" current={props.step}>
           <Step title="Minting" description="Starting Mint Process" icon={setIconForStep(props.step, 0)} />
           <Step title="Preparing Assets" icon={setIconForStep(props.step, 1)} />
-          <Step title="Signing Metadata Transaction" description="Approve the transaction from your wallet" icon={setIconForStep(props.step, 2)}  /> 
-          <Step title="Sending Transaction to Solana" description="This will take a few seconds." icon={setIconForStep(props.step, 3)} /> 
+          <Step title="Signing Metadata Transaction" description="Approve the transaction from your wallet" icon={setIconForStep(props.step, 2)} />
+          <Step title="Sending Transaction to Solana" description="This will take a few seconds." icon={setIconForStep(props.step, 3)} />
           <Step title="Waiting for Initial Confirmation" icon={setIconForStep(props.step, 4)} />
           <Step title="Waiting for Final Confirmation" icon={setIconForStep(props.step, 5)} />
           <Step title="Uploading to Arweave" icon={setIconForStep(props.step, 6)} />
           <Step title="Updating Metadata" icon={setIconForStep(props.step, 7)} />
-          <Step title="Signing Token Transaction" description="Approve the final transaction from your wallet"  icon={setIconForStep(props.step, 8)}  />
+          <Step title="Signing Token Transaction" description="Approve the final transaction from your wallet" icon={setIconForStep(props.step, 8)} />
         </Steps>
       </Card>
     </div>
@@ -1258,7 +1254,7 @@ const Congrats = (props: {
         </Button>
         <Button
           className="metaplex-button"
-          onClick={_ => history.push('/auction/create')}
+          onClick={_ => history.push('/list/create')}
         >
           <span>Sell it via auction</span>
           <span>&gt;</span>
