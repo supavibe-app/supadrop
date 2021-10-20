@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Row, Button, Modal, ButtonProps } from 'antd';
-import { ArtCardCreate } from './../../components/ArtCardCreate';
+import { ArtCardCreate } from '../../components/ArtCardCreate';
 import { useUserArts } from '../../hooks';
 import Masonry from 'react-masonry-css';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
@@ -13,7 +13,7 @@ export interface ArtSelectorProps extends ButtonProps {
 }
 
 export const ArtSelector = (props: ArtSelectorProps) => {
-  const { selected,setSelected,  allowMultiple, ...rest } = props;
+  const { selected, setSelected, allowMultiple, ...rest } = props;
   let items = useUserArts();
   if (props.filter) items = items.filter(props.filter);
   const selectedItems = useMemo<Set<string>>(

@@ -301,7 +301,7 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
         )}
 
         {/* case 0: is owner and instant sell */}
-        {isOwner && auctionView.isInstantSale && (
+        {!ended && isOwner && auctionView.isInstantSale && (
           <ActionButton
             onClick={async () => {
               try {

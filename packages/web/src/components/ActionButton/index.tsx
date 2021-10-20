@@ -22,7 +22,7 @@ const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionB
     case 'small':
       height = 48;
       fontSize = 14;
-      padding = 14;
+      padding = 10;
       break;
     case 'large':
       height = 78;
