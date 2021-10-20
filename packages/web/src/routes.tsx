@@ -63,16 +63,14 @@ export function Routes() {
             <Route exact path="/art/:id" component={() => <ArtView />} />
             <Route exact path="/artists/:id" component={() => <ArtistView />} />
             <Route exact path="/artists" component={() => <ArtistsView />} />
-            <Route
-              exact
-              path="/auction/create/:step_param?"
-              component={() => <AuctionCreateView />}
-            />
+
             <Route
               exact
               path="/auction/:id/billing"
               component={() => <BillingView />}
             />
+
+            <Route exact path="/list/create" component={() => <AuctionCreateView />} />
 
             {/* Updated Path */}
             <Route exact path="/" component={() => <Home />} />

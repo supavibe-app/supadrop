@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 
+export interface IUserData {
+  img_profile: string;
+  name: string;
+  username: string;
+  website: string;
+  bio: string;
+}
+
 interface IResult {
   loading: boolean;
   data: any;

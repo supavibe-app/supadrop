@@ -40,6 +40,11 @@ export const uFlexAlignItemsCenter = css`
   align-items: center;
 `;
 
+export const uFlexJustifyCenter = css`
+  display: flex;
+  justify-content: center;
+`;
+
 export const uFontSize24 = css`
   font-size: 24px;
 `;
