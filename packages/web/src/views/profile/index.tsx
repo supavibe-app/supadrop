@@ -31,10 +31,11 @@ const Profile = ({ userId }: { userId: string; }) => {
   const isAccountOwner = publicKey?.toBase58() === userId;
   const { data: userData, loading, refetch } = getUserData(userId);
 
+  //
   const getProfileData = async () => {
     let { data: user_data, error } = await supabase.from('user_data')
       .select('*')
-      .eq('wallet_address', userId)
+      .or(`wallet_address.eq.${userId},username.eq.${userId}`)
       .limit(1);
 
     if (error) {
@@ -64,28 +65,6 @@ const Profile = ({ userId }: { userId: string; }) => {
       console.log('data_profile', data[0])
     }
   }
-
-  // TODO function OR from supabase
-  // supabase.from('user_data')
-  //   .select('*')
-  //   .eq('wallet_address', userId)
-  //   .then(data => {
-  //     console.log('publickey', userId)
-  //     if (data.body != null) {
-  //       console.log('data_profile', data.body)
-  //     }
-  //   });
-
-  // TODO function OR from supabase
-  // supabase.from('user_data')
-  //   .select('*')
-  //   .eq('username', userId)
-  //   .then(data => {
-  //     console.log('publickey', userId)
-  //     if (data.body != null) {
-  //       console.log('data_profile', data.body)
-  //     }
-  //   })
 
   ownedMetadata.forEach(data => {
     if (!allData[data.metadata.pubkey]) {
