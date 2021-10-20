@@ -119,7 +119,7 @@ const Profile = ({ userId }: { userId: string; }) => {
         {onEdit && <EditProfile userData={userData} closeEdit={closeEdit} refetch={refetch} />}
 
         {!onEdit && userData && (
-          <div className={uTextAlignCenter}>
+          <div className={uTextAlignCenter} style={{ width: '100%' }}>
             <div className={uFlexJustifyCenter}>
               {userData.img_profile && <Avatar size={128} src={userData.img_profile} />}
               {!userData.img_profile && <DefaultAvatar size={128} iconSize="48" />}

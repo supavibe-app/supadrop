@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Col } from 'antd';
+import { Button, Col, message } from 'antd';
 import { useLocation } from 'react-router-dom'
 import FeatherIcon from 'feather-icons-react';
 import moment from 'moment';
@@ -34,30 +34,34 @@ const SellStep = (props: {
     if (state?.idNFT) {
       props.setAttributes({
         ...props.attributes,
-        items: dataNFT
+        items: [dataNFT[0]],
       });
     }
   }, []);
 
   const handleList = async () => {
-    const attributeValue = category === AuctionCategory.InstantSale
-      ? {
-        ...props.attributes,
-        priceFloor,
-        instantSalePrice: priceFloor,
-      } : {
-        ...props.attributes,
-        startSaleTS: moment().unix(),
-        startListTS: moment().unix(),
-        priceFloor,
-        priceTick: 0.1,
-        auctionDuration: time,
-        gapTime: 15,
-        tickSizeEndingPhase: 10,
-      };
+    if (priceFloor) {
+      const attributeValue = category === AuctionCategory.InstantSale
+        ? {
+          ...props.attributes,
+          priceFloor,
+          instantSalePrice: priceFloor,
+        } : {
+          ...props.attributes,
+          startSaleTS: moment().unix(),
+          startListTS: moment().unix(),
+          priceFloor,
+          priceTick: 0.1,
+          auctionDuration: time,
+          gapTime: 15,
+          tickSizeEndingPhase: 10,
+        };
 
-    props.setAttributes(attributeValue);
-    props.confirm();
+      props.setAttributes(attributeValue);
+      props.confirm();
+    } else {
+      message.error('please set the reserve price');
+    }
   };
 
   return (
@@ -121,9 +125,7 @@ const SellStep = (props: {
         </div>
       </div>
 
-      <ActionButton size="small" onClick={handleList}>
-        list my NFT
-      </ActionButton>
+      <ActionButton onClick={handleList}>list my NFT</ActionButton>
     </Col>
   );
 };
