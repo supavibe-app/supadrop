@@ -97,13 +97,9 @@ export const AuctionCreateView = () => {
     winnersCount: 1,
   });
 
-  const gotoNextStep = (_step?: number) => {
-    const nextStep = _step === undefined ? step + 1 : _step;
-    setStep(nextStep);
-  };
-
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
+
     if (
       attributes.category === AuctionCategory.InstantSale &&
       attributes.instantSaleType === InstantSaleType.Open
@@ -263,12 +259,16 @@ export const AuctionCreateView = () => {
       attributes={attributes}
       setAttributes={setAttributes}
       auction={auctionObj}
-      confirm={gotoNextStep}
+      confirm={() => setStep(step + 1)}
     />
   );
 
   const waitStep = (
-    <WaitingStep createAuction={createAuction} confirm={gotoNextStep} />
+    <WaitingStep
+      createAuction={createAuction}
+      confirm={() => setStep(step + 1)}
+      goBack={() => setStep(step - 1)}
+    />
   );
 
   const congratsStep = <CongratsStep auction={auctionObj} />;
@@ -279,6 +279,7 @@ export const AuctionCreateView = () => {
     2: congratsStep,
   };
 
+  // supaya gaada yang hard visit (visit without nft)
   if (!idNFT && wallet.publicKey) history.push(`/${wallet.publicKey.toBase58()}`);
 
   return (

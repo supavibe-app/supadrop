@@ -6,8 +6,8 @@ import { useHistory } from 'react-router';
 const WaitingStep = (props: {
   createAuction: () => Promise<void>;
   confirm: () => void;
+  goBack: () => void;
 }) => {
-  const history = useHistory();
   const [confirmed, setConfirimed] = useState(false);
 
   const title = confirmed ? 'Your NFT is being listed' : 'waiting for confirmation';
@@ -21,16 +21,17 @@ const WaitingStep = (props: {
         // user click approve
         setConfirimed(true);
         props.confirm();
-      }).catch(() => {
+      }).catch(err => {
         // user click cancel
-        history.goBack();
+        console.error(err);
+        props.goBack();
       });
     };
     func();
   }, []);
 
   return (
-    <Col span={12}>
+    <Col span={9}>
       <div className={Title}>{title}</div>
       <div className={Description}>{description}</div>
       <Spin />

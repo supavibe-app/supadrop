@@ -5,7 +5,7 @@ import { StringPublicKey } from '@oyster/common';
 import { useHistory } from 'react-router-dom';
 import { Confetti } from '../../Confetti';
 import { Description, Title } from '../style';
-import { uBoldFont, WhiteColor } from '../../../styles';
+import { ContinueButton, ShareButton } from './style';
 
 const CongratsStep = (props: {
   auction?: {
@@ -33,7 +33,7 @@ const CongratsStep = (props: {
       <div className={Description}>your NFT will be put on supadrop marketplace as soon as the transaction processed</div>
       <div>
         <Button
-          className={uBoldFont}
+          className={ShareButton}
           onClick={_ => window.open(newTweetURL(), '_blank')}
           type="default"
           shape="round"
@@ -43,7 +43,7 @@ const CongratsStep = (props: {
         </Button>
 
         <Button
-          className={WhiteColor}
+          className={ContinueButton}
           onClick={() => history.push(`/auction/${props.auction?.auction.toString()}`)}
           type="link"
           shape="round"
