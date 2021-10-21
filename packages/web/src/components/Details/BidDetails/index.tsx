@@ -28,7 +28,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const { setVisible } = useWalletModal();
   const { account } = useNativeAccount();
   const { accountByMint } = useUserAccounts();
-  const { update, prizeTrackingTickets, bidRedemptions } = useMeta();
+  const { update, prizeTrackingTickets, bidRedemptions, pullAuctionPage } = useMeta();
   const ownedMetadata = useUserArts();
 
   const walletContext = useWallet();
@@ -476,6 +476,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
                   // user click approve
                   setShowPlaceBid(false);
                   setConfirmTrigger(false);
+                  pullAuctionPage(auction?.auction.pubkey||"")
                 }).catch(() => {
                   // user click cancel
                   setConfirmTrigger(false);
