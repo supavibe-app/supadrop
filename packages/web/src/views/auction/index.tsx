@@ -52,8 +52,6 @@ export const AuctionView = () => {
   const { env } = useConnectionConfig();
   const { connected, publicKey } = useWallet();
   const auction = useAuction(id);
-  const { liveDataAuctions } = useMeta();
-  const dataAuction = liveDataAuctions[id];
   const [bidAmount, setBidAmount] = useState<number>();
   const setBidAmountNumber = useCallback((num: number) => setBidAmount(num), [setBidAmount]);
   const [showPlaceBid, setShowPlaceBid] = useState(action === 'bid');
@@ -215,3 +213,4 @@ export const AuctionView = () => {
     </Row >
   );
 };
+

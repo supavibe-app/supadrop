@@ -342,12 +342,11 @@ const Profile = ({ userId }: { userId: string }) => {
               {onSale.map(art => (
                 <Col key={art.auction.pubkey} span={8}>
                   {art.isInstantSale && <ArtCardOnSale auctionView={art} />}
-
                   {!art.isInstantSale && (
                     <Link to={`/auction/${art.auction.pubkey}`}>
                       <ArtCard
-                        key={art.auction.pubkey}
-                        pubkey={art.auction.pubkey}
+                        key={art.thumbnail.metadata.pubkey}
+                        pubkey={art.thumbnail.metadata.pubkey}
                         preview={false}
                       />
                     </Link>

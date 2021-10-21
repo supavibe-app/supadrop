@@ -204,10 +204,11 @@ export function MetaProvider({ children = null as any }) {
           );
         }
 
-        const auction = window.location.href.match(/#\/auction\/(\w+)/);
+        const auction = window.location.href.match(/auction\/(\w+)/);
         const billing = window.location.href.match(
-          /#\/auction\/(\w+)\/billing/,
+          /auction\/(\w+)\/billing/,
         );
+        
         if (auction && page == 0) {
           console.log(
             '---------->Loading auction page on initial load, pulling sub accounts',
