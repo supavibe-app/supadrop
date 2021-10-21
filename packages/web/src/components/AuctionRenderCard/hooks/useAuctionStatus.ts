@@ -1,8 +1,10 @@
 import {
+  AuctionState,
+  BidStateType,
   formatTokenAmount,
   fromLamports,
-  useMint,
   PriceFloorType,
+  useMint,
 } from '@oyster/common';
 import {
   AuctionView,
@@ -40,18 +42,25 @@ export const useAuctionStatus = (
   );
 
   const countdown = auctionView.auction.info.timeToEnd();
+  const isOpen =
+    auctionView.auction.info.bidState.type === BidStateType.OpenEdition;
+
+  if (isOpen) {
+    status = 'Open Sale';
+  }
 
   const ended =
     countdown?.hours === 0 &&
     countdown?.minutes === 0 &&
-    countdown?.seconds === 0;
+    countdown?.seconds === 0 &&
+    auctionView.auction.info.state === AuctionState.Ended;
 
   if (auctionView.isInstantSale) {
     const soldOut = bids.length === auctionView.items.length;
 
     status = auctionView.state === AuctionViewState.Ended ? 'Ended' : 'Price';
 
-    if (soldOut) {
+    if (soldOut && !isOpen) {
       status = 'Sold Out';
     }
 
@@ -65,7 +74,7 @@ export const useAuctionStatus = (
     };
   }
 
-  if (bids.length > 0) {
+  if (bids.length > 0 && !isOpen) {
     amount = formatTokenAmount(winningBid.info.lastBid);
     status = 'Current Bid';
   }
