@@ -202,12 +202,13 @@ const WalletProvider = ({ children }) => {
     const wallets = react_1.useMemo(() => [
         wallet_adapter_wallets_1.getPhantomWallet(),
         wallet_adapter_wallets_1.getSolflareWallet(),
-        wallet_adapter_wallets_1.getTorusWallet({
-            options: {
-                // @FIXME: this should be changed for Metaplex, and by each Metaplex storefront
-                clientId: 'BOM5Cl7PXgE9Ylq1Z1tqzhpydY0RVr8k90QQ85N7AKI5QGSrr9iDC-3rvmy0K_hF0JfpLMiXoDhta68JwcxS1LQ',
-            },
-        }),
+        // getTorusWallet({
+        //   options: {
+        //     // @FIXME: this should be changed for Metaplex, and by each Metaplex storefront
+        //     clientId:
+        //       'BOM5Cl7PXgE9Ylq1Z1tqzhpydY0RVr8k90QQ85N7AKI5QGSrr9iDC-3rvmy0K_hF0JfpLMiXoDhta68JwcxS1LQ',
+        //   },
+        // }),
         wallet_adapter_wallets_1.getLedgerWallet(),
         wallet_adapter_wallets_1.getSolongWallet(),
         wallet_adapter_wallets_1.getMathWallet(),

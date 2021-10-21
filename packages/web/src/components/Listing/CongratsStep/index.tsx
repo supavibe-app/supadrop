@@ -19,7 +19,9 @@ const CongratsStep = (props: {
   const newTweetURL = () => {
     const params = {
       text: `Check out my “CRYSTAL GODS 07” listed on @supadrop for 1000SOL`,
-      url: `${window.location.origin}/auction/${props.auction?.auction.toString()}`,
+      url: `${
+        window.location.origin
+      }/auction/${props.auction?.auction.toString()}`,
       // via: "SUPADROP",
       related: 'Metaplex,Solana',
     };
@@ -30,7 +32,10 @@ const CongratsStep = (props: {
   return (
     <Col span={12}>
       <div className={Title}>Your NFT succesfully listed!</div>
-      <div className={Description}>your NFT will be put on supadrop marketplace as soon as the transaction processed</div>
+      <div className={Description}>
+        your NFT will be put on supadrop marketplace as soon as the transaction
+        processed
+      </div>
       <div>
         <Button
           className={ShareButton}
@@ -44,7 +49,9 @@ const CongratsStep = (props: {
 
         <Button
           className={ContinueButton}
-          onClick={() => history.push(`/auction/${props.auction?.auction.toString()}`)}
+          onClick={() =>
+            history.push(`/auction/${props.auction?.auction.toString()}`)
+          }
           type="link"
           shape="round"
           color="#FAFAFB"

@@ -15,10 +15,14 @@ export * from './redeemPrintingV2Bid';
 export * from './withdrawMasterEdition';
 export * from './deprecatedStates';
 export declare const METAPLEX_PREFIX = "metaplex";
+export declare const INDEX = "index";
+export declare const CACHE = "cache";
 export declare const TOTALS = "totals";
+export declare const MAX_INDEXED_ELEMENTS = 100;
 export declare const ORIGINAL_AUTHORITY_LOOKUP_SIZE = 33;
 export declare const MAX_PRIZE_TRACKING_TICKET_SIZE: number;
 export declare const MAX_WHITELISTED_CREATOR_SIZE: number;
+export declare const MAX_PAYOUT_TICKET_SIZE: number;
 export declare enum MetaplexKey {
     Uninitialized = 0,
     OriginalAuthorityLookupV1 = 1,
@@ -32,7 +36,9 @@ export declare enum MetaplexKey {
     SafetyDepositConfigV1 = 9,
     AuctionManagerV2 = 10,
     BidRedemptionTicketV2 = 11,
-    AuctionWinnerTokenTypeTrackerV1 = 12
+    AuctionWinnerTokenTypeTrackerV1 = 12,
+    StoreIndexerV1 = 13,
+    AuctionCacheV1 = 14
 }
 export declare class PrizeTrackingTicket {
     key: MetaplexKey;
@@ -54,6 +60,34 @@ export declare class PayoutTicket {
     constructor(args: {
         recipient: StringPublicKey;
         amountPaid: BN;
+    });
+}
+export declare class StoreIndexer {
+    key: MetaplexKey;
+    store: StringPublicKey;
+    page: BN;
+    auctionCaches: StringPublicKey[];
+    constructor(args: {
+        store: StringPublicKey;
+        page: BN;
+        auctionCaches: StringPublicKey[];
+    });
+}
+export declare class AuctionCache {
+    key: MetaplexKey;
+    store: StringPublicKey;
+    timestamp: BN;
+    metadata: StringPublicKey[];
+    auction: StringPublicKey;
+    vault: StringPublicKey;
+    auctionManager: StringPublicKey;
+    constructor(args: {
+        store: StringPublicKey;
+        timestamp: BN;
+        metadata: StringPublicKey[];
+        auction: StringPublicKey;
+        vault: StringPublicKey;
+        auctionManager: StringPublicKey;
     });
 }
 export declare class AuctionManager {
@@ -195,6 +229,18 @@ export declare class RedeemParticipationBidV3Args {
         winIndex: BN | null;
     });
 }
+export declare class SetStoreIndexArgs {
+    instruction: number;
+    page: BN;
+    offset: BN;
+    constructor(args: {
+        page: BN;
+        offset: BN;
+    });
+}
+export declare class SetAuctionCacheArgs {
+    instruction: number;
+}
 export declare enum WinningConstraint {
     NoParticipationPrize = 0,
     ParticipationPrizeGiven = 1
@@ -211,6 +257,8 @@ export declare enum WinningConfigType {
     PrintingV2 = 3,
     Participation = 4
 }
+export declare const decodeStoreIndexer: (buffer: Buffer) => StoreIndexer;
+export declare const decodeAuctionCache: (buffer: Buffer) => AuctionCache;
 export declare const decodePrizeTrackingTicket: (buffer: Buffer) => PrizeTrackingTicket;
 export declare const decodeWhitelistedCreator: (buffer: Buffer) => WhitelistedCreator;
 export declare const WhitelistedCreatorParser: AccountParser;
@@ -349,5 +397,7 @@ export declare function getWhitelistedCreator(creator: StringPublicKey, storeId?
 export declare function getPrizeTrackingTicket(auctionManager: string, mint: string): Promise<string>;
 export declare function getAuctionWinnerTokenTypeTracker(auctionManager: string): Promise<string>;
 export declare function getSafetyDepositConfig(auctionManager: string, safetyDeposit: string): Promise<string>;
+export declare function getStoreIndexer(page: number): Promise<string>;
+export declare function getAuctionCache(auction: StringPublicKey): Promise<string>;
 export declare function getPayoutTicket(auctionManager: string, winnerConfigIndex: number | null | undefined, winnerConfigItemIndex: number | null | undefined, creatorIndex: number | null | undefined, safetyDepositBox: string, recipient: string): Promise<string>;
 //# sourceMappingURL=index.d.ts.map

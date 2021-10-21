@@ -17,8 +17,14 @@ import {
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useHistory } from 'react-router-dom';
-import { WinningConfigType, AmountRange } from '@oyster/common/dist/lib/models/metaplex/index';
-import { createAuctionManager, SafetyDepositDraft } from '../../actions/createAuctionManager';
+import {
+  WinningConfigType,
+  AmountRange,
+} from '@oyster/common/dist/lib/models/metaplex/index';
+import {
+  createAuctionManager,
+  SafetyDepositDraft,
+} from '../../actions/createAuctionManager';
 import BN from 'bn.js';
 import { useMeta } from '../../contexts';
 import { SystemProgram } from '@solana/web3.js';
@@ -39,7 +45,7 @@ enum InstantSaleType {
 
 export enum AuctionCategory {
   InstantSale,
-  Single
+  Single,
 }
 export interface AuctionState {
   reservationPrice: number;
@@ -68,14 +74,18 @@ export interface AuctionState {
 }
 
 export const AuctionCreateView = () => {
+  // const connection = useConnection();
+  // const wallet = useWallet();
+  const { whitelistedCreatorsByCreator, storeIndexer } = useMeta();
+
+  // const { step_param }: { step_param: string } = useParams();
+  // const history = useHistory();
   const history = useHistory();
   const wallet = useWallet();
 
   const { state } = history.location;
   const { idNFT, item: itemNFT }: any = state || {};
-
   const connection = useConnection();
-  const { whitelistedCreatorsByCreator } = useMeta();
   const mint = useMint(QUOTE_MINT);
 
   const [step, setStep] = useState<number>(0);
@@ -90,7 +100,7 @@ export const AuctionCreateView = () => {
     >(undefined);
   const [attributes, setAttributes] = useState<AuctionState>({
     reservationPrice: 0,
-    items: [],
+    items: itemNFT,
     category: AuctionCategory.InstantSale,
     auctionDurationType: 'days',
     gapTimeType: 'minutes',
@@ -180,7 +190,6 @@ export const AuctionCreateView = () => {
         );
       }
     }
-
     const isInstantSale =
       attributes.instantSalePrice &&
       attributes.priceFloor === attributes.instantSalePrice;
@@ -232,25 +241,31 @@ export const AuctionCreateView = () => {
       attributes.items,
       attributes.participationNFT,
       QUOTE_MINT.toBase58(),
+      storeIndexer,
     );
 
-    supabase.from('auction_status')
-      .insert([{
-        id: _auctionObj.auction,
-        start_auction: attributes.startSaleTS,
-        end_auction: ((attributes.startSaleTS || 0) + (auctionSettings.endAuctionAt?.toNumber() || 0)),
-        highest_bid: 0,
-        id_nft: attributes.items[0].metadata.pubkey,
-        price_floor: attributes.priceFloor,
-        price_tick: attributes.priceTick,
-        gap_time: attributes.gapTime,
-        tick_size_ending_phase: attributes.tickSizeEndingPhase,
-        token_mint: QUOTE_MINT.toBase58(),
-        vault: _auctionObj.vault,
-        type_auction: isInstantSale || false,
-        owner: wallet.publicKey?.toBase58()
-      }])
-      .then()
+    supabase
+      .from('auction_status')
+      .insert([
+        {
+          id: _auctionObj.auction,
+          start_auction: attributes.startSaleTS,
+          end_auction:
+            (attributes.startSaleTS || 0) +
+            (auctionSettings.endAuctionAt?.toNumber() || 0),
+          highest_bid: 0,
+          id_nft: attributes.items[0].metadata.pubkey,
+          price_floor: attributes.priceFloor,
+          price_tick: attributes.priceTick,
+          gap_time: attributes.gapTime,
+          tick_size_ending_phase: attributes.tickSizeEndingPhase,
+          token_mint: QUOTE_MINT.toBase58(),
+          vault: _auctionObj.vault,
+          type_auction: isInstantSale || false,
+          owner: wallet.publicKey?.toBase58(),
+        },
+      ])
+      .then();
     setAuctionObj(_auctionObj);
   };
 

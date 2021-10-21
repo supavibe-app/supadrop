@@ -43,6 +43,8 @@ import { useMeta } from '../../contexts';
 import moment from 'moment';
 import { AccountLayout, MintLayout } from '@solana/spl-token';
 import { findEligibleParticipationBidsForRedemption } from '../../actions/claimUnusedPrizes';
+import { useInstantSaleState } from './hooks/useInstantSaleState';
+import { endSale } from './utils/endSale';
 import {
   BidRedemptionTicket,
   MAX_PRIZE_TRACKING_TICKET_SIZE,
@@ -79,6 +81,12 @@ async function calculateTotalCostOfRedeemingOtherPeoplesBids(
       bids,
       bidRedemptions,
     );
+
+    const {
+      isInstantSale,
+      canEndInstantSale
+    } = useInstantSaleState(auctionView)
+
   const max = auctionView.auction.info.bidState.max.toNumber();
   let totalWinnerItems = 0;
   for (let i = 0; i < max; i++) {
@@ -276,6 +284,32 @@ export const AuctionCard = ({
   const shouldHide =
     shouldHideInstantSale ||
     auctionView.vault.info.state === VaultState.Deactivated;
+
+    const endInstantSale = async () => {
+      setLoading(true);
+
+      try {
+        await endSale({
+          auctionView,
+          connection,
+          accountByMint,
+          bids,
+          bidRedemptions,
+          prizeTrackingTickets,
+          wallet
+        })
+      } catch (e) {
+        console.error('endAuction', e);
+        setShowBidModal(false);
+        setLoading(false);
+        return;
+      }
+
+      setShowBidModal(false);
+      // setShowEndingBidModal(true);
+      setLoading(false);
+    }
+
 
   if (shouldHide) {
     return <></>;

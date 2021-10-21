@@ -59,10 +59,11 @@ var fs_1 = __importDefault(require("fs"));
 var bn_js_1 = __importDefault(require("bn.js"));
 var cache_1 = require("../helpers/cache");
 var loglevel_1 = __importDefault(require("loglevel"));
+var aws_1 = require("../helpers/upload/aws");
 var arweave_1 = require("../helpers/upload/arweave");
 var ipfs_1 = require("../helpers/upload/ipfs");
 var various_1 = require("../helpers/various");
-function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthority, ipfsCredentials) {
+function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthority, ipfsCredentials, awsS3Bucket) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
         var uploadSuccessful, savedContent, cacheContent, existingInCache, seen, newFiles, images, SIZE, walletKeyPair, anchorProgram, config, i, image, imageName, index, link, manifestPath, manifestContent, manifest, manifestBuffer, res, exx_1, er_1, keys, e_1;
@@ -109,7 +110,7 @@ function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthor
                     i = 0;
                     _c.label = 2;
                 case 2:
-                    if (!(i < SIZE)) return [3 /*break*/, 14];
+                    if (!(i < SIZE)) return [3 /*break*/, 16];
                     image = images[i];
                     imageName = path_1.default.basename(image);
                     index = imageName.replace(constants_1.EXTENSION_PNG, '');
@@ -118,7 +119,7 @@ function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthor
                         loglevel_1.default.info("Processing file: " + i);
                     }
                     link = (_b = (_a = cacheContent === null || cacheContent === void 0 ? void 0 : cacheContent.items) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.link;
-                    if (!(!link || !cacheContent.program.uuid)) return [3 /*break*/, 13];
+                    if (!(!link || !cacheContent.program.uuid)) return [3 /*break*/, 15];
                     manifestPath = image.replace(constants_1.EXTENSION_PNG, '.json');
                     manifestContent = fs_1.default
                         .readFileSync(manifestPath)
@@ -161,22 +162,28 @@ function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthor
                     loglevel_1.default.error('Error deploying config to Solana network.', exx_1);
                     throw exx_1;
                 case 6:
-                    if (!!link) return [3 /*break*/, 13];
+                    if (!!link) return [3 /*break*/, 15];
                     _c.label = 7;
                 case 7:
-                    _c.trys.push([7, 12, , 13]);
+                    _c.trys.push([7, 14, , 15]);
                     if (!(storage === 'arweave')) return [3 /*break*/, 9];
                     return [4 /*yield*/, arweave_1.arweaveUpload(walletKeyPair, anchorProgram, env, image, manifestBuffer, manifest, index)];
                 case 8:
                     link = _c.sent();
-                    return [3 /*break*/, 11];
+                    return [3 /*break*/, 13];
                 case 9:
                     if (!(storage === 'ipfs')) return [3 /*break*/, 11];
                     return [4 /*yield*/, ipfs_1.ipfsUpload(ipfsCredentials, image, manifestBuffer)];
                 case 10:
                     link = _c.sent();
-                    _c.label = 11;
+                    return [3 /*break*/, 13];
                 case 11:
+                    if (!(storage === 'aws')) return [3 /*break*/, 13];
+                    return [4 /*yield*/, aws_1.awsUpload(awsS3Bucket, image, manifestBuffer)];
+                case 12:
+                    link = _c.sent();
+                    _c.label = 13;
+                case 13:
                     if (link) {
                         loglevel_1.default.debug('setting cache for ', index);
                         cacheContent.items[index] = {
@@ -187,20 +194,20 @@ function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthor
                         cacheContent.authority = walletKeyPair.publicKey.toBase58();
                         cache_1.saveCache(cacheName, env, cacheContent);
                     }
-                    return [3 /*break*/, 13];
-                case 12:
+                    return [3 /*break*/, 15];
+                case 14:
                     er_1 = _c.sent();
                     uploadSuccessful = false;
                     loglevel_1.default.error("Error uploading file " + index, er_1);
-                    return [3 /*break*/, 13];
-                case 13:
+                    return [3 /*break*/, 15];
+                case 15:
                     i++;
                     return [3 /*break*/, 2];
-                case 14:
+                case 16:
                     keys = Object.keys(cacheContent.items);
-                    _c.label = 15;
-                case 15:
-                    _c.trys.push([15, 17, 18, 19]);
+                    _c.label = 17;
+                case 17:
+                    _c.trys.push([17, 19, 20, 21]);
                     return [4 /*yield*/, Promise.all(various_1.chunks(Array.from(Array(keys.length).keys()), 1000).map(function (allIndexesInSlice) { return __awaiter(_this, void 0, void 0, function () {
                             var offset, indexes, onChain, ind, e_2;
                             return __generator(this, function (_a) {
@@ -251,17 +258,17 @@ function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthor
                                 }
                             });
                         }); }))];
-                case 16:
+                case 18:
                     _c.sent();
-                    return [3 /*break*/, 19];
-                case 17:
+                    return [3 /*break*/, 21];
+                case 19:
                     e_1 = _c.sent();
                     loglevel_1.default.error(e_1);
-                    return [3 /*break*/, 19];
-                case 18:
+                    return [3 /*break*/, 21];
+                case 20:
                     cache_1.saveCache(cacheName, env, cacheContent);
                     return [7 /*endfinally*/];
-                case 19:
+                case 21:
                     console.log("Done. Successful = " + uploadSuccessful + ".");
                     return [2 /*return*/, uploadSuccessful];
             }

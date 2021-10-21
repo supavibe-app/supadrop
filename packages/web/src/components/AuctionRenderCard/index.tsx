@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, LegacyRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Avatar, Card, Col, CardProps, Row, Statistic } from 'antd';
 import {
   formatTokenAmount,
@@ -10,14 +10,10 @@ import {
   shortenAddress,
 } from '@oyster/common';
 import { ArtContent, ArtContent2 } from '../ArtContent';
-import {
-  AuctionView,
-  AuctionViewState,
-  useArt,
-  useBidsForAuction,
-} from '../../hooks';
+import { AuctionView, AuctionViewState, useArt } from '../../hooks';
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
+import { useAuctionStatus } from './hooks/useAuctionStatus';
 import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, OwnerContainer, UserWrapper } from './style';
 import countDown from '../../helpers/countdown';
 import { uTextAlignEnd } from '../../styles';
@@ -36,7 +32,6 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   const art = useArt(id);
   const name = art?.title || ' ';
   const [state, setState] = useState<CountdownState>();
-  const bids = useBidsForAuction(auctionView.auction.pubkey);
   const mintInfo = useMint(auctionView.auction.info.tokenMint);
   const owner = auctionView.auctionManager.authority.toString();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -50,23 +45,23 @@ export const AuctionRenderCard = (props: AuctionCard) => {
       : 0;
   const isUpcoming = auctionView.state === AuctionViewState.Upcoming;
 
-  const winningBid = useHighestBidForAuction(auctionView.auction.pubkey);
-  const ended = !auctionView.isInstantSale &&
-    state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
+  const winningBid = auctionView.auction.info.bidState.getAmountAt(0);
+  const ended =
+    !auctionView.isInstantSale &&
+    state?.hours === 0 &&
+    state?.minutes === 0 &&
+    state?.seconds === 0;
 
   let currentBid: number | string = 0;
-  if (isUpcoming || bids) {
+  if (isUpcoming) {
     currentBid = fromLamports(
       participationOnly ? participationFixedPrice : priceFloor,
       mintInfo,
     );
   }
 
-  if (!isUpcoming && bids.length > 0) {
-    currentBid =
-      winningBid && Number.isFinite(winningBid.info.lastBid?.toNumber())
-        ? formatTokenAmount(winningBid.info.lastBid)
-        : 'No Bid';
+  if (!isUpcoming) {
+    currentBid = winningBid ? formatTokenAmount(winningBid) : 'No Bid';
   }
 
   const auction = auctionView.auction.info;
@@ -125,7 +120,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
                 </div>
 
                 {ended && <div className={OwnerContainer} style={{ fontSize: 20 }}>
-                  {winningBid ? shortenAddress(winningBid.info.bidderPubkey) : 'ended'}
+                  {winningBid ? shortenAddress(auctionView.auction.pubkey) : 'ended'}
                 </div>}
 
                 {!ended && (
@@ -150,7 +145,6 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
   const art = useArt(id);
   const name = art?.title || auctionView.name;
   const [state, setState] = useState<CountdownState>();
-  const bids = useBidsForAuction(auctionView.id);
   const mintInfo = useMint(auctionView.token_mint);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -162,11 +156,14 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
 
   const winningBid = useHighestBidForAuction(auctionView.id);
   const ended =
-    state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
+    !auctionView.isInstantSale &&
+    state?.hours === 0 &&
+    state?.minutes === 0 &&
+    state?.seconds === 0;
 
   let currentBid: number | string = 0;
   let label = '';
-  if (isUpcoming || bids) {
+  if (isUpcoming) {
     label = ended ? 'Ended' : 'Starting bid';
     currentBid = fromLamports(
       participationOnly ? participationFixedPrice : priceFloor,
@@ -183,7 +180,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
     return () => clearInterval(interval);
   }, []);
 
-  if (!isUpcoming && bids.length > 0) {
+  if (!isUpcoming) {
     label = ended ? 'Winning bid' : 'Current bid';
     currentBid =
       winningBid && Number.isFinite(winningBid.info.lastBid?.toNumber())

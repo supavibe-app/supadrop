@@ -29,6 +29,8 @@ const types_1 = require("./types");
 const connection_1 = require("../connection");
 const store_1 = require("../store");
 const actions_1 = require("../../actions");
+const _1 = require(".");
+const __1 = require("../..");
 const supabaseClient_1 = require("../../supabaseClient");
 const MetaContext = react_1.default.createContext({
     ...getEmptyMetaState_1.getEmptyMetaState(),
@@ -43,6 +45,10 @@ function MetaProvider({ children = null }) {
     const { isReady, storeAddress } = store_1.useStore();
     const [state, setState] = react_1.useState(getEmptyMetaState_1.getEmptyMetaState());
     const [liveDataAuctions, setDataAuction] = react_1.useState({});
+    const [page, setPage] = react_1.useState(0);
+    const [metadataLoaded, setMetadataLoaded] = react_1.useState(false);
+    const [lastLength, setLastLength] = react_1.useState(0);
+    const { userAccounts } = __1.useUserAccounts();
     const [isLoadingMetaplex, setIsLoadingMetaplex] = react_1.useState(true);
     const [isLoadingDatabase, setIsLoadingDatabase] = react_1.useState(true);
     const updateMints = react_1.useCallback(async (metadataByMint) => {
@@ -58,7 +64,9 @@ function MetaProvider({ children = null }) {
             console.error(er);
         }
     }, [setState]);
-    async function update(auctionAddress, bidderAddress) {
+    async function pullAllMetadata() {
+        if (isLoadingMetaplex)
+            return false;
         if (!storeAddress) {
             if (isReady) {
                 setIsLoadingMetaplex(false);
@@ -70,12 +78,143 @@ function MetaProvider({ children = null }) {
             setIsLoadingMetaplex(true);
             setIsLoadingDatabase(true);
         }
-        if (sessionStorage.getItem('testing')) {
-            let sessionAuction = JSON.parse(sessionStorage.getItem('testing') || "");
-            console.log('session storage masih ada', sessionAuction);
+        setIsLoadingMetaplex(true);
+        const nextState = await _1.pullStoreMetadata(connection, state);
+        setIsLoadingMetaplex(false);
+        setState(nextState);
+        await updateMints(nextState.metadataByMint);
+        return [];
+    }
+    async function pullBillingPage(auctionAddress) {
+        if (isLoadingMetaplex)
+            return false;
+        if (!storeAddress) {
+            if (isReady) {
+                setIsLoadingMetaplex(false);
+            }
+            return;
+        }
+        else if (!state.store) {
+            setIsLoadingMetaplex(true);
+        }
+        const nextState = await _1.pullAuctionSubaccounts(connection, auctionAddress, state);
+        console.log('-----> Pulling all payout tickets');
+        await _1.pullPayoutTickets(connection, nextState);
+        setState(nextState);
+        await updateMints(nextState.metadataByMint);
+        return [];
+    }
+    async function pullAuctionPage(auctionAddress) {
+        if (isLoadingMetaplex)
+            return state;
+        if (!storeAddress) {
+            if (isReady) {
+                setIsLoadingMetaplex(false);
+            }
+            return state;
+        }
+        else if (!state.store) {
+            setIsLoadingMetaplex(true);
+        }
+        const nextState = await _1.pullAuctionSubaccounts(connection, auctionAddress, state);
+        setState(nextState);
+        await updateMints(nextState.metadataByMint);
+        return nextState;
+    }
+    async function pullAllSiteData() {
+        if (isLoadingMetaplex)
+            return state;
+        if (!storeAddress) {
+            if (isReady) {
+                setIsLoadingMetaplex(false);
+            }
+            return state;
+        }
+        else if (!state.store) {
+            setIsLoadingMetaplex(true);
+        }
+        console.log('------->Query started');
+        const nextState = await loadAccounts_1.loadAccounts(connection);
+        console.log('------->Query finished');
+        setState(nextState);
+        await updateMints(nextState.metadataByMint);
+        return;
+    }
+    async function update(auctionAddress, bidderAddress, userTokenAccounts) {
+        if (!storeAddress) {
+            if (isReady) {
+                //@ts-ignore
+                window.loadingData = false;
+                setIsLoadingMetaplex(false);
+            }
+            return;
+        }
+        else if (!state.store) {
+            //@ts-ignore
+            window.loadingData = true;
+            setIsLoadingMetaplex(true);
+        }
+        console.log('-----> Query started', new Date());
+        let nextState = await _1.pullPage(connection, page, state);
+        if (nextState.storeIndexer.length) {
+            if (loadAccounts_1.USE_SPEED_RUN) {
+                nextState = await loadAccounts_1.limitedLoadAccounts(connection);
+                console.log('------->Query finished', new Date());
+                setState(nextState);
+                //@ts-ignore
+                window.loadingData = false;
+                setIsLoadingMetaplex(false);
+            }
+            else {
+                console.log('------->Pagination detected, pulling page', page);
+                // Ensures we get the latest so beat race conditions and avoid double pulls.
+                let currMetadataLoaded = false;
+                setMetadataLoaded(loaded => {
+                    currMetadataLoaded = loaded;
+                    return loaded;
+                });
+                if (userTokenAccounts &&
+                    userTokenAccounts.length &&
+                    !currMetadataLoaded) {
+                    console.log('--------->User metadata loading now.');
+                    setMetadataLoaded(true);
+                    nextState = await loadAccounts_1.pullYourMetadata(connection, userTokenAccounts, nextState);
+                }
+                const auction = window.location.href.match(/#\/auction\/(\w+)/);
+                const billing = window.location.href.match(/#\/auction\/(\w+)\/billing/);
+                if (auction && page == 0) {
+                    console.log('---------->Loading auction page on initial load, pulling sub accounts');
+                    nextState = await _1.pullAuctionSubaccounts(connection, auction[1], nextState);
+                    if (billing) {
+                        console.log('-----> Pulling all payout tickets');
+                        await _1.pullPayoutTickets(connection, nextState);
+                    }
+                }
+                let currLastLength;
+                setLastLength(last => {
+                    currLastLength = last;
+                    return last;
+                });
+                if (nextState.storeIndexer.length != currLastLength) {
+                    setPage(page => page + 1);
+                }
+                setLastLength(nextState.storeIndexer.length);
+                //@ts-ignore
+                window.loadingData = false;
+                setIsLoadingMetaplex(false);
+                setState(nextState);
+            }
         }
         else {
-            console.log('sessiong storage gk ada');
+            console.log('------->No pagination detected');
+            nextState = !loadAccounts_1.USE_SPEED_RUN
+                ? await loadAccounts_1.loadAccounts(connection)
+                : await loadAccounts_1.limitedLoadAccounts(connection);
+            console.log('------->Query finished', new Date());
+            setState(nextState);
+            //@ts-ignore
+            window.loadingData = false;
+            setIsLoadingMetaplex(false);
         }
         //Todo handle not-started, starting, ended
         supabaseClient_1.supabase.from('auction_status')
@@ -89,19 +228,12 @@ function MetaProvider({ children = null }) {
             let listData = {};
             if (dataAuction.body != null) {
                 dataAuction.body.forEach(v => {
-                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link, v.owner, v.nft_data.mint_key);
+                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link, v.owner, v.nft_data.mint_key, v.type_auction);
                 });
                 setDataAuction(listData);
                 setIsLoadingDatabase(false);
             }
         });
-        console.log('-----> Query started', new Date());
-        const nextState = !loadAccounts_1.USE_SPEED_RUN
-            ? await loadAccounts_1.loadAccounts(connection)
-            : await loadAccounts_1.limitedLoadAccounts(connection);
-        console.log('------->Query finished');
-        setState(nextState);
-        setIsLoadingMetaplex(false);
         console.log('------->set finished', new Date());
         await updateMints(nextState.metadataByMint);
         if (auctionAddress && bidderAddress) {
@@ -114,14 +246,40 @@ function MetaProvider({ children = null }) {
         }
     }
     react_1.useEffect(() => {
-        update();
-    }, [connection, setState, updateMints, storeAddress, isReady]);
+        //@ts-ignore
+        if (window.loadingData) {
+            console.log('currently another update is running, so queue for 3s...');
+            const interval = setInterval(() => {
+                //@ts-ignore
+                if (window.loadingData) {
+                    console.log('not running queued update right now, still loading');
+                }
+                else {
+                    console.log('running queued update');
+                    update(undefined, undefined, userAccounts);
+                    clearInterval(interval);
+                }
+            }, 3000);
+        }
+        else {
+            console.log('no update is running, updating.');
+            update(undefined, undefined, userAccounts);
+        }
+    }, [
+        connection,
+        setState,
+        updateMints,
+        storeAddress,
+        isReady,
+        page,
+        userAccounts.length > 0,
+    ]);
     react_1.useEffect(() => {
         if (isLoadingMetaplex) {
             return;
         }
         return subscribeAccountsChange_1.subscribeAccountsChange(connection, () => state, setState);
-    }, [connection, setState, isLoadingMetaplex]);
+    }, [connection, setState, isLoadingMetaplex, state]);
     // TODO: fetch names dynamically
     // TODO: get names for creators
     // useEffect(() => {
@@ -150,6 +308,10 @@ function MetaProvider({ children = null }) {
             ...state,
             // @ts-ignore
             update,
+            pullAuctionPage,
+            pullAllMetadata,
+            pullBillingPage,
+            pullAllSiteData,
             isLoadingMetaplex,
             liveDataAuctions
         } }, children));

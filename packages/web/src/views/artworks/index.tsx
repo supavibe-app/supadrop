@@ -3,7 +3,12 @@ import { ArtCard } from '../../components/ArtCard';
 import { Layout, Row, Col, Tabs } from 'antd';
 import Masonry from 'react-masonry-css';
 import { Link } from 'react-router-dom';
-import { AuctionViewState, useAuctions, useCreatorArts, useUserArts } from '../../hooks';
+import {
+  AuctionViewState,
+  useAuctions,
+  useCreatorArts,
+  useUserArts,
+} from '../../hooks';
 import { useMeta } from '../../contexts';
 import { CardLoader } from '../../components/MyLoader';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -23,8 +28,11 @@ export const ArtworksView = () => {
   const { connected, publicKey } = useWallet();
   const ownedMetadata = useUserArts();
   const createdMetadata = useCreatorArts(publicKey?.toBase58() || '');
-  const onSale = useAuctions(AuctionViewState.Live).filter(m => m.vault.info.authority === publicKey?.toBase58());
-  const { metadata, isLoadingMetaplex } = useMeta();
+  const onSale = useAuctions(AuctionViewState.Live).filter(
+    m => m.vault.info.authority === publicKey?.toBase58(),
+  );
+  const { metadata, isLoadingMetaplex, pullAllMetadata, storeIndexer } =
+    useMeta();
   const [activeKey, setActiveKey] = useState(ArtworkViewState.Metaplex);
   const breakpointColumnsObj = {
     default: 4,
@@ -37,10 +45,10 @@ export const ArtworksView = () => {
     activeKey === ArtworkViewState.Owned
       ? ownedMetadata.map(m => m.metadata)
       : activeKey === ArtworkViewState.Created
-        ? createdMetadata
-        : activeKey === ArtworkViewState.OnSale
-          ? onSale
-          : metadata;
+      ? createdMetadata
+      : activeKey === ArtworkViewState.OnSale
+      ? onSale
+      : metadata;
 
   useEffect(() => {
     if (connected) {
@@ -58,22 +66,28 @@ export const ArtworksView = () => {
     >
       {!isLoadingMetaplex
         ? items.map((m, idx) => {
-          const id = m.pubkey;
-          return (
-            <Link to={`/art/${id}`} key={idx}>
-              <ArtCard
-                key={id}
-                pubkey={m.pubkey}
-                preview={false}
-                height={250}
-                width={250}
-              />
-              <Link to={{ pathname: `/list/create`, state: { idNFT: id, item: [m] } }} key={idx}>
-                Listing
+            const id = m.pubkey;
+            return (
+              <Link to={`/art/${id}`} key={idx}>
+                <ArtCard
+                  key={id}
+                  pubkey={m.pubkey}
+                  preview={false}
+                  height={250}
+                  width={250}
+                />
+                <Link
+                  to={{
+                    pathname: `/list/create`,
+                    state: { idNFT: id, item: [m] },
+                  }}
+                  key={idx}
+                >
+                  Listing
+                </Link>
               </Link>
-            </Link>
-          );
-        })
+            );
+          })
         : [...Array(10)].map((_, idx) => <CardLoader key={idx} />)}
     </Masonry>
   );
@@ -118,6 +132,9 @@ export const ArtworksView = () => {
                 </TabPane>
               )}
             </Tabs>
+            {connected && storeIndexer.length && (
+              <a onClick={() => pullAllMetadata()}>Load all metadata</a>
+            )}
           </Row>
         </Col>
       </Content>
