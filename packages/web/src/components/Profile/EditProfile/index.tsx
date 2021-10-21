@@ -47,24 +47,15 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     }
   };
 
-  // TODO request storage
-  // supabase
-  //   .storage
-  //   .getBucket('profile')
-
-  // TODO upload file here
+  // KEEP GETTING 400 on Upload
   const props = {
-    action: '',
     multiple: false,
     onStart(file) {
-      console.log('onStart', file, file.name);
-      supabase
-        .storage
+      console.log('onStart file', file);
+      console.log('onStart file name', file.name);
+      supabase.storage
         .from('profile')
-        .upload(`public/filename.png`, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
+        .upload(`avatars/${file.name}`, file)
     },
     onSuccess(ret) {
       console.log('onSuccess', ret);
@@ -74,9 +65,10 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     },
     beforeUpload(file) {
       console.log(file);
+      const isPng = file.type === 'image/png';
       const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-      if (!isJpgOrPng) {
-        message.error('You can only upload JPG/PNG file!');
+      if (!isPng) {
+        message.error('You can only upload PNG file!');
       }
       const isLt2M = file.size / 1024 / 1024 < 2;
       if (!isLt2M) {
@@ -101,7 +93,7 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
           <div>
             <div>We recommend an image of at least 400x400.</div>
 
-            <Upload className={UploadStyle}>
+            <Upload {...props} className={UploadStyle}>
               <Button className={ChooseFileButton} type="link">choose file</Button>
             </Upload>
           </div>

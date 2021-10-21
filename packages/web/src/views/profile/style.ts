@@ -4,6 +4,7 @@ export const ProfileSection = css`
   padding: 56px;
   overflow: auto;
   height: calc(100vh - 80px);
+  width: 100%;
   position: fixed;
 `;
 

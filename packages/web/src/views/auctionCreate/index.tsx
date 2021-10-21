@@ -92,10 +92,10 @@ export const AuctionCreateView = () => {
   const [auctionObj, setAuctionObj] =
     useState<
       | {
-          vault: StringPublicKey;
-          auction: StringPublicKey;
-          auctionManager: StringPublicKey;
-        }
+        vault: StringPublicKey;
+        auction: StringPublicKey;
+        auctionManager: StringPublicKey;
+      }
       | undefined
     >(undefined);
   const [attributes, setAttributes] = useState<AuctionState>({
@@ -107,13 +107,9 @@ export const AuctionCreateView = () => {
     winnersCount: 1,
   });
 
-  const gotoNextStep = (_step?: number) => {
-    const nextStep = _step === undefined ? step + 1 : _step;
-    setStep(nextStep);
-  };
-
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
+
     if (
       attributes.category === AuctionCategory.InstantSale &&
       attributes.instantSaleType === InstantSaleType.Open
@@ -139,7 +135,7 @@ export const AuctionCreateView = () => {
         if (!editions) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-            (wallet?.publicKey || SystemProgram.programId).toBase58()
+              (wallet?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -163,7 +159,7 @@ export const AuctionCreateView = () => {
         ) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-            (wallet?.publicKey || SystemProgram.programId).toBase58()
+              (wallet?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -194,10 +190,6 @@ export const AuctionCreateView = () => {
         );
       }
     }
-    console.log(
-      '🚀 ~ file: index.tsx ~ line 198 ~ createAuction ~ attributes',
-      attributes,
-    );
     const isInstantSale =
       attributes.instantSalePrice &&
       attributes.priceFloor === attributes.instantSalePrice;
@@ -207,23 +199,23 @@ export const AuctionCreateView = () => {
       endAuctionAt: isInstantSale
         ? null
         : new BN(
-            (attributes.auctionDuration || 0) *
-              (attributes.auctionDurationType == 'days'
-                ? 60 * 60 * 24 // 1 day in seconds
-                : attributes.auctionDurationType == 'hours'
-                ? 60 * 60 // 1 hour in seconds
-                : 60), // 1 minute in seconds
-          ), // endAuctionAt is actually auction duration, poorly named, in seconds
+          (attributes.auctionDuration || 0) *
+          (attributes.auctionDurationType == 'days'
+            ? 60 * 60 * 24 // 1 day in seconds
+            : attributes.auctionDurationType == 'hours'
+              ? 60 * 60 // 1 hour in seconds
+              : 60), // 1 minute in seconds
+        ), // endAuctionAt is actually auction duration, poorly named, in seconds
       auctionGap: isInstantSale
         ? null
         : new BN(
-            (attributes.gapTime || 0) *
-              (attributes.gapTimeType == 'days'
-                ? 60 * 60 * 24 // 1 day in seconds
-                : attributes.gapTimeType == 'hours'
-                ? 60 * 60 // 1 hour in seconds
-                : 60), // 1 minute in seconds
-          ),
+          (attributes.gapTime || 0) *
+          (attributes.gapTimeType == 'days'
+            ? 60 * 60 * 24 // 1 day in seconds
+            : attributes.gapTimeType == 'hours'
+              ? 60 * 60 // 1 hour in seconds
+              : 60), // 1 minute in seconds
+        ),
       priceFloor: new PriceFloor({
         type: attributes.priceFloor
           ? PriceFloorType.Minimum
@@ -240,10 +232,6 @@ export const AuctionCreateView = () => {
         : null,
       name: null,
     };
-    console.log(
-      '🚀 ~ file: index.tsx ~ line 248 ~ createAuction ~ auctionSettings',
-      auctionSettings,
-    );
 
     const _auctionObj = await createAuctionManager(
       connection,
@@ -286,7 +274,7 @@ export const AuctionCreateView = () => {
       attributes={attributes}
       setAttributes={setAttributes}
       auction={auctionObj}
-      confirm={gotoNextStep}
+      confirm={() => setStep(step + 1)}
     />
   );
 
@@ -306,8 +294,8 @@ export const AuctionCreateView = () => {
     2: congratsStep,
   };
 
-  if (!idNFT && wallet.publicKey)
-    history.push(`/${wallet.publicKey.toBase58()}`);
+  // supaya gaada yang hard visit (visit without nft)
+  if (!idNFT && wallet.publicKey) history.push(`/${wallet.publicKey.toBase58()}`);
 
   return (
     <Row justify="center" style={{ paddingTop: 50 }}>
@@ -321,7 +309,7 @@ export const AuctionCreateView = () => {
           </Row>
         )}
 
-        <Row align={step > 0 ? 'middle' : 'top'} gutter={72}>
+        <Row align={step > 0 ? "middle" : "top"} gutter={72}>
           <Col span={12}>
             <ArtCard pubkey={idNFT} preview={false} />
           </Col>

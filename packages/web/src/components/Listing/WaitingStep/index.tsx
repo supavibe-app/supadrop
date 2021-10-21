@@ -37,7 +37,7 @@ const WaitingStep = (props: {
   }, []);
 
   return (
-    <Col span={12}>
+    <Col span={9}>
       <div className={Title}>{title}</div>
       <div className={Description}>{description}</div>
       <Spin />

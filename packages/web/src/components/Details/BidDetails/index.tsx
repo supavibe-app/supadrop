@@ -433,7 +433,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   // place bid page active
   if (showPlaceBid) {
     // case 5: insufficient balance
-    if (balance < minimumBid) {
+    if (balance < minimumBid || (currentBidAmount && currentBidAmount > balance)) {
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
@@ -442,7 +442,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
             </ActionButton>
           </div>
         </BidDetailsContent>
-      )
+      );
     }
 
     if (currentBidAmount && currentBidAmount > 0) {
@@ -454,7 +454,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
               <ActionButton width="100%" disabled>bid at least {minimumBid} SOL</ActionButton>
             </div>
           </BidDetailsContent>
-        )
+        );
       }
 
       // case 7: filled amount
@@ -505,7 +505,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   if (auction?.isInstantSale && ended && eligibleForAnything) {
     return (
       <></>
-    )
+    );
   }
 
   // default case

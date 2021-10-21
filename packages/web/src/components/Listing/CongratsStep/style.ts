@@ -6,7 +6,7 @@ export const ShareButton = css`
   font-size: 18px;
   height: 48px;
   width: 126px;
-  margin-right: 28px;
+  margin-right: 16px;
 `;
 
 export const ContinueButton = css`

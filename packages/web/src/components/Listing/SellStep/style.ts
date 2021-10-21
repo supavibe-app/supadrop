@@ -87,4 +87,5 @@ export const OptionBoxStyle = isActive => css`
 
 export const OptionButtonStyle = isActive => css`
   border: 2px solid ${isActive ? '#CCFF00' : '#2B2B2B'};
+  padding: 2px 16px;
 `;

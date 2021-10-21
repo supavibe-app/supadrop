@@ -22,7 +22,7 @@ const getUserData = publicKey => {
       supabase
         .from('user_data')
         .select('*')
-        .eq('wallet_address', publicKey)
+        .or(`wallet_address.eq.${publicKey},username.eq.${publicKey}`)
         .limit(1)
         .then(res => setResult({ loading: false, data: res.data?.[0] }));
     }
