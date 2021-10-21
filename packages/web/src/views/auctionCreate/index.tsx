@@ -77,6 +77,7 @@ export const AuctionCreateView = () => {
   // const connection = useConnection();
   // const wallet = useWallet();
   const { whitelistedCreatorsByCreator, storeIndexer } = useMeta();
+
   // const { step_param }: { step_param: string } = useParams();
   // const history = useHistory();
   const history = useHistory();
@@ -84,11 +85,6 @@ export const AuctionCreateView = () => {
 
   const { state } = history.location;
   const { idNFT, item: itemNFT }: any = state || {};
-  console.log(
-    '🚀 ~ file: index.tsx ~ line 82 ~ AuctionCreateView ~ itemNFT',
-    itemNFT,
-  );
-
   const connection = useConnection();
   const mint = useMint(QUOTE_MINT);
 
@@ -198,7 +194,10 @@ export const AuctionCreateView = () => {
         );
       }
     }
-
+    console.log(
+      '🚀 ~ file: index.tsx ~ line 198 ~ createAuction ~ attributes',
+      attributes,
+    );
     const isInstantSale =
       attributes.instantSalePrice &&
       attributes.priceFloor === attributes.instantSalePrice;
@@ -241,6 +240,10 @@ export const AuctionCreateView = () => {
         : null,
       name: null,
     };
+    console.log(
+      '🚀 ~ file: index.tsx ~ line 248 ~ createAuction ~ auctionSettings',
+      auctionSettings,
+    );
 
     const _auctionObj = await createAuctionManager(
       connection,

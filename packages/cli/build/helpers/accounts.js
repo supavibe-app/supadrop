@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadFairLaunchProgram = exports.loadCandyProgram = exports.loadWalletKey = exports.getMasterEdition = exports.getMetadata = exports.getTreasury = exports.getAtaForMint = exports.getFairLaunchTicketSeqLookup = exports.getFairLaunchLotteryBitmap = exports.getFairLaunchTicket = exports.getFairLaunch = exports.getTokenMint = exports.getConfig = exports.getCandyMachineAddress = exports.getTokenWallet = exports.uuidFromConfigPubkey = exports.createConfig = void 0;
+exports.loadFairLaunchProgram = exports.loadCandyProgram = exports.loadWalletKey = exports.getEditionMarkPda = exports.getMasterEdition = exports.getMetadata = exports.getTreasury = exports.getParticipationToken = exports.getParticipationMint = exports.getAtaForMint = exports.getFairLaunchTicketSeqLookup = exports.getFairLaunchLotteryBitmap = exports.getFairLaunchTicket = exports.getFairLaunch = exports.getTokenMint = exports.getConfig = exports.getCandyMachineAddress = exports.getTokenWallet = exports.uuidFromConfigPubkey = exports.createConfig = void 0;
 var web3_js_1 = require("@solana/web3.js");
 var constants_1 = require("./constants");
 var anchor = __importStar(require("@project-serum/anchor"));
@@ -206,6 +206,37 @@ var getAtaForMint = function (mint, buyer) { return __awaiter(void 0, void 0, vo
     });
 }); };
 exports.getAtaForMint = getAtaForMint;
+var getParticipationMint = function (authority, uuid) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([
+                    Buffer.from('fair_launch'),
+                    authority.toBuffer(),
+                    Buffer.from('mint'),
+                    Buffer.from(uuid),
+                    Buffer.from('participation'),
+                ], constants_1.FAIR_LAUNCH_PROGRAM_ID)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.getParticipationMint = getParticipationMint;
+var getParticipationToken = function (authority, uuid) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([
+                    Buffer.from('fair_launch'),
+                    authority.toBuffer(),
+                    Buffer.from('mint'),
+                    Buffer.from(uuid),
+                    Buffer.from('participation'),
+                    Buffer.from('account'),
+                ], constants_1.FAIR_LAUNCH_PROGRAM_ID)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.getParticipationToken = getParticipationToken;
 var getTreasury = function (tokenMint) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -242,6 +273,24 @@ var getMasterEdition = function (mint) { return __awaiter(void 0, void 0, void 0
     });
 }); };
 exports.getMasterEdition = getMasterEdition;
+var getEditionMarkPda = function (mint, edition) { return __awaiter(void 0, void 0, void 0, function () {
+    var editionNumber;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                editionNumber = Math.floor(edition / 248);
+                return [4 /*yield*/, anchor.web3.PublicKey.findProgramAddress([
+                        Buffer.from('metadata'),
+                        constants_1.TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+                        mint.toBuffer(),
+                        Buffer.from('edition'),
+                        Buffer.from(editionNumber.toString()),
+                    ], constants_1.TOKEN_METADATA_PROGRAM_ID)];
+            case 1: return [2 /*return*/, (_a.sent())[0]];
+        }
+    });
+}); };
+exports.getEditionMarkPda = getEditionMarkPda;
 function loadWalletKey(keypair) {
     if (!keypair || keypair == '') {
         throw new Error('Keypair is required!');
@@ -273,13 +322,17 @@ function loadCandyProgram(walletKeyPair, env) {
     });
 }
 exports.loadCandyProgram = loadCandyProgram;
-function loadFairLaunchProgram(walletKeyPair, env) {
+function loadFairLaunchProgram(walletKeyPair, env, customRpcUrl) {
     return __awaiter(this, void 0, void 0, function () {
         var solConnection, walletWrapper, provider, idl;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    solConnection = new anchor.web3.Connection(anchor_1.web3.clusterApiUrl(env));
+                    if (customRpcUrl)
+                        console.log('USING CUSTOM URL', customRpcUrl);
+                    solConnection = new anchor.web3.Connection(
+                    //@ts-ignore
+                    customRpcUrl || anchor_1.web3.clusterApiUrl(env));
                     walletWrapper = new anchor.Wallet(walletKeyPair);
                     provider = new anchor.Provider(solConnection, walletWrapper, {
                         preflightCommitment: 'recent',

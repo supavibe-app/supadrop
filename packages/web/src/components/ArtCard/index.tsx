@@ -1,6 +1,10 @@
 import React, { useRef } from 'react';
 import { Avatar, Card, CardProps, Button, Badge, Row, Col } from 'antd';
-import { MetadataCategory, shortenAddress, StringPublicKey } from '@oyster/common';
+import {
+  MetadataCategory,
+  shortenAddress,
+  StringPublicKey,
+} from '@oyster/common';
 import { ArtContent } from './../ArtContent';
 import { useArt } from '../../hooks';
 import { Artist, ArtType } from '../../types';
@@ -8,15 +12,16 @@ import { Artist, ArtType } from '../../types';
 import { uTextAlignEnd } from '../../styles';
 import { AuctionImage, AvatarStyle, CardStyle, UserWrapper } from './style';
 import { Link } from 'react-router-dom';
+import { SafetyDepositDraft } from '../../actions/createAuctionManager';
 
 const { Meta } = Card;
 
 export interface ArtCardProps extends CardProps {
   pubkey?: StringPublicKey;
-
+  artItem?: SafetyDepositDraft[];
   image?: string;
   animationURL?: string;
-
+  isCollected?: boolean;
   category?: MetadataCategory;
 
   name?: string;
@@ -40,6 +45,8 @@ export const ArtCard = (props: ArtCardProps) => {
     preview,
     creators,
     pubkey,
+    artItem,
+    isCollected,
   } = props;
   const art = useArt(pubkey);
   creators = art?.creators || creators || [];
@@ -80,7 +87,9 @@ export const ArtCard = (props: ArtCardProps) => {
           <>
             <div className={UserWrapper}>
               <Avatar size={32} className={AvatarStyle} />
-              <span>{creators[0]?.address && shortenAddress(creators[0].address)}</span>
+              <span>
+                {creators[0]?.address && shortenAddress(creators[0].address)}
+              </span>
             </div>
 
             <Row>
@@ -89,11 +98,18 @@ export const ArtCard = (props: ArtCardProps) => {
                 <div>81 SOL</div>
               </Col>
 
-              <Col className={uTextAlignEnd} span={12}>
-                <Link to={{ pathname: `/list/create`, state: { idNFT: pubkey, item: [art] } }}>
-                  <Button shape="round">LIST</Button>
-                </Link>
-              </Col>
+              {isCollected && (
+                <Col className={uTextAlignEnd} span={12}>
+                  <Link
+                    to={{
+                      pathname: `/list/create`,
+                      state: { idNFT: pubkey, item: artItem },
+                    }}
+                  >
+                    <Button shape="round">LIST</Button>
+                  </Link>
+                </Col>
+              )}
             </Row>
           </>
         }
@@ -103,5 +119,7 @@ export const ArtCard = (props: ArtCardProps) => {
 
   return art.creators?.find(c => !c.verified) ? (
     <Badge.Ribbon text="Unverified">{card}</Badge.Ribbon>
-  ) : card;
+  ) : (
+    card
+  );
 };

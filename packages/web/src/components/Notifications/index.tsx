@@ -33,8 +33,20 @@ import {
   processAccountsIntoAuctionView,
   useAuctions,
 } from '../../hooks';
-import { BadgeStyle, CircleButton, EmptyNotification, ListStyle, NotificationPopover } from './style';
-import { GreyColor, uBoldFont, uFlexSpaceBetween, uLowerCase, WhiteColor } from '../../styles';
+import {
+  BadgeStyle,
+  CircleButton,
+  EmptyNotification,
+  ListStyle,
+  NotificationPopover,
+} from './style';
+import {
+  GreyColor,
+  uBoldFont,
+  uFlexSpaceBetween,
+  uLowerCase,
+  WhiteColor,
+} from '../../styles';
 import Coffee from '../../assets/icons/coffee';
 import FeatherIcon from 'feather-icons-react';
 
@@ -148,7 +160,7 @@ export function useCollapseWrappedSol({
         if ((balance && balance.value.uiAmount) || 0 > 0) {
           setShowNotification(true);
         }
-      } catch (e) { }
+      } catch (e) {}
     }
     setTimeout(fn, 60000);
   };
@@ -277,7 +289,7 @@ export function useSettlementAuctions({
         !b.info.emptied &&
         b.info.auctionAct === auctionKey,
     );
-    if (bidsToClaim.length || validDiscoveredEndedAuctions[auctionViewKey] > 0) 
+    if (bidsToClaim.length || validDiscoveredEndedAuctions[auctionViewKey] > 0)
       notifications.push({
         id: auctionViewKey,
         title: 'You have an ended auction that needs settling!',
@@ -300,7 +312,7 @@ export function useSettlementAuctions({
               safetyDepositBoxesByVaultAndIndex,
               metadataByMint,
               bidderMetadataByAuctionAndBidder:
-              updatedBidderMetadataByAuctionAndBidder,
+                updatedBidderMetadataByAuctionAndBidder,
               bidderPotsByAuctionAndBidder,
               bidRedemptionV2sByAuctionManagerAndWinningIndex,
               masterEditions,
@@ -421,26 +433,6 @@ export function Notifications() {
     });
   });
 
-  notifications.push({
-    id: 'none',
-    title: 'Search for other auctions.',
-    description: (
-      <span>
-        Load all auctions (including defectives) by pressing here. Then you can
-        close them.
-      </span>
-    ),
-    action: async () => {
-      try {
-        await pullAllSiteData();
-      } catch (e) {
-        console.error(e);
-        return false;
-      }
-      return true;
-    },
-  });
-
   possiblyBrokenAuctionManagerSetups
     .filter(v => v.auctionManager.authority === walletPubkey)
     .forEach(v => {
@@ -541,13 +533,27 @@ export function Notifications() {
         renderItem={(notification: NotificationCard) => (
           <List.Item
             className={ListStyle}
-            extra={<Button className={uBoldFont} onClick={notification.action} type="link">{notification.textButton}</Button>}
+            extra={
+              <Button
+                className={uBoldFont}
+                onClick={notification.action}
+                type="link"
+              >
+                {notification.textButton}
+              </Button>
+            }
           >
-            <Tooltip title={<div className={uLowerCase}>{notification.description}</div>}>
+            <Tooltip
+              title={
+                <div className={uLowerCase}>{notification.description}</div>
+              }
+            >
               <div className={uLowerCase}>{notification.title}</div>
             </Tooltip>
 
-            <div className={GreyColor}>{moment((notification.notifiedAt || 0) * 1000).fromNow()}</div>
+            <div className={GreyColor}>
+              {moment((notification.notifiedAt || 0) * 1000).fromNow()}
+            </div>
           </List.Item>
         )}
       />
@@ -566,13 +572,17 @@ export function Notifications() {
         content={content}
         trigger="click"
         placement="bottomRight"
-        title={(
+        title={
           <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
             <div className={WhiteColor}>notification</div>
           </div>
-        )}
+        }
       >
-        <Button className={CircleButton({ active: false })} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+        <Button
+          className={CircleButton({ active: false })}
+          icon={<FeatherIcon icon="bell" size="20" />}
+          shape="circle"
+        />
       </Popover>
     );
   }
@@ -584,13 +594,17 @@ export function Notifications() {
         content={content}
         trigger="click"
         placement="bottomRight"
-        title={(
+        title={
           <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
             <div className={WhiteColor}>notification</div>
           </div>
-        )}
+        }
       >
-        <Button className={CircleButton({ active: true })} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+        <Button
+          className={CircleButton({ active: true })}
+          icon={<FeatherIcon icon="bell" size="20" />}
+          shape="circle"
+        />
       </Popover>
     </Badge>
   );

@@ -90,7 +90,7 @@ function arweaveUpload(walletKeyPair, anchorProgram, env, image, manifestBuffer,
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    storageCost = 10;
+                    storageCost = 2300000;
                     instructions = [
                         anchor.web3.SystemProgram.transfer({
                             fromPubkey: walletKeyPair.publicKey,

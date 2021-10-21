@@ -1,15 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Col } from 'antd';
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom';
 import FeatherIcon from 'feather-icons-react';
 import moment from 'moment';
 import { StringPublicKey } from '@oyster/common';
 
 import InputPrice from '../../../components/InputPrice';
-import ActionButton from '../../ActionButton'
+import ActionButton from '../../ActionButton';
 import { useUserArts } from '../../../hooks';
 import { AuctionCategory, AuctionState } from '../../../views/auctionCreate';
-import { LabelDesc, LabelSecondaryTitle, LabelTitle, OptionBoxStyle, OptionButtonStyle, OptionsContainer, OptionsWrapper } from './style';
+import {
+  LabelDesc,
+  LabelSecondaryTitle,
+  LabelTitle,
+  OptionBoxStyle,
+  OptionButtonStyle,
+  OptionsContainer,
+  OptionsWrapper,
+} from './style';
 
 const SellStep = (props: {
   attributes: AuctionState;
@@ -21,40 +29,31 @@ const SellStep = (props: {
     auctionManager: StringPublicKey;
   };
 }) => {
-  const location = useLocation();
-  const dataNFT = useUserArts();
-  const state: any = location.state;
-
   // states
   const [category, setCategory] = useState(AuctionCategory.InstantSale);
   const [time, setTime] = useState(1);
   const [priceFloor, setPriceFloor] = useState<number>();
 
-  useEffect(() => {
-    if (state?.idNFT) {
-      props.setAttributes({
-        ...props.attributes,
-        items: dataNFT
-      });
-    }
-  }, []);
-
   const handleList = async () => {
-    const attributeValue = category === AuctionCategory.InstantSale
-      ? {
-        ...props.attributes,
-        priceFloor,
-        instantSalePrice: priceFloor,
-      } : {
-        ...props.attributes,
-        startSaleTS: moment().unix(),
-        startListTS: moment().unix(),
-        priceFloor,
-        priceTick: 0.1,
-        auctionDuration: time,
-        gapTime: 15,
-        tickSizeEndingPhase: 10,
-      };
+    const attributeValue =
+      category === AuctionCategory.InstantSale
+        ? {
+            ...props.attributes,
+            startSaleTS: moment().unix(),
+            startListTS: moment().unix(),
+            priceFloor,
+            instantSalePrice: priceFloor,
+          }
+        : {
+            ...props.attributes,
+            startSaleTS: moment().unix(),
+            startListTS: moment().unix(),
+            priceFloor,
+            priceTick: 0.1,
+            auctionDuration: time,
+            gapTime: 15,
+            tickSizeEndingPhase: 10,
+          };
 
     props.setAttributes(attributeValue);
     props.confirm();
@@ -64,7 +63,10 @@ const SellStep = (props: {
     <Col span={12} style={{ paddingBottom: 8, marginBottom: 32 }}>
       <div>
         <div className={LabelTitle}>set reserve price</div>
-        <div className={LabelDesc}>make sure you have enough SOL to perform the network fee (supadrop don’t charge listing fee)</div>
+        <div className={LabelDesc}>
+          make sure you have enough SOL to perform the network fee (supadrop
+          don’t charge listing fee)
+        </div>
         <InputPrice
           placeholder="0"
           suffix="SOL"
@@ -74,12 +76,17 @@ const SellStep = (props: {
 
       <div>
         <div className={LabelSecondaryTitle}>select listing options</div>
-        <div className={LabelDesc}>timed auction allows you to set time range for collectors to bid on auction</div>
+        <div className={LabelDesc}>
+          timed auction allows you to set time range for collectors to bid on
+          auction
+        </div>
 
         <div className={OptionsContainer}>
           <div className={OptionsWrapper}>
             <OptionBox
-              className={OptionBoxStyle(category === AuctionCategory.InstantSale)}
+              className={OptionBoxStyle(
+                category === AuctionCategory.InstantSale,
+              )}
               icon="tag"
               text="instant sale"
               onClick={() => setCategory(AuctionCategory.InstantSale)}
@@ -139,12 +146,7 @@ const OptionBox = ({ className, onClick, icon, text }) => {
 
 const OptionButton = ({ className, onClick, text }) => {
   return (
-    <Button
-      className={className}
-      onClick={onClick}
-      size="middle"
-      shape="round"
-    >
+    <Button className={className} onClick={onClick} size="middle" shape="round">
       {text}
     </Button>
   );

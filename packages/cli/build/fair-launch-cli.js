@@ -686,6 +686,177 @@ function adjustTicket(_a) {
     });
 }
 commander_1.program
+    .command('update_participation_nft')
+    .option('-e, --env <string>', 'Solana cluster env name', 'devnet')
+    .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
+    .option('-f, --fair-launch <string>', 'fair launch id')
+    .option('-n, --name <string>', 'name')
+    .option('-s, --symbol <string>', 'symbol')
+    .option('-u, --uri <string>', 'uri')
+    .option('-sfbp, --seller-fee-basis-points <string>', 'seller fee basis points')
+    .option('-m, --participation-modulo <string>', '1 if everybody gets it, 4 if only 1 in 4 get it, etc')
+    .option('-c, --creators <string>', 'comma separated creator wallets like wallet1,73,true,wallet2,27,false where its wallet, then share, then verified true/false')
+    .option('-nm, --is_not_mutable', 'is not mutable')
+    .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, env, keypair, fairLaunch, name, symbol, uri, sellerFeeBasisPoints, creators, isNotMutable, participationModulo, sellerFeeBasisPointsNumber, participationModuloNumber, creatorsListPre, creatorsList, i, isMutableBool, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, participationMint, _b, _c, _d;
+    var _e, _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
+            case 0:
+                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch, name = _a.name, symbol = _a.symbol, uri = _a.uri, sellerFeeBasisPoints = _a.sellerFeeBasisPoints, creators = _a.creators, isNotMutable = _a.isNotMutable, participationModulo = _a.participationModulo;
+                sellerFeeBasisPointsNumber = parseInt(sellerFeeBasisPoints);
+                participationModuloNumber = parseInt(participationModulo);
+                creatorsListPre = creators ? creators.split(',') : [];
+                creatorsList = [];
+                for (i = 0; i < creatorsListPre.length; i += 3) {
+                    creatorsList.push({
+                        address: new anchor.web3.PublicKey(creatorsListPre[i]),
+                        share: parseInt(creatorsListPre[i + 1]),
+                        verified: creatorsListPre[i + 2] == 'true' ? true : false,
+                    });
+                }
+                isMutableBool = isNotMutable ? false : true;
+                walletKeyPair = accounts_1.loadWalletKey(keypair);
+                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env)];
+            case 1:
+                anchorProgram = _g.sent();
+                fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
+                return [4 /*yield*/, anchorProgram.account.fairLaunch.fetch(fairLaunchKey)];
+            case 2:
+                fairLaunchObj = _g.sent();
+                return [4 /*yield*/, accounts_1.getParticipationMint(
+                    //@ts-ignore
+                    fairLaunchObj.authority, 
+                    //@ts-ignore
+                    fairLaunchObj.data.uuid)];
+            case 3:
+                participationMint = (_g.sent())[0];
+                _c = (_b = anchorProgram.rpc).updateParticipationNft;
+                _d = [participationModuloNumber,
+                    {
+                        name: name,
+                        symbol: symbol,
+                        uri: uri,
+                        sellerFeeBasisPoints: sellerFeeBasisPointsNumber,
+                        creators: creatorsList,
+                        isMutable: isMutableBool,
+                    }];
+                _e = {};
+                _f = {
+                    fairLaunch: fairLaunchKey,
+                    authority: walletKeyPair.publicKey
+                };
+                return [4 /*yield*/, accounts_1.getMetadata(participationMint)];
+            case 4: return [4 /*yield*/, _c.apply(_b, _d.concat([(_e.accounts = (
+                    //@ts-ignore
+                    _f.metadata = _g.sent(),
+                        _f.tokenMetadataProgram = constants_1.TOKEN_METADATA_PROGRAM_ID,
+                        _f.tokenProgram = constants_1.TOKEN_PROGRAM_ID,
+                        _f),
+                        _e)]))];
+            case 5:
+                _g.sent();
+                console.log('Update participation metadata.');
+                return [2 /*return*/];
+        }
+    });
+}); });
+commander_1.program
+    .command('set_participation_nft')
+    .option('-e, --env <string>', 'Solana cluster env name', 'devnet')
+    .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
+    .option('-f, --fair-launch <string>', 'fair launch id')
+    .option('-n, --name <string>', 'name')
+    .option('-s, --symbol <string>', 'symbol')
+    .option('-u, --uri <string>', 'uri')
+    .option('-sfbp, --seller-fee-basis-points <string>', 'seller fee basis points')
+    .option('-m, --participation-modulo <string>', '1 if everybody gets it, 4 if only 1 in 4 get it, etc')
+    .option('-c, --creators <string>', 'comma separated creator wallets like wallet1,73,true,wallet2,27,false where its wallet, then share, then verified true/false')
+    .option('-nm, --is_not_mutable', 'is not mutable')
+    .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, env, keypair, fairLaunch, name, symbol, uri, sellerFeeBasisPoints, creators, isNotMutable, participationModulo, sellerFeeBasisPointsNumber, participationModuloNumber, creatorsListPre, creatorsList, i, isMutableBool, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, _b, participationMint, mintBump, _c, participationTokenAccount, tokenBump, _d, _e, _f;
+    var _g, _h;
+    return __generator(this, function (_j) {
+        switch (_j.label) {
+            case 0:
+                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch, name = _a.name, symbol = _a.symbol, uri = _a.uri, sellerFeeBasisPoints = _a.sellerFeeBasisPoints, creators = _a.creators, isNotMutable = _a.isNotMutable, participationModulo = _a.participationModulo;
+                sellerFeeBasisPointsNumber = parseInt(sellerFeeBasisPoints);
+                participationModuloNumber = parseInt(participationModulo);
+                creatorsListPre = creators ? creators.split(',') : [];
+                creatorsList = [];
+                for (i = 0; i < creatorsListPre.length; i += 3) {
+                    creatorsList.push({
+                        address: new anchor.web3.PublicKey(creatorsListPre[i]),
+                        share: parseInt(creatorsListPre[i + 1]),
+                        verified: creatorsListPre[i + 2] == 'true' ? true : false,
+                    });
+                }
+                isMutableBool = isNotMutable ? false : true;
+                walletKeyPair = accounts_1.loadWalletKey(keypair);
+                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env)];
+            case 1:
+                anchorProgram = _j.sent();
+                fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
+                return [4 /*yield*/, anchorProgram.account.fairLaunch.fetch(fairLaunchKey)];
+            case 2:
+                fairLaunchObj = _j.sent();
+                return [4 /*yield*/, accounts_1.getParticipationMint(
+                    //@ts-ignore
+                    fairLaunchObj.authority, 
+                    //@ts-ignore
+                    fairLaunchObj.data.uuid)];
+            case 3:
+                _b = __read.apply(void 0, [_j.sent(), 2]), participationMint = _b[0], mintBump = _b[1];
+                return [4 /*yield*/, accounts_1.getParticipationToken(
+                    //@ts-ignore
+                    fairLaunchObj.authority, 
+                    //@ts-ignore
+                    fairLaunchObj.data.uuid)];
+            case 4:
+                _c = __read.apply(void 0, [_j.sent(), 2]), participationTokenAccount = _c[0], tokenBump = _c[1];
+                _e = (_d = anchorProgram.rpc).setParticipationNft;
+                _f = [mintBump,
+                    tokenBump,
+                    participationModuloNumber,
+                    {
+                        name: name,
+                        symbol: symbol,
+                        uri: uri,
+                        sellerFeeBasisPoints: sellerFeeBasisPointsNumber,
+                        creators: creatorsList,
+                        isMutable: isMutableBool,
+                    }];
+                _g = {};
+                _h = {
+                    fairLaunch: fairLaunchKey,
+                    authority: walletKeyPair.publicKey,
+                    payer: walletKeyPair.publicKey,
+                    participationMint: participationMint,
+                    participationTokenAccount: participationTokenAccount
+                };
+                return [4 /*yield*/, accounts_1.getMetadata(participationMint)];
+            case 5:
+                //@ts-ignore
+                _h.metadata = _j.sent();
+                return [4 /*yield*/, accounts_1.getMasterEdition(participationMint)];
+            case 6: return [4 /*yield*/, _e.apply(_d, _f.concat([(_g.accounts = (
+                    //@ts-ignore
+                    _h.masterEdition = _j.sent(),
+                        _h.tokenMetadataProgram = constants_1.TOKEN_METADATA_PROGRAM_ID,
+                        _h.tokenProgram = constants_1.TOKEN_PROGRAM_ID,
+                        _h.systemProgram = anchor.web3.SystemProgram.programId,
+                        _h.rent = anchor.web3.SYSVAR_RENT_PUBKEY,
+                        _h.clock = anchor.web3.SYSVAR_CLOCK_PUBKEY,
+                        _h),
+                        _g)]))];
+            case 7:
+                _j.sent();
+                console.log('Set participation metadata.');
+                return [2 /*return*/];
+        }
+    });
+}); });
+commander_1.program
     .command('set_token_metadata')
     .option('-e, --env <string>', 'Solana cluster env name', 'devnet')
     .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
@@ -808,14 +979,15 @@ commander_1.program
     .option('-e, --env <string>', 'Solana cluster env name', 'devnet')
     .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
     .option('-f, --fair-launch <string>', 'fair launch id')
+    .option('-r, --rpc-url <string>', 'custom rpc url since this is a heavy command')
     .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, keypair, fairLaunch, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, fairLaunchLotteryBitmap, fairLaunchLotteryBitmapObj, seqKeys, i, _b, _c, ticketKeys, ticketsFlattened, ticketData, ticketDataFlat;
+    var _a, env, keypair, fairLaunch, rpcUrl, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, fairLaunchLotteryBitmap, fairLaunchLotteryBitmapObj, seqKeys, i, _b, _c, ticketKeys, ticketsFlattened, ticketData, ticketDataFlat;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch;
+                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch, rpcUrl = _a.rpcUrl;
                 walletKeyPair = accounts_1.loadWalletKey(keypair);
-                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env)];
+                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env, rpcUrl)];
             case 1:
                 anchorProgram = _d.sent();
                 fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
@@ -964,20 +1136,73 @@ commander_1.program
                 ticketData = _d.sent();
                 ticketDataFlat = ticketData.flat();
                 return [4 /*yield*/, Promise.all(various_1.chunks(Array.from(Array(ticketDataFlat.length).keys()), 1000).map(function (allIndexesInSlice) { return __awaiter(void 0, void 0, void 0, function () {
-                        var i, ticket, myByte, positionFromRight, mask, isWinner, diff, e_4, tries, buyerTokenAccount, e_5;
+                        var i, ticket, tries, done, nft, e_4, tries, done, e_5, myByte, positionFromRight, mask, isWinner, diff, tries_1, done_1, e_6, tries, done, buyerTokenAccount, e_7, tries, done, e_8;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     i = 0;
                                     _a.label = 1;
                                 case 1:
-                                    if (!(i < allIndexesInSlice.length)) return [3 /*break*/, 18];
+                                    if (!(i < allIndexesInSlice.length)) return [3 /*break*/, 44];
                                     ticket = ticketDataFlat[allIndexesInSlice[i]];
-                                    if (!ticket.model.state.unpunched) return [3 /*break*/, 16];
+                                    if (!!ticket.model.gottenParticipation) return [3 /*break*/, 9];
+                                    tries = 0;
+                                    done = false;
+                                    _a.label = 2;
+                                case 2:
+                                    if (!(tries < 3 && !done)) return [3 /*break*/, 8];
+                                    _a.label = 3;
+                                case 3:
+                                    _a.trys.push([3, 5, , 7]);
+                                    return [4 /*yield*/, getParticipationNft({
+                                            payer: walletKeyPair,
+                                            buyer: ticket.model.buyer,
+                                            anchorProgram: anchorProgram,
+                                            fairLaunchTicket: ticket.key,
+                                            fairLaunch: fairLaunch,
+                                            fairLaunchObj: fairLaunchObj,
+                                            fairLaunchTicketObj: ticket.model,
+                                        })];
+                                case 4:
+                                    nft = _a.sent();
+                                    done = true;
+                                    if (nft) {
+                                        console.log("Got participation nft and placed token in new account " + nft.toBase58() + ".");
+                                    }
+                                    return [3 /*break*/, 7];
+                                case 5:
+                                    e_4 = _a.sent();
+                                    if (tries > 3) {
+                                        throw e_4;
+                                    }
+                                    else {
+                                        tries++;
+                                    }
+                                    console.log(e_4);
+                                    console.log('Ticket failed to get participation nft, trying one more time');
+                                    return [4 /*yield*/, various_1.sleep(1000)];
+                                case 6:
+                                    _a.sent();
+                                    return [3 /*break*/, 7];
+                                case 7: return [3 /*break*/, 2];
+                                case 8: return [3 /*break*/, 10];
+                                case 9:
+                                    console.log('Ticket', ticket.model.buyer.toBase58(), 'already received participation');
+                                    _a.label = 10;
+                                case 10:
+                                    if (!ticket.model.state.unpunched) return [3 /*break*/, 42];
                                     if (!(ticket.model.amount.toNumber() <
                                         //@ts-ignore
-                                        fairLaunchObj.currentMedian.toNumber())) return [3 /*break*/, 3];
+                                        fairLaunchObj.currentMedian.toNumber())) return [3 /*break*/, 18];
                                     console.log('Refunding ticket for buyer', allIndexesInSlice[i], ticket.model.buyer.toBase58());
+                                    tries = 0;
+                                    done = false;
+                                    _a.label = 11;
+                                case 11:
+                                    if (!(tries < 3 && !done)) return [3 /*break*/, 17];
+                                    _a.label = 12;
+                                case 12:
+                                    _a.trys.push([12, 14, , 16]);
                                     return [4 /*yield*/, adjustTicket({
                                             amountNumber: 0,
                                             fairLaunchObj: fairLaunchObj,
@@ -989,25 +1214,47 @@ commander_1.program
                                             payer: walletKeyPair,
                                             adjustMantissa: true,
                                         })];
-                                case 2:
+                                case 13:
                                     _a.sent();
-                                    return [3 /*break*/, 15];
-                                case 3:
+                                    done = true;
+                                    return [3 /*break*/, 16];
+                                case 14:
+                                    e_5 = _a.sent();
+                                    if (tries > 3) {
+                                        throw e_5;
+                                    }
+                                    else {
+                                        tries++;
+                                    }
+                                    console.log(e_5);
+                                    console.log('Adjusting ticket failed', ticket.key.toBase58());
+                                    return [4 /*yield*/, various_1.sleep(1000)];
+                                case 15:
+                                    _a.sent();
+                                    return [3 /*break*/, 16];
+                                case 16: return [3 /*break*/, 11];
+                                case 17: return [3 /*break*/, 41];
+                                case 18:
                                     myByte = fairLaunchLotteryBitmapObj.data[FAIR_LAUNCH_LOTTERY_SIZE +
                                         Math.floor(ticket.model.seq.toNumber() / 8)];
                                     positionFromRight = 7 - (ticket.model.seq.toNumber() % 8);
                                     mask = Math.pow(2, positionFromRight);
                                     isWinner = myByte & mask;
-                                    if (!(isWinner > 0)) return [3 /*break*/, 13];
+                                    if (!(isWinner > 0)) return [3 /*break*/, 33];
                                     console.log('Punching ticket for buyer', allIndexesInSlice[i], ticket.model.buyer.toBase58());
                                     diff = ticket.model.amount.toNumber() -
                                         //@ts-ignore
                                         fairLaunchObj.currentMedian.toNumber();
-                                    if (!(diff > 0)) return [3 /*break*/, 7];
+                                    if (!(diff > 0)) return [3 /*break*/, 25];
                                     console.log('Refunding first', diff, 'to buyer', allIndexesInSlice[i], 'before punching');
-                                    _a.label = 4;
-                                case 4:
-                                    _a.trys.push([4, 6, , 7]);
+                                    tries_1 = 0;
+                                    done_1 = false;
+                                    _a.label = 19;
+                                case 19:
+                                    if (!(tries_1 < 3 && !done_1)) return [3 /*break*/, 25];
+                                    _a.label = 20;
+                                case 20:
+                                    _a.trys.push([20, 22, , 24]);
                                     return [4 /*yield*/, adjustTicket({
                                             //@ts-ignore
                                             amountNumber: fairLaunchObj.currentMedian.toNumber(),
@@ -1020,18 +1267,35 @@ commander_1.program
                                             payer: walletKeyPair,
                                             adjustMantissa: false,
                                         })];
-                                case 5:
+                                case 21:
                                     _a.sent();
-                                    return [3 /*break*/, 7];
-                                case 6:
-                                    e_4 = _a.sent();
+                                    done_1 = true;
+                                    console.log('Adjusting ticket succeeded', ticket.key.toBase58());
+                                    return [3 /*break*/, 24];
+                                case 22:
+                                    e_6 = _a.sent();
+                                    if (tries_1 > 3) {
+                                        throw e_6;
+                                    }
+                                    else {
+                                        tries_1++;
+                                    }
+                                    console.log(e_6);
                                     console.log('Adjusting ticket failed', ticket.key.toBase58());
-                                    return [3 /*break*/, 7];
-                                case 7:
+                                    return [4 /*yield*/, various_1.sleep(1000)];
+                                case 23:
+                                    _a.sent();
+                                    return [3 /*break*/, 24];
+                                case 24: return [3 /*break*/, 19];
+                                case 25:
                                     tries = 0;
-                                    _a.label = 8;
-                                case 8:
-                                    _a.trys.push([8, 10, , 12]);
+                                    done = false;
+                                    _a.label = 26;
+                                case 26:
+                                    if (!(tries < 3 && !done)) return [3 /*break*/, 32];
+                                    _a.label = 27;
+                                case 27:
+                                    _a.trys.push([27, 29, , 31]);
                                     return [4 /*yield*/, punchTicket({
                                             payer: walletKeyPair,
                                             puncher: ticket.model.buyer,
@@ -1040,27 +1304,39 @@ commander_1.program
                                             fairLaunch: fairLaunch,
                                             fairLaunchLotteryBitmap: fairLaunchLotteryBitmap,
                                             fairLaunchObj: fairLaunchObj,
+                                            fairLaunchTicketObj: ticket.model,
                                         })];
-                                case 9:
+                                case 28:
                                     buyerTokenAccount = _a.sent();
-                                    console.log("Punched ticket and placed token in new account " + buyerTokenAccount.toBase58() + " for buyer ", allIndexesInSlice[i]);
-                                    return [3 /*break*/, 12];
-                                case 10:
-                                    e_5 = _a.sent();
+                                    done = true;
+                                    console.log("Punched ticket and placed token in new account " + buyerTokenAccount.toBase58() + ".");
+                                    return [3 /*break*/, 31];
+                                case 29:
+                                    e_7 = _a.sent();
                                     if (tries > 3) {
-                                        throw e_5;
+                                        throw e_7;
                                     }
                                     else {
                                         tries++;
                                     }
+                                    console.log(e_7);
                                     console.log('Ticket failed to punch, trying one more time');
                                     return [4 /*yield*/, various_1.sleep(1000)];
-                                case 11:
+                                case 30:
                                     _a.sent();
-                                    return [3 /*break*/, 12];
-                                case 12: return [3 /*break*/, 15];
-                                case 13:
+                                    return [3 /*break*/, 31];
+                                case 31: return [3 /*break*/, 26];
+                                case 32: return [3 /*break*/, 41];
+                                case 33:
                                     console.log('Buyer ', allIndexesInSlice[i], ticket.model.buyer.toBase58(), 'was eligible but lost lottery, refunding');
+                                    tries = 0;
+                                    done = false;
+                                    _a.label = 34;
+                                case 34:
+                                    if (!(tries < 3 && !done)) return [3 /*break*/, 40];
+                                    _a.label = 35;
+                                case 35:
+                                    _a.trys.push([35, 37, , 39]);
                                     return [4 /*yield*/, adjustTicket({
                                             //@ts-ignore
                                             amountNumber: 0,
@@ -1073,23 +1349,42 @@ commander_1.program
                                             payer: walletKeyPair,
                                             adjustMantissa: true,
                                         })];
-                                case 14:
+                                case 36:
                                     _a.sent();
+                                    done = true;
+                                    console.log('Refunding  ticket succeeded', ticket.key.toBase58());
+                                    return [3 /*break*/, 39];
+                                case 37:
+                                    e_8 = _a.sent();
+                                    if (tries > 3) {
+                                        throw e_8;
+                                    }
+                                    else {
+                                        tries++;
+                                    }
+                                    console.log(e_8);
+                                    console.log('Adjusting ticket failed', ticket.key.toBase58());
+                                    return [4 /*yield*/, various_1.sleep(1000)];
+                                case 38:
+                                    _a.sent();
+                                    return [3 /*break*/, 39];
+                                case 39: return [3 /*break*/, 34];
+                                case 40:
                                     console.log('Refunded.');
-                                    _a.label = 15;
-                                case 15: return [3 /*break*/, 17];
-                                case 16:
+                                    _a.label = 41;
+                                case 41: return [3 /*break*/, 43];
+                                case 42:
                                     if (ticket.model.state.withdrawn) {
                                         console.log('Buyer', allIndexesInSlice[i], ticket.model.buyer.toBase58(), 'withdrawn already');
                                     }
                                     else if (ticket.model.state.punched) {
                                         console.log('Buyer', allIndexesInSlice[i], ticket.model.buyer.toBase58(), 'punched already');
                                     }
-                                    _a.label = 17;
-                                case 17:
+                                    _a.label = 43;
+                                case 43:
                                     i++;
                                     return [3 /*break*/, 1];
-                                case 18: return [2 /*return*/];
+                                case 44: return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -1099,6 +1394,86 @@ commander_1.program
         }
     });
 }); });
+function getParticipationNft(_a) {
+    var buyer = _a.buyer, payer = _a.payer, anchorProgram = _a.anchorProgram, fairLaunchTicket = _a.fairLaunchTicket, fairLaunch = _a.fairLaunch, fairLaunchObj = _a.fairLaunchObj, fairLaunchTicketObj = _a.fairLaunchTicketObj;
+    return __awaiter(this, void 0, void 0, function () {
+        var mint, signers, tokenAccount, buyerTokenNft, instructions, _b, _c, _d, _e;
+        var _f, _g, _h;
+        return __generator(this, function (_j) {
+            switch (_j.label) {
+                case 0:
+                    if (!(fairLaunchObj.participationMint &&
+                        fairLaunchTicketObj.seq.toNumber() % fairLaunchObj.participationModulo == 0)) return [3 /*break*/, 10];
+                    console.log(buyer.toBase58(), 'gets participation token.');
+                    mint = anchor.web3.Keypair.generate();
+                    signers = [mint];
+                    return [4 /*yield*/, accounts_1.getParticipationToken(fairLaunchObj.authority, fairLaunchObj.data.uuid)];
+                case 1:
+                    tokenAccount = (_j.sent())[0];
+                    return [4 /*yield*/, accounts_1.getAtaForMint(mint.publicKey, buyer)];
+                case 2:
+                    buyerTokenNft = (_j.sent())[0];
+                    _c = (_b = anchor.web3.SystemProgram).createAccount;
+                    _f = {
+                        fromPubkey: payer.publicKey,
+                        newAccountPubkey: mint.publicKey,
+                        space: spl_token_1.MintLayout.span
+                    };
+                    return [4 /*yield*/, anchorProgram.provider.connection.getMinimumBalanceForRentExemption(spl_token_1.MintLayout.span)];
+                case 3:
+                    instructions = [
+                        _c.apply(_b, [(_f.lamports = _j.sent(),
+                                _f.programId = constants_1.TOKEN_PROGRAM_ID,
+                                _f)]),
+                        spl_token_1.Token.createInitMintInstruction(constants_1.TOKEN_PROGRAM_ID, mint.publicKey, 0, payer.publicKey, payer.publicKey),
+                        instructions_1.createAssociatedTokenAccountInstruction(buyerTokenNft, payer.publicKey, buyer, mint.publicKey),
+                        spl_token_1.Token.createMintToInstruction(constants_1.TOKEN_PROGRAM_ID, mint.publicKey, buyerTokenNft, payer.publicKey, [], 1)
+                    ];
+                    _e = (_d = anchorProgram.rpc).mintParticipationNft;
+                    _g = {};
+                    _h = {
+                        fairLaunch: fairLaunch,
+                        fairLaunchTicket: fairLaunchTicket,
+                        payer: payer.publicKey,
+                        participationMint: fairLaunchObj.participationMint,
+                        participationTokenAccount: tokenAccount,
+                        buyer: buyer,
+                        buyerNftTokenAccount: buyerTokenNft
+                    };
+                    return [4 /*yield*/, accounts_1.getMetadata(mint.publicKey)];
+                case 4:
+                    _h.newMetadata = _j.sent();
+                    return [4 /*yield*/, accounts_1.getMasterEdition(mint.publicKey)];
+                case 5:
+                    _h.newEdition = _j.sent(),
+                        _h.newMint = mint.publicKey,
+                        _h.newMintAuthority = payer.publicKey;
+                    return [4 /*yield*/, accounts_1.getMetadata(fairLaunchObj.participationMint)];
+                case 6:
+                    _h.metadata = _j.sent();
+                    return [4 /*yield*/, accounts_1.getMasterEdition(fairLaunchObj.participationMint)];
+                case 7:
+                    _h.masterEdition = _j.sent();
+                    return [4 /*yield*/, accounts_1.getEditionMarkPda(fairLaunchObj.participationMint, fairLaunchTicketObj.seq.toNumber())];
+                case 8: return [4 /*yield*/, _e.apply(_d, [(_g.accounts = (_h.editionMarkPda = _j.sent(),
+                            _h.tokenMetadataProgram = constants_1.TOKEN_METADATA_PROGRAM_ID,
+                            _h.tokenProgram = constants_1.TOKEN_PROGRAM_ID,
+                            _h.systemProgram = anchor.web3.SystemProgram.programId,
+                            _h.rent = anchor.web3.SYSVAR_RENT_PUBKEY,
+                            _h),
+                            _g.instructions = instructions,
+                            _g.signers = signers,
+                            _g)])];
+                case 9:
+                    _j.sent();
+                    return [2 /*return*/, buyerTokenNft];
+                case 10:
+                    console.log(buyer.toBase58(), 'doesnt get participation token.');
+                    return [2 /*return*/, null];
+            }
+        });
+    });
+}
 function punchTicket(_a) {
     var puncher = _a.puncher, payer = _a.payer, anchorProgram = _a.anchorProgram, fairLaunchTicket = _a.fairLaunchTicket, fairLaunch = _a.fairLaunch, fairLaunchLotteryBitmap = _a.fairLaunchLotteryBitmap, fairLaunchObj = _a.fairLaunchObj;
     return __awaiter(this, void 0, void 0, function () {
@@ -1144,7 +1519,7 @@ commander_1.program
     .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
     .option('-f, --fair-launch <string>', 'fair launch id')
     .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, keypair, fairLaunch, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, fairLaunchTicket, fairLaunchLotteryBitmap, ticket, diff, tries, buyerTokenAccount, e_6;
+    var _a, env, keypair, fairLaunch, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, fairLaunchTicket, fairLaunchLotteryBitmap, ticket, diff, tries, done, nft, e_9, buyerTokenAccount, e_10;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -1193,9 +1568,57 @@ commander_1.program
                 _b.label = 7;
             case 7:
                 tries = 0;
+                done = false;
+                if (!!ticket.gottenParticipation) return [3 /*break*/, 15];
                 _b.label = 8;
             case 8:
-                _b.trys.push([8, 10, , 12]);
+                if (!(tries < 3 && !done)) return [3 /*break*/, 14];
+                _b.label = 9;
+            case 9:
+                _b.trys.push([9, 11, , 13]);
+                return [4 /*yield*/, getParticipationNft({
+                        buyer: walletKeyPair.publicKey,
+                        payer: walletKeyPair,
+                        anchorProgram: anchorProgram,
+                        fairLaunchTicket: fairLaunchTicket,
+                        fairLaunch: fairLaunch,
+                        fairLaunchObj: fairLaunchObj,
+                        fairLaunchTicketObj: ticket,
+                    })];
+            case 10:
+                nft = _b.sent();
+                done = true;
+                if (nft) {
+                    console.log("Punched participation NFT and placed token in new account " + nft.toBase58() + ".");
+                }
+                return [3 /*break*/, 13];
+            case 11:
+                e_9 = _b.sent();
+                if (tries > 3) {
+                    throw e_9;
+                }
+                else {
+                    tries++;
+                }
+                console.log('Ticket failed to punch, trying one more time');
+                return [4 /*yield*/, various_1.sleep(1000)];
+            case 12:
+                _b.sent();
+                return [3 /*break*/, 13];
+            case 13: return [3 /*break*/, 8];
+            case 14: return [3 /*break*/, 16];
+            case 15:
+                console.log('Already got participation');
+                _b.label = 16;
+            case 16:
+                tries = 0;
+                done = false;
+                _b.label = 17;
+            case 17:
+                if (!(tries < 3 && !done)) return [3 /*break*/, 23];
+                _b.label = 18;
+            case 18:
+                _b.trys.push([18, 20, , 22]);
                 return [4 /*yield*/, punchTicket({
                         puncher: walletKeyPair.publicKey,
                         payer: walletKeyPair,
@@ -1204,25 +1627,28 @@ commander_1.program
                         fairLaunch: fairLaunch,
                         fairLaunchLotteryBitmap: fairLaunchLotteryBitmap,
                         fairLaunchObj: fairLaunchObj,
+                        fairLaunchTicketObj: ticket,
                     })];
-            case 9:
+            case 19:
                 buyerTokenAccount = _b.sent();
+                done = true;
                 console.log("Punched ticket and placed token in new account " + buyerTokenAccount.toBase58() + ".");
-                return [3 /*break*/, 12];
-            case 10:
-                e_6 = _b.sent();
+                return [3 /*break*/, 22];
+            case 20:
+                e_10 = _b.sent();
                 if (tries > 3) {
-                    throw e_6;
+                    throw e_10;
                 }
                 else {
                     tries++;
                 }
                 console.log('Ticket failed to punch, trying one more time');
                 return [4 /*yield*/, various_1.sleep(1000)];
-            case 11:
+            case 21:
                 _b.sent();
-                return [3 /*break*/, 12];
-            case 12: return [2 /*return*/];
+                return [3 /*break*/, 22];
+            case 22: return [3 /*break*/, 17];
+            case 23: return [2 /*return*/];
         }
     });
 }); });
@@ -1292,12 +1718,64 @@ commander_1.program
                             fairLaunch: fairLaunch,
                             fairLaunchLotteryBitmap: fairLaunchLotteryBitmap,
                             authority: walletKeyPair.publicKey,
-                            clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+                            //@ts-ignore
+                            tokenMint: fairLaunchObj.tokenMint,
                         },
                     })];
             case 4:
                 _b.sent();
                 console.log("Dang son, phase three.");
+                return [2 /*return*/];
+        }
+    });
+}); });
+commander_1.program
+    .command('mint_flp_tokens')
+    .option('-e, --env <string>', 'Solana cluster env name', 'devnet')
+    .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
+    .option('-f, --fair-launch <string>', 'fair launch id')
+    .option('-a, --amount <string>', 'amount')
+    .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, env, keypair, fairLaunch, amount, walletKeyPair, amountNumber, anchorProgram, fairLaunchKey, fairLaunchObj, tokenAccount, exists, instructions;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch, amount = _a.amount;
+                walletKeyPair = accounts_1.loadWalletKey(keypair);
+                amountNumber = parseInt(amount);
+                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env)];
+            case 1:
+                anchorProgram = _b.sent();
+                fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
+                return [4 /*yield*/, anchorProgram.account.fairLaunch.fetch(fairLaunchKey)];
+            case 2:
+                fairLaunchObj = _b.sent();
+                return [4 /*yield*/, accounts_1.getAtaForMint(fairLaunchObj.tokenMint, walletKeyPair.publicKey)];
+            case 3:
+                tokenAccount = (_b.sent())[0];
+                return [4 /*yield*/, anchorProgram.provider.connection.getAccountInfo(tokenAccount)];
+            case 4:
+                exists = _b.sent();
+                instructions = [];
+                if (!exists) {
+                    instructions.push(instructions_1.createAssociatedTokenAccountInstruction(tokenAccount, walletKeyPair.publicKey, walletKeyPair.publicKey, 
+                    //@ts-ignore
+                    fairLaunchObj.tokenMint));
+                }
+                return [4 /*yield*/, anchorProgram.rpc.mintTokens(new anchor.BN(amountNumber), {
+                        accounts: {
+                            fairLaunch: fairLaunchKey,
+                            authority: walletKeyPair.publicKey,
+                            //@ts-ignore
+                            tokenMint: fairLaunchObj.tokenMint,
+                            tokenProgram: constants_1.TOKEN_PROGRAM_ID,
+                            tokenAccount: tokenAccount,
+                        },
+                        instructions: instructions.length ? instructions : undefined,
+                    })];
+            case 5:
+                _b.sent();
+                console.log("Added " + amountNumber + " tokens to " + tokenAccount.toBase58());
                 return [2 /*return*/];
         }
     });
@@ -1476,14 +1954,15 @@ commander_1.program
     .option('-e, --env <string>', 'Solana cluster env name', 'devnet')
     .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
     .option('-f, --fair-launch <string>', 'fair launch id')
+    .option('-r, --rpc-url <string>', 'custom rpc url since this is a heavy command')
     .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, keypair, fairLaunch, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, _b, fairLaunchLotteryBitmap, bump, exists, seqKeys, i, _c, _d, ticketKeys, ticketsFlattened, states, statesFlat, numWinnersRemaining, chosen, rand, sorted;
+    var _a, env, keypair, fairLaunch, rpcUrl, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, _b, fairLaunchLotteryBitmap, bump, exists, seqKeys, i, _c, _d, ticketKeys, ticketsFlattened, states, statesFlat, token, mintInfo, numWinnersRemaining, chosen, rand, sorted;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch;
+                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch, rpcUrl = _a.rpcUrl;
                 walletKeyPair = accounts_1.loadWalletKey(keypair);
-                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env)];
+                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env, rpcUrl)];
             case 1:
                 anchorProgram = _e.sent();
                 fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
@@ -1603,9 +2082,15 @@ commander_1.program
             case 13:
                 states = _e.sent();
                 statesFlat = states.flat();
+                token = new spl_token_1.Token(anchorProgram.provider.connection, 
+                //@ts-ignore
+                new anchor.web3.PublicKey(fairLaunchObj.tokenMint), constants_1.TOKEN_PROGRAM_ID, walletKeyPair);
+                return [4 /*yield*/, token.getMintInfo()];
+            case 14:
+                mintInfo = _e.sent();
                 numWinnersRemaining = Math.min(
                 //@ts-ignore;
-                fairLaunchObj.data.numberOfTokens, 
+                fairLaunchObj.data.numberOfTokens.sub(mintInfo.supply), 
                 //@ts-ignore;
                 statesFlat.filter(function (s) { return s.eligible; }).length);
                 if (numWinnersRemaining >= statesFlat.length) {
@@ -1616,7 +2101,7 @@ commander_1.program
                     chosen = statesFlat.map(function (s) { return (__assign(__assign({}, s), { chosen: false })); });
                     console.log('Doing lottery for', numWinnersRemaining);
                     while (numWinnersRemaining > 0) {
-                        rand = Math.round(Math.random() * (chosen.length - 1));
+                        rand = Math.floor(Math.random() * chosen.length);
                         if (chosen[rand].chosen != true && chosen[rand].eligible) {
                             chosen[rand].chosen = true;
                             numWinnersRemaining--;
@@ -1626,16 +2111,16 @@ commander_1.program
                 sorted = chosen.sort(function (a, b) { return a.seq - b.seq; });
                 console.log('Lottery results', sorted);
                 return [4 /*yield*/, Promise.all(
-                    // each 8 entries is 1 byte, we want to send up 1000 bytes at a time.
+                    // each 8 entries is 1 byte, we want to send up 10 bytes at a time.
                     // be specific here.
-                    various_1.chunks(Array.from(Array(sorted.length).keys()), 8 * 1000).map(function (allIndexesInSlice) { return __awaiter(void 0, void 0, void 0, function () {
+                    various_1.chunks(Array.from(Array(sorted.length).keys()), 8 * 10).map(function (allIndexesInSlice) { return __awaiter(void 0, void 0, void 0, function () {
                         var bytes, correspondingArrayOfBits, startingOffset, positionFromRight, currByte, currByteAsBits, i, mask;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     bytes = [];
                                     correspondingArrayOfBits = [];
-                                    startingOffset = allIndexesInSlice[0];
+                                    startingOffset = Math.floor(allIndexesInSlice[0] / 8);
                                     positionFromRight = 7;
                                     currByte = 0;
                                     currByteAsBits = [];
@@ -1677,7 +2162,7 @@ commander_1.program
                             }
                         });
                     }); }))];
-            case 14:
+            case 15:
                 _e.sent();
                 console.log('All done');
                 return [2 /*return*/];
@@ -1689,21 +2174,22 @@ commander_1.program
     .option('-e, --env <string>', 'Solana cluster env name', 'devnet')
     .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
     .option('-f, --fair-launch <string>', 'fair launch id')
+    .option('-r, --rpc-url <string>', 'custom rpc url since this is a heavy command')
     .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, keypair, fairLaunch, fairLaunchTicketSeqStart, fairLaunchTicketState, walletKeyPair, anchorProgram, fairLaunchObj, tickets, i, accountAndPubkey, account, pubkey, state, _b, fairLaunchTicketSeqLookup, seqBump;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var _a, env, keypair, fairLaunch, rpcUrl, fairLaunchTicketSeqStart, fairLaunchTicketState, walletKeyPair, anchorProgram, fairLaunchObj, tickets;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch;
+                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch, rpcUrl = _a.rpcUrl;
                 fairLaunchTicketSeqStart = 8 + 32 + 32 + 8 + 1 + 1;
                 fairLaunchTicketState = 8 + 32 + 32 + 8;
                 walletKeyPair = accounts_1.loadWalletKey(keypair);
-                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env)];
+                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env, rpcUrl)];
             case 1:
-                anchorProgram = _c.sent();
+                anchorProgram = _b.sent();
                 return [4 /*yield*/, anchorProgram.account.fairLaunch.fetch(fairLaunch)];
             case 2:
-                fairLaunchObj = _c.sent();
+                fairLaunchObj = _b.sent();
                 return [4 /*yield*/, anchorProgram.provider.connection.getProgramAccounts(constants_1.FAIR_LAUNCH_PROGRAM_ID, {
                         filters: [
                             {
@@ -1715,43 +2201,54 @@ commander_1.program
                         ],
                     })];
             case 3:
-                tickets = _c.sent();
-                i = 0;
-                _c.label = 4;
+                tickets = _b.sent();
+                return [4 /*yield*/, Promise.all(various_1.chunks(Array.from(Array(tickets.length).keys()), 500).map(function (allIndexesInSlice) { return __awaiter(void 0, void 0, void 0, function () {
+                        var i, accountAndPubkey, account, pubkey, state, _a, fairLaunchTicketSeqLookup, seqBump;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    i = 0;
+                                    _b.label = 1;
+                                case 1:
+                                    if (!(i < allIndexesInSlice.length)) return [3 /*break*/, 5];
+                                    accountAndPubkey = tickets[allIndexesInSlice[i]];
+                                    account = accountAndPubkey.account, pubkey = accountAndPubkey.pubkey;
+                                    state = account.data[fairLaunchTicketState];
+                                    if (!(state == 0)) return [3 /*break*/, 4];
+                                    console.log('Missing sequence for ticket', pubkey.toBase58());
+                                    return [4 /*yield*/, accounts_1.getFairLaunchTicketSeqLookup(
+                                        //@ts-ignore
+                                        fairLaunchObj.tokenMint, new anchor.BN(account.data.slice(fairLaunchTicketSeqStart, fairLaunchTicketSeqStart + 8), undefined, 'le'))];
+                                case 2:
+                                    _a = __read.apply(void 0, [_b.sent(), 2]), fairLaunchTicketSeqLookup = _a[0], seqBump = _a[1];
+                                    return [4 /*yield*/, anchorProgram.rpc.createTicketSeq(seqBump, {
+                                            accounts: {
+                                                fairLaunchTicketSeqLookup: fairLaunchTicketSeqLookup,
+                                                fairLaunch: fairLaunch,
+                                                fairLaunchTicket: pubkey,
+                                                payer: walletKeyPair.publicKey,
+                                                systemProgram: anchor.web3.SystemProgram.programId,
+                                                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+                                            },
+                                            options: {
+                                                commitment: 'single',
+                                            },
+                                            signers: [],
+                                        })];
+                                case 3:
+                                    _b.sent();
+                                    console.log('Created...');
+                                    _b.label = 4;
+                                case 4:
+                                    i++;
+                                    return [3 /*break*/, 1];
+                                case 5: return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
             case 4:
-                if (!(i < tickets.length)) return [3 /*break*/, 8];
-                accountAndPubkey = tickets[i];
-                account = accountAndPubkey.account, pubkey = accountAndPubkey.pubkey;
-                state = account.data[fairLaunchTicketState];
-                if (!(state == 0)) return [3 /*break*/, 7];
-                console.log('Missing sequence for ticket', pubkey.toBase58());
-                return [4 /*yield*/, accounts_1.getFairLaunchTicketSeqLookup(
-                    //@ts-ignore
-                    fairLaunchObj.tokenMint, new anchor.BN(account.data.slice(fairLaunchTicketSeqStart, fairLaunchTicketSeqStart + 8), undefined, 'le'))];
-            case 5:
-                _b = __read.apply(void 0, [_c.sent(), 2]), fairLaunchTicketSeqLookup = _b[0], seqBump = _b[1];
-                return [4 /*yield*/, anchorProgram.rpc.createTicketSeq(seqBump, {
-                        accounts: {
-                            fairLaunchTicketSeqLookup: fairLaunchTicketSeqLookup,
-                            fairLaunch: fairLaunch,
-                            fairLaunchTicket: pubkey,
-                            payer: walletKeyPair.publicKey,
-                            systemProgram: anchor.web3.SystemProgram.programId,
-                            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-                        },
-                        options: {
-                            commitment: 'single',
-                        },
-                        signers: [],
-                    })];
-            case 6:
-                _c.sent();
-                console.log('Created...');
-                _c.label = 7;
-            case 7:
-                i++;
-                return [3 /*break*/, 4];
-            case 8: return [2 /*return*/];
+                _b.sent();
+                return [2 /*return*/];
         }
     });
 }); });
@@ -1760,35 +2257,36 @@ commander_1.program
     .option('-e, --env <string>', 'Solana cluster env name', 'devnet')
     .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
     .option('-f, --fair-launch <string>', 'fair launch id')
+    .option('-r, --rpc-url <string>', 'custom rpc url since this is a heavy command')
     .action(function (options, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, fairLaunch, keypair, walletKeyPair, anchorProgram, fairLaunchObj, treasuryAmount, token;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var _a, env, fairLaunch, keypair, rpcUrl, walletKeyPair, anchorProgram, fairLaunchObj, treasuryAmount, token;
+    var _b, _c, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _a = cmd.opts(), env = _a.env, fairLaunch = _a.fairLaunch, keypair = _a.keypair;
+                _a = cmd.opts(), env = _a.env, fairLaunch = _a.fairLaunch, keypair = _a.keypair, rpcUrl = _a.rpcUrl;
                 walletKeyPair = accounts_1.loadWalletKey(keypair);
-                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env)];
+                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env, rpcUrl)];
             case 1:
-                anchorProgram = _d.sent();
+                anchorProgram = _e.sent();
                 return [4 /*yield*/, anchorProgram.account.fairLaunch.fetch(fairLaunch)];
             case 2:
-                fairLaunchObj = _d.sent();
+                fairLaunchObj = _e.sent();
                 treasuryAmount = 0;
                 if (!fairLaunchObj.treasuryMint) return [3 /*break*/, 4];
                 return [4 /*yield*/, anchorProgram.provider.connection.getTokenAccountBalance(
                     // @ts-ignore
                     fairLaunchObj.treasury)];
             case 3:
-                token = _d.sent();
+                token = _e.sent();
                 treasuryAmount = token.value.uiAmount;
                 return [3 /*break*/, 6];
             case 4: return [4 /*yield*/, anchorProgram.provider.connection.getBalance(
                 // @ts-ignore
                 fairLaunchObj.treasury)];
             case 5:
-                treasuryAmount = _d.sent();
-                _d.label = 6;
+                treasuryAmount = _e.sent();
+                _e.label = 6;
             case 6:
                 //@ts-ignore
                 console.log('Token Mint', fairLaunchObj.tokenMint.toBase58());
@@ -1797,6 +2295,10 @@ commander_1.program
                 //@ts-ignore
                 console.log('Treasury Mint', (_b = fairLaunchObj.treasuryMint) === null || _b === void 0 ? void 0 : _b.toBase58());
                 //@ts-ignore
+                console.log('Participation Mint', 
+                //@ts-ignore
+                (_c = fairLaunchObj.participationMint) === null || _c === void 0 ? void 0 : _c.toBase58());
+                //@ts-ignore
                 console.log('Authority', fairLaunchObj.authority.toBase58());
                 //@ts-ignore
                 console.log('Bump', fairLaunchObj.bump);
@@ -1804,6 +2306,8 @@ commander_1.program
                 console.log('Treasury Bump', fairLaunchObj.treasuryBump);
                 //@ts-ignore
                 console.log('Token Mint Bump', fairLaunchObj.tokenMintBump);
+                //@ts-ignore
+                console.log('Participation Modulo', fairLaunchObj.participationModulo);
                 //@ts-ignore
                 if (fairLaunchObj.data.antiRugSetting) {
                     console.log('Anti-Rug Settings:');
@@ -1835,7 +2339,7 @@ commander_1.program
                 console.log('Current Treasury Holdings', treasuryAmount);
                 console.log('Treasury Snapshot At Peak', 
                 //@ts-ignore
-                (_c = fairLaunchObj.treasurySnapshot) === null || _c === void 0 ? void 0 : _c.toNumber());
+                (_d = fairLaunchObj.treasurySnapshot) === null || _d === void 0 ? void 0 : _d.toNumber());
                 console.log('Phase One Start   ', 
                 //@ts-ignore
                 new Date(fairLaunchObj.data.phaseOneStart.toNumber() * 1000));
@@ -1951,14 +2455,15 @@ commander_1.program
     .option('-e, --env <string>', 'Solana cluster env name', 'devnet')
     .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
     .option('-f, --fair-launch <string>', 'fair launch id')
+    .option('-r, --rpc-url <string>', 'custom rpc url since this is a heavy command')
     .action(function (options, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, fairLaunch, keypair, walletKeyPair, anchorProgram, fairLaunchObj, fairLaunchLottery, fairLaunchLotteryBitmapObj, fairLaunchLotteryBitmapAnchorObj, seqKeys, i, _b, _c, buyers, buyersFlattened, i, buyer, myByte, positionFromRight, mask, isWinner;
+    var _a, env, fairLaunch, keypair, rpcUrl, walletKeyPair, anchorProgram, fairLaunchObj, fairLaunchLottery, fairLaunchLotteryBitmapObj, fairLaunchLotteryBitmapAnchorObj, seqKeys, i, _b, _c, buyers, buyersFlattened, i, buyer, myByte, positionFromRight, mask, isWinner;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _a = cmd.opts(), env = _a.env, fairLaunch = _a.fairLaunch, keypair = _a.keypair;
+                _a = cmd.opts(), env = _a.env, fairLaunch = _a.fairLaunch, keypair = _a.keypair, rpcUrl = _a.rpcUrl;
                 walletKeyPair = accounts_1.loadWalletKey(keypair);
-                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env)];
+                return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env, rpcUrl)];
             case 1:
                 anchorProgram = _d.sent();
                 return [4 /*yield*/, anchorProgram.account.fairLaunch.fetch(fairLaunch)];
