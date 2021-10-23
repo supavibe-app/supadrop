@@ -27,10 +27,42 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   const { publicKey } = useWallet();
   const [form] = Form.useForm();
   const [bio, setBio] = useState(userData.bio || ''); // to get the length of bio
+  const [file, setFile] = useState();
+  const [avatarUrl, setAvatarUrl] = useState();
+  // const onChange = (info) => {
+  //   setFile(info.file);
+
+  //   if (info.file.status !== 'uploading') {
+  //     console.log('onChange uploading', file);
+  //   }
+  //   if (info.file.status === 'done') {
+  //     console.log('onChange done', file);
+  //     message.success(`${info.file.name} file uploaded successfully`);
+  //   } else if (info.file.status === 'error') {
+  //     message.error(`${info.file.name} file upload failed.`);
+  //   }
+    
+  // };
+
+  async function downloadImage(path) {
+    console.log('downloadImage: ', path)
+    try {
+      console.log('downloadImage: ', path)
+
+      const { data, error } = await supabase.storage.from('profile').download(`avatars/${path}`)
+      if (error) {
+        throw error
+      }
+      const url = URL.createObjectURL(data)
+      setAvatarUrl(url)
+    } catch (error) {
+      console.log('Error downloading image: ', error.message)
+    }
+  }
 
   const saveProfile = async (values) => {
     let { data, error } = await supabase.from('user_data')
-      .update([{ ...values, img_profile: '' }])
+      .update([{ ...values, img_profile: avatarUrl }])
       .eq('wallet_address', publicKey)
       .limit(1)
 
@@ -47,15 +79,29 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     }
   };
 
+  const onUpload = async (event) => {
+    console.log('onUpload', event);
+    setFile(event);
+    const { error: uploadError } = await supabase.storage
+      .from('profile')
+      .upload(`avatars/${event.name}`, event);
+
+    if (uploadError) {
+      downloadImage(event.name)
+      throw uploadError
+    }
+
+    downloadImage(event.name)
+  }
+
   // KEEP GETTING 400 on Upload
   const props = {
-    multiple: false,
+    action: onUpload,
+    file: file,
+    // onChange: onChange,
     onStart(file) {
       console.log('onStart file', file);
       console.log('onStart file name', file.name);
-      supabase.storage
-        .from('profile')
-        .upload(`avatars/${file.name}`, file)
     },
     onSuccess(ret) {
       console.log('onSuccess', ret);
@@ -86,7 +132,9 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
         <div className={UploadImageContainer}>
           <div>
             <Upload {...props} className={UploadStyle}>
-              <Avatar size={86} icon={<FeatherIcon icon="image" size="32" />} style={{ cursor: 'pointer' }} />
+              {userData.img_profile && avatarUrl && <Avatar size={86} src={avatarUrl} style={{ cursor: 'pointer' }} />}
+              {userData.img_profile && !avatarUrl && <Avatar size={86} src={userData.img_profile} style={{ cursor: 'pointer' }} />}
+              {!userData.img_profile && !avatarUrl && <Avatar size={86} icon={<FeatherIcon icon="image" size="32" />} style={{ cursor: 'pointer' }} />}
             </Upload>
           </div>
 

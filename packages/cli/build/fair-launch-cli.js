@@ -956,7 +956,8 @@ commander_1.program
                 fairLaunchTicket = (_b.sent())[0];
                 return [4 /*yield*/, accounts_1.getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint)];
             case 4:
-                fairLaunchLotteryBitmap = (_b.sent())[0];
+                fairLaunchLotteryBitmap = ( //@ts-ignore
+                _b.sent())[0];
                 return [4 /*yield*/, adjustTicket({
                         amountNumber: amountNumber,
                         fairLaunchObj: fairLaunchObj,
@@ -1539,7 +1540,8 @@ commander_1.program
                 fairLaunchTicket = (_b.sent())[0];
                 return [4 /*yield*/, accounts_1.getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint)];
             case 4:
-                fairLaunchLotteryBitmap = (_b.sent())[0];
+                fairLaunchLotteryBitmap = ( //@ts-ignore
+                _b.sent())[0];
                 return [4 /*yield*/, anchorProgram.account.fairLaunchTicket.fetch(fairLaunchTicket)];
             case 5:
                 ticket = _b.sent();
@@ -1712,7 +1714,8 @@ commander_1.program
                 fairLaunchObj = _b.sent();
                 return [4 /*yield*/, accounts_1.getFairLaunchLotteryBitmap(fairLaunchObj.tokenMint)];
             case 3:
-                fairLaunchLotteryBitmap = (_b.sent())[0];
+                fairLaunchLotteryBitmap = ( //@ts-ignore
+                _b.sent())[0];
                 return [4 /*yield*/, anchorProgram.rpc.startPhaseThree({
                         accounts: {
                             fairLaunch: fairLaunch,
@@ -1752,7 +1755,8 @@ commander_1.program
                 fairLaunchObj = _b.sent();
                 return [4 /*yield*/, accounts_1.getAtaForMint(fairLaunchObj.tokenMint, walletKeyPair.publicKey)];
             case 3:
-                tokenAccount = (_b.sent())[0];
+                tokenAccount = ( //@ts-ignore
+                _b.sent())[0];
                 return [4 /*yield*/, anchorProgram.provider.connection.getAccountInfo(tokenAccount)];
             case 4:
                 exists = _b.sent();
@@ -1956,7 +1960,7 @@ commander_1.program
     .option('-f, --fair-launch <string>', 'fair launch id')
     .option('-r, --rpc-url <string>', 'custom rpc url since this is a heavy command')
     .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, keypair, fairLaunch, rpcUrl, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, _b, fairLaunchLotteryBitmap, bump, exists, seqKeys, i, _c, _d, ticketKeys, ticketsFlattened, states, statesFlat, token, mintInfo, numWinnersRemaining, chosen, rand, sorted;
+    var _a, env, keypair, fairLaunch, rpcUrl, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, _b, fairLaunchLotteryBitmap, bump, exists, seqKeys, i, _c, _d, ticketKeys, ticketsFlattened, states, statesFlat, token, mintInfo, numWinnersRemaining, chosen, i, rand, sorted;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
@@ -2069,6 +2073,7 @@ commander_1.program
                                                 el.amount.toNumber() >=
                                                     //@ts-ignore
                                                     fairLaunchObj.currentMedian.toNumber()),
+                                            whitelisted: whitelist === null || whitelist === void 0 ? void 0 : whitelist.includes(el.buyer.toBase58())
                                         };
                                     }));
                                     _a.label = 3;
@@ -2099,6 +2104,13 @@ commander_1.program
                 }
                 else {
                     chosen = statesFlat.map(function (s) { return (__assign(__assign({}, s), { chosen: false })); });
+                    console.log('Starting whitelist with', numWinnersRemaining, 'winners remaining');
+                    for (i = 0; i < chosen.length; i++) {
+                        if (chosen[i].chosen != true && chosen[i].eligible && chosen[i].whitelisted) {
+                            chosen[i].chosen = true;
+                            numWinnersRemaining--;
+                        }
+                    }
                     console.log('Doing lottery for', numWinnersRemaining);
                     while (numWinnersRemaining > 0) {
                         rand = Math.floor(Math.random() * chosen.length);
