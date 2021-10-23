@@ -1,25 +1,22 @@
 import React from 'react';
 import { Col, Input, Row } from 'antd';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { formatNumber, formatTokenAmount, fromLamports, PriceFloorType, useMint, useNativeAccount } from '@oyster/common';
-import { AuctionView, useHighestBidForAuction } from '../../../hooks';
+import { formatNumber, formatTokenAmount, fromLamports, ItemAuction, PriceFloorType, useMint, useNativeAccount } from '@oyster/common';
+import { useHighestBidForAuction } from '../../../hooks';
 import getMinimumBid from '../../../helpers/getMinimumBid';
 import { WhiteColor } from '../../../styles';
-import { BidInput, BidRuleInformation, Information, PlaceBidTitle } from './style';
+import { AddFunds, BidInput, BidRuleInformation, Information, PlaceBidTitle } from './style';
 
 const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
-  auction: AuctionView | undefined;
+  auction: ItemAuction | undefined;
   bidAmount: number | undefined;
   setBidAmount: (num: number) => void;
 }) => {
   const { account } = useNativeAccount();
-  const bid = useHighestBidForAuction(auction?.auction.pubkey || '');
 
-  const mintInfo = useMint(auction?.auction.info.tokenMint);
-  const priceFloor =
-    auction?.auction.info.priceFloor.type === PriceFloorType.Minimum
-      ? auction?.auction.info.priceFloor.minPrice?.toNumber() || 0
-      : 0;
+  const bid = useHighestBidForAuction(auction?.id || '');
+  const mintInfo = useMint(auction?.token_mint);
+  const priceFloor = auction?.price_floor;
 
   const balance = formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL);
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
@@ -44,8 +41,16 @@ const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
       />
 
       <div className={Information}>
-        my balance{' '}
-        <span className={WhiteColor}>{balance} SOL</span>
+        <div>
+          <span>my balance </span>
+          <span className={WhiteColor}>{balance} SOL</span>
+        </div>
+
+        {balance < minimumBid && (
+          <div className={AddFunds} onClick={() => console.log('TODO: Implement Add Funds')}>
+            add funds
+          </div>
+        )}
       </div>
 
       <Row>

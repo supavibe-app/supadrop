@@ -17,6 +17,7 @@ import { BillingView } from './views/auction/billing';
 import ActivityView from './views/activity';
 import AuctionListView from './views/auctionList';
 import Profile from './views/profile';
+import MarketComponent from './views/market';
 
 const DirectPath = () => {
   const { path } = useParams<{ path: string }>();
@@ -31,7 +32,7 @@ const DirectPath = () => {
       return <ActivityView />
 
     case 2:
-      return <div />
+      return <MarketComponent />
 
     default:
       return <Profile userId={path} />
