@@ -12,6 +12,15 @@ export const Information = css`
   font-size: 18px;
   color: #7e7c7c;
   margin-bottom: 28px;
+
+  display: flex;
+  justify-content: space-between;
+`;
+
+export const AddFunds = css`
+  font-weight: normal;
+  color: #ccff00;
+  cursor: pointer;
 `;
 
 export const BidRuleInformation = css`
