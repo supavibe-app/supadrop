@@ -27,8 +27,8 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   const { publicKey } = useWallet();
   const [form] = Form.useForm();
   const [bio, setBio] = useState(userData.bio || ''); // to get the length of bio
-  const [file, setFile] = useState();
-  const [avatarUrl, setAvatarUrl] = useState();
+  const [file, setFile] = useState<object>();
+  const [avatarUrl, setAvatarUrl] = useState<String>();
   // const onChange = (info) => {
   //   setFile(info.file);
 
@@ -81,6 +81,7 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
 
   const onUpload = async (event) => {
     console.log('onUpload', event);
+    console.log('onUpload', typeof event);
     setFile(event);
     const { error: uploadError } = await supabase.storage
       .from('profile')
