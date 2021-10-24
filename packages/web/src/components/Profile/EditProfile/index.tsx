@@ -122,16 +122,16 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     },
     beforeUpload(file) {
       console.log(file);
-      const isPng = file.type === 'image/png';
-      // const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-      if (!isPng) {
+      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+      if (!isJpgOrPng) {
         message.error('You can only upload PNG file!');
       }
-      const isLt2M = file.size / 1024 / 1024 < 2;
+      const isLt2M = file.size / 1024 / 1024 < 1;
       if (!isLt2M) {
-        message.error('Image must smaller than 2MB!');
+        message.error('Image must smaller than 1MB!');
+  
       }
-      return isPng && isLt2M;
+      return isJpgOrPng && isLt2M;
     },
   };
 
