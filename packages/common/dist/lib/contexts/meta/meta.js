@@ -234,6 +234,23 @@ function MetaProvider({ children = null }) {
                 setIsLoadingDatabase(false);
             }
         });
+        // async () => {
+        //     let { data: user_data, error } = await supabase
+        //       .from('user_data')
+        //       .select('*')
+        //       .eq('wallet_address', auctionAddress)
+        //       .limit(1);
+        //     if (error) {
+        //       console.log(error);
+        //       return null;
+        //     }
+        //     if (user_data != null) {
+        //       console.log('data_profile', user_data[0]);
+        //       return user_data[0];
+        //     } else {
+        //       return null;
+        //     }
+        //   };
         console.log('------->set finished', new Date());
         await updateMints(nextState.metadataByMint);
         if (auctionAddress && bidderAddress) {

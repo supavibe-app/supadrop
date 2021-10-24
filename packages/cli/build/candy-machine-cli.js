@@ -84,7 +84,6 @@ var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
 var commander_1 = require("commander");
 var anchor = __importStar(require("@project-serum/anchor"));
-var bn_js_1 = __importDefault(require("bn.js"));
 var node_fetch_1 = __importDefault(require("node-fetch"));
 var various_1 = require("./helpers/various");
 var spl_token_1 = require("@solana/spl-token");
@@ -312,7 +311,7 @@ programCommand('verify').action(function (directory, cmd) { return __awaiter(voi
                 return [4 /*yield*/, anchorProgram.account.config.fetch(configAddress)];
             case 4:
                 configData = (_b.sent());
-                lineCount = new bn_js_1.default(config.data.slice(247, 247 + 4), undefined, 'le');
+                lineCount = new anchor.BN(config.data.slice(247, 247 + 4), undefined, 'le');
                 loglevel_1.default.info("uploaded (" + lineCount.toNumber() + ") out of (" + configData.data.maxNumberOfLines + ")");
                 if (configData.data.maxNumberOfLines > lineCount.toNumber()) {
                     throw new Error("predefined number of NFTs (" + configData.data.maxNumberOfLines + ") is smaller than the uploaded one (" + lineCount.toNumber() + ")");

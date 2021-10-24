@@ -14,7 +14,7 @@ const MarketComponent = () => {
   const { liveDataAuctions } = useMeta();
   const now = moment().unix();
 
-  const list = Object.entries(liveDataAuctions).filter(([key, data]) => data.isInstantSale && data.endAt > now);
+  const list = Object.entries(liveDataAuctions).filter(([key, data]) => data.isInstantSale == true);
 
   return (
     <Row justify="center">
@@ -39,7 +39,7 @@ const MarketComponent = () => {
 
               <Col>
                 <div className={GreyColor}>listed</div>
-                <div>64 items</div>
+                <div>{`${list.length} items`}</div>
               </Col>
             </Row>
           </Col>

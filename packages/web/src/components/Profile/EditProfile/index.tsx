@@ -22,6 +22,7 @@ import { IUserData } from '../../../database/userData';
 
 const { TextArea } = Input;
 const maxChar = 280;
+const BASE_STORAGE_URL = "https://fjgyltuahsuzqqkdnhay.supabase.in/storage/v1/object/public/profile/avatars/" // TODO NEED TO MOVE or CHANGE
 
 const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: IUserData; }) => {
   const { publicKey } = useWallet();
@@ -62,7 +63,8 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
 
   const saveProfile = async (values) => {
     let { data, error } = await supabase.from('user_data')
-      .update([{ ...values, img_profile: avatarUrl }])
+      // .update([{ ...values, img_profile: avatarUrl }])
+      .update([{ ...values, img_profile: `${BASE_STORAGE_URL}${file?.name}` }])
       .eq('wallet_address', publicKey)
       .limit(1)
 
@@ -95,7 +97,6 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     downloadImage(event.name)
   }
 
-  // KEEP GETTING 400 on Upload
   const props = {
     action: onUpload,
     file: file,

@@ -1959,16 +1959,18 @@ commander_1.program
     .option('-k, --keypair <path>', "Solana wallet location", '--keypair not provided')
     .option('-f, --fair-launch <string>', 'fair launch id')
     .option('-r, --rpc-url <string>', 'custom rpc url since this is a heavy command')
+    .option('-w, --whitelist-json <path>', "Whitelist json location")
     .action(function (_, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, keypair, fairLaunch, rpcUrl, walletKeyPair, anchorProgram, fairLaunchKey, fairLaunchObj, _b, fairLaunchLotteryBitmap, bump, exists, seqKeys, i, _c, _d, ticketKeys, ticketsFlattened, states, statesFlat, token, mintInfo, numWinnersRemaining, chosen, i, rand, sorted;
+    var _a, env, keypair, fairLaunch, rpcUrl, whitelistJson, walletKeyPair, anchorProgram, whitelist, fairLaunchKey, fairLaunchObj, _b, fairLaunchLotteryBitmap, bump, exists, seqKeys, i, _c, _d, ticketKeys, ticketsFlattened, states, statesFlat, token, mintInfo, numWinnersRemaining, chosen, i, rand, sorted;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch, rpcUrl = _a.rpcUrl;
+                _a = cmd.opts(), env = _a.env, keypair = _a.keypair, fairLaunch = _a.fairLaunch, rpcUrl = _a.rpcUrl, whitelistJson = _a.whitelistJson;
                 walletKeyPair = accounts_1.loadWalletKey(keypair);
                 return [4 /*yield*/, accounts_1.loadFairLaunchProgram(walletKeyPair, env, rpcUrl)];
             case 1:
                 anchorProgram = _e.sent();
+                whitelist = whitelistJson ? JSON.parse(fs.readFileSync(whitelistJson).toString()) : null;
                 fairLaunchKey = new anchor.web3.PublicKey(fairLaunch);
                 return [4 /*yield*/, anchorProgram.account.fairLaunch.fetch(fairLaunchKey)];
             case 2:

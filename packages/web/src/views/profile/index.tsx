@@ -50,43 +50,6 @@ const Profile = ({ userId }: { userId: string }) => {
   const isAccountOwner = publicKey?.toBase58() === userId;
   const { data: userData, loading, refetch } = getUserData(userId);
 
-  //
-  const getProfileData = async () => {
-    let { data: user_data, error } = await supabase
-      .from('user_data')
-      .select('*')
-      .or(`wallet_address.eq.${userId},username.eq.${userId}`)
-      .limit(1);
-
-    if (error) {
-      console.log(error);
-      return null;
-    }
-
-    if (user_data != null) {
-      console.log('data_profile', user_data[0]);
-      return user_data[0];
-    } else {
-      initProfileData();
-      return null;
-    }
-  };
-
-  const initProfileData = async () => {
-    let { data, error } = await supabase
-      .from('user_data')
-      .insert([{ wallet_address: userId }]);
-
-    if (error) {
-      console.log(error);
-      return;
-    }
-
-    if (data != null) {
-      console.log('data_profile', data[0]);
-    }
-  };
-
   ownedMetadata.forEach(data => {
     if (!allData[data.metadata.pubkey]) {
       allData[data.metadata.pubkey] = {
