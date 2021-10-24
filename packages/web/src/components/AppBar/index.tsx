@@ -4,14 +4,21 @@ import { useLocation } from 'react-router';
 import { Button } from 'antd';
 import { ConnectButton, CurrentUserBadge } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Notifications } from '../Notifications';
 
+// utils
+import getUserData from '../../database/userData';
+
+// components
+import { Notifications } from '../Notifications';
 import { LABELS } from '../../constants';
+
+// styles
 import { ButtonContainer, LinkButton, LogoWrapper, RoundButton, Title } from './style';
 import { GreyColor, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
   const { publicKey, connected } = useWallet();
+  const { data: userData } = getUserData(publicKey?.toBase58());
   const { pathname } = useLocation();
 
   if (connected) {
@@ -43,9 +50,9 @@ export const AppBar = () => {
 
           <Notifications />
 
-          <CurrentUserBadge showBalance={true} showAddress={true} />
+          <CurrentUserBadge userData={userData} />
 
-          <Link to={`/${publicKey}`}>
+          <Link to={`/${userData ? userData.username : publicKey?.toBase58()}`}>
             <Button className={RoundButton} type="default" shape="round">
               SELL
             </Button>

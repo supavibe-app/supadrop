@@ -6,6 +6,7 @@ export const ProfileSection = css`
   height: calc(100vh - 80px);
   width: 100%;
   position: fixed;
+  text-align: -webkit-center;
 `;
 
 export const NameStyle = css`

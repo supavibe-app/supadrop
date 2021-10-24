@@ -5,12 +5,12 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useHistory } from 'react-router-dom';
 
 import { shortenAddress } from '../../utils';
-import { useNativeAccount, formatNumber } from '../..';
+import { useNativeAccount, formatNumber, UserData } from '../..';
 import { AddressInfo, BalanceInfo, ItemIcon, ListStyle } from './style';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
-export const Settings = ({ additionalSettings, setShowPopover = () => { } }: {
-  additionalSettings?: JSX.Element;
+export const Settings = ({ userData, setShowPopover = () => { } }: {
+  userData?: UserData;
   setShowPopover?: Function;
 }) => {
   const { disconnect, publicKey } = useWallet();
@@ -23,7 +23,7 @@ export const Settings = ({ additionalSettings, setShowPopover = () => { } }: {
       <List.Item>
         <div onClick={() => {
           setShowPopover(false);
-          push(`/${publicKey}`)
+          push(`/${userData?.username ? userData.username : publicKey}`);
         }}>
           <Avatar className={ItemIcon} />
           view profile

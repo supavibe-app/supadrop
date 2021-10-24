@@ -1,7 +1,6 @@
 /// <reference types="react" />
-export declare const CurrentUserBadge: (props: {
-    showBalance?: boolean;
-    showAddress?: boolean;
-    iconSize?: number;
+import { UserData } from '../..';
+export declare const CurrentUserBadge: ({ userData }: {
+    userData: UserData | undefined;
 }) => JSX.Element | null;
 //# sourceMappingURL=index.d.ts.map

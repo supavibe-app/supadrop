@@ -4,12 +4,9 @@ import { Avatar, Popover } from 'antd';
 
 import { Settings } from '../Settings';
 import { ProfilePopover, WalletWrapper } from './style';
+import { UserData } from '../..';
 
-export const CurrentUserBadge = (props: {
-  showBalance?: boolean;
-  showAddress?: boolean;
-  iconSize?: number;
-}) => {
+export const CurrentUserBadge = ({ userData }: { userData: UserData | undefined; }) => {
   const { wallet, publicKey } = useWallet();
   const [showPopover, setShowPopover] = useState(false);
 
@@ -22,7 +19,7 @@ export const CurrentUserBadge = (props: {
       <Popover
         overlayClassName={ProfilePopover}
         color="#000000"
-        content={<Settings setShowPopover={setShowPopover} />}
+        content={<Settings userData={userData} setShowPopover={setShowPopover} />}
         trigger="click"
         placement="bottomRight"
         onVisibleChange={visible => setShowPopover(visible)}
