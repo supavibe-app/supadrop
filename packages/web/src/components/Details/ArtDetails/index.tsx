@@ -7,13 +7,13 @@ import countDown from '../../../helpers/countdown';
 import { Art } from '../../../types';
 
 const ArtDetails = ({ auction, art, extendedArt, highestBid }: {
-  auction: ItemAuction | undefined;
+  auction?: ItemAuction | undefined;
   art: Art | undefined;
   extendedArt: IMetadataExtension | undefined;
-  highestBid: ParsedAccount<BidderMetadata> | undefined;
+  highestBid?: ParsedAccount<BidderMetadata> | undefined;
 }) => {
   const creators = art?.creators || [];
-  const title = art?.title;
+  const title = art?.title || auction?.name;
 
   const description = extendedArt?.description;
   const attributes = extendedArt?.attributes;

@@ -20,41 +20,41 @@ export const DetailsInformation = css`
   color: #fafafb;
 `;
 
-export const SelectStyle = css`
-  width: 198px;
+export const DropdownStyle = css`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
 
-  .ant-select-selector {
-    border: unset !important;
-    font-size: 18px;
-    padding: 0 8px !important;
-  }
-
-  .ant-select-focused {
-    border: unset !important;
-
-    :focus {
-      border: unset !important;
-    }
-  }
-
-  .ant-select-arrow {
+  .svg {
     right: 8px;
     top: 28%;
   }
 `;
 
-export const OptionStyle = css`
-  font-size: 14px;
-`;
-
-export const DropdownStyle = css`
+export const OverlayStyle = css`
   font-size: 14px;
   background: #000000;
   border: 2px solid #ccff00;
   padding: 16px 0;
+  width: 198px;
+  min-width: 198px !important;
+  border-radius: 4px;
 
-  .ant-select-item-option-selected {
-    color: #ccff00;
-    background: #2b2b2b;
+  .ant-dropdown-menu {
+    background-color: #000000;
   }
+
+  .ant-dropdown-menu-item {
+    font-weight: bold;
+
+    :hover {
+      background: #2b2b2b;
+    }
+  }
+`;
+
+export const ActiveSortBy = css`
+  color: #ccff00;
+  background: #2b2b2b;
 `;

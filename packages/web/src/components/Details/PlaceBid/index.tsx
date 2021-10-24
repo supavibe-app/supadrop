@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Col, Input, Row } from 'antd';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { formatNumber, formatTokenAmount, fromLamports, ItemAuction, PriceFloorType, useMint, useNativeAccount } from '@oyster/common';
 import { useHighestBidForAuction } from '../../../hooks';
 import getMinimumBid from '../../../helpers/getMinimumBid';
+import AddFundsComponent from './addFunds';
 import { WhiteColor } from '../../../styles';
 import { AddFunds, BidInput, BidRuleInformation, Information, PlaceBidTitle } from './style';
 
@@ -13,6 +14,7 @@ const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
   setBidAmount: (num: number) => void;
 }) => {
   const { account } = useNativeAccount();
+  const [showFundModal, setShowFundModal] = useState(false);
 
   const bid = useHighestBidForAuction(auction?.id || '');
   const mintInfo = useMint(auction?.token_mint);
@@ -47,7 +49,7 @@ const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
         </div>
 
         {balance < minimumBid && (
-          <div className={AddFunds} onClick={() => console.log('TODO: Implement Add Funds')}>
+          <div className={AddFunds} onClick={() => setShowFundModal(true)}>
             add funds
           </div>
         )}
@@ -60,6 +62,8 @@ const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
           </div>
         </Col>
       </Row>
+
+      {showFundModal && <AddFundsComponent onCancel={() => setShowFundModal(false)} />}
     </>
   )
 };
