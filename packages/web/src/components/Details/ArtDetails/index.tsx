@@ -5,17 +5,15 @@ import { ArtDescription, ArtTitle, Attribute, AttributeRarity, ContentSection, L
 import countDown from '../../../helpers/countdown';
 
 import { Art } from '../../../types';
-import { useExtendedArt } from '../../../hooks';
 
 const ArtDetails = ({ auction, art, extendedArt, highestBid }: {
-  auction: ItemAuction | undefined;
+  auction?: ItemAuction | undefined;
   art: Art | undefined;
   extendedArt: IMetadataExtension | undefined;
-  highestBid: ParsedAccount<BidderMetadata> | undefined;
+  highestBid?: ParsedAccount<BidderMetadata> | undefined;
 }) => {
-
   const creators = art?.creators || [];
-  const title = art?.title;
+  const title = art?.title || auction?.name;
 
   const description = extendedArt?.description;
   const attributes = extendedArt?.attributes;
@@ -72,23 +70,21 @@ const ArtDetails = ({ auction, art, extendedArt, highestBid }: {
         )}
       </Row>
 
-      {
-        attributes && (
-          <div className={ContentSection}>
-            <div className={Label}>attributes</div>
-            <Row gutter={[12, 12]}>
-              {attributes.map(attribute =>
-                <Col key={attribute.trait_type}>
-                  <Button className={Attribute} shape="round">
-                    <span>{attribute.trait_type} –</span>
-                    <span className={AttributeRarity}>{attribute.value}</span>
-                  </Button>
-                </Col>
-              )}
-            </Row>
-          </div>
-        )
-      }
+      {attributes && (
+        <div className={ContentSection}>
+          <div className={Label}>attributes</div>
+          <Row gutter={[12, 12]}>
+            {attributes.map(attribute =>
+              <Col key={attribute.trait_type}>
+                <Button className={Attribute} shape="round">
+                  <span>{attribute.trait_type} –</span>
+                  <span className={AttributeRarity}>{attribute.value}</span>
+                </Button>
+              </Col>
+            )}
+          </Row>
+        </div>
+      )}
     </>
   )
 };

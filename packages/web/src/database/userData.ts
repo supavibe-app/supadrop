@@ -1,24 +1,22 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 
-export interface IUserData {
-  img_profile: string;
-  name: string;
-  username: string;
-  website: string;
-  bio: string;
-}
+import { UserData } from '@oyster/common';
 
 interface IResult {
   loading: boolean;
-  data: any;
+  data: UserData | undefined;
 }
 
 const getUserData = publicKey => {
-  const [result, setResult] = useState<IResult>({ loading: true, data: null });
+  const [result, setResult] = useState<IResult>({
+    loading: true,
+    data: undefined,
+  });
 
   useEffect(() => {
-    if (!result.data) {
+    console.log(publicKey);
+    if (!result.data && publicKey) {
       supabase
         .from('user_data')
         .select('*')
@@ -26,9 +24,9 @@ const getUserData = publicKey => {
         .limit(1)
         .then(res => setResult({ loading: false, data: res.data?.[0] }));
     }
-  }, [result.data]);
+  }, [result.data, publicKey]);
 
-  const refetch = () => setResult({ loading: true, data: null });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };

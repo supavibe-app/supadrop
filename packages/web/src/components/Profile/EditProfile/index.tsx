@@ -18,15 +18,15 @@ import {
   UploadImageContainer,
   UploadStyle,
 } from './style';
-import { IUserData } from '../../../database/userData';
+import { UserData } from '@oyster/common';
 
 const { TextArea } = Input;
 const maxChar = 280;
 
-const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: IUserData; }) => {
+const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: UserData | undefined; }) => {
   const { publicKey } = useWallet();
   const [form] = Form.useForm();
-  const [bio, setBio] = useState(userData.bio || ''); // to get the length of bio
+  const [bio, setBio] = useState(userData?.bio || ''); // to get the length of bio
 
   const saveProfile = async (values) => {
     let { data, error } = await supabase.from('user_data')

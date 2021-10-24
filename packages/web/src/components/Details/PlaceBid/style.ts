@@ -63,3 +63,53 @@ export const BidInput = css`
     font-size: 24px;
   }
 `;
+
+// Add Funds Style
+export const AddFundsModal = css`
+  border: 2px solid #ccff00;
+  border-radius: 4px;
+  padding-bottom: unset;
+
+  .ant-modal-header {
+    background: #000000;
+  }
+
+  .ant-modal-body {
+    background: #000000 !important;
+  }
+
+  .ant-modal-title {
+    font-weight: bold;
+  }
+`;
+
+export const AddFundsBalance = css`
+  width: 100%;
+  background: #242424;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  justify-content: space-between;
+  font-weight: 700;
+`;
+
+export const LogoSOL = css`
+  border-radius: 50%;
+  background: #000000;
+  display: inline-block;
+  padding: 1px 4px 4px 4px;
+  line-height: 1;
+`;
+
+export const SignInFTXButton = css`
+  background: #000000;
+  border-radius: 14px;
+  width: 100%;
+  padding: 10px;
+  height: auto;
+  border-color: #fafafb;
+  margin: 16px 0;
+`;

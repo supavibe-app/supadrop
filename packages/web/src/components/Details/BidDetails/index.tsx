@@ -18,9 +18,9 @@ import countDown from '../../../helpers/countdown';
 
 const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
   art: Art;
-  auction: AuctionView | undefined;
-  auctionDatabase: ItemAuction | undefined;
-  highestBid: ParsedAccount<BidderMetadata> | undefined;
+  auction?: AuctionView;
+  auctionDatabase?: ItemAuction;
+  highestBid?: ParsedAccount<BidderMetadata>;
   bids: ParsedAccount<BidderMetadata>[];
   showPlaceBid: boolean;
   setShowPlaceBid: (visible: boolean) => void;
@@ -42,9 +42,6 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
-
-  // const [lastBid, setLastBid] = useState<{ amount: BN } | undefined>(undefined);
-  // const [showBidPlaced, setShowBidPlaced] = useState<boolean>(false);
 
   const open = useCallback(() => setVisible(true), [setVisible]);
 

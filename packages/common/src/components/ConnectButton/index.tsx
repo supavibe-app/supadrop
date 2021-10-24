@@ -1,4 +1,4 @@
-import { Button, Dropdown, Menu } from 'antd';
+import { Button } from 'antd';
 import { ButtonProps } from 'antd/lib/button';
 import React, { useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -7,49 +7,49 @@ import { ButtonStyle } from './style';
 
 export interface ConnectButtonProps
   extends ButtonProps,
-    React.RefAttributes<HTMLElement> {
+  React.RefAttributes<HTMLElement> {
   allowWalletChange?: boolean;
 }
 
 export const ConnectButton = (props: ConnectButtonProps) => {
-  const { onClick, children, disabled, allowWalletChange, ...rest } = props;
+  const { onClick, allowWalletChange, ...rest } = props;
 
   const { wallet, connect, connected } = useWallet();
   const { setVisible } = useWalletModal();
   const open = useCallback(() => setVisible(true), [setVisible]);
 
   const handleClick = useCallback(
-    () => (wallet ? connect().catch(() => {}) : open()),
+    () => (wallet ? connect().catch(() => { }) : open()),
     [wallet, connect, open],
   );
 
   // only show if wallet selected or user connected
 
-return (
-    <Button className={ButtonStyle} {...rest} onClick={handleClick} disabled={connected && disabled} shape="round">
-      {connected ? props.children : 'CONNECT'}
+  return (
+    <Button className={ButtonStyle} {...rest} onClick={handleClick} disabled={connected} shape="round">
+      CONNECT
     </Button>
   );
 
-//   if (!wallet || !allowWalletChange) {
-//     return (
-//       <Button {...rest} onClick={handleClick} disabled={connected && disabled}>
-//         {connected ? props.children : 'Connect'}
-//       </Button>
-//     );
-//   }
-//
-//   return (
-//     <Dropdown.Button
-//       onClick={handleClick}
-//       disabled={connected && disabled}
-//       overlay={
-//         <Menu>
-//           <Menu.Item onClick={open}>Change Wallet</Menu.Item>
-//         </Menu>
-//       }
-//     >
-//       Connect
-//     </Dropdown.Button>
-//   );
+  //   if (!wallet || !allowWalletChange) {
+  //     return (
+  //       <Button {...rest} onClick={handleClick} disabled={connected && disabled}>
+  //         {connected ? props.children : 'Connect'}
+  //       </Button>
+  //     );
+  //   }
+  //
+  //   return (
+  //     <Dropdown.Button
+  //       onClick={handleClick}
+  //       disabled={connected && disabled}
+  //       overlay={
+  //         <Menu>
+  //           <Menu.Item onClick={open}>Change Wallet</Menu.Item>
+  //         </Menu>
+  //       }
+  //     >
+  //       Connect
+  //     </Dropdown.Button>
+  //   );
 };

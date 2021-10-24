@@ -1,6 +1,7 @@
 /// <reference types="react" />
-export declare const Settings: ({ additionalSettings, setShowPopover }: {
-    additionalSettings?: JSX.Element | undefined;
+import { UserData } from '../..';
+export declare const Settings: ({ userData, setShowPopover }: {
+    userData?: UserData | undefined;
     setShowPopover?: Function | undefined;
 }) => JSX.Element;
 //# sourceMappingURL=index.d.ts.map
