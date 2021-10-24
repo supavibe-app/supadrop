@@ -62,6 +62,15 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   }
 
   const saveProfile = async (values) => {
+    let exProfpic;
+    if (userData.img_profile) {
+      exProfpic = userData.img_profile.split("/");
+      await supabase
+        .storage
+        .from('profile')
+        .remove([`avatars/${exProfpic[exProfpic.length-1]}`])
+    }
+
     let { data, error } = await supabase.from('user_data')
       // .update([{ ...values, img_profile: avatarUrl }])
       .update([{ ...values, img_profile: `${BASE_STORAGE_URL}${file?.name}` }])
@@ -114,7 +123,7 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     beforeUpload(file) {
       console.log(file);
       const isPng = file.type === 'image/png';
-      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+      // const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
       if (!isPng) {
         message.error('You can only upload PNG file!');
       }
@@ -122,7 +131,7 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
       if (!isLt2M) {
         message.error('Image must smaller than 2MB!');
       }
-      return isJpgOrPng && isLt2M;
+      return isPng && isLt2M;
     },
   };
 
