@@ -6,7 +6,7 @@ import { Settings } from '../Settings';
 import { ProfilePopover, WalletWrapper } from './style';
 import { UserData } from '../..';
 
-export const CurrentUserBadge = ({ userData }: { userData: UserData | undefined; }) => {
+export const CurrentUserBadge = ({ userData }: { userData?: UserData; }) => {
   const { wallet, publicKey } = useWallet();
   const [showPopover, setShowPopover] = useState(false);
 
