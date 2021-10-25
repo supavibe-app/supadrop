@@ -28,22 +28,8 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   const { publicKey } = useWallet();
   const [form] = Form.useForm();
   const [bio, setBio] = useState(userData?.bio || ''); // to get the length of bio
-  const [file, setFile] = useState<object>();
+  const [file, setFile] = useState<File>();
   const [avatarUrl, setAvatarUrl] = useState<String>();
-  // const onChange = (info) => {
-  //   setFile(info.file);
-
-  //   if (info.file.status !== 'uploading') {
-  //     console.log('onChange uploading', file);
-  //   }
-  //   if (info.file.status === 'done') {
-  //     console.log('onChange done', file);
-  //     message.success(`${info.file.name} file uploaded successfully`);
-  //   } else if (info.file.status === 'error') {
-  //     message.error(`${info.file.name} file upload failed.`);
-  //   }
-    
-  // };
 
   async function downloadImage(path) {
     console.log('downloadImage: ', path)
@@ -85,7 +71,6 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   };
 
   const onUpload = async (event) => {
-    console.log('onUpload', event);
     console.log('onUpload', typeof event);
     setFile(event);
     const { error: uploadError } = await supabase.storage
@@ -102,8 +87,6 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
 
   const props = {
     action: onUpload,
-    file: file,
-    // onChange: onChange,
     onStart(file) {
       console.log('onStart file', file);
       console.log('onStart file name', file.name);
