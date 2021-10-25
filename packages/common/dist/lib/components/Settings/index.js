@@ -13,7 +13,7 @@ const utils_1 = require("../../utils");
 const __1 = require("../..");
 const style_1 = require("./style");
 const web3_js_1 = require("@solana/web3.js");
-const Settings = ({ additionalSettings, setShowPopover = () => { } }) => {
+const Settings = ({ userData, setShowPopover = () => { } }) => {
     const { disconnect, publicKey } = wallet_adapter_react_1.useWallet();
     const { push } = react_router_dom_1.useHistory();
     const { account } = __1.useNativeAccount();
@@ -22,7 +22,7 @@ const Settings = ({ additionalSettings, setShowPopover = () => { } }) => {
         react_1.default.createElement(antd_1.List.Item, null,
             react_1.default.createElement("div", { onClick: () => {
                     setShowPopover(false);
-                    push(`/${publicKey}`);
+                    push(`/${(userData === null || userData === void 0 ? void 0 : userData.username) ? userData.username : publicKey}`);
                 } },
                 react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon }),
                 "view profile")),

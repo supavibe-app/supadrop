@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
-import { Row, Col, Button, Skeleton, List, Popover, Image } from 'antd';
+import { Row, Col, Skeleton, Popover, Image } from 'antd';
 import FeatherIcon from 'feather-icons-react';
-import { useConnectionConfig, useMeta } from '@oyster/common';
+import { useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import {
@@ -19,6 +19,9 @@ import ArtDetails from '../../components/Details/ArtDetails';
 import BidDetails from '../../components/Details/BidDetails';
 import PlaceBid from '../../components/Details/PlaceBid';
 import TransactionHistory from '../../components/Details/TransactionHistory';
+import ArtDetailSkeleton from '../../components/Details/ArtDetails/skeleton';
+import MoreOptions from '../../components/Details/ArtDetails/moreOptions';
+
 import { YellowGlowColor } from '../../styles';
 import {
   ArtContainer,
@@ -28,7 +31,6 @@ import {
   BackButton,
   ColumnBox,
   Container,
-  ContentSection,
   Label,
   OverflowYAuto,
   OptionsPopover,
@@ -42,7 +44,6 @@ export const AuctionView = () => {
   const action = queryParams.get('action');
 
   const { id } = useParams<{ id: string }>();
-  const { env } = useConnectionConfig();
   const { connected } = useWallet();
   const auction = useAuction(id);
 
@@ -78,65 +79,6 @@ export const AuctionView = () => {
   useEffect(() => {
     pullAuctionPage(id);
   }, []);
-
-  // Additional Components
-  const moreOptions = (
-    <List>
-      <List.Item>
-        <Button type="link" onClick={() => window.open(art.uri || '', '_blank')}>
-          view on arweave
-        </Button>
-      </List.Item>
-      <List.Item>
-        <Button
-          type="link"
-          onClick={() =>
-            window.open(
-              `https://explorer.solana.com/account/${art?.mint || ''}${env.indexOf('main') >= 0 ? '' : `?cluster=${env}`
-              }`,
-              '_blank',
-            )
-          }
-        >
-          view on solana
-        </Button>
-      </List.Item>
-    </List>
-  );
-
-  const ArtDetailSkeleton = (
-    <div>
-      <div className={ContentSection}>
-        <Skeleton paragraph={{ rows: 2 }} />
-      </div>
-      <Row>
-        <Col span={12}>
-          <div className={ContentSection}>
-            <div className={Label}>creator</div>
-            <Skeleton avatar paragraph={{ rows: 0 }} />
-          </div>
-        </Col>
-
-        <Col span={12}>
-          <div className={ContentSection}>
-            <div className={Label}>owner</div>
-            <Skeleton avatar paragraph={{ rows: 0 }} />
-          </div>
-        </Col>
-      </Row>
-
-      <div className={Label}>attributes</div>
-
-      <Row gutter={[12, 12]}>
-        {[...Array(3)].map(i => (
-          <Col key={i}>
-            <Skeleton.Button shape="round" />
-          </Col>
-        ))}
-      </Row>
-    </div>
-  );
-  // EOF Additional Components
 
   return (
     <Row className={Container} ref={ref}>
@@ -174,7 +116,7 @@ export const AuctionView = () => {
                 </div>
               )}
 
-              <Popover overlayClassName={OptionsPopover} trigger="click" placement="bottomRight" content={moreOptions}>
+              <Popover overlayClassName={OptionsPopover} trigger="click" placement="bottomRight" content={<MoreOptions art={art} />}>
                 <div style={{ cursor: 'pointer', color: '#FAFAFB' }}>
                   <FeatherIcon icon="more-horizontal" size={20} />
                 </div>
@@ -182,7 +124,7 @@ export const AuctionView = () => {
             </div>
 
             {/* Show Skeleton when Loading */}
-            {!isDataReady && ArtDetailSkeleton}
+            {!isDataReady && <ArtDetailSkeleton />}
 
             {isDataReady && showPlaceBid && <PlaceBid auction={auctionDatabase} bidAmount={bidAmount} setBidAmount={setBidAmountNumber} />}
             {isDataReady && !showPlaceBid && <ArtDetails auction={auctionDatabase} art={art} extendedArt={data} highestBid={highestBid} />}
@@ -210,4 +152,3 @@ export const AuctionView = () => {
     </Row>
   );
 };
-

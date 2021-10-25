@@ -18,16 +18,16 @@ import {
   UploadImageContainer,
   UploadStyle,
 } from './style';
-import { IUserData } from '../../../database/userData';
+import { UserData } from '@oyster/common';
 
 const { TextArea } = Input;
 const maxChar = 280;
 const BASE_STORAGE_URL = "https://fjgyltuahsuzqqkdnhay.supabase.in/storage/v1/object/public/profile/avatars/" // TODO NEED TO MOVE or CHANGE
 
-const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: IUserData; }) => {
+const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: UserData | undefined; }) => {
   const { publicKey } = useWallet();
   const [form] = Form.useForm();
-  const [bio, setBio] = useState(userData.bio || ''); // to get the length of bio
+  const [bio, setBio] = useState(userData?.bio || ''); // to get the length of bio
   const [file, setFile] = useState<object>();
   const [avatarUrl, setAvatarUrl] = useState<String>();
   // const onChange = (info) => {
@@ -47,23 +47,17 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
 
   async function downloadImage(path) {
     console.log('downloadImage: ', path)
-    try {
-      console.log('downloadImage: ', path)
-
-      const { data, error } = await supabase.storage.from('profile').download(`avatars/${path}`)
-      if (error) {
-        throw error
-      }
-      const url = URL.createObjectURL(data)
-      setAvatarUrl(url)
-    } catch (error) {
-      console.log('Error downloading image: ', error.message)
+    const { data, error } = await supabase.storage.from('profile').download(`avatars/${path}`)
+    if (error) {
+      throw error
     }
+    const url = URL.createObjectURL(data)
+    setAvatarUrl(url)
   }
 
   const saveProfile = async (values) => {
     let exProfpic;
-    if (userData.img_profile) {
+    if (userData?.img_profile) {
       exProfpic = userData.img_profile.split("/");
       await supabase
         .storage
@@ -143,9 +137,9 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
         <div className={UploadImageContainer}>
           <div>
             <Upload {...props} className={UploadStyle}>
-              {userData.img_profile && avatarUrl && <Avatar size={86} src={avatarUrl} style={{ cursor: 'pointer' }} />}
-              {userData.img_profile && !avatarUrl && <Avatar size={86} src={userData.img_profile} style={{ cursor: 'pointer' }} />}
-              {!userData.img_profile && !avatarUrl && <Avatar size={86} icon={<FeatherIcon icon="image" size="32" />} style={{ cursor: 'pointer' }} />}
+              {userData?.img_profile && avatarUrl && <Avatar size={86} src={avatarUrl} style={{ cursor: 'pointer' }} />}
+              {userData?.img_profile && !avatarUrl && <Avatar size={86} src={userData.img_profile} style={{ cursor: 'pointer' }} />}
+              {!userData?.img_profile && !avatarUrl && <Avatar size={86} icon={<FeatherIcon icon="image" size="32" />} style={{ cursor: 'pointer' }} />}
             </Upload>
           </div>
 
