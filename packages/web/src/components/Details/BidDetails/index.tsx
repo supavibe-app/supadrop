@@ -312,6 +312,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   }
 
   // if auction ended
+  
   if (ended) {
     if (!auction?.isInstantSale) {
       // case 1: you win the bid
@@ -357,7 +358,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
           </div>
         </BidDetailsContent>
       );
-    } else {
+    } else if(!auction.isInstantSale){
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
