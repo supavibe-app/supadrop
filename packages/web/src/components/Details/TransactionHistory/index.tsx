@@ -1,17 +1,17 @@
 import React from 'react';
 import { Avatar, Col, Row, Skeleton } from 'antd';
-import { formatTokenAmount, shortenAddress, useMint } from '@oyster/common';
+import { formatTokenAmount, ItemAuction, shortenAddress, useMeta, useMint } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import { AuctionView, useArt, useBidsForAuction } from '../../../hooks';
 import { GreyColor, uBoldFont, uFlexAlignItemsCenter, YellowGlowColor } from '../../../styles';
 import { Activity, ActivityHeader, IsMyBid } from './style';
 
-const TransactionHistory = ({ auction }: { auction: AuctionView | undefined }) => {
+const TransactionHistory = ({ auction }: { auction: ItemAuction | undefined }) => {
   const { publicKey } = useWallet();
-  const mint = useMint(auction?.auction.info.tokenMint);
-  const art = useArt(auction?.thumbnail.metadata.pubkey);
-  const bids = useBidsForAuction(auction?.auction.pubkey || '');
+  const { isLoadingDatabase } = useMeta();
+  const mint = useMint(auction?.token_mint);
+  const bids = useBidsForAuction(auction?.id || '');
 
   const TransactionHistorySkeleton = (
     <div>
@@ -26,9 +26,9 @@ const TransactionHistory = ({ auction }: { auction: AuctionView | undefined }) =
         {/* <div>activity</div> */}
       </div>
 
-      {!art.title && TransactionHistorySkeleton}
+      {isLoadingDatabase && TransactionHistorySkeleton}
 
-      {art.title && !Boolean(bids.length) && (
+      {!isLoadingDatabase && !Boolean(bids.length) && (
         <div className={GreyColor}>
           <div>no one bid yet</div>
           <div>be the first to make a bid!</div>

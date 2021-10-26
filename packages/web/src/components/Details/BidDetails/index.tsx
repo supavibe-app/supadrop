@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta, AuctionState, VaultState, BidStateType } from '@oyster/common';
+import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta, AuctionState, VaultState, BidStateType, ItemAuction } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
@@ -14,11 +14,13 @@ import { sendPlaceBid } from '../../../actions/sendPlaceBid';
 import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '../../../actions/sendRedeemBid';
 import { uFontSize24, uTextAlignEnd, WhiteColor } from '../../../styles';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox, SpinnerStyle } from './style';
+import countDown from '../../../helpers/countdown';
 
-const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
+const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
   art: Art;
-  auction: AuctionView | undefined;
-  highestBid: ParsedAccount<BidderMetadata> | undefined;
+  auction?: AuctionView;
+  auctionDatabase?: ItemAuction;
+  highestBid?: ParsedAccount<BidderMetadata>;
   bids: ParsedAccount<BidderMetadata>[];
   showPlaceBid: boolean;
   setShowPlaceBid: (visible: boolean) => void;
@@ -34,28 +36,23 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   const walletContext = useWallet();
   const { wallet, connect, connected, publicKey } = walletContext;
 
-  const owner = auction?.auctionManager.authority.toString();
+  const owner = auctionDatabase?.owner;
+  const endAt = auctionDatabase?.endAt;
 
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
 
-  // const [lastBid, setLastBid] = useState<{ amount: BN } | undefined>(undefined);
-  // const [showBidPlaced, setShowBidPlaced] = useState<boolean>(false);
-
   const open = useCallback(() => setVisible(true), [setVisible]);
 
-  const bid = useHighestBidForAuction(auction?.auction.pubkey || '');
-  const mintInfo = useMint(auction?.auction.info.tokenMint);
-  const priceFloor =
-    auction?.auction.info.priceFloor.type === PriceFloorType.Minimum
-      ? auction?.auction.info.priceFloor.minPrice?.toNumber() || 0
-      : 0;
+  const bid = useHighestBidForAuction(auctionDatabase?.id || '');
+  const mintInfo = useMint(auctionDatabase?.token_mint);
+  const priceFloor = auctionDatabase?.price_floor;
 
   const balance = parseFloat(formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL));
   const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
   const minimumBid = getMinimumBid(currentBid);
-  const myPayingAccount = useUserBalance(auction?.auction.info.tokenMint).accounts[0]
+  const myPayingAccount = useUserBalance(auctionDatabase?.token_mint).accounts[0]
 
   let winnerIndex: number | null = null;
   if (auction?.myBidderPot?.pubkey)
@@ -79,7 +76,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   // countdown
   useEffect(() => {
     if (!ended) {
-      const calc = () => setState(auction?.auction.info.timeToEnd());
+      const calc = () => setState(countDown(endAt));
 
       const interval = setInterval(() => calc(), 1000);
       calc();
@@ -94,10 +91,9 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     }, [wallet, connect, open],
   );
 
-  const baseInstantSalePrice =
-    auction?.auctionDataExtended?.info.instantSalePrice;
+  const baseInstantSalePrice = auctionDatabase?.price_floor;
 
-  const instantSalePrice = (baseInstantSalePrice?.toNumber() || minimumBid) / Math.pow(10, 9);
+  const instantSalePrice = (baseInstantSalePrice || minimumBid) / Math.pow(10, 9);
   const isParticipated = bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length > 0;
 
   const BidDetailsContent = ({ children }) => {
@@ -256,7 +252,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
     }
 
     const newAuctionState = await update(
-      auction?.auction.pubkey,
+      auctionDatabase?.id,
       publicKey,
     );
     auction!!.auction = newAuctionState[0];
@@ -372,7 +368,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
   // case 4: your nft on sale
   if (publicKey?.toBase58() === owner) {
     const baseURL = process.env.REACT_APP_SUPABASE_URL || 'https://supadrop.com';
-    const auctionURL = `${baseURL}/auction/${auction?.auction.pubkey}`;
+    const auctionURL = `${baseURL}/auction/${auctionDatabase?.id}`;
     const twitterText = `gm%21%E2%80%A8i%20just%20list%20my%20NFT%20on%20supadrop%20marketplace%2C%20check%20this%20out%21%E2%80%A8%20${auctionURL}`;
     const twitterIntent = `https://twitter.com/intent/tweet?text=${twitterText}`;
 
@@ -477,7 +473,7 @@ const BidDetails = ({ art, auction, highestBid, bids, setShowPlaceBid, showPlace
                   // user click approve
                   setShowPlaceBid(false);
                   setConfirmTrigger(false);
-                  pullAuctionPage(auction?.auction.pubkey||"")
+                  pullAuctionPage(auctionDatabase?.id || "")
                 }).catch(() => {
                   // user click cancel
                   setConfirmTrigger(false);

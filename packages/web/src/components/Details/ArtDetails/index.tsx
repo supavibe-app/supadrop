@@ -1,26 +1,32 @@
 import React from 'react';
 import { Avatar, Button, Col, Row } from 'antd';
-import { BidderMetadata, IMetadataExtension, ParsedAccount, shortenAddress } from '@oyster/common';
-import { AuctionView, useArt, useCreators } from '../../../hooks';
+import { BidderMetadata, IMetadataExtension, ItemAuction, ParsedAccount, shortenAddress } from '@oyster/common';
 import { ArtDescription, ArtTitle, Attribute, AttributeRarity, ContentSection, Label, UserThumbnail } from './style';
+import countDown from '../../../helpers/countdown';
 
-const ArtDetails = ({ auction, artData, highestBid }: {
-  auction: AuctionView | undefined;
-  artData: IMetadataExtension | undefined;
-  highestBid: ParsedAccount<BidderMetadata> | undefined;
+import { Art } from '../../../types';
+
+const ArtDetails = ({ auction, art, extendedArt, highestBid }: {
+  auction?: ItemAuction | undefined;
+  art: Art | undefined;
+  extendedArt: IMetadataExtension | undefined;
+  highestBid?: ParsedAccount<BidderMetadata> | undefined;
 }) => {
-  const creators = useCreators(auction);
-  const art = useArt(auction?.thumbnail.metadata.pubkey);
+  const creators = art?.creators || [];
+  const title = art?.title || auction?.name;
 
-  const description = artData?.description;
-  const attributes = artData?.attributes;
-  const owner = auction?.auctionManager.authority.toString();
-  const state = auction?.auction.info.timeToEnd();
+  const description = extendedArt?.description;
+  const attributes = extendedArt?.attributes;
+
+  const owner = auction?.owner;
+  const endAt = auction?.endAt;
+
+  const state = countDown(endAt);
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
 
   return (
     <>
-      <div className={ArtTitle}>{art.title}</div>
+      <div className={ArtTitle}>{title}</div>
 
       {description && (
         <div className={`${ArtDescription} ${ContentSection}`}>
@@ -64,23 +70,21 @@ const ArtDetails = ({ auction, artData, highestBid }: {
         )}
       </Row>
 
-      {
-        attributes && (
-          <div className={ContentSection}>
-            <div className={Label}>attributes</div>
-            <Row gutter={[12, 12]}>
-              {attributes.map(attribute =>
-                <Col key={attribute.trait_type}>
-                  <Button className={Attribute} shape="round">
-                    <span>{attribute.trait_type} –</span>
-                    <span className={AttributeRarity}>{attribute.value}</span>
-                  </Button>
-                </Col>
-              )}
-            </Row>
-          </div>
-        )
-      }
+      {attributes && (
+        <div className={ContentSection}>
+          <div className={Label}>attributes</div>
+          <Row gutter={[12, 12]}>
+            {attributes.map(attribute =>
+              <Col key={attribute.trait_type}>
+                <Button className={Attribute} shape="round">
+                  <span>{attribute.trait_type} –</span>
+                  <span className={AttributeRarity}>{attribute.value}</span>
+                </Button>
+              </Col>
+            )}
+          </Row>
+        </div>
+      )}
     </>
   )
 };

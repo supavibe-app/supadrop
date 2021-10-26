@@ -105,6 +105,22 @@ export const Label = css`
   margin-bottom: 12px;
 `;
 
+export const LabelPrice = css`
+  font-size: 14px;
+  color: #7e7c7c;
+`;
+
+export const PriceBox = css`
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 28px;
+  color: #fafafb;
+`;
+
+export const ContentSection = css`
+  margin-bottom: 32px;
+`;
+
 export const StatusContainer = css`
   border-top: 1px solid #2b2b2b;
 `;

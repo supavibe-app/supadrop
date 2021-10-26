@@ -1,16 +1,28 @@
-import React, { useCallback, useState } from 'react';
-import { Avatar, Button, Col, Row, Tabs, message } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Avatar, Button, Col, Row, Skeleton, Tabs, message } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
+import { Link, useHistory } from 'react-router-dom';
+import { shortenAddress } from '@oyster/common';
+import { useWallet } from '@solana/wallet-adapter-react';
 import FeatherIcon from 'feather-icons-react';
-import { Link } from 'react-router-dom';
 
+// utils
 import {
   AuctionViewState,
   useAuctions,
   useCreatorArts,
   useUserArts,
 } from '../../hooks';
+import getUserData from '../../database/userData';
+
+// components
 import { ArtCard } from '../../components/ArtCard';
+import DefaultAvatar from '../../components/DefaultAvatar';
+import EditProfile from '../../components/Profile/EditProfile';
+import { ArtCardOnSale } from '../../components/ArtCardOnSale';
+
+// styles
+import { uFlexJustifyCenter, uTextAlignCenter, WhiteColor } from '../../styles';
 import {
   AddressSection,
   ArtsContent,
@@ -24,77 +36,27 @@ import {
   TabsStyle,
   UsernameSection,
 } from './style';
-import { shortenAddress } from '@oyster/common';
-import EditProfile from '../../components/Profile/EditProfile';
-import { uFlexJustifyCenter, uTextAlignCenter, WhiteColor } from '../../styles';
-import { ArtCardOnSale } from '../../components/ArtCardOnSale';
-import { useWallet } from '@solana/wallet-adapter-react';
-
-import { supabase } from '../../../supabaseClient';
-import getUserData from '../../database/userData';
-import DefaultAvatar from '../../components/DefaultAvatar';
 
 const { TabPane } = Tabs;
 
 const Profile = ({ userId }: { userId: string }) => {
+  const { replace } = useHistory();
   const { publicKey } = useWallet();
   const [onEdit, setOnEdit] = useState(false);
-  const artwork = useCreatorArts(userId);
-  const ownedMetadata = useUserArts();
-  const onSale = useAuctions(AuctionViewState.Live).filter(
-    m => m.auctionManager.authority === userId,
-  );
-  const allData: any = {};
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
-
-  const isAccountOwner = publicKey?.toBase58() === userId;
   const { data: userData, loading, refetch } = getUserData(userId);
 
-  //
-  const getProfileData = async () => {
-    let { data: user_data, error } = await supabase
-      .from('user_data')
-      .select('*')
-      .or(`wallet_address.eq.${userId},username.eq.${userId}`)
-      .limit(1);
+  const walletAddress = userData ? userData.wallet_address : userId;
+  const artwork = useCreatorArts(walletAddress);
+  const ownedMetadata = useUserArts();
+  const onSale = useAuctions(AuctionViewState.Live).filter(m => m.auctionManager.authority === walletAddress);
 
-    if (error) {
-      console.log(error);
-      return null;
-    }
+  const allData: any = {};
 
-    if (user_data != null) {
-      console.log('data_profile', user_data[0]);
-      return user_data[0];
-    } else {
-      initProfileData();
-      return null;
-    }
-  };
-
-  const initProfileData = async () => {
-    let { data, error } = await supabase
-      .from('user_data')
-      .insert([{ wallet_address: userId }]);
-
-    if (error) {
-      console.log(error);
-      return;
-    }
-
-    if (data != null) {
-      console.log('data_profile', data[0]);
-    }
-  };
-
-  ownedMetadata.forEach(data => {
-    if (!allData[data.metadata.pubkey]) {
-      allData[data.metadata.pubkey] = {
-        type: 'owned',
-        item: data,
-      };
-    }
-  });
+  useEffect(() => {
+    // if username is available, show username in the url instead of their wallet address
+    if (userData && userData.username) replace(`/${userData.username}`);
+  }, [loading, userData])
 
   artwork.forEach(data => {
     if (!allData[data.pubkey]) {
@@ -112,11 +74,34 @@ const Profile = ({ userId }: { userId: string }) => {
     </Col>
   );
 
+  const ProfileSkeleton = () => (
+    <div>
+      <div className={uFlexJustifyCenter}>
+        <Skeleton.Avatar size={128} />
+      </div>
+
+      <div style={{ height: 24 }} />
+
+      <div>
+        <Skeleton paragraph={{ rows: 0 }} />
+      </div>
+
+      <div>
+        <Skeleton paragraph={{ rows: 0 }} />
+      </div>
+
+      <div style={{ height: 18 }} />
+
+      <div>
+        <Skeleton paragraph={{ rows: 3 }} title={false} />
+      </div>
+    </div>
+  );
+
   return (
     <Row>
       <Col
         className="profile-section_mask"
-        span={6}
         xs={24}
         sm={24}
         md={12}
@@ -124,9 +109,9 @@ const Profile = ({ userId }: { userId: string }) => {
         xl={6}
         xxl={6}
       />
+
       <Col
         className={ProfileSection}
-        span={6}
         xs={24}
         sm={24}
         md={12}
@@ -142,6 +127,8 @@ const Profile = ({ userId }: { userId: string }) => {
           />
         )}
 
+        {!userData && <ProfileSkeleton />}
+
         {!onEdit && userData && (
           <div className={uTextAlignCenter} style={{ width: '100%' }}>
             <div className={uFlexJustifyCenter}>
@@ -154,11 +141,11 @@ const Profile = ({ userId }: { userId: string }) => {
             <div
               className={AddressSection}
               onClick={() => {
-                navigator.clipboard.writeText(userId);
+                navigator.clipboard.writeText(userData.wallet_address);
                 message.success('address has copied to clipboard');
               }}
             >
-              <div>{shortenAddress(userId)}</div>
+              <div>{shortenAddress(userData.wallet_address)}</div>
 
               <div>
                 <FeatherIcon icon="copy" size="16" />
@@ -191,7 +178,7 @@ const Profile = ({ userId }: { userId: string }) => {
 
             <div className={BioSection}>{userData.bio}</div>
 
-            {isAccountOwner && (
+            {publicKey?.toBase58() === userData.wallet_address && (
               <Button
                 className={EditProfileButton}
                 shape="round"

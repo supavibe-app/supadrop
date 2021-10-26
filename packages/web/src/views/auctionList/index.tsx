@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
 import { Link } from 'react-router-dom';
+import moment from 'moment';
 import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
 import { CardLoader } from '../../components/MyLoader';
 import { useMeta } from '../../contexts';
@@ -14,7 +15,7 @@ const { TabPane } = Tabs;
 const AuctionListView = () => {
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
   const { isLoadingMetaplex, isLoadingDatabase, liveDataAuctions } = useMeta();
-  const now = Math.floor(new Date().getTime() / 1000);
+  const now = moment().unix();
   const [activeKey, setActiveKey] = useState(Object.entries(liveDataAuctions).length > 0 ? '1' : '2');
 
   useEffect(() => {
@@ -22,15 +23,8 @@ const AuctionListView = () => {
     else setActiveKey('2');
   }, [liveDataAuctions]);
 
-  const liveAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => {
-    if (data.endAt > now) return true
-    return false;
-  });
-
-  const endAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => {
-    if (data.endAt < now) return true
-    return false;
-  })
+  const liveAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => data.endAt > now);
+  const endAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => data.endAt < now);
 
   const auctionList = list => {
     if (isLoadingMetaplex && isLoadingDatabase) return [...Array(8)].map((_, idx) => <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}><CardLoader key={idx} /></Col>)

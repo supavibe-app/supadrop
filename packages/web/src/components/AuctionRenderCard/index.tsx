@@ -185,7 +185,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
     currentBid =
       winningBid && Number.isFinite(winningBid.info.lastBid?.toNumber())
         ? formatTokenAmount(winningBid.info.lastBid)
-        : 'No Bid';
+        : auctionView.price_floor;
   }
 
   return (
