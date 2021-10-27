@@ -18,7 +18,7 @@ import countDown from '../../../helpers/countdown';
 import { endSale } from '../../AuctionCard/utils/endSale';
 import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState';
 
-const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
+const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid,updatePage, showPlaceBid, currentBidAmount }: {
   art: Art;
   auction?: AuctionView;
   auctionDatabase?: ItemAuction;
@@ -26,6 +26,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
   bids: ParsedAccount<BidderMetadata>[];
   showPlaceBid: boolean;
   setShowPlaceBid: (visible: boolean) => void;
+  updatePage: () => void;
   currentBidAmount: number | undefined;
 }) => {
   const connection = useConnection();
@@ -252,6 +253,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
         prizeTrackingTickets,
         wallet,
       });
+      updatePage()
     } catch (e) {
       console.error('endAuction', e);
       return;
@@ -292,6 +294,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
           instantSalePrice,
         );
         setCurrentBid(bid.amount.toNumber())
+        updatePage()
       } catch (e) {
         console.error('sendPlaceBid', e);
         return;
@@ -323,6 +326,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
       ).then(async () => {
         await update();
       });
+      updatePage()
 
     } catch (e) {
       console.error(e);
