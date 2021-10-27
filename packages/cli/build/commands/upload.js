@@ -56,7 +56,7 @@ var path_1 = __importDefault(require("path"));
 var accounts_1 = require("../helpers/accounts");
 var web3_js_1 = require("@solana/web3.js");
 var fs_1 = __importDefault(require("fs"));
-var bn_js_1 = __importDefault(require("bn.js"));
+var anchor_1 = require("@project-serum/anchor");
 var cache_1 = require("../helpers/cache");
 var loglevel_1 = __importDefault(require("loglevel"));
 var aws_1 = require("../helpers/upload/aws");
@@ -135,11 +135,11 @@ function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthor
                 case 3:
                     _c.trys.push([3, 5, , 6]);
                     return [4 /*yield*/, accounts_1.createConfig(anchorProgram, walletKeyPair, {
-                            maxNumberOfLines: new bn_js_1.default(totalNFTs),
+                            maxNumberOfLines: new anchor_1.BN(totalNFTs),
                             symbol: manifest.symbol,
                             sellerFeeBasisPoints: manifest.seller_fee_basis_points,
                             isMutable: true,
-                            maxSupply: new bn_js_1.default(0),
+                            maxSupply: new anchor_1.BN(0),
                             retainAuthority: retainAuthority,
                             creators: manifest.properties.creators.map(function (creator) {
                                 return {

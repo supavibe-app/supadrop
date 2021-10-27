@@ -69,7 +69,6 @@ var constants_1 = require("../helpers/constants");
 var node_fetch_1 = __importDefault(require("node-fetch"));
 var spl_token_1 = require("@solana/spl-token");
 var web3_js_1 = require("@solana/web3.js");
-var bn_js_1 = __importDefault(require("bn.js"));
 var loglevel_1 = __importDefault(require("loglevel"));
 var mintNFT = function (connection, walletKeypair, metadataLink, mutableMetadata) {
     if (mutableMetadata === void 0) { mutableMetadata = true; }
@@ -147,7 +146,7 @@ var mintNFT = function (connection, walletKeypair, metadataLink, mutableMetadata
                     return [4 /*yield*/, accounts_1.getMasterEdition(mint.publicKey)];
                 case 8:
                     editionAccount = _b.sent();
-                    txnData = Buffer.from(borsh_1.serialize(schema_1.METADATA_SCHEMA, new schema_1.CreateMasterEditionArgs({ maxSupply: new bn_js_1.default(0) })));
+                    txnData = Buffer.from(borsh_1.serialize(schema_1.METADATA_SCHEMA, new schema_1.CreateMasterEditionArgs({ maxSupply: new anchor.BN(0) })));
                     instructions.push(instructions_1.createMasterEditionInstruction(metadataAccount, editionAccount, mint.publicKey, wallet.publicKey, wallet.publicKey, wallet.publicKey, txnData));
                     return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(connection, walletKeypair, instructions, signers)];
                 case 9:

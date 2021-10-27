@@ -25,14 +25,14 @@ const wallet_adapter_react_1 = require("@solana/wallet-adapter-react");
 const antd_1 = require("antd");
 const Settings_1 = require("../Settings");
 const style_1 = require("./style");
-const CurrentUserBadge = (props) => {
+const CurrentUserBadge = ({ userData }) => {
     const { wallet, publicKey } = wallet_adapter_react_1.useWallet();
     const [showPopover, setShowPopover] = react_1.useState(false);
     if (!wallet || !publicKey) {
         return null;
     }
     return (react_1.default.createElement("div", { className: style_1.WalletWrapper },
-        react_1.default.createElement(antd_1.Popover, { overlayClassName: style_1.ProfilePopover, color: "#000000", content: react_1.default.createElement(Settings_1.Settings, { setShowPopover: setShowPopover }), trigger: "click", placement: "bottomRight", onVisibleChange: visible => setShowPopover(visible), visible: showPopover },
+        react_1.default.createElement(antd_1.Popover, { overlayClassName: style_1.ProfilePopover, color: "#000000", content: react_1.default.createElement(Settings_1.Settings, { userData: userData, setShowPopover: setShowPopover }), trigger: "click", placement: "bottomRight", onVisibleChange: visible => setShowPopover(visible), visible: showPopover },
             react_1.default.createElement(antd_1.Avatar, { size: 42, style: { cursor: 'pointer' } }))));
 };
 exports.CurrentUserBadge = CurrentUserBadge;

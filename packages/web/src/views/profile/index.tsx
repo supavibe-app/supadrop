@@ -46,6 +46,14 @@ const Profile = ({ userId }: { userId: string }) => {
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
 
+  // ownedMetadata.forEach(data => {
+  //   if (!allData[data.metadata.pubkey]) {
+  //     allData[data.metadata.pubkey] = {
+  //       type: 'owned',
+  //       item: data,
+  //     };
+  //   }
+  // });
   const walletAddress = userData ? userData.wallet_address : userId;
   const artwork = useCreatorArts(walletAddress);
   const ownedMetadata = useUserArts();

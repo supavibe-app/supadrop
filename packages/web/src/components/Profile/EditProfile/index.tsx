@@ -19,18 +19,43 @@ import {
   UploadStyle,
 } from './style';
 import { UserData } from '@oyster/common';
+import { resolve } from 'path/posix';
 
 const { TextArea } = Input;
 const maxChar = 280;
+const BASE_STORAGE_URL = "https://fjgyltuahsuzqqkdnhay.supabase.in/storage/v1/object/public/profile/avatars/" // TODO NEED TO MOVE or CHANGE
 
 const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: UserData | undefined; }) => {
   const { publicKey } = useWallet();
   const [form] = Form.useForm();
   const [bio, setBio] = useState(userData?.bio || ''); // to get the length of bio
+  const [file, setFile] = useState<File>();
+  const [avatarUrl, setAvatarUrl] = useState<String>();
+
+  // will return localhost link just for temp data
+  async function downloadImage(path) {
+    console.log('downloadImage: ', path)
+    const { data, error } = await supabase.storage.from('profile').download(`avatars/${path}`)
+    if (error) {
+      throw error
+    }
+    const url = URL.createObjectURL(data)
+    setAvatarUrl(url)
+  }
 
   const saveProfile = async (values) => {
+    let exProfpic;
+    if (userData?.img_profile) {
+      exProfpic = userData.img_profile.split("/");
+      await supabase
+        .storage
+        .from('profile')
+        .remove([`avatars/${exProfpic[exProfpic.length-1]}`])
+    }
+
     let { data, error } = await supabase.from('user_data')
-      .update([{ ...values, img_profile: '' }])
+      // .update([{ ...values, img_profile: avatarUrl }])
+      .update([{ ...values, img_profile: `${BASE_STORAGE_URL}${file?.name}` }])
       .eq('wallet_address', publicKey)
       .limit(1)
 
@@ -47,34 +72,46 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     }
   };
 
-  // KEEP GETTING 400 on Upload
+  const onUpload = async (event) => {
+    console.log('onUpload', typeof event);
+    setFile(event);
+    const { error: uploadError } = await supabase.storage
+      .from('profile')
+      .upload(`avatars/${event.name}`, event);
+
+    if (uploadError) {
+      downloadImage(event.name);
+      throw uploadError
+    } else downloadImage(event.name);
+
+    return ''
+  }
+
   const props = {
-    multiple: false,
+    action:onUpload,
     onStart(file) {
       console.log('onStart file', file);
       console.log('onStart file name', file.name);
-      supabase.storage
-        .from('profile')
-        .upload(`avatars/${file.name}`, file)
     },
     onSuccess(ret) {
       console.log('onSuccess', ret);
+      onUpload
     },
     onError(err) {
       console.log('onError', err);
     },
     beforeUpload(file) {
       console.log(file);
-      const isPng = file.type === 'image/png';
       const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-      if (!isPng) {
+      if (!isJpgOrPng) {
         message.error('You can only upload PNG file!');
       }
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isLt2M) {
-        message.error('Image must smaller than 2MB!');
+      const isLt1M = file.size / 1024 / 1024 < 1;
+      if (!isLt1M) {
+        message.error('Image must smaller than 1MB!');
+  
       }
-      return isJpgOrPng && isLt2M;
+      return isJpgOrPng && isLt1M;
     },
   };
 
@@ -86,7 +123,9 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
         <div className={UploadImageContainer}>
           <div>
             <Upload {...props} className={UploadStyle}>
-              <Avatar size={86} icon={<FeatherIcon icon="image" size="32" />} style={{ cursor: 'pointer' }} />
+              {userData?.img_profile && avatarUrl && <Avatar size={86} src={avatarUrl} style={{ cursor: 'pointer' }} />}
+              {userData?.img_profile && !avatarUrl && <Avatar size={86} src={userData.img_profile} style={{ cursor: 'pointer' }} />}
+              {!userData?.img_profile && !avatarUrl && <Avatar size={86} icon={<FeatherIcon icon="image" size="32" />} style={{ cursor: 'pointer' }} />}
             </Upload>
           </div>
 
