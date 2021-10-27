@@ -19,6 +19,7 @@ import {
   UploadStyle,
 } from './style';
 import { UserData } from '@oyster/common';
+import { resolve } from 'path/posix';
 
 const { TextArea } = Input;
 const maxChar = 280;
@@ -31,6 +32,7 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   const [file, setFile] = useState<File>();
   const [avatarUrl, setAvatarUrl] = useState<String>();
 
+  // will return localhost link just for temp data
   async function downloadImage(path) {
     console.log('downloadImage: ', path)
     const { data, error } = await supabase.storage.from('profile').download(`avatars/${path}`)
@@ -78,21 +80,22 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
       .upload(`avatars/${event.name}`, event);
 
     if (uploadError) {
-      downloadImage(event.name)
+      downloadImage(event.name);
       throw uploadError
-    }
+    } else downloadImage(event.name);
 
-    downloadImage(event.name)
+    return ''
   }
 
   const props = {
-    action: onUpload,
+    action:onUpload,
     onStart(file) {
       console.log('onStart file', file);
       console.log('onStart file name', file.name);
     },
     onSuccess(ret) {
       console.log('onSuccess', ret);
+      onUpload
     },
     onError(err) {
       console.log('onError', err);
@@ -103,12 +106,12 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
       if (!isJpgOrPng) {
         message.error('You can only upload PNG file!');
       }
-      const isLt2M = file.size / 1024 / 1024 < 1;
-      if (!isLt2M) {
+      const isLt1M = file.size / 1024 / 1024 < 1;
+      if (!isLt1M) {
         message.error('Image must smaller than 1MB!');
   
       }
-      return isJpgOrPng && isLt2M;
+      return isJpgOrPng && isLt1M;
     },
   };
 
