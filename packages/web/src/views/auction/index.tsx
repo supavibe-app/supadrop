@@ -76,6 +76,7 @@ export const AuctionView = () => {
       break;
   }
 
+
   useEffect(() => {
     pullAuctionPage(id);
   }, []);

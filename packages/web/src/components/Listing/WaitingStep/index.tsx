@@ -16,7 +16,7 @@ const WaitingStep = (props: {
     : 'waiting for confirmation';
   const description = confirmed
     ? 'your NFT will be put on supadrop marketplace as soon as the transaction processed'
-    : 'confirm he transaction in your wallet to continue';
+    : 'confirm the transaction in your wallet to continue';
 
   useEffect(() => {
     const func = async () => {
