@@ -284,7 +284,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
       try {
         console.log('sendPlaceBid');
         const wallet = walletContext
-        const auctionView = auction
+        const auctionView = auction!!
         const bid = await sendPlaceBid(
           connection,
           wallet,
