@@ -1,10 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.processMetaplexAccounts = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const models_1 = require("../../models");
 const utils_1 = require("../../utils");
 const accounts_1 = require("../accounts");
+const userNames_json_1 = __importDefault(require("../../config/userNames.json"));
 const processMetaplexAccounts = async ({ account, pubkey }, setter) => {
     if (!isMetaplexAccount(account))
         return;
@@ -103,6 +107,10 @@ const processMetaplexAccounts = async ({ account, pubkey }, setter) => {
             // should we store store id inside creator?
             if (STORE_ID) {
                 const isWhitelistedCreator = await models_1.isCreatorPartOfTheStore(parsedAccount.info.address, pubkey);
+                const nameInfo = userNames_json_1.default[parsedAccount.info.address];
+                if (nameInfo) {
+                    parsedAccount.info = { ...parsedAccount.info, ...nameInfo };
+                }
                 if (isWhitelistedCreator) {
                     setter('whitelistedCreatorsByCreator', parsedAccount.info.address, parsedAccount);
                 }

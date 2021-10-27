@@ -59,6 +59,9 @@ var verifyAggregateShare = function (creators, manifestFile) {
     var aggregateShare = creators
         .map(function (creator) { return creator.share; })
         .reduce(function (memo, share) {
+        if (!Number.isInteger(share)) {
+            throw new Error("Creator share for " + manifestFile + " contains floats. Only use integers for this number.");
+        }
         return memo + share;
     }, 0);
     // Check that creator share adds up to 100
@@ -102,7 +105,7 @@ var verifyImageURL = function (image, files, manifestFile) {
     if (image !== expectedImagePath) {
         // We _could_ match against this in the JSON schema validation, but it is totally valid to have arbitrary URLs to images here.
         // The downside, though, is that those images will not get uploaded to Arweave since they're not on-disk.
-        loglevel_1.default.warn("We expected the `image` property in " + manifestFile + " to be " + expectedImagePath + ".\nThis will still work properly (assuming the URL is valid!), however, this image will not get uploaded to Arweave through the `metaplex upload` command.   \nIf you want us to take care of getting this into Arweave, make sure to set `image`: \"" + expectedImagePath + "\"\nThe `metaplex upload` command will automatically substitute this URL with the Arweave URL location.\n    ");
+        loglevel_1.default.warn("We expected the `image` property in " + manifestFile + " to be " + expectedImagePath + ".\nThis will still work properly (assuming the URL is valid!), however, this image will not get uploaded to Arweave through the `metaplex upload` command.\nIf you want us to take care of getting this into Arweave, make sure to set `image`: \"" + expectedImagePath + "\"\nThe `metaplex upload` command will automatically substitute this URL with the Arweave URL location.\n    ");
     }
     var pngFiles = files.filter(function (file) { return file.type === 'image/png'; });
     if (pngFiles.length === 0 || !pngFiles.some(function (file) { return file.uri === image; })) {

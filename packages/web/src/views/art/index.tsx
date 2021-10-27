@@ -35,6 +35,20 @@ export const ArtView = () => {
   const { id } = useParams<{ id: string }>();
 
   const art = useArt(id);
+  // let badge = '';
+  // let maxSupply = '';
+  // if (art.type === ArtType.NFT) {
+  //   badge = 'Unique';
+  // } else if (art.type === ArtType.Master) {
+  //   badge = 'NFT 0';
+  //   if (art.maxSupply !== undefined) {
+  //     maxSupply = art.maxSupply.toString();
+  //   } else {
+  //     maxSupply = 'Unlimited';
+  //   }
+  // } else if (art.type === ArtType.Print) {
+  //   badge = `${art.edition} of ${art.supply}`;
+  // }
   const { ref, data } = useExtendedArt(id);
   const isDataReady = Boolean(art) && Boolean(data);
 
@@ -97,7 +111,7 @@ export const ArtView = () => {
               <div className={PriceBox}>
                 <div className={LabelPrice}>last sold for</div>
                 {/* TODO: Get data last price */}
-                <div>500 SOL</div>
+                <div>100 SOL</div>
               </div>
 
               <ActionButton disabled width="100%">not for sale</ActionButton>
