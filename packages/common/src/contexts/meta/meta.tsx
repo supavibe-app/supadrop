@@ -28,6 +28,9 @@ const MetaContext = React.createContext<MetaContextState>({
   liveDataAuctions: {},
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
+  // @ts-ignore
+  updateLiveDataAuction: function (){},
+
 });
 
 export function MetaProvider({ children = null as any }) {
@@ -145,6 +148,29 @@ export function MetaProvider({ children = null as any }) {
     setState(nextState);
     await updateMints(nextState.metadataByMint);
     return;
+  }
+
+  async function updateLiveDataAuction(){
+    supabase.from('auction_status')
+    .select(`
+    *,
+    nft_data (
+      *
+    )
+    `)
+    .then(dataAuction => {
+      let listData : {[key:string]:ItemAuction} =  {}
+      if (dataAuction.body != null) {
+        dataAuction.body.forEach( v =>{
+          listData[v.id] = new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link,v.owner,v.nft_data.mint_key, v.type_auction)
+        })
+        
+        setDataAuction(listData)
+        setIsLoadingDatabase(false)
+      }
+      console.log('update data', liveDataAuctions);
+      
+    })
   }
 
   async function update(
@@ -365,7 +391,8 @@ export function MetaProvider({ children = null as any }) {
         pullBillingPage,
         pullAllSiteData,
         isLoadingMetaplex,
-        liveDataAuctions
+        liveDataAuctions,
+        updateLiveDataAuction
       }}
     >
       {children}

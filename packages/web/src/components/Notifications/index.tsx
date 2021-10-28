@@ -398,9 +398,9 @@ export function Notifications() {
     () =>
       Object.values(vaults).filter(
         v =>
-          v.info.authority === walletPubkey &&
-          v.info.state !== VaultState.Deactivated &&
-          v.info.tokenTypeCount > 0,
+          v?.info.authority === walletPubkey &&
+          v?.info.state !== VaultState.Deactivated &&
+          v?.info.tokenTypeCount > 0,
       ),
     [vaults, walletPubkey],
   );
@@ -467,11 +467,11 @@ export function Notifications() {
     () =>
       metadata.filter(m => {
         return (
-          m.info.data.creators &&
-          (whitelistedCreatorsByCreator[m.info.updateAuthority]?.info
+          m?.info.data.creators &&
+          (whitelistedCreatorsByCreator[m?.info.updateAuthority]?.info
             ?.activated ||
             store?.info.public) &&
-          m.info.data.creators.find(
+          m?.info.data.creators.find(
             c => c.address === walletPubkey && !c.verified,
           )
         );
@@ -486,7 +486,7 @@ export function Notifications() {
       textButton: 'approve',
       description: (
         <span>
-          {whitelistedCreatorsByCreator[m.info.updateAuthority]?.info?.name ||
+          {whitelistedCreatorsByCreator[m?.info.updateAuthority]?.info?.name ||
             m.pubkey}{' '}
           wants you to approve that you helped create their art{' '}
           <Link to={`/art/${m.pubkey}`}>here.</Link>

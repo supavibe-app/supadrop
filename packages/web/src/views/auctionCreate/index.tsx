@@ -76,7 +76,7 @@ export interface AuctionState {
 export const AuctionCreateView = () => {
   // const connection = useConnection();
   // const wallet = useWallet();
-  const { whitelistedCreatorsByCreator, storeIndexer } = useMeta();
+  const { whitelistedCreatorsByCreator, storeIndexer , updateLiveDataAuction} = useMeta();
 
   // const { step_param }: { step_param: string } = useParams();
   // const history = useHistory();
@@ -244,8 +244,7 @@ export const AuctionCreateView = () => {
       storeIndexer,
     );
 
-    supabase
-      .from('auction_status')
+    supabase.from('auction_status')
       .insert([
         {
           id: _auctionObj.auction,
@@ -267,6 +266,7 @@ export const AuctionCreateView = () => {
       ])
       .then();
     setAuctionObj(_auctionObj);
+    updateLiveDataAuction()
   };
 
   const sellStep = (

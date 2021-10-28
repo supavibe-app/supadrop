@@ -76,6 +76,10 @@ export const AuctionView = () => {
       break;
   }
 
+  const updatePage = ()=>{
+    pullAuctionPage(id)
+  }
+
   useEffect(() => {
     pullAuctionPage(id);
   }, []);
@@ -137,6 +141,7 @@ export const AuctionView = () => {
               art={art}
               highestBid={highestBid}
               bids={bids}
+              updatePage={updatePage}
               showPlaceBid={showPlaceBid}
               setShowPlaceBid={setPlaceBidVisibility}
               currentBidAmount={bidAmount}

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta, AuctionState, VaultState, BidStateType, ItemAuction } from '@oyster/common';
+import { BidderMetadata, CountdownState, formatTokenAmount, ParsedAccount, shortenAddress, useNativeAccount, useWalletModal, formatNumber, PriceFloorType, useMint, useConnection, useUserAccounts, fromLamports, useMeta, AuctionState, VaultState, BidStateType, ItemAuction, WinningConfigType } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
@@ -15,8 +15,10 @@ import { eligibleForParticipationPrizeGivenWinningIndex, sendRedeemBid } from '.
 import { uFontSize24, uTextAlignEnd, WhiteColor } from '../../../styles';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox, SpinnerStyle } from './style';
 import countDown from '../../../helpers/countdown';
+import { endSale } from '../../AuctionCard/utils/endSale';
+import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState';
 
-const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
+const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid,updatePage, showPlaceBid, currentBidAmount }: {
   art: Art;
   auction?: AuctionView;
   auctionDatabase?: ItemAuction;
@@ -24,6 +26,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
   bids: ParsedAccount<BidderMetadata>[];
   showPlaceBid: boolean;
   setShowPlaceBid: (visible: boolean) => void;
+  updatePage: () => void;
   currentBidAmount: number | undefined;
 }) => {
   const connection = useConnection();
@@ -42,15 +45,16 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
   const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
+  const isAuctionManagerAuthorityNotWalletOwner =
+    auction?.auctionManager.authority !== publicKey?.toBase58();
 
   const open = useCallback(() => setVisible(true), [setVisible]);
 
   const bid = useHighestBidForAuction(auctionDatabase?.id || '');
   const mintInfo = useMint(auctionDatabase?.token_mint);
   const priceFloor = auctionDatabase?.price_floor;
-
   const balance = parseFloat(formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL));
-  const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
+  const [currentBid, setCurrentBid] = useState(parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo)) 
   const minimumBid = getMinimumBid(currentBid);
   const myPayingAccount = useUserBalance(auctionDatabase?.token_mint).accounts[0]
 
@@ -236,50 +240,101 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
     );
   };
 
-  const instantSale = async () => {
+  const endInstantSale = async () => {
     try {
-      await sendPlaceBid(
+      const auctionView = auction!!
+      const wallet = walletContext
+      await endSale({
+        auctionView,
         connection,
-        walletContext,
-        publicKey?.toBase58(),
-        auction!!,
         accountByMint,
-        instantSalePrice,
-      );
+        bids,
+        bidRedemptions,
+        prizeTrackingTickets,
+        wallet,
+      });
+      updatePage()
     } catch (e) {
-      console.error('sendPlaceBid', e);
-      return
+      console.error('endAuction', e);
+      return;
+    }
+  };
+
+  const instantSale = async () => {
+    const instantSalePrice =
+      auction?.auctionDataExtended?.info.instantSalePrice;
+    const winningConfigType =
+      auction?.participationItem?.winningConfigType ||
+      auction?.items[0][0].winningConfigType;
+    const isAuctionItemMaster = [
+      WinningConfigType.FullRightsTransfer,
+      WinningConfigType.TokenOnlyTransfer,
+    ].includes(winningConfigType!!);
+    const allowBidToPublic =
+      myPayingAccount &&
+      !auction?.myBidderPot &&
+      isAuctionManagerAuthorityNotWalletOwner;
+    const allowBidToAuctionOwner =
+      myPayingAccount &&
+      !isAuctionManagerAuthorityNotWalletOwner &&
+      isAuctionItemMaster;
+
+    // Placing a "bid" of the full amount results in a purchase to redeem.
+    if (instantSalePrice && (allowBidToPublic || allowBidToAuctionOwner)) {
+      try {
+        console.log('sendPlaceBid');
+        const wallet = walletContext
+        const auctionView = auction!!
+        const bid = await sendPlaceBid(
+          connection,
+          wallet,
+          myPayingAccount.pubkey,
+          auctionView,
+          accountByMint,
+          instantSalePrice,
+        );
+        setCurrentBid(bid.amount.toNumber())
+        updatePage()
+      } catch (e) {
+        console.error('sendPlaceBid', e);
+        return;
+      }
     }
 
     const newAuctionState = await update(
-      auctionDatabase?.id,
+      auction?.auction.pubkey,
       publicKey,
     );
-    auction!!.auction = newAuctionState[0];
-    auction!!.myBidderPot = newAuctionState[1];
-    auction!!.myBidderMetadata = newAuctionState[2];
+    if (auction) {
+      auction.auction = newAuctionState[0];
+      auction.myBidderPot = newAuctionState[1];
+      auction.myBidderMetadata = newAuctionState[2];
+    }
     // Claim the purchase
     try {
+      const wallet = walletContext
+      const auctionView = auction!!
       await sendRedeemBid(
         connection,
-        walletContext,
+        wallet,
         myPayingAccount.pubkey,
-        auction!!,
+        auctionView,
         accountByMint,
         prizeTrackingTickets,
         bidRedemptions,
         bids,
       ).then(async () => {
         await update();
-        // setShowBidModal(false);
-        // setShowRedeemedBidModal(true);
       });
+      updatePage()
+
     } catch (e) {
       console.error(e);
     }
 
-    // setLoading(false);
-  }
+  };
+
+
 
   if (confirmTrigger) {
     return (
@@ -376,9 +431,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
       return (
         <BidDetailsContent>
           <a className={ButtonWrapper}>
-            <ActionButton width="100%" onClick={() =>
-              auction?.isInstantSale && instantSale()
-            }>
+            <ActionButton width="100%" onClick={endInstantSale}>
               UNLIST
             </ActionButton>
           </a>
@@ -399,15 +452,15 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
       );
     }
   }
-
+  
   // case : instant sale
   if (auction?.isInstantSale && !(publicKey?.toBase58() === owner && !eligibleForAnything)) {
-    if (!auction.myBidderPot && balance > instantSalePrice) {
+    if (balance > instantSalePrice) {
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
             <ActionButton width="100%" onClick={instantSale}>
-              BUY NOW
+              {!!auction.myBidderPot ? "CLAIM PURCHASE" : "BUY NOW"}
             </ActionButton>
           </div>
         </BidDetailsContent>
@@ -415,6 +468,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
     }
 
     // !auction.myBidderPot && balance < instantSalePrice
+
 
     return (
       <BidDetailsContent>
