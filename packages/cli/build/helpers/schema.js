@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extendBorsh = exports.METADATA_SCHEMA = exports.CreateMasterEditionArgs = exports.CreateMetadataArgs = exports.Data = exports.Creator = void 0;
+exports.extendBorsh = exports.METADATA_SCHEMA = exports.CreateMasterEditionArgs = exports.UpdateMetadataArgs = exports.CreateMetadataArgs = exports.Data = exports.Creator = void 0;
 var borsh_1 = require("borsh");
 var bs58_1 = __importDefault(require("bs58"));
 var web3_js_1 = require("@solana/web3.js");
@@ -36,6 +36,16 @@ var CreateMetadataArgs = /** @class */ (function () {
     return CreateMetadataArgs;
 }());
 exports.CreateMetadataArgs = CreateMetadataArgs;
+var UpdateMetadataArgs = /** @class */ (function () {
+    function UpdateMetadataArgs(args) {
+        this.instruction = 1;
+        this.data = args.data ? args.data : null;
+        this.updateAuthority = args.updateAuthority ? args.updateAuthority : null;
+        this.primarySaleHappened = args.primarySaleHappened;
+    }
+    return UpdateMetadataArgs;
+}());
+exports.UpdateMetadataArgs = UpdateMetadataArgs;
 var CreateMasterEditionArgs = /** @class */ (function () {
     function CreateMasterEditionArgs(args) {
         this.instruction = 10;
@@ -63,6 +73,18 @@ exports.METADATA_SCHEMA = new Map([
             fields: [
                 ['instruction', 'u8'],
                 ['maxSupply', { kind: 'option', type: 'u64' }],
+            ],
+        },
+    ],
+    [
+        UpdateMetadataArgs,
+        {
+            kind: 'struct',
+            fields: [
+                ['instruction', 'u8'],
+                ['data', { kind: 'option', type: Data }],
+                ['updateAuthority', { kind: 'option', type: 'pubkeyAsString' }],
+                ['primarySaleHappened', { kind: 'option', type: 'u8' }],
             ],
         },
     ],

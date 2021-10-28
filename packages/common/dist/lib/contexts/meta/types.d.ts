@@ -44,6 +44,7 @@ export interface MetaContextState extends MetaState {
     ];
     pullAuctionPage: (auctionAddress: StringPublicKey) => Promise<MetaState>;
     pullBillingPage: (auctionAddress: StringPublicKey) => void;
+    updateLiveDataAuction: () => void;
     pullAllSiteData: () => void;
     pullAllMetadata: () => void;
 }

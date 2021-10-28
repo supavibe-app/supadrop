@@ -118,6 +118,9 @@ function upload(files, cacheName, env, keypair, totalNFTs, storage, retainAuthor
                     if (i % 50 === 0) {
                         loglevel_1.default.info("Processing file: " + i);
                     }
+                    else {
+                        loglevel_1.default.debug("Processing file: " + i);
+                    }
                     link = (_b = (_a = cacheContent === null || cacheContent === void 0 ? void 0 : cacheContent.items) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.link;
                     if (!(!link || !cacheContent.program.uuid)) return [3 /*break*/, 15];
                     manifestPath = image.replace(constants_1.EXTENSION_PNG, '.json');

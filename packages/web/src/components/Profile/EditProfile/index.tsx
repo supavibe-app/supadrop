@@ -19,7 +19,6 @@ import {
   UploadStyle,
 } from './style';
 import { UserData } from '@oyster/common';
-import { resolve } from 'path/posix';
 
 const { TextArea } = Input;
 const maxChar = 280;
