@@ -8,7 +8,7 @@ import {
   pullYourMetadata,
   USE_SPEED_RUN,
 } from './loadAccounts';
-import { MetaContextState, MetaState, ItemAuction } from './types';
+import { MetaContextState, MetaState, ItemAuction, Collection } from './types';
 import { useConnection } from '../connection';
 import { useStore } from '../store';
 import { AuctionData, BidderMetadata, BidderPot } from '../../actions';
@@ -20,25 +20,32 @@ import {
 } from '.';
 import { StringPublicKey, TokenAccount, useUserAccounts } from '../..';
 import {supabase} from '../../supabaseClient'
+import moment from 'moment';
 
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
   isLoadingMetaplex: false,
   isLoadingDatabase: false,
+  endingTime: 0,
   liveDataAuctions: {},
+  allDataAuctions: {},
+  dataCollection: new Collection('','',0,0,0),
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
   // @ts-ignore
   updateLiveDataAuction: function (){},
+  updateAllDataAuction: function (){},
 
 });
 
 export function MetaProvider({ children = null as any }) {
   const connection = useConnection();
   const { isReady, storeAddress } = useStore();
-
+  const [dataCollection,setDataCollection] = useState<Collection>(new Collection('','',0,0,0))
+  const [endingTime, setEndingTime] = useState(0)
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
-  const [liveDataAuctions,setDataAuction] = useState<{[key:string]:ItemAuction}>({})
+  const [liveDataAuctions,setLiveDataAuction] = useState<{[key:string]:ItemAuction}>({})
+  const [allDataAuctions,setAllDataAuction] = useState<{[key:string]:ItemAuction}>({})
   const [page, setPage] = useState(0);
   const [metadataLoaded, setMetadataLoaded] = useState(false);
   const [lastLength, setLastLength] = useState(0);
@@ -158,17 +165,51 @@ export function MetaProvider({ children = null as any }) {
       *
     )
     `)
+    .gt('end_auction',moment().unix())
+    .order('end_auction',{ascending:false})
     .then(dataAuction => {
       let listData : {[key:string]:ItemAuction} =  {}
-      if (dataAuction.body != null) {
+      if (dataAuction.body != null && dataAuction.body.length > 0) {
         dataAuction.body.forEach( v =>{
           listData[v.id] = new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link,v.owner,v.nft_data.mint_key, v.type_auction)
         })
+        setEndingTime(dataAuction.body[dataAuction.body.length-1].end_auction)
         
-        setDataAuction(listData)
-        setIsLoadingDatabase(false)
+        setLiveDataAuction(listData)
       }
-      console.log('update data', liveDataAuctions);
+      setIsLoadingDatabase(false)
+      
+    })
+  }
+
+  async function updateAllDataAuction(){
+    supabase.from('auction_status')
+    .select(`
+    *,
+    nft_data (
+      *
+    )
+    `)
+    .then(dataAuction => {
+      let listData : {[key:string]:ItemAuction} =  {}
+      if (dataAuction.body != null && dataAuction.body.length > 0) {
+        dataAuction.body.forEach( v =>{
+          listData[v.id] = new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link,v.owner,v.nft_data.mint_key, v.type_auction)
+        })
+        setAllDataAuction(listData)
+      }
+    })
+  }
+  async function getDataCollection(){
+    supabase.from('collections')
+    .select(`*`)
+    .eq('id',1)
+    .then(data => {
+      if (data.body != null) {
+        const {id,name,supply,sold,start_publish} = data.body[0]
+        let collection = new Collection(id,name,supply,sold,start_publish)
+        setDataCollection(collection)
+      }
       
     })
   }
@@ -283,25 +324,9 @@ export function MetaProvider({ children = null as any }) {
     }
 
     //Todo handle not-started, starting, ended
-    supabase.from('auction_status')
-    .select(`
-    *,
-    nft_data (
-      *
-    )
-    `)
-    .then(dataAuction => {
-      let listData : {[key:string]:ItemAuction} =  {}
-      if (dataAuction.body != null) {
-        dataAuction.body.forEach( v =>{
-          listData[v.id] = new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link,v.owner,v.nft_data.mint_key, v.type_auction)
-        })
-        
-        setDataAuction(listData)
-        setIsLoadingDatabase(false)
-      }
-    })
-
+    updateLiveDataAuction()
+    updateAllDataAuction()
+    getDataCollection()
     console.log('------->set finished', new Date());
 
     await updateMints(nextState.metadataByMint);
@@ -391,8 +416,12 @@ export function MetaProvider({ children = null as any }) {
         pullBillingPage,
         pullAllSiteData,
         isLoadingMetaplex,
+        dataCollection,
+        endingTime,
         liveDataAuctions,
-        updateLiveDataAuction
+        allDataAuctions,
+        updateLiveDataAuction,
+        updateAllDataAuction
       }}
     >
       {children}

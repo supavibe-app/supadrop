@@ -16,7 +16,6 @@ import { uFontSize24, uTextAlignEnd, WhiteColor } from '../../../styles';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox, SpinnerStyle } from './style';
 import countDown from '../../../helpers/countdown';
 import { endSale } from '../../AuctionCard/utils/endSale';
-import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState';
 
 const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid,updatePage, showPlaceBid, currentBidAmount }: {
   art: Art;
@@ -33,7 +32,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
   const { setVisible } = useWalletModal();
   const { account } = useNativeAccount();
   const { accountByMint } = useUserAccounts();
-  const { update, prizeTrackingTickets, bidRedemptions, pullAuctionPage } = useMeta();
+  const { update, prizeTrackingTickets, bidRedemptions, pullAuctionPage, isLoadingDatabase } = useMeta();
   const ownedMetadata = useUserArts();
 
   const walletContext = useWallet();
@@ -44,10 +43,10 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
 
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
-  const ended = state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
+  const ended =  state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
   const isAuctionManagerAuthorityNotWalletOwner =
     auction?.auctionManager.authority !== publicKey?.toBase58();
-
+  
   const open = useCallback(() => setVisible(true), [setVisible]);
 
   const bid = useHighestBidForAuction(auctionDatabase?.id || '');
@@ -79,13 +78,10 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
 
   // countdown
   useEffect(() => {
-    if (!ended) {
       const calc = () => setState(countDown(endAt));
-
       const interval = setInterval(() => calc(), 1000);
       calc();
       return () => clearInterval(interval);
-    }
   }, [auction, setState]);
 
   const handleConnect = useCallback(
@@ -253,6 +249,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
         prizeTrackingTickets,
         wallet,
       });
+
       updatePage()
     } catch (e) {
       console.error('endAuction', e);
@@ -295,6 +292,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
         );
         setCurrentBid(bid.amount.toNumber())
         updatePage()
+
       } catch (e) {
         console.error('sendPlaceBid', e);
         return;
@@ -402,6 +400,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
       }
 
       // case 3: auction ended but not participated
+      
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>

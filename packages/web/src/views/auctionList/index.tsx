@@ -14,7 +14,7 @@ const { TabPane } = Tabs;
 
 const AuctionListView = () => {
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
-  const { isLoadingMetaplex, isLoadingDatabase, liveDataAuctions } = useMeta();
+  const { isLoadingMetaplex, isLoadingDatabase, liveDataAuctions,allDataAuctions } = useMeta();
   const now = moment().unix();
   const [activeKey, setActiveKey] = useState(Object.entries(liveDataAuctions).length > 0 ? '1' : '2');
 
@@ -24,7 +24,7 @@ const AuctionListView = () => {
   }, [liveDataAuctions]);
 
   const liveAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => data.endAt > now);
-  const endAuctions = Object.entries(liveDataAuctions).filter(([key, data]) => data.endAt < now);
+  const endAuctions = Object.entries(allDataAuctions).filter(([key, data]) => data.endAt < now).reverse();
 
   const auctionList = list => {
     if (isLoadingMetaplex && isLoadingDatabase) return [...Array(8)].map((_, idx) => <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}><CardLoader key={idx} /></Col>)

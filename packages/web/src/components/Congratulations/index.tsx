@@ -13,9 +13,9 @@ import { ContinueButton, Description, HeaderStyle, ShareButton } from './style';
 const TweetURL = (title, urlToNFT) => `https://twitter.com/intent/tweet?text=I%20just%20won%20an%20NFT%20auction%20for%20${title}%20on%20%40supadropnft%E2%80%A8%0A${urlToNFT}`;
 
 const Congratulations = ({ id }) => {
-  const { liveDataAuctions } = useMeta();
+  const { allDataAuctions } = useMeta();
   const { publicKey } = useWallet();
-  const auctionView = liveDataAuctions[id];
+  const auctionView = allDataAuctions[id];
   const art = useArt(auctionView.id_nft);
 
   return (
