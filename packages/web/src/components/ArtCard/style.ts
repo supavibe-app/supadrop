@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
 
 export const AuctionImage = height => css`
-  height: ${height}px;
+  height: ${height ? `${height}px` : '100%'};
   width: 100%;
 
   .ant-image-img {

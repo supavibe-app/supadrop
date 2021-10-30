@@ -25,7 +25,7 @@ export const Settings = ({ userData, setShowPopover = () => { } }: {
           setShowPopover(false);
           push(`/${userData?.username ? userData.username : publicKey}`);
         }}>
-          <Avatar className={ItemIcon} />
+          <Avatar src={userData?.img_profile} className={ItemIcon} />
           view profile
         </div>
       </List.Item>
