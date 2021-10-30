@@ -19,12 +19,13 @@ import {
   pullStoreMetadata,
 } from '.';
 import { StringPublicKey, TokenAccount, useUserAccounts } from '../..';
-import {supabase} from '../../supabaseClient'
+import { supabase } from '../../supabaseClient'
 
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
   isLoadingMetaplex: false,
   isLoadingDatabase: false,
+  isBidPlaced: false,
   liveDataAuctions: {},
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
@@ -35,7 +36,7 @@ export function MetaProvider({ children = null as any }) {
   const { isReady, storeAddress } = useStore();
 
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
-  const [liveDataAuctions,setDataAuction] = useState<{[key:string]:ItemAuction}>({})
+  const [liveDataAuctions, setDataAuction] = useState<{ [key: string]: ItemAuction }>({})
   const [page, setPage] = useState(0);
   const [metadataLoaded, setMetadataLoaded] = useState(false);
   const [lastLength, setLastLength] = useState(0);
@@ -43,6 +44,7 @@ export function MetaProvider({ children = null as any }) {
 
   const [isLoadingMetaplex, setIsLoadingMetaplex] = useState(true);
   const [isLoadingDatabase, setIsLoadingDatabase] = useState(true);
+  const [isBidPlaced, setBidPlaced] = useState(false);
 
   const updateMints = useCallback(
     async metadataByMint => {
@@ -208,7 +210,7 @@ export function MetaProvider({ children = null as any }) {
         const billing = window.location.href.match(
           /auction\/(\w+)\/billing/,
         );
-        
+
         if (auction && page == 0) {
           console.log(
             '---------->Loading auction page on initial load, pulling sub accounts',
@@ -258,23 +260,23 @@ export function MetaProvider({ children = null as any }) {
 
     //Todo handle not-started, starting, ended
     supabase.from('auction_status')
-    .select(`
+      .select(`
     *,
     nft_data (
       *
     )
     `)
-    .then(dataAuction => {
-      let listData : {[key:string]:ItemAuction} =  {}
-      if (dataAuction.body != null) {
-        dataAuction.body.forEach( v =>{
-          listData[v.id] = new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link,v.owner,v.nft_data.mint_key, v.type_auction)
-        })
-        
-        setDataAuction(listData)
-        setIsLoadingDatabase(false)
-      }
-    })
+      .then(dataAuction => {
+        let listData: { [key: string]: ItemAuction } = {}
+        if (dataAuction.body != null) {
+          dataAuction.body.forEach(v => {
+            listData[v.id] = new ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link, v.owner, v.nft_data.mint_key, v.type_auction)
+          })
+
+          setDataAuction(listData)
+          setIsLoadingDatabase(false)
+        }
+      })
 
     console.log('------->set finished', new Date());
 
@@ -365,7 +367,9 @@ export function MetaProvider({ children = null as any }) {
         pullBillingPage,
         pullAllSiteData,
         isLoadingMetaplex,
-        liveDataAuctions
+        liveDataAuctions,
+        isBidPlaced,
+        setBidPlaced,
       }}
     >
       {children}

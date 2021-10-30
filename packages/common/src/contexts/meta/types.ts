@@ -1,5 +1,5 @@
 import { AccountInfo } from '@solana/web3.js';
-import { TokenAccount } from '../..';
+import { Dispatch, SetStateAction } from 'react';
 import {
   AuctionData,
   AuctionDataExtended,
@@ -98,6 +98,9 @@ export interface MetaContextState extends MetaState {
 
   pullAllSiteData: () => void;
   pullAllMetadata: () => void;
+
+  isBidPlaced: boolean;
+  setBidPlaced: Dispatch<SetStateAction<boolean>>;
 }
 
 export type AccountAndPubkey = {

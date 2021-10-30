@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { AccountInfo } from '@solana/web3.js';
+import { Dispatch, SetStateAction } from 'react';
 import { AuctionData, AuctionDataExtended, BidderMetadata, BidderPot, Edition, MasterEditionV1, MasterEditionV2, Metadata, SafetyDepositBox, Vault } from '../../actions';
 import { AuctionCache, AuctionManagerV1, AuctionManagerV2, BidRedemptionTicket, BidRedemptionTicketV2, PayoutTicket, PrizeTrackingTicket, SafetyDepositConfig, Store, StoreIndexer, WhitelistedCreator } from '../../models/metaplex';
 import { PublicKeyStringAndAccount, StringPublicKey } from '../../utils';
@@ -46,6 +47,8 @@ export interface MetaContextState extends MetaState {
     pullBillingPage: (auctionAddress: StringPublicKey) => void;
     pullAllSiteData: () => void;
     pullAllMetadata: () => void;
+    isBidPlaced: boolean;
+    setBidPlaced: Dispatch<SetStateAction<boolean>>;
 }
 export declare type AccountAndPubkey = {
     pubkey: string;

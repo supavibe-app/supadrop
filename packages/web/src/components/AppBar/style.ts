@@ -34,3 +34,13 @@ export const RoundButton = css`
   font-weight: 700;
   margin-left: 12px;
 `;
+
+export const ActivityBadge = css`
+  sup {
+    width: 10px;
+    min-width: 10px;
+    height: 10px;
+    top: 20px;
+    right: 10px;
+  }
+`;

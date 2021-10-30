@@ -16,7 +16,7 @@ import { uFontSize24, uTextAlignEnd, WhiteColor } from '../../../styles';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox, SpinnerStyle } from './style';
 import countDown from '../../../helpers/countdown';
 
-const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount }: {
+const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount, users }: {
   art: Art;
   auction?: AuctionView;
   auctionDatabase?: ItemAuction;
@@ -25,12 +25,13 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
   showPlaceBid: boolean;
   setShowPlaceBid: (visible: boolean) => void;
   currentBidAmount: number | undefined;
+  users: any;
 }) => {
   const connection = useConnection();
   const { setVisible } = useWalletModal();
   const { account } = useNativeAccount();
   const { accountByMint } = useUserAccounts();
-  const { update, prizeTrackingTickets, bidRedemptions, pullAuctionPage } = useMeta();
+  const { update, prizeTrackingTickets, bidRedemptions, pullAuctionPage, setBidPlaced } = useMeta();
   const ownedMetadata = useUserArts();
 
   const walletContext = useWallet();
@@ -46,11 +47,10 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
   const open = useCallback(() => setVisible(true), [setVisible]);
 
   const bid = useHighestBidForAuction(auctionDatabase?.id || '');
-  const mintInfo = useMint(auctionDatabase?.token_mint);
   const priceFloor = auctionDatabase?.price_floor;
 
   const balance = parseFloat(formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL));
-  const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
+  const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || priceFloor;
   const minimumBid = getMinimumBid(currentBid);
   const myPayingAccount = useUserBalance(auctionDatabase?.token_mint).accounts[0]
 
@@ -124,6 +124,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
       </BidDetailsContent>
       )
     }
+
     if (shouldHide) {
       if (eligibleForAnything) {
         return (
@@ -143,17 +144,17 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
           {art.title && highestBid && (
             <div className={BidStatus}>
               <div>
-                <Avatar size={40} />
+                <Avatar src={users[highestBid.info.bidderPubkey].img_profile} size={40} />
               </div>
 
               <div>
                 <div>
                   winning bid by{' '}
-                  <span className={WhiteColor}>{highestBid && shortenAddress(highestBid.info.bidderPubkey)}</span>
+                  <span className={WhiteColor}>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
                 </div>
 
                 <div className={CurrentBid}>
-                  <span className={WhiteColor}>{highestBid && `${formatTokenAmount(highestBid.info.lastBid)} SOL`}</span>
+                  <span className={WhiteColor}>{formatTokenAmount(highestBid.info.lastBid)} SOL</span>
                 </div>
               </div>
             </div>
@@ -184,13 +185,13 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
           {art.title && highestBid && (
             <>
               <div>
-                <Avatar size={40} />
+                <Avatar src={users[highestBid.info.bidderPubkey]} size={40} />
               </div>
 
               <div>
                 {!auction?.isInstantSale && <div>
                   current bid by{' '}
-                  <span className={WhiteColor}>{shortenAddress(highestBid.info.bidderPubkey)}</span>
+                  <span className={WhiteColor}>{users[highestBid.info.bidderPubkey] ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
                   <span className={NormalFont}>・{moment.unix(highestBid.info.lastBidTimestamp.toNumber()).fromNow()}</span>
                 </div>
                 }
@@ -308,7 +309,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
   }
 
   // if auction ended
-  
+
   if (ended) {
     if (!auction?.isInstantSale) {
       // case 1: you win the bid
@@ -354,7 +355,7 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
           </div>
         </BidDetailsContent>
       );
-    } else if(!auction.isInstantSale){
+    } else if (!auction.isInstantSale) {
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
@@ -473,7 +474,8 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
                   // user click approve
                   setShowPlaceBid(false);
                   setConfirmTrigger(false);
-                  pullAuctionPage(auctionDatabase?.id || "")
+                  pullAuctionPage(auctionDatabase?.id || "");
+                  setBidPlaced(true);
                 }).catch(() => {
                   // user click cancel
                   setConfirmTrigger(false);
