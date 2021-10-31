@@ -16,6 +16,8 @@ import { uFontSize24, uTextAlignEnd, WhiteColor } from '../../../styles';
 import { BidStatus, BidStatusEmpty, ButtonWrapper, CurrentBid, NormalFont, PaddingBox, SmallPaddingBox, SpinnerStyle } from './style';
 import countDown from '../../../helpers/countdown';
 import { endSale } from '../../AuctionCard/utils/endSale';
+import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState';
+import { supabase } from '../../../../supabaseClient';
 
 const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid,updatePage, showPlaceBid, currentBidAmount }: {
   art: Art;
@@ -249,7 +251,10 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
         prizeTrackingTickets,
         wallet,
       });
-
+      supabase.from('auction_status')
+      .update({'isLiveMarket':false})
+      .eq('id',auction?.auction.pubkey)
+      .then()
       updatePage()
     } catch (e) {
       console.error('endAuction', e);
@@ -292,7 +297,10 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
         );
         setCurrentBid(bid.amount.toNumber())
         updatePage()
-
+        supabase.from('auction_status')
+        .update({'isLiveMarket':false})
+        .eq('id',auction?.auction.pubkey)
+        .then()
       } catch (e) {
         console.error('sendPlaceBid', e);
         return;

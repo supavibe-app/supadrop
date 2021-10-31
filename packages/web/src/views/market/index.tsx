@@ -1,22 +1,69 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Col, Divider, Dropdown, Menu, Row, Select } from 'antd';
 import { Link } from 'react-router-dom';
 import FeatherIcon from 'feather-icons-react';
-import { useMeta } from '@oyster/common';
+import { ItemAuction, useMeta } from '@oyster/common';
 import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
 import { ActiveSortBy, CreatorName, DetailsInformation, DropdownStyle, OverlayStyle } from './style';
 import { GreyColor, uTextAlignEnd, YellowGlowColor } from '../../styles';
+import { supabase } from '../../../supabaseClient';
 // import moment from 'moment';
 
 const { Option } = Select;
 
 const MarketComponent = () => {
-  const { liveDataAuctions } = useMeta();
   const [sortBy, setSortBy] = useState(1);
+  const [updatedData, handleUpdatedData] = useState(null)
   // const now = moment().unix();
+  const [list, setList] = useState<ItemAuction[]>([])
+  const getData = async () =>{
+    supabase.from('auction_status')
+    .select(`
+    *,
+    nft_data (
+      *
+    )
+    `)
+    .is('type_auction',true)
+    .is('isLiveMarket',true)
+    .then(dataAuction=>{
+      if (dataAuction.body != null) {
+        let data:ItemAuction[] = []
+        dataAuction.body.forEach( v =>{
+          data.push(new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link,v.owner,v.nft_data.mint_key, v.type_auction))
+        })
+        setList(data)
+      }
+    })
+  }
+  const getChange = () => {
+    const mySubscription = supabase
+      .from("auction_status")
+      .on('UPDATE',payload =>{
+        handleUpdatedData(payload.new.id)
+      })
+      .subscribe();
+    return mySubscription;
+  };
+  useEffect(()=>{
+    getData()
+    const mySubscription = getChange()
 
+    return () => {
+      supabase.removeSubscription(mySubscription);
+    };
+  },[])
+
+  useEffect(()=>{
+    const newData = list.filter(tes => tes.id !== updatedData)
+    console.log(updatedData);
+    console.log(list);
+    console.log(newData);
+    
+    setList(newData)
+  },[updatedData])
   // TODO: Filter sold NFT
-  const list = Object.values(liveDataAuctions).filter((data) => data.isInstantSale);
+
   const lowestPrice = list.length > 0
     ? list.reduce((prev, curr) => prev.price_floor < curr.price_floor ? prev : curr).price_floor
     : 2;
