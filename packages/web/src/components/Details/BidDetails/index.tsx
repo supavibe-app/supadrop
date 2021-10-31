@@ -146,13 +146,13 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
           {art.title && highestBid && (
             <div className={BidStatus}>
               <div>
-                <Avatar src={users[highestBid.info.bidderPubkey].img_profile} size={40} />
+              <Avatar src={users[bid.info.bidderPubkey]?.img_profile ? users[bid.info.bidderPubkey].img_profile : null} size={40} />
               </div>
 
               <div>
                 <div>
                   winning bid by{' '}
-                  <span className={WhiteColor}>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
+                  <span className={WhiteColor}>{users[bid.info.bidderPubkey]?.username ? users[bid.info.bidderPubkey].username : shortenAddress(bid.info.bidderPubkey)}</span>
                 </div>
 
                 <div className={CurrentBid}>

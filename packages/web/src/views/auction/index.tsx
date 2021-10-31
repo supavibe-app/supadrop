@@ -84,7 +84,7 @@ export const AuctionView = () => {
       break;
   }
 
-  const updatePage = ()=>{
+  const updatePage = () => {
     pullAuctionPage(id)
   }
 
