@@ -46,6 +46,19 @@ const Profile = ({ userId }: { userId: string }) => {
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
 
+  const walletAddress = userData ? userData.wallet_address : userId;
+  const artwork = useCreatorArts(walletAddress);
+  const ownedMetadata = useUserArts();
+  const onSale = useAuctions(AuctionViewState.Live).filter(m => m.auctionManager.authority === walletAddress);
+
+  const allData: any = {};
+  // const ownedMetadata: any = {};
+
+  useEffect(() => {
+    // if username is available, show username in the url instead of their wallet address
+    if (userData && userData.username) replace(`/${userData.username}`);
+  }, [loading, userData])
+
   // ownedMetadata.forEach(data => {
   //   if (!allData[data.metadata.pubkey]) {
   //     allData[data.metadata.pubkey] = {
@@ -54,17 +67,6 @@ const Profile = ({ userId }: { userId: string }) => {
   //     };
   //   }
   // });
-  const walletAddress = userData ? userData.wallet_address : userId;
-  const artwork = useCreatorArts(walletAddress);
-  const ownedMetadata = useUserArts();
-  const onSale = useAuctions(AuctionViewState.Live).filter(m => m.auctionManager.authority === walletAddress);
-
-  const allData: any = {};
-
-  useEffect(() => {
-    // if username is available, show username in the url instead of their wallet address
-    if (userData && userData.username) replace(`/${userData.username}`);
-  }, [loading, userData])
 
   artwork.forEach(data => {
     if (!allData[data.pubkey]) {
@@ -302,7 +304,7 @@ const Profile = ({ userId }: { userId: string }) => {
                     <ArtCard
                       key={art.pubkey}
                       pubkey={art.pubkey}
-                      preview={false}
+                      preview
                     />
                   </Link>
                 </Col>

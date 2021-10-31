@@ -15,18 +15,18 @@ export const Providers: FC = ({ children }) => {
   return (
     <ConnectionProvider>
       <WalletProvider>
-      <AccountsProvider>
+        <AccountsProvider>
           <CoingeckoProvider>
             <StoreProvider
-                ownerAddress={process.env.NEXT_PUBLIC_STORE_OWNER_ADDRESS}
-                storeAddress={process.env.NEXT_PUBLIC_STORE_ADDRESS}
-              >
-                <MetaProvider>
+              ownerAddress={process.env.NEXT_PUBLIC_STORE_OWNER_ADDRESS}
+              storeAddress={process.env.NEXT_PUBLIC_STORE_ADDRESS}
+            >
+              <MetaProvider>
                 {/* <LoaderProvider> */}
-                  <ConfettiProvider>
-                    <AppLayout>{children}</AppLayout>
-                  </ConfettiProvider>
-                  {/* </LoaderProvider> */}
+                <ConfettiProvider>
+                  <AppLayout>{children}</AppLayout>
+                </ConfettiProvider>
+                {/* </LoaderProvider> */}
               </MetaProvider>
             </StoreProvider>
           </CoingeckoProvider>

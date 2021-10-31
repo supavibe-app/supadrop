@@ -54,6 +54,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -62,17 +73,35 @@ exports.arweaveUpload = void 0;
 var anchor = __importStar(require("@project-serum/anchor"));
 var form_data_1 = __importDefault(require("form-data"));
 var fs_1 = __importDefault(require("fs"));
+var path_1 = __importDefault(require("path"));
 var loglevel_1 = __importDefault(require("loglevel"));
 var node_fetch_1 = __importDefault(require("node-fetch"));
+var promises_1 = require("fs/promises");
+var arweave_cost_1 = require("@metaplex/arweave-cost");
 var constants_1 = require("../constants");
 var transactions_1 = require("../transactions");
+var ARWEAVE_UPLOAD_ENDPOINT = 'https://us-central1-metaplex-studios.cloudfunctions.net/uploadFile';
+function fetchAssetCostToStore(fileSizes) {
+    return __awaiter(this, void 0, void 0, function () {
+        var result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, arweave_cost_1.calculate(fileSizes)];
+                case 1:
+                    result = _a.sent();
+                    loglevel_1.default.debug('Arweave cost estimates:', result);
+                    return [2 /*return*/, result.solana * anchor.web3.LAMPORTS_PER_SOL];
+            }
+        });
+    });
+}
 function upload(data, manifest, index) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     loglevel_1.default.debug("trying to upload " + index + ".png: " + manifest.name);
-                    return [4 /*yield*/, node_fetch_1.default('https://us-central1-principal-lane-200702.cloudfunctions.net/uploadFile4', {
+                    return [4 /*yield*/, node_fetch_1.default(ARWEAVE_UPLOAD_ENDPOINT, {
                             method: 'POST',
                             // @ts-ignore
                             body: data,
@@ -83,14 +112,60 @@ function upload(data, manifest, index) {
         });
     });
 }
-function arweaveUpload(walletKeyPair, anchorProgram, env, image, manifestBuffer, manifest, index) {
+function estimateManifestSize(filenames) {
+    var e_1, _a;
+    var paths = {};
+    try {
+        for (var filenames_1 = __values(filenames), filenames_1_1 = filenames_1.next(); !filenames_1_1.done; filenames_1_1 = filenames_1.next()) {
+            var name_1 = filenames_1_1.value;
+            paths[name_1] = {
+                id: 'artestaC_testsEaEmAGFtestEGtestmMGmgMGAV438',
+                ext: path_1.default.extname(name_1).replace('.', ''),
+            };
+        }
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (filenames_1_1 && !filenames_1_1.done && (_a = filenames_1.return)) _a.call(filenames_1);
+        }
+        finally { if (e_1) throw e_1.error; }
+    }
+    var manifest = {
+        manifest: 'arweave/paths',
+        version: '0.1.0',
+        paths: paths,
+        index: {
+            path: 'metadata.json',
+        },
+    };
+    var data = Buffer.from(JSON.stringify(manifest), 'utf8');
+    loglevel_1.default.debug('Estimated manifest size:', data.length);
+    return data.length;
+}
+function arweaveUpload(walletKeyPair, anchorProgram, env, image, manifestBuffer, // TODO rename metadataBuffer
+manifest, // TODO rename metadata
+index) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var storageCost, instructions, tx, data, result, metadataFile, link;
+        var fsStat, estimatedManifestSize, storageCost, instructions, tx, data, result, metadataFile, link;
         return __generator(this, function (_b) {
             switch (_b.label) {
-                case 0:
-                    storageCost = 2300000;
+                case 0: return [4 /*yield*/, promises_1.stat(image)];
+                case 1:
+                    fsStat = _b.sent();
+                    estimatedManifestSize = estimateManifestSize([
+                        'image.png',
+                        'metadata.json',
+                    ]);
+                    return [4 /*yield*/, fetchAssetCostToStore([
+                            fsStat.size,
+                            manifestBuffer.length,
+                            estimatedManifestSize,
+                        ])];
+                case 2:
+                    storageCost = _b.sent();
+                    console.log("lamport cost to store " + image + ": " + storageCost);
                     instructions = [
                         anchor.web3.SystemProgram.transfer({
                             fromPubkey: walletKeyPair.publicKey,
@@ -98,10 +173,10 @@ function arweaveUpload(walletKeyPair, anchorProgram, env, image, manifestBuffer,
                             lamports: storageCost,
                         }),
                     ];
-                    return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(anchorProgram.provider.connection, walletKeyPair, instructions, [], 'single')];
-                case 1:
+                    return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(anchorProgram.provider.connection, walletKeyPair, instructions, [], 'confirmed')];
+                case 3:
                     tx = _b.sent();
-                    loglevel_1.default.debug('transaction for arweave payment:', tx);
+                    loglevel_1.default.debug("solana transaction (" + env + ") for arweave payment:", tx);
                     data = new form_data_1.default();
                     data.append('transaction', tx['txid']);
                     data.append('env', env);
@@ -111,7 +186,7 @@ function arweaveUpload(walletKeyPair, anchorProgram, env, image, manifestBuffer,
                     });
                     data.append('file[]', manifestBuffer, 'metadata.json');
                     return [4 /*yield*/, upload(data, manifest, index)];
-                case 2:
+                case 4:
                     result = _b.sent();
                     metadataFile = (_a = result.messages) === null || _a === void 0 ? void 0 : _a.find(function (m) { return m.filename === 'manifest.json'; });
                     if (metadataFile === null || metadataFile === void 0 ? void 0 : metadataFile.transactionId) {

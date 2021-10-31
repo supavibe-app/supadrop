@@ -76,6 +76,8 @@ export async function upload(
     log.debug(`Processing file: ${i}`);
     if (i % 50 === 0) {
       log.info(`Processing file: ${i}`);
+    } else {
+      log.debug(`Processing file: ${i}`);
     }
 
     let link = cacheContent?.items?.[index]?.link;

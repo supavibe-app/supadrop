@@ -58,7 +58,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mintNFT = void 0;
+exports.updateMetadata = exports.mintNFT = exports.createMetadata = void 0;
 var instructions_1 = require("../helpers/instructions");
 var transactions_1 = require("../helpers/transactions");
 var accounts_1 = require("../helpers/accounts");
@@ -70,43 +70,71 @@ var node_fetch_1 = __importDefault(require("node-fetch"));
 var spl_token_1 = require("@solana/spl-token");
 var web3_js_1 = require("@solana/web3.js");
 var loglevel_1 = __importDefault(require("loglevel"));
+var createMetadata = function (metadataLink) { return __awaiter(void 0, void 0, void 0, function () {
+    var metadata, e_1, metaCreators, creators;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, node_fetch_1.default(metadataLink, { method: 'GET' })];
+            case 1: return [4 /*yield*/, (_a.sent()).json()];
+            case 2:
+                metadata = _a.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                e_1 = _a.sent();
+                loglevel_1.default.debug(e_1);
+                loglevel_1.default.error('Invalid metadata at', metadataLink);
+                return [2 /*return*/];
+            case 4:
+                // Validate metadata
+                if (!metadata.name ||
+                    !metadata.image ||
+                    isNaN(metadata.seller_fee_basis_points) ||
+                    !metadata.properties ||
+                    !Array.isArray(metadata.properties.creators)) {
+                    loglevel_1.default.error('Invalid metadata file', metadata);
+                    return [2 /*return*/];
+                }
+                metaCreators = metadata.properties.creators;
+                if (metaCreators.some(function (creator) { return !creator.address; }) ||
+                    metaCreators.reduce(function (sum, creator) { return creator.share + sum; }, 0) !== 100) {
+                    return [2 /*return*/];
+                }
+                creators = metaCreators.map(function (creator) {
+                    return new schema_1.Creator({
+                        address: creator.address,
+                        share: creator.share,
+                        verified: 1,
+                    });
+                });
+                return [2 /*return*/, new schema_1.Data({
+                        symbol: metadata.symbol,
+                        name: metadata.name,
+                        uri: metadataLink,
+                        sellerFeeBasisPoints: metadata.seller_fee_basis_points,
+                        creators: creators,
+                    })];
+        }
+    });
+}); };
+exports.createMetadata = createMetadata;
 var mintNFT = function (connection, walletKeypair, metadataLink, mutableMetadata) {
     if (mutableMetadata === void 0) { mutableMetadata = true; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var metadata, e_1, metaCreators, wallet, mintRent, mint, instructions, signers, userTokenAccoutAddress, metadataAccount, creators, data, txnData, editionAccount, res, _a;
+        var data, wallet, mintRent, mint, instructions, signers, userTokenAccoutAddress, metadataAccount, txnData, editionAccount, res, _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
-                case 0:
-                    _b.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, node_fetch_1.default(metadataLink, { method: 'GET' })];
-                case 1: return [4 /*yield*/, (_b.sent()).json()];
-                case 2:
-                    metadata = _b.sent();
-                    return [3 /*break*/, 4];
-                case 3:
-                    e_1 = _b.sent();
-                    loglevel_1.default.error('Could not find metadata at', metadataLink);
-                    return [2 /*return*/];
-                case 4:
-                    // Validate metadata
-                    if (!metadata.name ||
-                        !metadata.image ||
-                        isNaN(metadata.seller_fee_basis_points) ||
-                        !metadata.properties ||
-                        !Array.isArray(metadata.properties.creators)) {
-                        loglevel_1.default.error('Invalid metadata file', metadata);
+                case 0: return [4 /*yield*/, exports.createMetadata(metadataLink)];
+                case 1:
+                    data = _b.sent();
+                    if (!data)
                         return [2 /*return*/];
-                    }
-                    metaCreators = metadata.properties.creators;
-                    if (metaCreators.some(function (creator) { return !creator.address; }) ||
-                        metaCreators.reduce(function (sum, creator) { return creator.share + sum; }, 0) !== 100) {
-                        return [2 /*return*/];
-                    }
                     wallet = new anchor.Wallet(walletKeypair);
                     if (!(wallet === null || wallet === void 0 ? void 0 : wallet.publicKey))
                         return [2 /*return*/];
                     return [4 /*yield*/, connection.getMinimumBalanceForRentExemption(spl_token_1.MintLayout.span)];
-                case 5:
+                case 2:
                     mintRent = _b.sent();
                     mint = anchor.web3.Keypair.generate();
                     instructions = [];
@@ -120,57 +148,74 @@ var mintNFT = function (connection, walletKeypair, metadataLink, mutableMetadata
                     }));
                     instructions.push(spl_token_1.Token.createInitMintInstruction(constants_1.TOKEN_PROGRAM_ID, mint.publicKey, 0, wallet.publicKey, wallet.publicKey));
                     return [4 /*yield*/, accounts_1.getTokenWallet(wallet.publicKey, mint.publicKey)];
-                case 6:
+                case 3:
                     userTokenAccoutAddress = _b.sent();
                     instructions.push(instructions_1.createAssociatedTokenAccountInstruction(userTokenAccoutAddress, wallet.publicKey, wallet.publicKey, mint.publicKey));
                     return [4 /*yield*/, accounts_1.getMetadata(mint.publicKey)];
-                case 7:
+                case 4:
                     metadataAccount = _b.sent();
-                    creators = metaCreators.map(function (creator) {
-                        return new schema_1.Creator({
-                            address: creator.address,
-                            share: creator.share,
-                            verified: 1,
-                        });
-                    });
-                    data = new schema_1.Data({
-                        symbol: metadata.symbol,
-                        name: metadata.name,
-                        uri: metadataLink,
-                        sellerFeeBasisPoints: metadata.seller_fee_basis_points,
-                        creators: creators,
-                    });
                     txnData = Buffer.from(borsh_1.serialize(schema_1.METADATA_SCHEMA, new schema_1.CreateMetadataArgs({ data: data, isMutable: mutableMetadata })));
                     instructions.push(instructions_1.createMetadataInstruction(metadataAccount, mint.publicKey, wallet.publicKey, wallet.publicKey, wallet.publicKey, txnData));
                     instructions.push(spl_token_1.Token.createMintToInstruction(constants_1.TOKEN_PROGRAM_ID, mint.publicKey, userTokenAccoutAddress, wallet.publicKey, [], 1));
                     return [4 /*yield*/, accounts_1.getMasterEdition(mint.publicKey)];
-                case 8:
+                case 5:
                     editionAccount = _b.sent();
                     txnData = Buffer.from(borsh_1.serialize(schema_1.METADATA_SCHEMA, new schema_1.CreateMasterEditionArgs({ maxSupply: new anchor.BN(0) })));
                     instructions.push(instructions_1.createMasterEditionInstruction(metadataAccount, editionAccount, mint.publicKey, wallet.publicKey, wallet.publicKey, wallet.publicKey, txnData));
                     return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(connection, walletKeypair, instructions, signers)];
-                case 9:
+                case 6:
                     res = _b.sent();
-                    _b.label = 10;
-                case 10:
-                    _b.trys.push([10, 12, , 13]);
+                    _b.label = 7;
+                case 7:
+                    _b.trys.push([7, 9, , 10]);
                     return [4 /*yield*/, connection.confirmTransaction(res.txid, 'max')];
-                case 11:
+                case 8:
                     _b.sent();
-                    return [3 /*break*/, 13];
-                case 12:
+                    return [3 /*break*/, 10];
+                case 9:
                     _a = _b.sent();
-                    return [3 /*break*/, 13];
-                case 13: 
+                    return [3 /*break*/, 10];
+                case 10: 
                 // Force wait for max confirmations
                 return [4 /*yield*/, connection.getParsedConfirmedTransaction(res.txid, 'confirmed')];
-                case 14:
+                case 11:
                     // Force wait for max confirmations
                     _b.sent();
                     loglevel_1.default.info('NFT created', res.txid);
-                    return [2 /*return*/, { metadataAccount: metadataAccount }];
+                    return [2 /*return*/, metadataAccount];
             }
         });
     });
 };
 exports.mintNFT = mintNFT;
+var updateMetadata = function (mintKey, connection, walletKeypair, metadataLink) { return __awaiter(void 0, void 0, void 0, function () {
+    var data, metadataAccount, signers, value, txnData, instructions, txid;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, exports.createMetadata(metadataLink)];
+            case 1:
+                data = _a.sent();
+                if (!data)
+                    return [2 /*return*/];
+                return [4 /*yield*/, accounts_1.getMetadata(mintKey)];
+            case 2:
+                metadataAccount = _a.sent();
+                signers = [];
+                value = new schema_1.UpdateMetadataArgs({
+                    data: data,
+                    updateAuthority: walletKeypair.publicKey.toBase58(),
+                    primarySaleHappened: null,
+                });
+                txnData = Buffer.from(borsh_1.serialize(schema_1.METADATA_SCHEMA, value));
+                instructions = [
+                    instructions_1.createUpdateMetadataInstruction(metadataAccount, walletKeypair.publicKey, txnData),
+                ];
+                return [4 /*yield*/, transactions_1.sendTransactionWithRetryWithKeypair(connection, walletKeypair, instructions, signers)];
+            case 3:
+                txid = _a.sent();
+                console.log('Metadata updated', txid);
+                return [2 /*return*/, metadataAccount];
+        }
+    });
+}); };
+exports.updateMetadata = updateMetadata;

@@ -6,11 +6,12 @@ import countDown from '../../../helpers/countdown';
 
 import { Art } from '../../../types';
 
-const ArtDetails = ({ auction, art, extendedArt, highestBid }: {
+const ArtDetails = ({ auction, art, extendedArt, highestBid, users }: {
   auction?: ItemAuction | undefined;
   art: Art | undefined;
   extendedArt: IMetadataExtension | undefined;
   highestBid?: ParsedAccount<BidderMetadata> | undefined;
+  users: any;
 }) => {
   const creators = art?.creators || [];
   const title = art?.title || auction?.name;
@@ -43,8 +44,8 @@ const ArtDetails = ({ auction, art, extendedArt, highestBid }: {
                 if (creator.address) {
                   return (
                     <div className={UserThumbnail} key={creator.address}>
-                      <Avatar size={40} />
-                      <span>{shortenAddress(creator.address)}</span>
+                      <Avatar src={users[creator.address] ? users[creator.address].img_profile : null} size={40} />
+                      <span>{users[creator.address] ? `@${users[creator.address].username}` : shortenAddress(creator.address)}</span>
                     </div>
                   );
                 }
@@ -59,11 +60,21 @@ const ArtDetails = ({ auction, art, extendedArt, highestBid }: {
             <div className={ContentSection}>
               <div className={Label}>owner</div>
               <div className={UserThumbnail}>
-                <Avatar size={40} />
                 {/* auction still live */}
-                {(!ended || !highestBid) && <span>{shortenAddress(owner)}</span>}
+                {(!ended || !highestBid) && (
+                  <>
+                    <Avatar src={users[owner] ? users[owner].img_profile : null} size={40} />
+                    <span>{users[owner] ? `@${users[owner].username}` : shortenAddress(owner)}</span>
+                  </>
+                )}
+
                 {/* auction ended and have winner */}
-                {ended && highestBid && <span>{shortenAddress(highestBid.info.bidderPubkey)}</span>}
+                {ended && highestBid && (
+                  <>
+                    <Avatar src={users[owner] ? users[owner].img_profile : null} size={40} />
+                    <span>{shortenAddress(highestBid.info.bidderPubkey)}</span>
+                  </>
+                )}
               </div>
             </div>
           </Col>

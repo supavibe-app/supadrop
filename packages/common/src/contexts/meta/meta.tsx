@@ -27,6 +27,7 @@ const MetaContext = React.createContext<MetaContextState>({
   isLoadingMetaplex: false,
   isLoadingDatabase: false,
   endingTime: 0,
+  isBidPlaced: false,
   liveDataAuctions: {},
   allDataAuctions: {},
   dataCollection: new Collection('','',0,0,0),
@@ -53,6 +54,7 @@ export function MetaProvider({ children = null as any }) {
 
   const [isLoadingMetaplex, setIsLoadingMetaplex] = useState(true);
   const [isLoadingDatabase, setIsLoadingDatabase] = useState(true);
+  const [isBidPlaced, setBidPlaced] = useState(false);
 
   const updateMints = useCallback(
     async metadataByMint => {
@@ -157,9 +159,9 @@ export function MetaProvider({ children = null as any }) {
     return;
   }
 
-  async function updateLiveDataAuction(){
+  async function updateLiveDataAuction() {
     supabase.from('auction_status')
-    .select(`
+      .select(`
     *,
     nft_data (
       *
@@ -275,7 +277,7 @@ export function MetaProvider({ children = null as any }) {
         const billing = window.location.href.match(
           /auction\/(\w+)\/billing/,
         );
-        
+
         if (auction && page == 0) {
           console.log(
             '---------->Loading auction page on initial load, pulling sub accounts',
@@ -421,7 +423,9 @@ export function MetaProvider({ children = null as any }) {
         liveDataAuctions,
         allDataAuctions,
         updateLiveDataAuction,
-        updateAllDataAuction
+        updateAllDataAuction,
+        isBidPlaced,
+        setBidPlaced,
       }}
     >
       {children}

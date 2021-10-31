@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Avatar, Col, Row } from 'antd';
 import { Link } from 'react-router-dom';
 import { NFTStatus, NFTName, Label, StatusValue, Price, ButtonWrapper, ActivityCardStyle, NFTDescription, ImageCard, UserContainer } from './style';
-import { useHistory } from 'react-router';
 
 import ActionButton from '../../../components/ActionButton';
 import { AuctionView, useArt, useBidsForAuction, useHighestBidForAuction, useUserBalance } from '../../../hooks';
@@ -19,12 +18,11 @@ export const AuctionItem = ({ item, active }: {
   active?: boolean;
 }) => <ArtContent className={ImageCard} pubkey={item.metadata.pubkey} active={active} allowMeshRender={true} />;
 
-const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionView, setAuctionView: React.Dispatch<React.SetStateAction<string>> }) => {
+const ActivityCard = ({ auctionView, setAuctionView, users }: { auctionView: AuctionView, setAuctionView: React.Dispatch<React.SetStateAction<string>>; users: any; }) => {
   const wallet = useWallet();
   const connection = useConnection();
   const { update, bidRedemptions, prizeTrackingTickets } = useMeta();
   const isAuctionManagerAuthorityWalletOwner = auctionView.auctionManager.authority === wallet?.publicKey?.toBase58();
-  const { push } = useHistory();
 
   const mintKey = auctionView.auction.info.tokenMint;
   const balance = useUserBalance(mintKey);
@@ -74,10 +72,9 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
 
   const isOwner = publicKey?.toBase58() === auctionView?.auctionManager.authority.toString();
 
-  const baseInstantSalePrice =
-    auctionView.auctionDataExtended?.info.instantSalePrice;
+  const baseInstantSalePrice = auctionView.auctionDataExtended?.info.instantSalePrice;
 
-  const instantSalePrice = (baseInstantSalePrice?.toNumber() || 0) / Math.pow(10, 9)
+  const instantSalePrice = (baseInstantSalePrice?.toNumber() || 0) / Math.pow(10, 9);
 
   // countdown
   useEffect(() => {
@@ -148,8 +145,8 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
             <Col flex={3}>
               <div className={NFTName}>{art.title}</div>
               <div className={UserContainer}>
-                <Avatar size={32} />
-                <div>{shortenAddress(owner)}</div>
+                <Avatar src={users[owner].img_profile} size={32} />
+                <div>{users[owner].username ? users[owner].username : shortenAddress(owner)}</div>
               </div>
 
               <div className={NFTStatus}>
@@ -196,7 +193,7 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
                         <div className={Label}>winning bid</div>
                         <div className={UserContainer}>
                           <Avatar size={32} />
-                          <span>{shortenAddress(highestBid.info.bidderPubkey)}</span>
+                          <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
                         </div>
                       </div>
                     )}
@@ -234,8 +231,8 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <Avatar size={32} />
-                          <span>{shortenAddress(highestBid.info.bidderPubkey)}</span>
+                          <Avatar src={users[highestBid.info.bidderPubkey].img_profile} size={32} />
+                          <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
                         </div>
                       </div>
                     )}
@@ -245,8 +242,8 @@ const ActivityCard = ({ auctionView, setAuctionView }: { auctionView: AuctionVie
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <Avatar size={32} />
-                          <span>{shortenAddress(highestBid.info.bidderPubkey)}</span>
+                          <Avatar src={users[highestBid.info.bidderPubkey].img_profile} size={32} />
+                          <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
                         </div>
                       </div>
                     )}

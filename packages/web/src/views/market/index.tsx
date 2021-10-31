@@ -7,6 +7,7 @@ import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
 import { ActiveSortBy, CreatorName, DetailsInformation, DropdownStyle, OverlayStyle } from './style';
 import { GreyColor, uTextAlignEnd, YellowGlowColor } from '../../styles';
 import { supabase } from '../../../supabaseClient';
+import { getUsernameByPublicKeys } from '../../database/userData';
 // import moment from 'moment';
 
 const { Option } = Select;
@@ -91,6 +92,9 @@ const MarketComponent = () => {
     </Menu>
   );
 
+  const ownerAddress = list.map(auction => auction.owner);
+  const { data = {} } = getUsernameByPublicKeys(ownerAddress);
+
   return (
     <Row justify="center">
       <Col style={{ margin: '24px 0 48px 0' }} span={20} xs={20} sm={20} md={20} lg={20} xl={18} xxl={16}>
@@ -141,10 +145,12 @@ const MarketComponent = () => {
 
         <Row gutter={[36, 36]}>
           {list.map((m, idx) => {
+            const defaultOwnerData = { wallet_address: m.owner, img_profile: null };
+
             return (
               <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
                 <Link to={`/auction/${m.id}`}>
-                  <AuctionRenderCard2 auctionView={m} />
+                  <AuctionRenderCard2 auctionView={m} owner={data[m.owner] || defaultOwnerData} />
                 </Link>
               </Col>
             );

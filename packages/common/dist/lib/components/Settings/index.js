@@ -24,7 +24,7 @@ const Settings = ({ userData, setShowPopover = () => { } }) => {
                     setShowPopover(false);
                     push(`/${(userData === null || userData === void 0 ? void 0 : userData.username) ? userData.username : publicKey}`);
                 } },
-                react_1.default.createElement(antd_1.Avatar, { className: style_1.ItemIcon }),
+                react_1.default.createElement(antd_1.Avatar, { src: userData === null || userData === void 0 ? void 0 : userData.img_profile, className: style_1.ItemIcon }),
                 "view profile")),
         react_1.default.createElement(antd_1.List.Item, null, publicKey && (react_1.default.createElement("a", { href: `https://explorer.solana.com/address/${publicKey.toBase58()}`, target: "_blank" },
             react_1.default.createElement("div", { className: style_1.BalanceInfo },

@@ -44,20 +44,41 @@ var loglevel_1 = __importDefault(require("loglevel"));
 var mint_nft_1 = require("./commands/mint-nft");
 var accounts_1 = require("./helpers/accounts");
 var anchor_1 = require("@project-serum/anchor");
+var web3_js_1 = require("@solana/web3.js");
 commander_1.program.version('0.0.1');
 loglevel_1.default.setLevel('info');
 programCommand('mint')
-    .option('-m, --metadata <string>', 'metadata url')
+    .option('-u, --url <string>', 'metadata url')
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .action(function (directory, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, keypair, env, metadata, solConnection, walletKeyPair;
+    var _a, keypair, env, url, solConnection, walletKeyPair;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _a = cmd.opts(), keypair = _a.keypair, env = _a.env, metadata = _a.metadata;
+                _a = cmd.opts(), keypair = _a.keypair, env = _a.env, url = _a.url;
                 solConnection = new anchor_1.web3.Connection(anchor_1.web3.clusterApiUrl(env));
                 walletKeyPair = accounts_1.loadWalletKey(keypair);
-                return [4 /*yield*/, mint_nft_1.mintNFT(solConnection, walletKeyPair, metadata)];
+                return [4 /*yield*/, mint_nft_1.mintNFT(solConnection, walletKeyPair, url)];
+            case 1:
+                _b.sent();
+                return [2 /*return*/];
+        }
+    });
+}); });
+programCommand('update-metadata')
+    .option('-m, --mint <string>', 'base58 mint key')
+    .option('-u, --url <string>', 'metadata url')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .action(function (directory, cmd) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, keypair, env, mint, url, mintKey, solConnection, walletKeyPair;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = cmd.opts(), keypair = _a.keypair, env = _a.env, mint = _a.mint, url = _a.url;
+                mintKey = new web3_js_1.PublicKey(mint);
+                solConnection = new anchor_1.web3.Connection(anchor_1.web3.clusterApiUrl(env));
+                walletKeyPair = accounts_1.loadWalletKey(keypair);
+                return [4 /*yield*/, mint_nft_1.updateMetadata(mintKey, solConnection, walletKeyPair, url)];
             case 1:
                 _b.sent();
                 return [2 /*return*/];

@@ -61,6 +61,8 @@ export const Label = css`
 
 export const UserThumbnail = css`
   margin-bottom: 8px;
+  font-weight: bold;
+
   .ant-avatar {
     margin-right: 12px;
   }
