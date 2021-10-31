@@ -53,8 +53,8 @@ export const AuctionView = () => {
   const setBidAmountNumber = useCallback((num: number) => setBidAmount(num), [setBidAmount]);
   const setPlaceBidVisibility = useCallback((visible: boolean) => setShowPlaceBid(visible), [setShowPlaceBid]);
 
-  const { liveDataAuctions, isLoadingDatabase, pullAuctionPage } = useMeta();
-  const auctionDatabase = liveDataAuctions[id];
+  const { allDataAuctions, isLoadingDatabase, pullAuctionPage } = useMeta();
+  const auctionDatabase = allDataAuctions[id];
 
   const { ref, data } = useExtendedArt(auctionDatabase?.id_nft);
   const art = useArt(auctionDatabase?.id_nft);

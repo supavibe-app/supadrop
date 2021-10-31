@@ -13,6 +13,8 @@ import {
   PriceFloorType,
   IPartialCreateAuctionArgs,
   StringPublicKey,
+  ItemAuction,
+  pubkeyToString,
 } from '@oyster/common';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -76,15 +78,16 @@ export interface AuctionState {
 export const AuctionCreateView = () => {
   // const connection = useConnection();
   // const wallet = useWallet();
-  const { whitelistedCreatorsByCreator, storeIndexer , updateLiveDataAuction} = useMeta();
+  const { whitelistedCreatorsByCreator, storeIndexer , updateAllDataAuction,updateLiveDataAuction} = useMeta();
 
   // const { step_param }: { step_param: string } = useParams();
   // const history = useHistory();
   const history = useHistory();
   const wallet = useWallet();
-
   const { state } = history.location;
   const { idNFT, item: itemNFT }: any = state || {};
+  
+  
   const connection = useConnection();
   const mint = useMint(QUOTE_MINT);
 
@@ -109,7 +112,6 @@ export const AuctionCreateView = () => {
 
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
-
     if (
       attributes.category === AuctionCategory.InstantSale &&
       attributes.instantSaleType === InstantSaleType.Open
@@ -243,30 +245,31 @@ export const AuctionCreateView = () => {
       QUOTE_MINT.toBase58(),
       storeIndexer,
     );
-
+    const item = {
+      id: _auctionObj.auction,
+      start_auction: attributes.startSaleTS,
+      end_auction:
+        (attributes.startSaleTS || 0) +
+        (auctionSettings.endAuctionAt?.toNumber() || 0),
+      highest_bid: 0,
+      id_nft: attributes.items[0].metadata.pubkey,
+      price_floor: attributes.priceFloor,
+      price_tick: attributes.priceTick,
+      gap_time: attributes.gapTime,
+      tick_size_ending_phase: attributes.tickSizeEndingPhase,
+      token_mint: QUOTE_MINT.toBase58(),
+      vault: _auctionObj.vault,
+      type_auction: isInstantSale || false,
+      owner: wallet.publicKey?.toBase58(),
+    }
     supabase.from('auction_status')
       .insert([
-        {
-          id: _auctionObj.auction,
-          start_auction: attributes.startSaleTS,
-          end_auction:
-            (attributes.startSaleTS || 0) +
-            (auctionSettings.endAuctionAt?.toNumber() || 0),
-          highest_bid: 0,
-          id_nft: attributes.items[0].metadata.pubkey,
-          price_floor: attributes.priceFloor,
-          price_tick: attributes.priceTick,
-          gap_time: attributes.gapTime,
-          tick_size_ending_phase: attributes.tickSizeEndingPhase,
-          token_mint: QUOTE_MINT.toBase58(),
-          vault: _auctionObj.vault,
-          type_auction: isInstantSale || false,
-          owner: wallet.publicKey?.toBase58(),
-        },
+        item
       ])
-      .then();
-    setAuctionObj(_auctionObj);
-    updateLiveDataAuction()
+      .then(()=>{
+        updateLiveDataAuction()
+        updateAllDataAuction()
+      });
   };
 
   const sellStep = (

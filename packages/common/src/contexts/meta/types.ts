@@ -84,7 +84,10 @@ export interface MetaState {
 export interface MetaContextState extends MetaState {
   isLoadingMetaplex: boolean;
   isLoadingDatabase: boolean;
+  dataCollection: Collection;
+  endingTime: number;
   liveDataAuctions: { [key: string]: ItemAuction };
+  allDataAuctions: { [key: string]: ItemAuction };
   update: (
     auctionAddress?: any,
     bidderAddress?: any,
@@ -96,6 +99,7 @@ export interface MetaContextState extends MetaState {
   pullAuctionPage: (auctionAddress: StringPublicKey) => Promise<MetaState>;
   pullBillingPage: (auctionAddress: StringPublicKey) => void;
   updateLiveDataAuction: () => void;
+  updateAllDataAuction: () => void;
   pullAllSiteData: () => void;
   pullAllMetadata: () => void;
 }
@@ -104,6 +108,28 @@ export type AccountAndPubkey = {
   pubkey: string;
   account: AccountInfo<Buffer>;
 };
+export class Collection {
+  id: string;
+  name: string;
+  supply: number;
+  sold: number;
+  start_publish: number;
+
+  constructor(
+    id: string,
+    name: string,
+    supply: number,
+    sold: number,
+    start_publish: number,
+    
+  ) {
+    this.id = id;
+    this.name = name;
+    this.supply = supply;
+    this.sold = sold;
+    this.start_publish = start_publish;
+  }
+}
 
 export type UpdateStateValueFunc<T = void> = (
   prop: keyof MetaState,

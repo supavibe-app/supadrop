@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Carousel, Col, Image, Row } from 'antd';
 import { CountdownState } from '@oyster/common/dist/lib';
-
+import { useMeta } from '../../contexts';
 import ActionButton from '../ActionButton';
 import Discord from '../../assets/icons/discord';
 import Twitter from '../../assets/icons/twitter';
@@ -24,17 +24,15 @@ const images = [
 
 const Home = () => {
   const [state, setState] = useState<CountdownState>();
-  // TODO: get endAt from DB
-  const endAt = 1632763291;
+  const {endingTime} = useMeta();
 
   useEffect(() => {
-    const calc = () => setState(countDown(endAt));
-
+    const calc = () => setState(countDown(endingTime));
     const interval = setInterval(() => calc(), 1000);
     calc();
 
     return () => clearInterval(interval);
-  }, []);
+  }, [endingTime]);
 
   return (
     <Row className={HomeStyle}>
@@ -59,8 +57,8 @@ const Home = () => {
         <Numbers state={state} />
 
         <div className={ButtonWrapper}>
-          {isEnded(state) && <ActionButton to="auction" size="large">view auction</ActionButton>}
-          {!isEnded(state) && (
+          {!isEnded(state) && <ActionButton to="auction" size="large">view auction</ActionButton>}
+          {isEnded(state) && (
             <a href={TwitterURL}>
               <ActionButton size="large">notify me</ActionButton>
             </a>

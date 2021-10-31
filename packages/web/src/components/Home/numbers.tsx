@@ -1,11 +1,13 @@
 import React from 'react';
 import { Col, Row, Statistic } from 'antd';
 import { CountdownState } from '@oyster/common/dist/lib';
-
+import { useMeta } from '../../contexts';
 import { Availability, CreateStatistic, Label, NumberStyle, Timer } from './style';
 import isEnded from './helpers/isEnded';
 
 const Numbers = ({ state }: { state: CountdownState | undefined; }) => {
+  const {dataCollection} = useMeta();
+
   return (
     <div style={{ marginBottom: 48 }}>
       <Row>
@@ -17,7 +19,7 @@ const Numbers = ({ state }: { state: CountdownState | undefined; }) => {
             suffix="SOL"
           />
 
-          <div className={Availability}>24/111 left</div>
+          <div className={Availability}>{`${dataCollection.sold}/${dataCollection.supply}`} left</div>
         </Col>
 
         <Col span={16} md={16} sm={24} xs={24}>
