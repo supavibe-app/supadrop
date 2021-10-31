@@ -44,10 +44,10 @@ const TransactionHistory = ({ auction, bids, users }: {
           <Row className={Activity} justify="space-between" align="middle">
             <Col className={uFlexAlignItemsCenter} span={12}>
               <div>
-                <Avatar src={users[bid.info.bidderPubkey].img_profile ? users[bid.info.bidderPubkey].img_profile : null} size={24} />
+                <Avatar src={users[bid.info.bidderPubkey]?.img_profile ? users[bid.info.bidderPubkey].img_profile : null} size={24} />
               </div>
 
-              <div>{users[bid.info.bidderPubkey].username ? users[bid.info.bidderPubkey].username : shortenAddress(bid.info.bidderPubkey)}</div>
+              <div>{users[bid.info.bidderPubkey]?.username ? users[bid.info.bidderPubkey].username : shortenAddress(bid.info.bidderPubkey)}</div>
             </Col>
 
             <Col className={uBoldFont} span={12}>
