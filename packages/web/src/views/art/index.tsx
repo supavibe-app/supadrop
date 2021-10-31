@@ -30,6 +30,7 @@ import {
   PriceBox,
   StatusContainer,
 } from './style';
+import { getUsernameByPublicKeys } from '../../database/userData';
 
 export const ArtView = () => {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +52,10 @@ export const ArtView = () => {
   // }
   const { ref, data } = useExtendedArt(id);
   const isDataReady = Boolean(art) && Boolean(data);
+
+  const creators = data?.creators || '';
+
+  const { data: users = {} } = getUsernameByPublicKeys([...creators])
 
   let edition = '';
   switch (art.type) {
@@ -103,7 +108,7 @@ export const ArtView = () => {
             {/* Show Skeleton when Loading */}
             {!isDataReady && <ArtDetailSkeleton />}
 
-            {isDataReady && <ArtDetails art={art} extendedArt={data} />}
+            {isDataReady && <ArtDetails art={art} extendedArt={data} users={users} />}
           </div>
 
           <div className={StatusContainer}>

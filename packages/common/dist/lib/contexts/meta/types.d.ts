@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { AccountInfo } from '@solana/web3.js';
+import { Dispatch, SetStateAction } from 'react';
 import { AuctionData, AuctionDataExtended, BidderMetadata, BidderPot, Edition, MasterEditionV1, MasterEditionV2, Metadata, SafetyDepositBox, Vault } from '../../actions';
 import { AuctionCache, AuctionManagerV1, AuctionManagerV2, BidRedemptionTicket, BidRedemptionTicketV2, PayoutTicket, PrizeTrackingTicket, SafetyDepositConfig, Store, StoreIndexer, WhitelistedCreator } from '../../models/metaplex';
 import { PublicKeyStringAndAccount, StringPublicKey } from '../../utils';
@@ -34,7 +35,12 @@ export interface MetaState {
 export interface MetaContextState extends MetaState {
     isLoadingMetaplex: boolean;
     isLoadingDatabase: boolean;
+    dataCollection: Collection;
+    endingTime: number;
     liveDataAuctions: {
+        [key: string]: ItemAuction;
+    };
+    allDataAuctions: {
         [key: string]: ItemAuction;
     };
     update: (auctionAddress?: any, bidderAddress?: any) => [
@@ -45,13 +51,24 @@ export interface MetaContextState extends MetaState {
     pullAuctionPage: (auctionAddress: StringPublicKey) => Promise<MetaState>;
     pullBillingPage: (auctionAddress: StringPublicKey) => void;
     updateLiveDataAuction: () => void;
+    updateAllDataAuction: () => void;
     pullAllSiteData: () => void;
     pullAllMetadata: () => void;
+    isBidPlaced: boolean;
+    setBidPlaced: Dispatch<SetStateAction<boolean>>;
 }
 export declare type AccountAndPubkey = {
     pubkey: string;
     account: AccountInfo<Buffer>;
 };
+export declare class Collection {
+    id: string;
+    name: string;
+    supply: number;
+    sold: number;
+    start_publish: number;
+    constructor(id: string, name: string, supply: number, sold: number, start_publish: number);
+}
 export declare type UpdateStateValueFunc<T = void> = (prop: keyof MetaState, key: string, value: ParsedAccount<any>) => T;
 export declare type ProcessAccountsFunc = (account: PublicKeyStringAndAccount<Buffer>, setter: UpdateStateValueFunc) => void;
 export declare type CheckAccountFunc = (account: AccountInfo<Buffer>) => boolean;

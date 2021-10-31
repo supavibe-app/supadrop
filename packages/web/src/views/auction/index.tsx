@@ -37,6 +37,7 @@ import {
   PaddingBox,
   StatusContainer,
 } from './style';
+import { getUsernameByPublicKeys } from '../../database/userData';
 
 export const AuctionView = () => {
   const { location } = useHistory();
@@ -62,6 +63,13 @@ export const AuctionView = () => {
   const highestBid = useHighestBidForAuction(auctionDatabase?.id);
 
   const isDataReady = !isLoadingDatabase && auctionDatabase;
+
+  const creators = art.creators || [];
+  const creatorPublicKeys = creators.map(creator => creator.address);
+  const bidderPublicKeys = bids.map(bid => bid.info.bidderPubkey);
+
+  const userIDs = [auctionDatabase?.owner, highestBid?.info.bidderPubkey, ...bidderPublicKeys, ...creatorPublicKeys];
+  const { data: users = {} } = getUsernameByPublicKeys(userIDs);
 
   let edition = '';
   switch (art.type) {
@@ -131,7 +139,7 @@ export const AuctionView = () => {
             {!isDataReady && <ArtDetailSkeleton />}
 
             {isDataReady && showPlaceBid && <PlaceBid auction={auctionDatabase} bidAmount={bidAmount} setBidAmount={setBidAmountNumber} />}
-            {isDataReady && !showPlaceBid && <ArtDetails auction={auctionDatabase} art={art} extendedArt={data} highestBid={highestBid} />}
+            {isDataReady && !showPlaceBid && <ArtDetails auction={auctionDatabase} art={art} extendedArt={data} highestBid={highestBid} users={users} />}
           </div>
 
           <div className={StatusContainer}>
@@ -145,6 +153,7 @@ export const AuctionView = () => {
               showPlaceBid={showPlaceBid}
               setShowPlaceBid={setPlaceBidVisibility}
               currentBidAmount={bidAmount}
+              users={users}
             />
           </div>
         </div>
@@ -152,7 +161,7 @@ export const AuctionView = () => {
 
       {/* Bids History Column */}
       <Col className={`${ColumnBox} ${PaddingBox} `} span={24} md={4}>
-        <TransactionHistory auction={auctionDatabase} />
+        <TransactionHistory auction={auctionDatabase} bids={bids} users={users} />
       </Col>
     </Row>
   );

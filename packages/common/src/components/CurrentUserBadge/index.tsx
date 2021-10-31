@@ -25,7 +25,7 @@ export const CurrentUserBadge = ({ userData }: { userData?: UserData; }) => {
         onVisibleChange={visible => setShowPopover(visible)}
         visible={showPopover}
       >
-        <Avatar size={42} style={{ cursor: 'pointer' }} />
+        <Avatar src={userData?.img_profile} size={42} style={{ cursor: 'pointer' }} />
       </Popover>
     </div>
   );

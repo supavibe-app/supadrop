@@ -9,6 +9,7 @@ import { uFontSize18 } from '../../styles';
 import { TwitterOutlined } from '@ant-design/icons';
 import { useArt } from '../../hooks';
 import { ContinueButton, Description, HeaderStyle, ShareButton } from './style';
+import { getUsernameByPublicKeys } from '../../database/userData';
 
 const TweetURL = (title, urlToNFT) => `https://twitter.com/intent/tweet?text=I%20just%20won%20an%20NFT%20auction%20for%20${title}%20on%20%40supadropnft%E2%80%A8%0A${urlToNFT}`;
 
@@ -18,6 +19,8 @@ const Congratulations = ({ id }) => {
   const auctionView = allDataAuctions[id];
   const art = useArt(auctionView.id_nft);
 
+  const { data: ownerData = {} } = getUsernameByPublicKeys([auctionView.owner]);
+
   return (
     <Row justify="center" >
       <Col span={16} style={{ marginTop: 72 }}>
@@ -25,7 +28,7 @@ const Congratulations = ({ id }) => {
           {auctionView && (
             <Col span={9}>
               <Link to={`/auction/${id}`}>
-                <AuctionRenderCard2 auctionView={auctionView} />
+                <AuctionRenderCard2 auctionView={auctionView} owner={ownerData} />
               </Link>
             </Col>
           )}

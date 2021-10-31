@@ -304,7 +304,7 @@ const Profile = ({ userId }: { userId: string }) => {
                     <ArtCard
                       key={art.pubkey}
                       pubkey={art.pubkey}
-                      preview={false}
+                      preview
                     />
                   </Link>
                 </Col>

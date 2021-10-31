@@ -33,7 +33,7 @@ const CurrentUserBadge = ({ userData }) => {
     }
     return (react_1.default.createElement("div", { className: style_1.WalletWrapper },
         react_1.default.createElement(antd_1.Popover, { overlayClassName: style_1.ProfilePopover, color: "#000000", content: react_1.default.createElement(Settings_1.Settings, { userData: userData, setShowPopover: setShowPopover }), trigger: "click", placement: "bottomRight", onVisibleChange: visible => setShowPopover(visible), visible: showPopover },
-            react_1.default.createElement(antd_1.Avatar, { size: 42, style: { cursor: 'pointer' } }))));
+            react_1.default.createElement(antd_1.Avatar, { src: userData === null || userData === void 0 ? void 0 : userData.img_profile, size: 42, style: { cursor: 'pointer' } }))));
 };
 exports.CurrentUserBadge = CurrentUserBadge;
 //# sourceMappingURL=index.js.map

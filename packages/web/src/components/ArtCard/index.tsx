@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Avatar, Card, CardProps, Button, Badge, Row, Col } from 'antd';
 import {
   MetadataCategory,
@@ -13,6 +13,7 @@ import { uTextAlignEnd } from '../../styles';
 import { AuctionImage, AvatarStyle, CardStyle, UserWrapper } from './style';
 import { Link } from 'react-router-dom';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
+import { getUsernameByPublicKeys } from '../../database/userData';
 
 const { Meta } = Card;
 
@@ -50,9 +51,14 @@ export const ArtCard = (props: ArtCardProps) => {
   } = props;
   const art = useArt(pubkey);
   creators = art?.creators || creators || [];
+  const [cardWidth, setCardWidth] = useState(0);
 
   name = art?.title || name || ' ';
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const creatorsAddress = creators[0].address || '';
+
+  const { data = {} } = getUsernameByPublicKeys([creatorsAddress]);
 
   let badge = '';
   if (art.type === ArtType.NFT) {
@@ -63,6 +69,10 @@ export const ArtCard = (props: ArtCardProps) => {
     badge = `edition ${art.edition} of ${art.supply}`;
   }
 
+  useEffect(() => {
+    if (cardRef.current?.offsetWidth) setCardWidth(cardRef.current?.offsetWidth);
+  }, [cardRef.current?.offsetWidth, setCardWidth]);
+
   const card = (
     <Card
       hoverable
@@ -70,7 +80,7 @@ export const ArtCard = (props: ArtCardProps) => {
       cover={
         <div ref={cardRef}>
           <ArtContent
-            className={AuctionImage(cardRef.current?.offsetWidth)}
+            className={AuctionImage(cardWidth)}
             preview={preview}
             pubkey={pubkey}
             uri={image}
@@ -86,16 +96,16 @@ export const ArtCard = (props: ArtCardProps) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar size={32} className={AvatarStyle} />
+              <Avatar src={data[creatorsAddress] ? data[creatorsAddress].img_profile : null} size={32} className={AvatarStyle} />
               <span>
-                {creators[0]?.address && shortenAddress(creators[0].address)}
+                {data[creatorsAddress] ? data[creatorsAddress].username : shortenAddress(creatorsAddress)}
               </span>
             </div>
 
             <Row>
               <Col span={12}>
                 <div>sold for</div>
-                <div>81 SOL</div>
+                <div>... SOL</div>
               </Col>
 
               {isCollected && (
