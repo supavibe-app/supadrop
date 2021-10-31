@@ -1,5 +1,4 @@
 import { AccountInfo } from '@solana/web3.js';
-import { TokenAccount } from '../..';
 import {
   AuctionData,
   AuctionDataExtended,
@@ -121,7 +120,6 @@ export class Collection {
     supply: number,
     sold: number,
     start_publish: number,
-    
   ) {
     this.id = id;
     this.name = name;
