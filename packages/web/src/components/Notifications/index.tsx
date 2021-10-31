@@ -1,3 +1,4 @@
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   CheckCircleTwoTone,
   LoadingOutlined,
@@ -17,7 +18,6 @@ import {
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
 import { Badge, Popover, List, Button, Tooltip } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
@@ -160,7 +160,7 @@ export function useCollapseWrappedSol({
         if ((balance && balance.value.uiAmount) || 0 > 0) {
           setShowNotification(true);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     setTimeout(fn, 60000);
   };
@@ -289,13 +289,13 @@ export function useSettlementAuctions({
         !b.info.emptied &&
         b.info.auctionAct === auctionKey,
     );
+
     if (bidsToClaim.length || validDiscoveredEndedAuctions[auctionViewKey] > 0)
       notifications.push({
         id: auctionViewKey,
         title: 'You have an ended auction that needs settling!',
         textButton: 'settle',
         notifiedAt: auctionView.auction.info.endedAt?.toNumber(),
-
         description: (
           <span>
             One of your auctions ended and it has monies that can be claimed.
@@ -312,7 +312,7 @@ export function useSettlementAuctions({
               safetyDepositBoxesByVaultAndIndex,
               metadataByMint,
               bidderMetadataByAuctionAndBidder:
-                updatedBidderMetadataByAuctionAndBidder,
+              updatedBidderMetadataByAuctionAndBidder,
               bidderPotsByAuctionAndBidder,
               bidRedemptionV2sByAuctionManagerAndWinningIndex,
               masterEditions,
@@ -381,9 +381,14 @@ export function Notifications() {
     AuctionViewState.Defective,
   );
 
+  const liveAuctions = useAuctions(
+    AuctionViewState.Live,
+  );
+
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
   const wallet = useWallet();
+  const { accountByMint } = useUserAccounts();
 
   //NOTE: notifications untuk kasih tau seller sol yg bisa diambil (settle)
   const notifications: NotificationCard[] = [];
@@ -394,13 +399,45 @@ export function Notifications() {
 
   useSettlementAuctions({ connection, wallet, notifications });
 
+  const participated = useMemo(
+    () =>
+      liveAuctions
+        .filter((m, idx) =>
+          m.auction.info.bidState.bids.find(b => b.key == walletPubkey),
+        ),
+    [walletPubkey],
+  );
+
+  participated.forEach(v => {
+    console.log('data', v)
+    notifications.push({
+      id: v.auctionManager.pubkey,
+      title: 'You have participated in a auction!',
+      textButton: '',
+      description: (
+        <span>BRAH! <Link to={`/activity`}>here.</Link></span>
+      ),
+      action: 
+      async () => {
+        // Action hanya pemanis
+        try {
+          await pullAllSiteData();
+        } catch (e) {
+          console.error(e);
+          return false;
+        }
+        return true;
+      },
+    })
+  })
+
   const vaultsNeedUnwinding = useMemo(
     () =>
       Object.values(vaults).filter(
         v =>
-          v?.info.authority === walletPubkey &&
-          v?.info.state !== VaultState.Deactivated &&
-          v?.info.tokenTypeCount > 0,
+          v.info.authority === walletPubkey &&
+          v.info.state !== VaultState.Deactivated &&
+          v.info.tokenTypeCount > 0,
       ),
     [vaults, walletPubkey],
   );
@@ -432,6 +469,28 @@ export function Notifications() {
       },
     });
   });
+
+  // ON Metaplex this can trigger notif
+  // notifications.push({
+  //   id: 'none',
+  //   title: 'Search for other auctions.',
+  //   textButton: 'f',
+  //   description: (
+  //     <span>
+  //       Load all auctions (including defectives) by pressing here. Then you can
+  //       close them.
+  //     </span>
+  //   ),
+  //   action: async () => {
+  //     try {
+  //       await pullAllSiteData();
+  //     } catch (e) {
+  //       console.error(e);
+  //       return false;
+  //     }
+  //     return true;
+  //   },
+  // });
 
   possiblyBrokenAuctionManagerSetups
     .filter(v => v.auctionManager.authority === walletPubkey)
@@ -467,11 +526,11 @@ export function Notifications() {
     () =>
       metadata.filter(m => {
         return (
-          m?.info.data.creators &&
-          (whitelistedCreatorsByCreator[m?.info.updateAuthority]?.info
+          m.info.data.creators &&
+          (whitelistedCreatorsByCreator[m.info.updateAuthority]?.info
             ?.activated ||
             store?.info.public) &&
-          m?.info.data.creators.find(
+          m.info.data.creators.find(
             c => c.address === walletPubkey && !c.verified,
           )
         );
@@ -486,7 +545,7 @@ export function Notifications() {
       textButton: 'approve',
       description: (
         <span>
-          {whitelistedCreatorsByCreator[m?.info.updateAuthority]?.info?.name ||
+          {whitelistedCreatorsByCreator[m.info.updateAuthority]?.info?.name ||
             m.pubkey}{' '}
           wants you to approve that you helped create their art{' '}
           <Link to={`/art/${m.pubkey}`}>here.</Link>
@@ -608,65 +667,66 @@ export function Notifications() {
       </Popover>
     </Badge>
   );
+
+
+  // const content = notifications.length ? (
+  //   <div
+  //     style={{ width: '300px', color: 'white' }}
+  //     className={'notifications-container'}
+  //   >
+  //     <List
+  //       itemLayout="vertical"
+  //       size="small"
+  //       dataSource={notifications.slice(0, 10)}
+  //       renderItem={(item: NotificationCard) => (
+  //         <List.Item
+  //           extra={
+  //             <>
+  //               <RunAction
+  //                 id={item.id}
+  //                 action={item.action}
+  //                 icon={<PlayCircleOutlined />}
+  //               />
+  //               {item.dismiss && (
+  //                 <RunAction
+  //                   id={item.id}
+  //                   action={item.dismiss}
+  //                   icon={<PlayCircleOutlined />}
+  //                 />
+  //               )}
+  //             </>
+  //           }
+  //         >
+  //           <List.Item.Meta
+  //             title={<span>{item.title}</span>}
+  //             description={
+  //               <span>
+  //                 <i>{item.description}</i>
+  //               </span>
+  //             }
+  //           />
+  //         </List.Item>
+  //       )}
+  //     />
+  //   </div>
+  // ) : (
+  //   <span>No notifications</span>
+  // );
+
+  // const justContent = (
+  //   <Popover placement="bottomLeft" content={content} trigger="click">
+  //     <img src={'/bell.svg'} style={{ cursor: 'pointer' }} />
+  //   </Popover>
+  // );
+
+  // if (notifications.length === 0) return justContent;
+  // else
+  //   return (
+  //     <Badge
+  //       count={notifications.length - 1}
+  //       style={{ backgroundColor: 'white', color: 'black' }}
+  //     >
+  //       {justContent}
+  //     </Badge>
+  //   );
 }
-
-//   const content = notifications.length ? (
-//     <div style={{ width: '300px' }}>
-//       <List
-//         itemLayout="vertical"
-//         size="small"
-//         dataSource={notifications.slice(0, 10)}
-//         renderItem={(item: NotificationCard) => (
-//           <List.Item
-//             extra={
-//               <>
-//                 <RunAction
-//                   id={item.id}
-//                   action={item.action}
-//                   icon={<PlayCircleOutlined />}
-//                 />
-//                 {item.dismiss && (
-//                   <RunAction
-//                     id={item.id}
-//                     action={item.dismiss}
-//                     icon={<PlayCircleOutlined />}
-//                   />
-//                 )}
-//               </>
-//             }
-//           >
-//             <List.Item.Meta
-//               title={<span>{item.title}</span>}
-//               description={
-//                 <span>
-//                   <i>{item.description}</i>
-//                 </span>
-//               }
-//             />
-//           </List.Item>
-//         )}
-//       />
-//     </div>
-//   ) : (
-//     <span>No notifications</span>
-//   );
-
-//   const justContent = (
-//     <Popover
-//       className="noty-popover"
-//       placement="bottomLeft"
-//       content={content}
-//       trigger="click"
-//     >
-//       <h1 className="title">M</h1>
-//     </Popover>
-//   );
-
-//   if (notifications.length === 0) return justContent;
-//   else
-//     return (
-//       <Badge count={notifications.length - 1} style={{ backgroundColor: 'white' }}>
-//         {justContent}
-//       </Badge>
-//     );
-// }
