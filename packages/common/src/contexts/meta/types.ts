@@ -113,22 +113,31 @@ export type AccountAndPubkey = {
 export class Collection {
   id: string;
   name: string;
+  description: string;
   supply: number;
+  price: number;
   sold: number;
   start_publish: number;
+  images: string[];
 
   constructor(
     id: string,
     name: string,
+    description: string,
     supply: number,
+    price: number,
     sold: number,
     start_publish: number,
+    images: string[],
   ) {
     this.id = id;
     this.name = name;
+    this.description = description;
     this.supply = supply;
+    this.price = price;
     this.sold = sold;
     this.start_publish = start_publish;
+    this.images = images;
   }
 }
 

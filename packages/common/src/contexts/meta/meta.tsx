@@ -30,7 +30,7 @@ const MetaContext = React.createContext<MetaContextState>({
   isBidPlaced: false,
   liveDataAuctions: {},
   allDataAuctions: {},
-  dataCollection: new Collection('','',0,0,0),
+  dataCollection: new Collection('','','',0,0,0,0,[]),
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
   // @ts-ignore
@@ -42,7 +42,7 @@ const MetaContext = React.createContext<MetaContextState>({
 export function MetaProvider({ children = null as any }) {
   const connection = useConnection();
   const { isReady, storeAddress } = useStore();
-  const [dataCollection,setDataCollection] = useState<Collection>(new Collection('','',0,0,0))
+  const [dataCollection,setDataCollection] = useState<Collection>(new Collection('','','',0,0,0,0,[]))
   const [endingTime, setEndingTime] = useState(0)
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
   const [liveDataAuctions,setLiveDataAuction] = useState<{[key:string]:ItemAuction}>({})
@@ -179,7 +179,6 @@ export function MetaProvider({ children = null as any }) {
         
         setLiveDataAuction(listData)
       }
-      setIsLoadingDatabase(false)
       
     })
   }
@@ -208,8 +207,8 @@ export function MetaProvider({ children = null as any }) {
     .eq('id',1)
     .then(data => {
       if (data.body != null) {
-        const {id,name,supply,sold,start_publish} = data.body[0]
-        let collection = new Collection(id,name,supply,sold,start_publish)
+        const {id,name,description,supply,price,sold,start_publish,sample_images} = data.body[0]
+        let collection = new Collection(id,name,description,supply,price,sold,start_publish,sample_images)
         setDataCollection(collection)
       }
       
@@ -325,10 +324,15 @@ export function MetaProvider({ children = null as any }) {
       setIsLoadingMetaplex(false);
     }
 
-    //Todo handle not-started, starting, ended
-    updateLiveDataAuction()
-    updateAllDataAuction()
-    getDataCollection()
+    Promise.all([
+       updateLiveDataAuction(),
+       updateAllDataAuction(),
+       getDataCollection()
+    ])
+    .finally(()=>{
+      setIsLoadingDatabase(false)
+    })
+    
     console.log('------->set finished', new Date());
 
     await updateMints(nextState.metadataByMint);
