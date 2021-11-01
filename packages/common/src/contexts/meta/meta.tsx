@@ -176,7 +176,6 @@ export function MetaProvider({ children = null as any }) {
           listData[v.id] = new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link,v.owner,v.nft_data.mint_key, v.type_auction)
         })
         setEndingTime(dataAuction.body[dataAuction.body.length-1].end_auction)
-        
         setLiveDataAuction(listData)
       }
       
@@ -234,6 +233,14 @@ export function MetaProvider({ children = null as any }) {
     }
 
     console.log('-----> Query started', new Date());
+    Promise.all([
+      updateLiveDataAuction(),
+      updateAllDataAuction(),
+      getDataCollection()
+    ])
+    .finally(()=>{
+      setIsLoadingDatabase(false)
+    })
 
     let nextState = await pullPage(connection, page, state);
 
@@ -324,14 +331,7 @@ export function MetaProvider({ children = null as any }) {
       setIsLoadingMetaplex(false);
     }
 
-    Promise.all([
-       updateLiveDataAuction(),
-       updateAllDataAuction(),
-       getDataCollection()
-    ])
-    .finally(()=>{
-      setIsLoadingDatabase(false)
-    })
+
     
     console.log('------->set finished', new Date());
 
