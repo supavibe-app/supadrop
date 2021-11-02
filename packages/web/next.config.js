@@ -46,4 +46,14 @@ module.exports = withPlugins(plugins, {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/apply',
+        destination: 'https://forms.gle/Wxotbnjj9j5mPdBaA',
+        permanent: false,
+        basePath: false
+      },
+    ]
+  }
 });
