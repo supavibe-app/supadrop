@@ -31,10 +31,21 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   const [file, setFile] = useState<File>();
   const [avatarUrl, setAvatarUrl] = useState<String>();
 
+  async function deleteLastImage() {
+    let exProfpic;
+    if (userData?.img_profile) {
+      exProfpic = userData.img_profile.split("/");
+      await supabase
+        .storage
+        .from('profile')
+        .remove([`avatars/${userData?.wallet_address}_${exProfpic[exProfpic.length - 1]}`])
+    }
+  }
+
   // will return localhost link just for temp data
   async function downloadImage(path) {
     console.log('downloadImage: ', path)
-    const { data, error } = await supabase.storage.from('profile').download(`avatars/${path}`)
+    const { data, error } = await supabase.storage.from('profile').download(`avatars/${userData?.wallet_address}_${path}`)
     if (error) {
       throw error
     }
@@ -43,20 +54,19 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   }
 
   const saveProfile = async (values) => {
-    let exProfpic;
-    if (userData?.img_profile) {
-      exProfpic = userData.img_profile.split("/");
-      await supabase
-        .storage
-        .from('profile')
-        .remove([`avatars/${exProfpic[exProfpic.length-1]}`])
-    }
+    let imageProfile = '';
+
+    if (file) {
+      deleteLastImage();
+
+      imageProfile = `${BASE_STORAGE_URL}${userData?.wallet_address}_${file?.name}`;
+    } else imageProfile = userData?.img_profile || '';
 
     let { data, error } = await supabase.from('user_data')
       // .update([{ ...values, img_profile: avatarUrl }])
-      .update([{ ...values, img_profile: `${BASE_STORAGE_URL}${file?.name}` }])
+      .update([{ ...values, img_profile: imageProfile }])
       .eq('wallet_address', publicKey)
-      .limit(1)
+      .limit(1);
 
     if (error) {
       console.log(error);
@@ -73,6 +83,9 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
 
   const onUpload = async (event) => {
     console.log('onUpload', typeof event);
+    if (file) {
+      deleteLastImage();
+    }
     setFile(event);
     const { error: uploadError } = await supabase.storage
       .from('profile')
@@ -87,7 +100,7 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   }
 
   const props = {
-    action:onUpload,
+    action: onUpload,
     onStart(file) {
       console.log('onStart file', file);
       console.log('onStart file name', file.name);
@@ -108,7 +121,7 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
       const isLt1M = file.size / 1024 / 1024 < 1;
       if (!isLt1M) {
         message.error('Image must smaller than 1MB!');
-  
+
       }
       return isJpgOrPng && isLt1M;
     },
