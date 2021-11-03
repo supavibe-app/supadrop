@@ -19,12 +19,15 @@ import {
   UploadStyle,
 } from './style';
 import { UserData } from '@oyster/common';
+import { useHistory } from 'react-router';
+// import { replace } from 'lodash';
 
 const { TextArea } = Input;
 const maxChar = 280;
 const BASE_STORAGE_URL = "https://fjgyltuahsuzqqkdnhay.supabase.in/storage/v1/object/public/profile/avatars/" // TODO NEED TO MOVE or CHANGE
 
 const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: UserData | undefined; }) => {
+  const { replace } = useHistory();
   const { publicKey } = useWallet();
   const [form] = Form.useForm();
   const [bio, setBio] = useState(userData?.bio || ''); // to get the length of bio
@@ -53,8 +56,27 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     setAvatarUrl(url)
   }
 
+  // NEED CLEAN THE CODE FOR THIS FUNC MAYBE
   const saveProfile = async (values) => {
     let imageProfile = '';
+    let userName = true;
+
+    let { data: user_data, error: error_user } = await supabase
+      .from('user_data')
+      .select('username');
+
+    user_data?.some( dataUsername => {
+      console.log('username', dataUsername);
+      if (dataUsername.username == values.username && values.username != userData?.username) {
+        message.error(`update profile failed, reason: ${values.username} already taken`);
+        userName = false;
+        return;
+      }
+    })
+
+    if (!userName) {
+      return;
+    }
 
     if (file) {
       deleteLastImage();
@@ -68,14 +90,22 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
       .eq('wallet_address', publicKey)
       .limit(1);
 
-    if (error) {
+    if (error || error_user) {
       console.log(error);
-      message.error(`update profile failed, reason: ${error}`);
+      if (error) {
+        message.error(`update profile failed, reason: ${error}`);
+      } else if (error_user) {
+        message.error(`update profile failed, reason: ${error_user}`);
+      }
+      
       return;
     }
 
     if (data != null) {
       message.success('profile updated 🎉');
+      if (values.username) {
+        replace(`/${values.username}`);
+      }
       refetch();
       closeEdit();
     }
@@ -89,10 +119,11 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
     setFile(event);
     const { error: uploadError } = await supabase.storage
       .from('profile')
-      .upload(`avatars/${event.name}`, event);
+      .upload(`avatars/${userData?.wallet_address}_${event.name}`, event);
 
     if (uploadError) {
       downloadImage(event.name);
+      // message.error(`upload failed, reason: ${uploadError.message}`);
       throw uploadError
     } else downloadImage(event.name);
 

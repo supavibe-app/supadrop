@@ -64,10 +64,13 @@ export declare type AccountAndPubkey = {
 export declare class Collection {
     id: string;
     name: string;
+    description: string;
     supply: number;
+    price: number;
     sold: number;
     start_publish: number;
-    constructor(id: string, name: string, supply: number, sold: number, start_publish: number);
+    images: string[];
+    constructor(id: string, name: string, description: string, supply: number, price: number, sold: number, start_publish: number, images: string[]);
 }
 export declare type UpdateStateValueFunc<T = void> = (prop: keyof MetaState, key: string, value: ParsedAccount<any>) => T;
 export declare type ProcessAccountsFunc = (account: PublicKeyStringAndAccount<Buffer>, setter: UpdateStateValueFunc) => void;
