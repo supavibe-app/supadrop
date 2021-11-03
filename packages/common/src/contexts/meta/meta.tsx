@@ -30,7 +30,7 @@ const MetaContext = React.createContext<MetaContextState>({
   isBidPlaced: false,
   liveDataAuctions: {},
   allDataAuctions: {},
-  dataCollection: new Collection('','',0,0,0),
+  dataCollection: new Collection('','','',0,0,0,0,[]),
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
   // @ts-ignore
@@ -42,7 +42,7 @@ const MetaContext = React.createContext<MetaContextState>({
 export function MetaProvider({ children = null as any }) {
   const connection = useConnection();
   const { isReady, storeAddress } = useStore();
-  const [dataCollection,setDataCollection] = useState<Collection>(new Collection('','',0,0,0))
+  const [dataCollection,setDataCollection] = useState<Collection>(new Collection('','','',0,0,0,0,[]))
   const [endingTime, setEndingTime] = useState(0)
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
   const [liveDataAuctions,setLiveDataAuction] = useState<{[key:string]:ItemAuction}>({})
@@ -176,10 +176,8 @@ export function MetaProvider({ children = null as any }) {
           listData[v.id] = new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link,v.owner,v.nft_data.mint_key, v.type_auction)
         })
         setEndingTime(dataAuction.body[dataAuction.body.length-1].end_auction)
-        
         setLiveDataAuction(listData)
       }
-      setIsLoadingDatabase(false)
       
     })
   }
@@ -208,8 +206,8 @@ export function MetaProvider({ children = null as any }) {
     .eq('id',1)
     .then(data => {
       if (data.body != null) {
-        const {id,name,supply,sold,start_publish} = data.body[0]
-        let collection = new Collection(id,name,supply,sold,start_publish)
+        const {id,name,description,supply,price,sold,start_publish,sample_images} = data.body[0]
+        let collection = new Collection(id,name,description,supply,price,sold,start_publish,sample_images)
         setDataCollection(collection)
       }
       
@@ -235,6 +233,14 @@ export function MetaProvider({ children = null as any }) {
     }
 
     console.log('-----> Query started', new Date());
+    Promise.all([
+      updateLiveDataAuction(),
+      updateAllDataAuction(),
+      getDataCollection()
+    ])
+    .finally(()=>{
+      setIsLoadingDatabase(false)
+    })
 
     let nextState = await pullPage(connection, page, state);
 
@@ -325,10 +331,8 @@ export function MetaProvider({ children = null as any }) {
       setIsLoadingMetaplex(false);
     }
 
-    //Todo handle not-started, starting, ended
-    updateLiveDataAuction()
-    updateAllDataAuction()
-    getDataCollection()
+
+    
     console.log('------->set finished', new Date());
 
     await updateMints(nextState.metadataByMint);

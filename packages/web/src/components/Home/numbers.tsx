@@ -15,7 +15,7 @@ const Numbers = ({ state }: { state: CountdownState | undefined; }) => {
           <Statistic
             className={CreateStatistic}
             title="reserve price"
-            value={2}
+            value={dataCollection.price}
             suffix="SOL"
           />
 
