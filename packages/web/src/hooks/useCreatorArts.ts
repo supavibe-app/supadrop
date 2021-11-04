@@ -9,3 +9,14 @@ export const useCreatorArts = (id?: StringPublicKey) => {
 
   return filtered;
 };
+
+export const useCollectedArts = (id?: StringPublicKey) => {
+  const { metadata } = useMeta();
+  const filtered = metadata.filter(
+    m =>
+      m.info.updateAuthority === id &&
+      m.info.data.creators?.some(val => val.address !== id),
+  );
+
+  return filtered;
+};

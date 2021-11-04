@@ -10,10 +10,11 @@ import FeatherIcon from 'feather-icons-react';
 import {
   AuctionViewState,
   useAuctions,
+  useCollectedArts,
   useCreatorArts,
   useUserArts,
 } from '../../hooks';
-import getUserData from '../../database/userData';
+import getUserData, { getDataNFT } from '../../database/userData';
 
 // components
 import { ArtCard } from '../../components/ArtCard';
@@ -46,27 +47,45 @@ const Profile = ({ userId }: { userId: string }) => {
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
 
-  const walletAddress = userData ? userData.wallet_address : userId;
+  const walletAddress = userData?.wallet_address;
+
   const artwork = useCreatorArts(walletAddress);
+
   const ownedMetadata = useUserArts();
-  const onSale = useAuctions(AuctionViewState.Live).filter(m => m.auctionManager.authority === walletAddress);
+  const collected = useCollectedArts(walletAddress);
+  const onSale = useAuctions(AuctionViewState.Live).filter(
+    m => m.auctionManager.authority === walletAddress,
+  );
+  console.log(
+    '🚀 ~ file: index.tsx ~ line 67 ~ Profile ~ onSale',
+    useAuctions(AuctionViewState.Live),
+  );
 
   const allData: any = {};
+  const allDataArray = [...collected, ...artwork, ...onSale];
   // const ownedMetadata: any = {};
 
   useEffect(() => {
     // if username is available, show username in the url instead of their wallet address
     if (userData && userData.username) replace(`/${userData.username}`);
-  }, [loading, userData])
+  }, [loading, userData]);
 
-  // ownedMetadata.forEach(data => {
-  //   if (!allData[data.metadata.pubkey]) {
-  //     allData[data.metadata.pubkey] = {
-  //       type: 'owned',
-  //       item: data,
-  //     };
-  //   }
-  // });
+  ownedMetadata.forEach(data => {
+    if (!allData[data.metadata.pubkey]) {
+      allData[data.metadata.pubkey] = {
+        type: 'owned',
+        item: data,
+      };
+    }
+  });
+  onSale.forEach(data => {
+    if (!allData[data.auction.pubkey]) {
+      allData[data.auction.pubkey] = {
+        type: 'onSale',
+        item: data,
+      };
+    }
+  });
 
   artwork.forEach(data => {
     if (!allData[data.pubkey]) {
@@ -142,8 +161,12 @@ const Profile = ({ userId }: { userId: string }) => {
         {!onEdit && userData && (
           <div className={uTextAlignCenter} style={{ width: '100%' }}>
             <div className={uFlexJustifyCenter}>
-              {userData.img_profile && <Avatar size={128} src={userData.img_profile} />}
-              {!userData.img_profile && <DefaultAvatar size={128} iconSize="48" />}
+              {userData.img_profile && (
+                <Avatar size={128} src={userData.img_profile} />
+              )}
+              {!userData.img_profile && (
+                <DefaultAvatar size={128} iconSize="48" />
+              )}
             </div>
 
             <div className={NameStyle}>{userData.name}</div>
@@ -162,7 +185,9 @@ const Profile = ({ userId }: { userId: string }) => {
               </div>
             </div>
 
-            {userData.username && <div className={UsernameSection}>@{userData.username}</div>}
+            {userData.username && (
+              <div className={UsernameSection}>@{userData.username}</div>
+            )}
 
             <div className={IconURL}>
               {userData.twitter && (
@@ -212,134 +237,240 @@ const Profile = ({ userId }: { userId: string }) => {
         xxl={18}
       >
         <Tabs className={TabsStyle} defaultActiveKey="1">
-          <TabPane tab={<>All <span>{Object.entries(allData).length < 10 ? `0${Object.entries(allData).length}` : Object.entries(allData).length}</span></>} key="1">
-            <Row className={Object.entries(allData).length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
-              {Object.entries(allData).length === 0 && <EmptyState />}
+          {walletAddress !== publicKey?.toBase58() && (
+            <TabPane
+              tab={
+                <>
+                  All{' '}
+                  <span>
+                    {allDataArray.length < 10
+                      ? `0${allDataArray.length}`
+                      : allDataArray.length}
+                  </span>
+                </>
+              }
+              key="1"
+            >
+              <Row
+                className={allDataArray.length === 0 ? EmptyRow : ``}
+                gutter={[36, 36]}
+              >
+                {allDataArray.length === 0 && <EmptyState />}
 
-              {Object.entries(allData).map(([key, auction]: any) => {
-                const item = auction.item;
-                if (auction.type === 'onSale') {
-                  return (
-                    <Col
-                      key={item.auction.pubkey}
-                      span={8}
-                      xs={24}
-                      sm={24}
-                      md={24}
-                      lg={12}
-                      xl={8}
-                      xxl={8}
-                    >
-                      {item.isInstantSale && (
-                        <ArtCardOnSale auctionView={item} />
-                      )}
+                {artwork.map(art => (
+                  <Col key={art.pubkey} span={8}>
+                    <Link to={`/art/${art.pubkey}`}>
+                      <ArtCard key={art.pubkey} pubkey={art.pubkey} preview />
+                    </Link>
+                  </Col>
+                ))}
+                {collected.map(art => (
+                  <Col key={art.pubkey} span={8}>
+                    <Link to={`/art/${art.pubkey}`}>
+                      <ArtCard key={art.pubkey} pubkey={art.pubkey} preview />
+                    </Link>
+                  </Col>
+                ))}
 
-                      {!item.isInstantSale && (
-                        <Link to={`/auction/${item.auction.pubkey}`}>
+                {onSale.map(art => (
+                  <Col key={art.auction.pubkey} span={8}>
+                    {!art.auction.info.endAuctionAt && (
+                      <ArtCardOnSale auctionView={art} />
+                    )}
+                    {art.auction.info.endAuctionAt && (
+                      <Link to={`/auction/${art.auction.pubkey}`}>
+                        <ArtCard
+                          key={art.thumbnail.metadata.pubkey}
+                          pubkey={art.thumbnail.metadata.pubkey}
+                          preview={false}
+                        />
+                      </Link>
+                    )}
+                  </Col>
+                ))}
+              </Row>
+            </TabPane>
+          )}
+          {walletAddress === publicKey?.toBase58() && (
+            <TabPane
+              tab={
+                <>
+                  All{' '}
+                  <span>
+                    {Object.entries(allData).length < 10
+                      ? `0${Object.entries(allData).length}`
+                      : Object.entries(allData).length}
+                  </span>
+                </>
+              }
+              key="1"
+            >
+              <Row
+                className={Object.entries(allData).length === 0 ? EmptyRow : ``}
+                gutter={[36, 36]}
+              >
+                {Object.entries(allData).length === 0 && <EmptyState />}
+
+                {Object.entries(allData).map(([key, auction]: any) => {
+                  const item = auction.item;
+                  if (auction.type === 'onSale') {
+                    return (
+                      <Col
+                        key={item.auction.pubkey}
+                        span={8}
+                        xs={24}
+                        sm={24}
+                        md={24}
+                        lg={12}
+                        xl={8}
+                        xxl={8}
+                      >
+                        {!item.auction.info.endAuctionAt && (
+                          <ArtCardOnSale auctionView={item} />
+                        )}
+
+                        {item.auction.info.endAuctionAt && (
+                          <Link to={`/auction/${item.auction.pubkey}`}>
+                            <ArtCard
+                              key={item.auction.pubkey}
+                              pubkey={item.auction.pubkey}
+                              preview={false}
+                            />
+                          </Link>
+                        )}
+                      </Col>
+                    );
+                  } else if (auction.type === 'owned') {
+                    return (
+                      <Col
+                        key={item.metadata.pubkey}
+                        span={8}
+                        xs={24}
+                        sm={24}
+                        md={24}
+                        lg={12}
+                        xl={8}
+                        xxl={8}
+                      >
+                        <Link to={`/art/${item.metadata.pubkey}`}>
                           <ArtCard
-                            key={item.auction.pubkey}
-                            pubkey={item.auction.pubkey}
+                            key={item.metadata.pubkey}
+                            pubkey={item.metadata.pubkey}
+                            preview={false}
+                            artItem={[item]}
+                            isCollected={true}
+                          />
+                        </Link>
+                      </Col>
+                    );
+                  } else {
+                    return (
+                      <Col
+                        key={item.pubkey}
+                        span={8}
+                        xs={24}
+                        sm={24}
+                        md={24}
+                        lg={12}
+                        xl={8}
+                        xxl={8}
+                      >
+                        <Link to={`/art/${item.pubkey}`}>
+                          <ArtCard
+                            key={item.pubkey}
+                            pubkey={item.pubkey}
                             preview={false}
                           />
                         </Link>
-                      )}
-                    </Col>
-                  );
-                } else if (auction.type === 'owned') {
-                  return (
-                    <Col
-                      key={item.metadata.pubkey}
-                      span={8}
-                      xs={24}
-                      sm={24}
-                      md={24}
-                      lg={12}
-                      xl={8}
-                      xxl={8}
-                    >
-                      <Link to={`/art/${item.metadata.pubkey}`}>
-                        <ArtCard
-                          key={item.metadata.pubkey}
-                          pubkey={item.metadata.pubkey}
-                          preview={false}
-                          artItem={[item]}
-                          isCollected={true}
-                        />
-                      </Link>
-                    </Col>
-                  );
-                } else {
-                  return (
-                    <Col
-                      key={item.pubkey}
-                      span={8}
-                      xs={24}
-                      sm={24}
-                      md={24}
-                      lg={12}
-                      xl={8}
-                      xxl={8}
-                    >
-                      <Link to={`/art/${item.pubkey}`}>
-                        <ArtCard
-                          key={item.pubkey}
-                          pubkey={item.pubkey}
-                          preview={false}
-                        />
-                      </Link>
-                    </Col>
-                  );
-                }
+                      </Col>
+                    );
+                  }
+                })}
+              </Row>
+            </TabPane>
+          )}
+
+          <TabPane
+            tab={
+              <>
+                Created{' '}
+                <span>
+                  {artwork.length < 10 ? `0${artwork.length}` : artwork.length}
+                </span>
+              </>
+            }
+            key="2"
+          >
+            <Row
+              className={artwork.length === 0 ? EmptyRow : ``}
+              gutter={[36, 36]}
+            >
+              {artwork.length === 0 && <EmptyState />}
+
+              {artwork.map(art => {
+                return (
+                  <Col key={art.pubkey} span={8}>
+                    <Link to={`/art/${art.pubkey}`}>
+                      <ArtCard key={art.pubkey} pubkey={art.pubkey} preview />
+                    </Link>
+                  </Col>
+                );
               })}
             </Row>
           </TabPane>
 
-          <TabPane tab={<>Created <span>{artwork.length < 10 ? `0${artwork.length}` : artwork.length}</span></>} key="2">
-            <Row className={artwork.length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
-              {artwork.length === 0 && <EmptyState />}
+          <TabPane
+            tab={
+              <>
+                Collected{' '}
+                <span>
+                  {collected.length < 10
+                    ? `0${collected.length}`
+                    : collected.length}
+                </span>
+              </>
+            }
+            key="3"
+          >
+            <Row
+              className={collected.length === 0 ? EmptyRow : ``}
+              gutter={[36, 36]}
+            >
+              {collected.length === 0 && <EmptyState />}
 
-              {artwork.map(art => (
+              {collected.map(art => (
                 <Col key={art.pubkey} span={8}>
                   <Link to={`/art/${art.pubkey}`}>
-                    <ArtCard
-                      key={art.pubkey}
-                      pubkey={art.pubkey}
-                      preview
-                    />
+                    <ArtCard key={art.pubkey} pubkey={art.pubkey} preview />
                   </Link>
                 </Col>
               ))}
             </Row>
           </TabPane>
 
-          <TabPane tab={<>Collected <span>{ownedMetadata.length < 10 ? `0${ownedMetadata.length}` : ownedMetadata.length}</span></>} key="3">
-            <Row className={ownedMetadata.length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
-              {ownedMetadata.length === 0 && <EmptyState />}
-
-              {ownedMetadata.map(art => (
-                <Col key={art.metadata.pubkey} span={8}>
-                  <Link to={`/art/${art.metadata.pubkey}`}>
-                    <ArtCard
-                      key={art.metadata.pubkey}
-                      pubkey={art.metadata.pubkey}
-                      preview={false}
-                      artItem={[art]}
-                      isCollected={true}
-                    />
-                  </Link>
-                </Col>
-              ))}
-            </Row>
-          </TabPane>
-
-          <TabPane tab={<>On Sale <span>{onSale.length < 10 ? `0${onSale.length}` : onSale.length}</span></>} key="4">
-            <Row className={onSale.length === 0 ? EmptyRow : ``} gutter={[36, 36]}>
+          <TabPane
+            tab={
+              <>
+                On Sale{' '}
+                <span>
+                  {onSale.length < 10 ? `0${onSale.length}` : onSale.length}
+                </span>
+              </>
+            }
+            key="4"
+          >
+            <Row
+              className={onSale.length === 0 ? EmptyRow : ``}
+              gutter={[36, 36]}
+            >
               {onSale.length === 0 && <EmptyState />}
 
               {onSale.map(art => (
                 <Col key={art.auction.pubkey} span={8}>
-                  {art.isInstantSale && <ArtCardOnSale auctionView={art} />}
-                  {!art.isInstantSale && (
+                  {!art.auction.info.endAuctionAt && (
+                    <ArtCardOnSale auctionView={art} />
+                  )}
+                  {art.auction.info.endAuctionAt && (
                     <Link to={`/auction/${art.auction.pubkey}`}>
                       <ArtCard
                         key={art.thumbnail.metadata.pubkey}
