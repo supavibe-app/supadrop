@@ -35,6 +35,7 @@ import {
   TabsStyle,
   UsernameSection,
 } from './style';
+import getUserData from '../../database/userData';
 
 const { TabPane } = Tabs;
 
