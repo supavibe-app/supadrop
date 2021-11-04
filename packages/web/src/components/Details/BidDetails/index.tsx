@@ -19,7 +19,7 @@ import { endSale } from '../../AuctionCard/utils/endSale';
 import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState';
 import { supabase } from '../../../../supabaseClient';
 
-const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount, users, updatePage }: {
+const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPlaceBid, showPlaceBid, currentBidAmount, users }: {
   art: Art;
   auction?: AuctionView;
   auctionDatabase?: ItemAuction;
@@ -27,7 +27,6 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
   bids: ParsedAccount<BidderMetadata>[];
   showPlaceBid: boolean;
   setShowPlaceBid: (visible: boolean) => void;
-  updatePage: () => void;
   currentBidAmount: number | undefined;
   users: any;
 }) => {
@@ -256,7 +255,6 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
       .update({'isLiveMarket':false})
       .eq('id',auction?.auction.pubkey)
       .then()
-      updatePage()
     } catch (e) {
       console.error('endAuction', e);
       return;
@@ -297,7 +295,6 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
           instantSalePrice,
         );
         setCurrentBid(bid.amount.toNumber())
-        updatePage()
         supabase.from('auction_status')
         .update({'isLiveMarket':false})
         .eq('id',auction?.auction.pubkey)
@@ -333,7 +330,6 @@ const BidDetails = ({ art, auctionDatabase, auction, highestBid, bids, setShowPl
       ).then(async () => {
         await update();
       });
-      updatePage()
 
     } catch (e) {
       console.error(e);
