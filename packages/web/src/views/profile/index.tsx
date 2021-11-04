@@ -14,8 +14,6 @@ import {
   useCreatorArts,
   useUserArts,
 } from '../../hooks';
-import getUserData, { getDataNFT } from '../../database/userData';
-
 // components
 import { ArtCard } from '../../components/ArtCard';
 import DefaultAvatar from '../../components/DefaultAvatar';
