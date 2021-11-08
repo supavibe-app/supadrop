@@ -59,23 +59,21 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
   // NEED CLEAN THE CODE FOR THIS FUNC MAYBE
   const saveProfile = async (values) => {
     let imageProfile = '';
-    let userName = true;
 
-    let { data: user_data, error: error_user } = await supabase
-      .from('user_data')
-      .select('username');
+    if (values.username != userData?.username) {
+      let { data: user_data, error: error_user } = await supabase
+        .from('user_data')
+        .select('username')
+        .eq('username', `${values.username}`);
 
-    user_data?.some( dataUsername => {
-      console.log('username', dataUsername);
-      if (dataUsername.username == values.username && values.username != userData?.username) {
-        message.error(`update profile failed, reason: ${values.username} already taken`);
-        userName = false;
-        return;
-      }
-    })
+        if (user_data && user_data?.length > 0) {
+          message.error(`username already taken`);
+          return;
+        }
 
-    if (!userName) {
-      return;
+        if (error_user) {
+          console.log('error', error_user.message);
+        }
     }
 
     if (file) {
@@ -90,14 +88,9 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
       .eq('wallet_address', publicKey)
       .limit(1);
 
-    if (error || error_user) {
+    if (error) {
       console.log(error);
-      if (error) {
-        message.error(`update profile failed, reason: ${error}`);
-      } else if (error_user) {
-        message.error(`update profile failed, reason: ${error_user}`);
-      }
-      
+      message.error(`update profile failed, reason: ${error}`);
       return;
     }
 
