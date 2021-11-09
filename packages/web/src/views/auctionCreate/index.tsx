@@ -78,7 +78,12 @@ export interface AuctionState {
 export const AuctionCreateView = () => {
   // const connection = useConnection();
   // const wallet = useWallet();
-  const { whitelistedCreatorsByCreator, storeIndexer , updateAllDataAuction,updateLiveDataAuction} = useMeta();
+  const {
+    whitelistedCreatorsByCreator,
+    storeIndexer,
+    updateAllDataAuction,
+    updateLiveDataAuction,
+  } = useMeta();
 
   // const { step_param }: { step_param: string } = useParams();
   // const history = useHistory();
@@ -86,8 +91,7 @@ export const AuctionCreateView = () => {
   const wallet = useWallet();
   const { state } = history.location;
   const { idNFT, item: itemNFT }: any = state || {};
-  
-  
+
   const connection = useConnection();
   const mint = useMint(QUOTE_MINT);
 
@@ -95,10 +99,10 @@ export const AuctionCreateView = () => {
   const [auctionObj, setAuctionObj] =
     useState<
       | {
-        vault: StringPublicKey;
-        auction: StringPublicKey;
-        auctionManager: StringPublicKey;
-      }
+          vault: StringPublicKey;
+          auction: StringPublicKey;
+          auctionManager: StringPublicKey;
+        }
       | undefined
     >(undefined);
   const [attributes, setAttributes] = useState<AuctionState>({
@@ -137,7 +141,7 @@ export const AuctionCreateView = () => {
         if (!editions) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-              (wallet?.publicKey || SystemProgram.programId).toBase58()
+            (wallet?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -161,7 +165,7 @@ export const AuctionCreateView = () => {
         ) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-              (wallet?.publicKey || SystemProgram.programId).toBase58()
+            (wallet?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -201,23 +205,23 @@ export const AuctionCreateView = () => {
       endAuctionAt: isInstantSale
         ? null
         : new BN(
-          (attributes.auctionDuration || 0) *
-          (attributes.auctionDurationType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.auctionDurationType == 'hours'
-              ? 60 * 60 // 1 hour in seconds
-              : 60), // 1 minute in seconds
-        ), // endAuctionAt is actually auction duration, poorly named, in seconds
+            (attributes.auctionDuration || 0) *
+              (attributes.auctionDurationType == 'days'
+                ? 60 * 60 * 24 // 1 day in seconds
+                : attributes.auctionDurationType == 'hours'
+                ? 60 * 60 // 1 hour in seconds
+                : 60), // 1 minute in seconds
+          ), // endAuctionAt is actually auction duration, poorly named, in seconds
       auctionGap: isInstantSale
         ? null
         : new BN(
-          (attributes.gapTime || 0) *
-          (attributes.gapTimeType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.gapTimeType == 'hours'
-              ? 60 * 60 // 1 hour in seconds
-              : 60), // 1 minute in seconds
-        ),
+            (attributes.gapTime || 0) *
+              (attributes.gapTimeType == 'days'
+                ? 60 * 60 * 24 // 1 day in seconds
+                : attributes.gapTimeType == 'hours'
+                ? 60 * 60 // 1 hour in seconds
+                : 60), // 1 minute in seconds
+          ),
       priceFloor: new PriceFloor({
         type: attributes.priceFloor
           ? PriceFloorType.Minimum
@@ -261,15 +265,15 @@ export const AuctionCreateView = () => {
       vault: _auctionObj.vault,
       type_auction: isInstantSale || false,
       owner: wallet.publicKey?.toBase58(),
-    }
-    supabase.from('auction_status')
-      .insert([
-        item
-      ])
-      .then(()=>{
-        updateLiveDataAuction()
-        updateAllDataAuction()
+    };
+    supabase
+      .from('auction_status')
+      .insert([item])
+      .then(() => {
+        updateLiveDataAuction();
+        updateAllDataAuction();
       });
+    setAuctionObj(_auctionObj);
   };
 
   const sellStep = (
@@ -298,7 +302,8 @@ export const AuctionCreateView = () => {
   };
 
   // supaya gaada yang hard visit (visit without nft)
-  if (!idNFT && wallet.publicKey) history.push(`/${wallet.publicKey.toBase58()}`);
+  if (!idNFT && wallet.publicKey)
+    history.push(`/${wallet.publicKey.toBase58()}`);
 
   return (
     <Row justify="center" style={{ paddingTop: 50 }}>
@@ -312,7 +317,7 @@ export const AuctionCreateView = () => {
           </Row>
         )}
 
-        <Row align={step > 0 ? "middle" : "top"} gutter={72}>
+        <Row align={step > 0 ? 'middle' : 'top'} gutter={72}>
           <Col span={12}>
             <ArtCard pubkey={idNFT} preview={false} />
           </Col>
