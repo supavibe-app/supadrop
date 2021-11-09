@@ -1,11 +1,19 @@
 import React from 'react';
 import { Col, Row, Statistic } from 'antd';
 import { CountdownState } from '@oyster/common/dist/lib';
-
-import { Availability, CreateStatistic, Label, NumberStyle, Timer } from './style';
+import { useMeta } from '../../contexts';
+import {
+  Availability,
+  CreateStatistic,
+  Label,
+  NumberStyle,
+  Timer,
+} from './style';
 import isEnded from './helpers/isEnded';
 
-const Numbers = ({ state }: { state: CountdownState | undefined; }) => {
+const Numbers = ({ state }: { state: CountdownState | undefined }) => {
+  const { dataCollection } = useMeta();
+
   return (
     <div style={{ marginBottom: 48 }}>
       <Row>
@@ -13,11 +21,13 @@ const Numbers = ({ state }: { state: CountdownState | undefined; }) => {
           <Statistic
             className={CreateStatistic}
             title="reserve price"
-            value={2}
+            value={dataCollection.price}
             suffix="SOL"
           />
 
-          <div className={Availability}>24/111 left</div>
+          <div className={Availability}>
+            {`${dataCollection.sold}/${dataCollection.supply}`} left
+          </div>
         </Col>
 
         <Col span={16} md={16} sm={24} xs={24}>
@@ -29,13 +39,13 @@ const Numbers = ({ state }: { state: CountdownState | undefined; }) => {
 };
 
 const Countdown = ({ state }: { state?: CountdownState }) => {
+  const { endingTime } = useMeta();
+
   return (
     <div style={{ width: '100%' }}>
-      <div className={Timer}>
-        {state && isEnded(state) ? 'ending in' : 'starting in'}
-      </div>
+      <div className={Timer}>{endingTime ? 'ending in' : 'starting in'}</div>
 
-      {state &&
+      {state && (
         <Row gutter={[24, 0]}>
           {state.days > 0 && (
             <Col>
@@ -73,7 +83,7 @@ const Countdown = ({ state }: { state?: CountdownState }) => {
             </Col>
           )}
         </Row>
-      }
+      )}
     </div>
   );
 };

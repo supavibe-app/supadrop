@@ -41,98 +41,6 @@ const WalletModal = () => {
         setVisible(false);
         setShowWallets(false);
     }, [setVisible, setShowWallets]);
-    //   return (
-    //     <MetaplexModal visible={visible} onCancel={close}>
-    //       <div
-    //         style={{
-    //           background:
-    //             'linear-gradient(180deg, #D329FC 0%, #8F6DDE 49.48%, #19E6AD 100%)',
-    //           borderRadius: 36,
-    //           width: 50,
-    //           height: 50,
-    //           textAlign: 'center',
-    //           verticalAlign: 'middle',
-    //           fontWeight: 700,
-    //           fontSize: '1.3rem',
-    //           lineHeight: 2.4,
-    //           marginBottom: 10,
-    //         }}
-    //       >
-    //         M
-    //       </div>
-    //
-    //       <h2>{selected ? 'Change provider' : 'Welcome to Metaplex'}</h2>
-    //       <p>
-    //         {selected
-    //           ? 'Feel free to switch wallet provider'
-    //           : 'You must be signed in to place a bid'}
-    //       </p>
-    //
-    //       <br />
-    //       {selected || showWallets ? (
-    //         wallets.map(wallet => {
-    //           return (
-    //             <Button
-    //               key={wallet.name}
-    //               size="large"
-    //               type={wallet === selected ? 'primary' : 'ghost'}
-    //               onClick={() => {
-    //                 select(wallet.name);
-    //                 close();
-    //               }}
-    //               icon={
-    //                 <img
-    //                   alt={`${wallet.name}`}
-    //                   width={20}
-    //                   height={20}
-    //                   src={wallet.icon}
-    //                   style={{ marginRight: 8 }}
-    //                 />
-    //               }
-    //               style={{
-    //                 display: 'block',
-    //                 width: '100%',
-    //                 textAlign: 'left',
-    //                 marginBottom: 8,
-    //               }}
-    //             >
-    //               {wallet.name}
-    //             </Button>
-    //           );
-    //         })
-    //       ) : (
-    //         <>
-    //           <Button
-    //             className="metaplex-button"
-    //             style={{
-    //               width: '80%',
-    //               fontWeight: 'unset',
-    //             }}
-    //             onClick={() => {
-    //               select(WalletName.Phantom);
-    //               close();
-    //             }}
-    //           >
-    //             <span>
-    //               <img
-    //                 src="https://www.phantom.app/img/logo.png"
-    //                 style={{ width: '1.2rem' }}
-    //               />
-    //               &nbsp;Sign in with Phantom
-    //             </span>
-    //             <span>&gt;</span>
-    //           </Button>
-    //           <p
-    //             onClick={() => setShowWallets(true)}
-    //             style={{ cursor: 'pointer', marginTop: 10 }}
-    //           >
-    //             Select a different Solana wallet
-    //           </p>
-    //         </>
-    //       )}
-    //     </MetaplexModal>
-    //   );
-    // };
     return (react_1.default.createElement(components_1.MetaplexModal, { visible: visible, onCancel: close },
         react_1.default.createElement(antd_1.Avatar, { className: style_1.LogoStyle, size: 64, src: './logo.svg' }),
         react_1.default.createElement("h2", null, selected ? 'Change provider' : 'Welcome to Supadrop'),
@@ -167,11 +75,9 @@ const WalletModalProvider = ({ children, }) => {
                 .select('*')
                 .eq('wallet_address', base58)
                 .then(data => {
-                if (data.body != null && data.body.length == 0) {
+                if (data.body && data.body.length === 0) {
                     supabaseClient_1.supabase.from('user_data')
-                        .insert([{
-                            wallet_address: base58
-                        }])
+                        .insert([{ wallet_address: base58 }])
                         .then();
                 }
             });
@@ -202,12 +108,13 @@ const WalletProvider = ({ children }) => {
     const wallets = react_1.useMemo(() => [
         wallet_adapter_wallets_1.getPhantomWallet(),
         wallet_adapter_wallets_1.getSolflareWallet(),
-        wallet_adapter_wallets_1.getTorusWallet({
-            options: {
-                // @FIXME: this should be changed for Metaplex, and by each Metaplex storefront
-                clientId: 'BOM5Cl7PXgE9Ylq1Z1tqzhpydY0RVr8k90QQ85N7AKI5QGSrr9iDC-3rvmy0K_hF0JfpLMiXoDhta68JwcxS1LQ',
-            },
-        }),
+        // getTorusWallet({
+        //   options: {
+        //     // @FIXME: this should be changed for Metaplex, and by each Metaplex storefront
+        //     clientId:
+        //       'BOM5Cl7PXgE9Ylq1Z1tqzhpydY0RVr8k90QQ85N7AKI5QGSrr9iDC-3rvmy0K_hF0JfpLMiXoDhta68JwcxS1LQ',
+        //   },
+        // }),
         wallet_adapter_wallets_1.getLedgerWallet(),
         wallet_adapter_wallets_1.getSolongWallet(),
         wallet_adapter_wallets_1.getMathWallet(),

@@ -20,6 +20,10 @@ export const CardStyle = css`
     border: 2px solid #ccff00;
   }
 
+  .ant-card-cover {
+    border-radius: 2px 2px 0 0;
+  }
+
   .ant-card-body {
     display: flex;
     flex-direction: row;
@@ -29,7 +33,7 @@ export const CardStyle = css`
 
     background: #000000;
     box-shadow: inset 0px 4px 20px rgba(0, 0, 0, 0.3);
-    border-radius: 0px 0px 8px 8px;
+    border-radius: 0 0 2px 2px;
   }
 
   .ant-card-meta-title {
@@ -38,7 +42,6 @@ export const CardStyle = css`
     padding: 20px 24px;
     margin-bottom: unset !important;
     color: #fafafb;
-    text-transform: uppercase;
   }
 
   .ant-card-meta-description {

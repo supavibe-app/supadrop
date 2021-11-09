@@ -17,10 +17,9 @@ import {
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
-import { Badge, Button, List, Popover } from 'antd';
-import FeatherIcon from 'feather-icons-react';
-import { Link, useLocation } from 'react-router-dom';
-
+import { Badge, Popover, List, Button, Tooltip } from 'antd';
+import { Link } from 'react-router-dom';
+import moment from 'moment';
 import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
 import { decommAuctionManagerAndReturnPrizes } from '../../actions/decommAuctionManagerAndReturnPrizes';
 import { sendSignMetadata } from '../../actions/sendSignMetadata';
@@ -29,10 +28,27 @@ import { settle } from '../../actions/settle';
 import { startAuctionManually } from '../../actions/startAuctionManually';
 import { QUOTE_MINT } from '../../constants';
 import { useMeta } from '../../contexts';
-import { AuctionViewState, useAuctions } from '../../hooks';
-import { BadgeStyle, CircleButton, EmptyNotification, ListStyle, NotificationPopover } from './style';
-import { GreyColor, uBoldFont, uFlexSpaceBetween, WhiteColor } from '../../styles';
+import {
+  AuctionViewState,
+  processAccountsIntoAuctionView,
+  useAuctions,
+} from '../../hooks';
+import {
+  BadgeStyle,
+  CircleButton,
+  EmptyNotification,
+  ListStyle,
+  NotificationPopover,
+} from './style';
+import {
+  GreyColor,
+  uBoldFont,
+  uFlexSpaceBetween,
+  uLowerCase,
+  WhiteColor,
+} from '../../styles';
 import Coffee from '../../assets/icons/coffee';
+import FeatherIcon from 'feather-icons-react';
 
 interface NotificationCard {
   id: string;
@@ -40,6 +56,8 @@ interface NotificationCard {
   description: string | JSX.Element;
   action: () => Promise<boolean>;
   dismiss?: () => Promise<boolean>;
+  textButton: string;
+  notifiedAt?: number;
 }
 
 enum RunActionState {
@@ -154,6 +172,7 @@ export function useCollapseWrappedSol({
     notifications.push({
       id: 'unsettled',
       title: 'Unsettled funds!',
+      textButton: 'settle',
       description:
         'You have unsettled royalties in your personal escrow account.',
       action: async () => {
@@ -186,23 +205,28 @@ export function useSettlementAuctions({
 }) {
   const { accountByMint } = useUserAccounts();
   const walletPubkey = wallet?.publicKey?.toBase58();
-  const { bidderPotsByAuctionAndBidder } = useMeta();
-  const auctionsNeedingSettling = [...useAuctions(AuctionViewState.Ended), ...useAuctions(AuctionViewState.BuyNow)];
+  const { bidderPotsByAuctionAndBidder, pullAuctionPage } = useMeta();
+  const auctionsNeedingSettling = [
+    ...useAuctions(AuctionViewState.Ended),
+    ...useAuctions(AuctionViewState.BuyNow),
+  ];
 
   const [validDiscoveredEndedAuctions, setValidDiscoveredEndedAuctions] =
     useState<Record<string, number>>({});
   useMemo(() => {
     const f = async () => {
       const nextBatch = auctionsNeedingSettling
-        .filter(
-          a => {
-            const isEndedInstantSale = a.isInstantSale && a.items.length === a.auction.info.bidState.bids.length;
+        .filter(a => {
+          const isEndedInstantSale =
+            a.isInstantSale &&
+            a.items.length === a.auction.info.bidState.bids.length;
 
-            return walletPubkey &&
-              a.auctionManager.authority === walletPubkey &&
-              (a.auction.info.ended() || isEndedInstantSale)
-          }
-        )
+          return (
+            walletPubkey &&
+            a.auctionManager.authority === walletPubkey &&
+            (a.auction.info.ended() || isEndedInstantSale)
+          );
+        })
         .sort(
           (a, b) =>
             (b.auction.info.endedAt?.toNumber() || 0) -
@@ -265,10 +289,13 @@ export function useSettlementAuctions({
         !b.info.emptied &&
         b.info.auctionAct === auctionKey,
     );
+
     if (bidsToClaim.length || validDiscoveredEndedAuctions[auctionViewKey] > 0)
       notifications.push({
         id: auctionViewKey,
         title: 'You have an ended auction that needs settling!',
+        textButton: 'settle',
+        notifiedAt: auctionView.auction.info.endedAt?.toNumber(),
         description: (
           <span>
             One of your auctions ended and it has monies that can be claimed.
@@ -278,18 +305,58 @@ export function useSettlementAuctions({
         ),
         action: async () => {
           try {
-            await settle(
-              connection,
-              wallet,
-              auctionView,
-              // Just claim all bidder pots
-              bidsToClaim,
-              myPayingAccount?.pubkey,
-              accountByMint,
+            // pull missing data and complete the auction view to settle.
+            const {
+              auctionDataExtended,
+              auctionManagersByAuction,
+              safetyDepositBoxesByVaultAndIndex,
+              metadataByMint,
+              bidderMetadataByAuctionAndBidder:
+              updatedBidderMetadataByAuctionAndBidder,
+              bidderPotsByAuctionAndBidder,
+              bidRedemptionV2sByAuctionManagerAndWinningIndex,
+              masterEditions,
+              vaults,
+              safetyDepositConfigsByAuctionManagerAndIndex,
+              masterEditionsByPrintingMint,
+              masterEditionsByOneTimeAuthMint,
+              metadataByMasterEdition,
+              metadataByAuction,
+            } = await pullAuctionPage(auctionView.auction.pubkey);
+            const completeAuctionView = processAccountsIntoAuctionView(
+              auctionView.auction.pubkey,
+              auctionView.auction,
+              auctionDataExtended,
+              auctionManagersByAuction,
+              safetyDepositBoxesByVaultAndIndex,
+              metadataByMint,
+              updatedBidderMetadataByAuctionAndBidder,
+              bidderPotsByAuctionAndBidder,
+              bidRedemptionV2sByAuctionManagerAndWinningIndex,
+              masterEditions,
+              vaults,
+              safetyDepositConfigsByAuctionManagerAndIndex,
+              masterEditionsByPrintingMint,
+              masterEditionsByOneTimeAuthMint,
+              metadataByMasterEdition,
+              {},
+              metadataByAuction,
+              undefined,
             );
-            if (wallet.publicKey) {
-              const ata = await getPersonalEscrowAta(wallet);
-              if (ata) await closePersonalEscrow(connection, wallet, ata);
+            if (completeAuctionView) {
+              await settle(
+                connection,
+                wallet,
+                completeAuctionView,
+                // Just claim all bidder pots
+                bidsToClaim,
+                myPayingAccount?.pubkey,
+                accountByMint,
+              );
+              if (wallet.publicKey) {
+                const ata = await getPersonalEscrowAta(wallet);
+                if (ata) await closePersonalEscrow(connection, wallet, ata);
+              }
             }
           } catch (e) {
             console.error(e);
@@ -301,20 +368,27 @@ export function useSettlementAuctions({
   });
 }
 
-export const Notifications = ({ }) => {
+export function Notifications() {
   const {
     metadata,
     whitelistedCreatorsByCreator,
     store,
     vaults,
     safetyDepositBoxesByVaultAndIndex,
+    pullAllSiteData,
   } = useMeta();
-  const possiblyBrokenAuctionManagerSetups = useAuctions(AuctionViewState.Defective);
-  const { pathname } = useLocation();
+  const possiblyBrokenAuctionManagerSetups = useAuctions(
+    AuctionViewState.Defective,
+  );
+
+  const liveAuctions = useAuctions(
+    AuctionViewState.Live,
+  );
 
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
   const wallet = useWallet();
+  const { accountByMint } = useUserAccounts();
 
   //NOTE: notifications untuk kasih tau seller sol yg bisa diambil (settle)
   const notifications: NotificationCard[] = [];
@@ -324,6 +398,38 @@ export const Notifications = ({ }) => {
   useCollapseWrappedSol({ connection, wallet, notifications });
 
   useSettlementAuctions({ connection, wallet, notifications });
+
+  const participated = useMemo(
+    () =>
+      liveAuctions
+        .filter((m, idx) =>
+          m.auction.info.bidState.bids.find(b => b.key == walletPubkey),
+        ),
+    [walletPubkey],
+  );
+
+  participated.forEach(v => {
+    console.log('data', v)
+    notifications.push({
+      id: v.auctionManager.pubkey,
+      title: 'You have participated in a auction!',
+      textButton: '',
+      description: (
+        <span>BRAH! <Link to={`/activity`}>here.</Link></span>
+      ),
+      action: 
+      async () => {
+        // Action hanya pemanis
+        try {
+          await pullAllSiteData();
+        } catch (e) {
+          console.error(e);
+          return false;
+        }
+        return true;
+      },
+    })
+  })
 
   const vaultsNeedUnwinding = useMemo(
     () =>
@@ -340,6 +446,7 @@ export const Notifications = ({ }) => {
     notifications.push({
       id: v.pubkey,
       title: 'You have items locked in a defective auction!',
+      textButton: 'claim',
       description: (
         <span>
           During an auction creation process that probably had some issues, you
@@ -363,11 +470,34 @@ export const Notifications = ({ }) => {
     });
   });
 
+  // ON Metaplex this can trigger notif
+  // notifications.push({
+  //   id: 'none',
+  //   title: 'Search for other auctions.',
+  //   textButton: 'f',
+  //   description: (
+  //     <span>
+  //       Load all auctions (including defectives) by pressing here. Then you can
+  //       close them.
+  //     </span>
+  //   ),
+  //   action: async () => {
+  //     try {
+  //       await pullAllSiteData();
+  //     } catch (e) {
+  //       console.error(e);
+  //       return false;
+  //     }
+  //     return true;
+  //   },
+  // });
+
   possiblyBrokenAuctionManagerSetups
     .filter(v => v.auctionManager.authority === walletPubkey)
     .forEach(v => {
       notifications.push({
         id: v.auctionManager.pubkey,
+        textButton: 'refund',
         title: 'You have items locked in a defective auction!',
         description: (
           <span>
@@ -412,6 +542,7 @@ export const Notifications = ({ }) => {
     notifications.push({
       id: m.pubkey,
       title: 'You have a new artwork to approve!',
+      textButton: 'approve',
       description: (
         <span>
           {whitelistedCreatorsByCreator[m.info.updateAuthority]?.info?.name ||
@@ -438,6 +569,7 @@ export const Notifications = ({ }) => {
       notifications.push({
         id: v.auctionManager.pubkey,
         title: 'You have an auction which is not started yet!',
+        textButton: 'activate',
         description: <span>You can activate it now if you wish.</span>,
         action: async () => {
           try {
@@ -452,21 +584,35 @@ export const Notifications = ({ }) => {
     });
 
   const content = notifications.length ? (
-
     <div>
       <List
         itemLayout="vertical"
         size="small"
-        dataSource={notifications.slice(0, 2)}
-        renderItem={() => (
+        dataSource={notifications.slice(0, 5)}
+        renderItem={(notification: NotificationCard) => (
           <List.Item
             className={ListStyle}
-            // TODO-Iyai Update with action button
-            extra={<Button className={uBoldFont} type="link">settle</Button>}
+            extra={
+              <Button
+                className={uBoldFont}
+                onClick={notification.action}
+                type="link"
+              >
+                {notification.textButton}
+              </Button>
+            }
           >
-            {/* TODO-Iyai: Update with desription and notifications time */}
-            <div>you have ended auction that needs to be settling</div>
-            <div className={GreyColor}>21 minutes ago</div>
+            <Tooltip
+              title={
+                <div className={uLowerCase}>{notification.description}</div>
+              }
+            >
+              <div className={uLowerCase}>{notification.title}</div>
+            </Tooltip>
+
+            <div className={GreyColor}>
+              {moment((notification.notifiedAt || 0) * 1000).fromNow()}
+            </div>
           </List.Item>
         )}
       />
@@ -481,18 +627,21 @@ export const Notifications = ({ }) => {
   if (notifications.length === 0) {
     return (
       <Popover
-        overlayClassName={NotificationPopover({ empty: true })}
+        overlayClassName={NotificationPopover}
         content={content}
-        trigger="focus"
+        trigger="click"
         placement="bottomRight"
-        title={(
+        title={
           <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
             <div className={WhiteColor}>notification</div>
-            {!pathname.includes('activity') && <Link className={GreyColor} to="/activity">see all</Link>}
           </div>
-        )}
+        }
       >
-        <Button className={CircleButton({ active: false })} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+        <Button
+          className={CircleButton({ active: false })}
+          icon={<FeatherIcon icon="bell" size="20" />}
+          shape="circle"
+        />
       </Popover>
     );
   }
@@ -500,19 +649,84 @@ export const Notifications = ({ }) => {
   return (
     <Badge className={BadgeStyle} dot>
       <Popover
-        overlayClassName={NotificationPopover({ empty: false })}
+        overlayClassName={NotificationPopover}
         content={content}
         trigger="click"
         placement="bottomRight"
-        title={(
+        title={
           <div className={`${uBoldFont} ${uFlexSpaceBetween}`}>
             <div className={WhiteColor}>notification</div>
-            <Link className={GreyColor} to="/activity">see all</Link>
           </div>
-        )}
+        }
       >
-        <Button className={CircleButton({ active: true })} icon={<FeatherIcon icon="bell" size="20" />} shape="circle" />
+        <Button
+          className={CircleButton({ active: true })}
+          icon={<FeatherIcon icon="bell" size="20" />}
+          shape="circle"
+        />
       </Popover>
     </Badge>
   );
+
+
+  // const content = notifications.length ? (
+  //   <div
+  //     style={{ width: '300px', color: 'white' }}
+  //     className={'notifications-container'}
+  //   >
+  //     <List
+  //       itemLayout="vertical"
+  //       size="small"
+  //       dataSource={notifications.slice(0, 10)}
+  //       renderItem={(item: NotificationCard) => (
+  //         <List.Item
+  //           extra={
+  //             <>
+  //               <RunAction
+  //                 id={item.id}
+  //                 action={item.action}
+  //                 icon={<PlayCircleOutlined />}
+  //               />
+  //               {item.dismiss && (
+  //                 <RunAction
+  //                   id={item.id}
+  //                   action={item.dismiss}
+  //                   icon={<PlayCircleOutlined />}
+  //                 />
+  //               )}
+  //             </>
+  //           }
+  //         >
+  //           <List.Item.Meta
+  //             title={<span>{item.title}</span>}
+  //             description={
+  //               <span>
+  //                 <i>{item.description}</i>
+  //               </span>
+  //             }
+  //           />
+  //         </List.Item>
+  //       )}
+  //     />
+  //   </div>
+  // ) : (
+  //   <span>No notifications</span>
+  // );
+
+  // const justContent = (
+  //   <Popover placement="bottomLeft" content={content} trigger="click">
+  //     <img src={'/bell.svg'} style={{ cursor: 'pointer' }} />
+  //   </Popover>
+  // );
+
+  // if (notifications.length === 0) return justContent;
+  // else
+  //   return (
+  //     <Badge
+  //       count={notifications.length - 1}
+  //       style={{ backgroundColor: 'white', color: 'black' }}
+  //     >
+  //       {justContent}
+  //     </Badge>
+  //   );
 }

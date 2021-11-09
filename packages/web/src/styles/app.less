@@ -151,6 +151,20 @@ code {
   margin-left: -12px !important;
 }
 
+.pubkey-row {
+  line-height: 30px;
+}
+
+.copy-pubkey {
+  height: 100%;
+  cursor: pointer;
+  margin-left: 10px;
+  color: @background-color-base;
+  :hover {
+    color: @text-color;
+  }
+}
+
 .creator-name {
   padding-left: 10px;
 }
@@ -185,4 +199,10 @@ code {
 
 model-viewer {
   --poster-color: transparent;
+}
+
+.creator-base-page{
+  @media (max-width: @screen-sm-min) {
+    padding: 15px;
+  }
 }

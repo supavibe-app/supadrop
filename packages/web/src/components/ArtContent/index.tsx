@@ -1,6 +1,11 @@
 import React, { Ref, useCallback, useEffect, useState } from 'react';
 import { Image } from 'antd';
-import { MetadataCategory, MetadataFile, pubkeyToString } from '@oyster/common';
+import {
+  MetadataCategory,
+  MetadataFile,
+  pubkeyToString,
+  useMeta,
+} from '@oyster/common';
 import { MeshViewer } from '../MeshViewer';
 import { ThreeDots } from '../MyLoader';
 import { useCachedImage, useExtendedArt } from '../../hooks';
@@ -112,7 +117,7 @@ const VideoArtContent = ({
 
   const content =
     likelyVideo &&
-      likelyVideo.startsWith('https://watch.videodelivery.net/') ? (
+    likelyVideo.startsWith('https://watch.videodelivery.net/') ? (
       <div className={`${className} square`}>
         <Stream
           streamRef={(e: any) => playerRef(e)}
@@ -176,26 +181,30 @@ const HTMLContent = ({
   artView?: boolean;
 }) => {
   if (!artView) {
-    return <CachedImageContent
-      uri={uri}
-      className={className}
-      preview={preview}
-      style={style}
-    />
+    return (
+      <CachedImageContent
+        uri={uri}
+        className={className}
+        preview={preview}
+        style={style}
+      />
+    );
   }
   const htmlURL =
     files && files.length > 0 && typeof files[0] === 'string'
       ? files[0]
       : animationUrl;
   return (
-    <iframe allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+    <iframe
+      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
       sandbox="allow-scripts"
       frameBorder="0"
       src={htmlURL}
       className={className}
-      style={style}></iframe>);
+      style={style}
+    ></iframe>
+  );
 };
-
 
 export const ArtContent = ({
   category,
@@ -226,12 +235,15 @@ export const ArtContent = ({
   artView?: boolean;
 }) => {
   const id = pubkeyToString(pubkey);
+  const { allDataAuctions } = useMeta();
 
   const { ref, data } = useExtendedArt(id);
 
   if (pubkey && data) {
     uri = data.image;
     animationURL = data.animation_url;
+  } else {
+    uri = allDataAuctions[id]?.img_nft;
   }
 
   if (pubkey && data?.properties) {
@@ -272,7 +284,7 @@ export const ArtContent = ({
         animationURL={animationURL}
         active={active}
       />
-    ) :
+    ) : (
       //     (category === 'html' || animationUrlExt === 'html') ? (
       //       <HTMLContent
       //         uri={uri}
@@ -305,14 +317,13 @@ export const ArtContent = ({
       //       {content}
       //     </div>
       //   );
-      (
-        <CachedImageContent
-          uri={uri}
-          className={className}
-          preview={preview}
-          style={style}
-        />
-      );
+      <CachedImageContent
+        uri={uri}
+        className={className}
+        preview={preview}
+        style={style}
+      />
+    );
 
   return (
     <div

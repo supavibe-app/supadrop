@@ -27,7 +27,7 @@ export const LiveDot = isActive => css`
 `;
 
 export const TabsStyle = css`
-  color: #7e7c7c;
+  color: #444444;
 
   .ant-tabs-tab-active {
     .ant-tabs-tab-btn {
@@ -36,6 +36,8 @@ export const TabsStyle = css`
   }
 
   .ant-tabs-nav {
+    margin: 0 0 28px;
+
     ::before {
       content: none;
     }
@@ -43,6 +45,10 @@ export const TabsStyle = css`
 
   .ant-tabs-ink-bar {
     display: none;
+  }
+
+  .ant-tabs-tab + .ant-tabs-tab {
+    margin: 0 0 0 36px;
   }
 `;
 

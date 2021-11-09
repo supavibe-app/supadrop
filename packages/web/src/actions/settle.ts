@@ -116,7 +116,6 @@ async function emptyPaymentAccountForAllTokens(
         )[0];
 
         const existingAta = await connection.getAccountInfo(toPublicKey(ata));
-        console.log('Existing ata?', existingAta);
         if (!existingAta && !ataLookup[ata])
           createAssociatedTokenAccountInstruction(
             settleInstructions,
@@ -229,7 +228,6 @@ async function claimAllBids(
   // That's what this loop is building.
   for (let i = 0; i < bids.length; i++) {
     const bid = bids[i];
-    console.log('Claiming', bid.info.bidderAct);
     await claimBid(
       auctionView.auctionManager.acceptPayment,
       bid.info.bidderAct,
@@ -267,11 +265,10 @@ async function claimAllBids(
     signers.push(currSignerBatch);
     instructions.push(currInstrBatch);
   }
-  console.log('Instructions', instructions);
+
   for (let i = 0; i < instructions.length; i++) {
     const instructionBatch = instructions[i];
     const signerBatch = signers[i];
-    console.log('Running batch', i);
     if (instructionBatch.length >= 2)
       // Pump em through!
       await sendTransactions(
@@ -290,6 +287,5 @@ async function claimAllBids(
         signerBatch[0],
         'single',
       );
-    console.log('Done');
   }
 }

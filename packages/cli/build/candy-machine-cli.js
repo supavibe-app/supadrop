@@ -84,7 +84,6 @@ var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
 var commander_1 = require("commander");
 var anchor = __importStar(require("@project-serum/anchor"));
-var bn_js_1 = __importDefault(require("bn.js"));
 var node_fetch_1 = __importDefault(require("node-fetch"));
 var various_1 = require("./helpers/various");
 var spl_token_1 = require("@solana/spl-token");
@@ -111,21 +110,25 @@ programCommand('upload')
     return fs.readdirSync("" + val).map(function (file) { return path.join(val, file); });
 })
     .option('-n, --number <number>', 'Number of images to upload')
-    .option('-s, --storage <string>', 'Database to use for storage (arweave, ipfs)', 'arweave')
+    .option('-s, --storage <string>', 'Database to use for storage (arweave, ipfs, aws)', 'arweave')
     .option('--ipfs-infura-project-id <string>', 'Infura IPFS project id (required if using IPFS)')
     .option('--ipfs-infura-secret <string>', 'Infura IPFS scret key (required if using IPFS)')
+    .option('--aws-s3-bucket <string>', '(existing) AWS S3 Bucket name (required if using aws)')
     .option('--no-retain-authority', 'Do not retain authority to update metadata')
     .action(function (files, options, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, number, keypair, env, cacheName, storage, ipfsInfuraProjectId, ipfsInfuraSecret, retainAuthority, ipfsCredentials, pngFileCount, jsonFileCount, parsedNumber, elemCount, startMs, warn, successful, endMs, timeTaken;
+    var _a, number, keypair, env, cacheName, storage, ipfsInfuraProjectId, ipfsInfuraSecret, awsS3Bucket, retainAuthority, ipfsCredentials, pngFileCount, jsonFileCount, parsedNumber, elemCount, startMs, warn, successful, endMs, timeTaken;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _a = cmd.opts(), number = _a.number, keypair = _a.keypair, env = _a.env, cacheName = _a.cacheName, storage = _a.storage, ipfsInfuraProjectId = _a.ipfsInfuraProjectId, ipfsInfuraSecret = _a.ipfsInfuraSecret, retainAuthority = _a.retainAuthority;
+                _a = cmd.opts(), number = _a.number, keypair = _a.keypair, env = _a.env, cacheName = _a.cacheName, storage = _a.storage, ipfsInfuraProjectId = _a.ipfsInfuraProjectId, ipfsInfuraSecret = _a.ipfsInfuraSecret, awsS3Bucket = _a.awsS3Bucket, retainAuthority = _a.retainAuthority;
                 if (storage === 'ipfs' && (!ipfsInfuraProjectId || !ipfsInfuraSecret)) {
                     throw new Error('IPFS selected as storage option but Infura project id or secret key were not provided.');
                 }
-                if (!(storage === 'arweave' || storage === 'ipfs')) {
-                    throw new Error("Storage option must either be 'arweave' or 'ipfs'.");
+                if (storage === 'aws' && (!awsS3Bucket)) {
+                    throw new Error('aws selected as storage option but existing bucket name (--aws-s3-bucket) not provided.');
+                }
+                if (!(storage === 'arweave' || storage === 'ipfs' || storage === 'aws')) {
+                    throw new Error("Storage option must either be 'arweave', 'ipfs', or 'aws'.");
                 }
                 ipfsCredentials = {
                     projectId: ipfsInfuraProjectId,
@@ -150,7 +153,7 @@ programCommand('upload')
                 loglevel_1.default.info('started at: ' + startMs.toString());
                 warn = false;
                 _b.label = 1;
-            case 1: return [4 /*yield*/, upload_1.upload(files, cacheName, env, keypair, elemCount, storage, retainAuthority, ipfsCredentials)];
+            case 1: return [4 /*yield*/, upload_1.upload(files, cacheName, env, keypair, elemCount, storage, retainAuthority, ipfsCredentials, awsS3Bucket)];
             case 2:
                 successful = _b.sent();
                 if (successful) {
@@ -191,7 +194,7 @@ programCommand('verify_token_metadata')
     loglevel_1.default.info("ended at: " + new Date(endMs).toString() + ". time taken: " + timeTaken);
 });
 programCommand('verify').action(function (directory, cmd) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, env, keypair, cacheName, cacheContent, walletKeyPair, anchorProgram, configAddress, config, allGood, keys, i, key, thisSlice, name_1, uri, cacheItem, json, body, parsed, check, text, configData, lineCount;
+    var _a, env, keypair, cacheName, cacheContent, walletKeyPair, anchorProgram, configAddress, config, allGood, keys, configData, lineCount;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -207,89 +210,108 @@ programCommand('verify').action(function (directory, cmd) { return __awaiter(voi
                 config = _b.sent();
                 allGood = true;
                 keys = Object.keys(cacheContent.items);
-                i = 0;
-                _b.label = 3;
+                return [4 /*yield*/, Promise.all(various_1.chunks(Array.from(Array(keys.length).keys()), 500).map(function (allIndexesInSlice) { return __awaiter(void 0, void 0, void 0, function () {
+                        var i, key, thisSlice, name_1, uri, cacheItem, json, body, parsed, check, text;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    i = 0;
+                                    _a.label = 1;
+                                case 1:
+                                    if (!(i < allIndexesInSlice.length)) return [3 /*break*/, 13];
+                                    key = keys[allIndexesInSlice[i]];
+                                    loglevel_1.default.debug('Looking at key ', allIndexesInSlice[i]);
+                                    thisSlice = config.data.slice(constants_1.CONFIG_ARRAY_START + 4 + constants_1.CONFIG_LINE_SIZE * allIndexesInSlice[i], constants_1.CONFIG_ARRAY_START +
+                                        4 +
+                                        constants_1.CONFIG_LINE_SIZE * (allIndexesInSlice[i] + 1));
+                                    name_1 = various_1.fromUTF8Array(__spreadArray([], __read(thisSlice.slice(4, 36))));
+                                    uri = various_1.fromUTF8Array(__spreadArray([], __read(thisSlice.slice(40, 240))));
+                                    cacheItem = cacheContent.items[key];
+                                    if (!(!name_1.match(cacheItem.name) || !uri.match(cacheItem.link))) return [3 /*break*/, 2];
+                                    //leaving here for debugging reasons, but it's pretty useless. if the first upload fails - all others are wrong
+                                    // log.info(
+                                    //   `Name (${name}) or uri (${uri}) didnt match cache values of (${cacheItem.name})` +
+                                    //   `and (${cacheItem.link}). marking to rerun for image`,
+                                    //   key,
+                                    // );
+                                    cacheItem.onChain = false;
+                                    allGood = false;
+                                    return [3 /*break*/, 12];
+                                case 2: return [4 /*yield*/, node_fetch_1.default(cacheItem.link)];
+                                case 3:
+                                    json = _a.sent();
+                                    if (!(json.status == 200 ||
+                                        json.status == 204 ||
+                                        json.status == 202)) return [3 /*break*/, 11];
+                                    return [4 /*yield*/, json.text()];
+                                case 4:
+                                    body = _a.sent();
+                                    parsed = JSON.parse(body);
+                                    if (!parsed.image) return [3 /*break*/, 9];
+                                    return [4 /*yield*/, node_fetch_1.default(parsed.image)];
+                                case 5:
+                                    check = _a.sent();
+                                    if (!(check.status == 200 ||
+                                        check.status == 204 ||
+                                        check.status == 202)) return [3 /*break*/, 7];
+                                    return [4 /*yield*/, check.text()];
+                                case 6:
+                                    text = _a.sent();
+                                    if (!text.match(/Not found/i)) {
+                                        if (text.length == 0) {
+                                            loglevel_1.default.info('Name', name_1, 'with', uri, 'has zero length, failing');
+                                            cacheItem.link = null;
+                                            cacheItem.onChain = false;
+                                            allGood = false;
+                                        }
+                                        else {
+                                            loglevel_1.default.info('Name', name_1, 'with', uri, 'checked out');
+                                        }
+                                    }
+                                    else {
+                                        loglevel_1.default.info('Name', name_1, 'with', uri, 'never got uploaded to arweave, failing');
+                                        cacheItem.link = null;
+                                        cacheItem.onChain = false;
+                                        allGood = false;
+                                    }
+                                    return [3 /*break*/, 8];
+                                case 7:
+                                    loglevel_1.default.info('Name', name_1, 'with', uri, 'returned non-200 from uploader', check.status);
+                                    cacheItem.link = null;
+                                    cacheItem.onChain = false;
+                                    allGood = false;
+                                    _a.label = 8;
+                                case 8: return [3 /*break*/, 10];
+                                case 9:
+                                    loglevel_1.default.info('Name', name_1, 'with', uri, 'lacked image in json, failing');
+                                    cacheItem.link = null;
+                                    cacheItem.onChain = false;
+                                    allGood = false;
+                                    _a.label = 10;
+                                case 10: return [3 /*break*/, 12];
+                                case 11:
+                                    loglevel_1.default.info('Name', name_1, 'with', uri, 'returned no json from link');
+                                    cacheItem.link = null;
+                                    cacheItem.onChain = false;
+                                    allGood = false;
+                                    _a.label = 12;
+                                case 12:
+                                    i++;
+                                    return [3 /*break*/, 1];
+                                case 13: return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
             case 3:
-                if (!(i < keys.length)) return [3 /*break*/, 15];
-                loglevel_1.default.debug('Looking at key ', i);
-                key = keys[i];
-                thisSlice = config.data.slice(constants_1.CONFIG_ARRAY_START + 4 + constants_1.CONFIG_LINE_SIZE * i, constants_1.CONFIG_ARRAY_START + 4 + constants_1.CONFIG_LINE_SIZE * (i + 1));
-                name_1 = various_1.fromUTF8Array(__spreadArray([], __read(thisSlice.slice(4, 36))));
-                uri = various_1.fromUTF8Array(__spreadArray([], __read(thisSlice.slice(40, 240))));
-                cacheItem = cacheContent.items[key];
-                if (!(!name_1.match(cacheItem.name) || !uri.match(cacheItem.link))) return [3 /*break*/, 4];
-                //leaving here for debugging reasons, but it's pretty useless. if the first upload fails - all others are wrong
-                // log.info(
-                //   `Name (${name}) or uri (${uri}) didnt match cache values of (${cacheItem.name})` +
-                //   `and (${cacheItem.link}). marking to rerun for image`,
-                //   key,
-                // );
-                cacheItem.onChain = false;
-                allGood = false;
-                return [3 /*break*/, 14];
-            case 4: return [4 /*yield*/, node_fetch_1.default(cacheItem.link)];
-            case 5:
-                json = _b.sent();
-                if (!(json.status == 200 || json.status == 204 || json.status == 202)) return [3 /*break*/, 13];
-                return [4 /*yield*/, json.text()];
-            case 6:
-                body = _b.sent();
-                parsed = JSON.parse(body);
-                if (!parsed.image) return [3 /*break*/, 11];
-                return [4 /*yield*/, node_fetch_1.default(parsed.image)];
-            case 7:
-                check = _b.sent();
-                if (!(check.status == 200 ||
-                    check.status == 204 ||
-                    check.status == 202)) return [3 /*break*/, 9];
-                return [4 /*yield*/, check.text()];
-            case 8:
-                text = _b.sent();
-                if (!text.match(/Not found/i)) {
-                    if (text.length == 0) {
-                        loglevel_1.default.debug('Name', name_1, 'with', uri, 'has zero length, failing');
-                        cacheItem.onChain = false;
-                        allGood = false;
-                    }
-                    else {
-                        loglevel_1.default.debug('Name', name_1, 'with', uri, 'checked out');
-                    }
-                }
-                else {
-                    loglevel_1.default.debug('Name', name_1, 'with', uri, 'never got uploaded to arweave, failing');
-                    cacheItem.onChain = false;
-                    allGood = false;
-                }
-                return [3 /*break*/, 10];
-            case 9:
-                loglevel_1.default.debug('Name', name_1, 'with', uri, 'returned non-200 from uploader', check.status);
-                cacheItem.onChain = false;
-                allGood = false;
-                _b.label = 10;
-            case 10: return [3 /*break*/, 12];
-            case 11:
-                loglevel_1.default.debug('Name', name_1, 'with', uri, 'lacked image in json, failing');
-                cacheItem.onChain = false;
-                allGood = false;
-                _b.label = 12;
-            case 12: return [3 /*break*/, 14];
-            case 13:
-                loglevel_1.default.debug('Name', name_1, 'with', uri, 'returned no json from link');
-                cacheItem.onChain = false;
-                allGood = false;
-                _b.label = 14;
-            case 14:
-                i++;
-                return [3 /*break*/, 3];
-            case 15:
+                _b.sent();
                 if (!allGood) {
                     cache_1.saveCache(cacheName, env, cacheContent);
                     throw new Error("not all NFTs checked out. check out logs above for details");
                 }
                 return [4 /*yield*/, anchorProgram.account.config.fetch(configAddress)];
-            case 16:
+            case 4:
                 configData = (_b.sent());
-                lineCount = new bn_js_1.default(config.data.slice(247, 247 + 4), undefined, 'le');
+                lineCount = new anchor.BN(config.data.slice(247, 247 + 4), undefined, 'le');
                 loglevel_1.default.info("uploaded (" + lineCount.toNumber() + ") out of (" + configData.data.maxNumberOfLines + ")");
                 if (configData.data.maxNumberOfLines > lineCount.toNumber()) {
                     throw new Error("predefined number of NFTs (" + configData.data.maxNumberOfLines + ") is smaller than the uploaded one (" + lineCount.toNumber() + ")");
@@ -364,6 +386,7 @@ programCommand('show')
             case 4:
                 machine = _c.sent();
                 loglevel_1.default.info('...Candy Machine...');
+                loglevel_1.default.info('Key:', candyMachine.toBase58());
                 //@ts-ignore
                 loglevel_1.default.info('authority: ', machine.authority.toBase58());
                 //@ts-ignore
@@ -538,7 +561,7 @@ programCommand('update_candy_machine')
                     loglevel_1.default.info(" - updated startDate timestamp: " + secondsSinceEpoch + " (" + date + ")");
                 if (lamports)
                     loglevel_1.default.info(" - updated price: " + lamports + " lamports (" + price + " SOL)");
-                loglevel_1.default.info('updated_candy_machine finished', tx);
+                loglevel_1.default.info('update_candy_machine finished', tx);
                 return [2 /*return*/];
         }
     });

@@ -7,9 +7,10 @@ import {
 } from '../helpers/accounts';
 import { PublicKey } from '@solana/web3.js';
 import fs from 'fs';
-import BN from 'bn.js';
+import { BN } from '@project-serum/anchor';
 import { loadCache, saveCache } from '../helpers/cache';
 import log from 'loglevel';
+import { awsUpload } from '../helpers/upload/aws';
 import { arweaveUpload } from '../helpers/upload/arweave';
 import { ipfsCreds, ipfsUpload } from '../helpers/upload/ipfs';
 import { chunks } from '../helpers/various';
@@ -23,6 +24,7 @@ export async function upload(
   storage: string,
   retainAuthority: boolean,
   ipfsCredentials: ipfsCreds,
+  awsS3Bucket: string,
 ): Promise<boolean> {
   let uploadSuccessful = true;
 
@@ -74,6 +76,8 @@ export async function upload(
     log.debug(`Processing file: ${i}`);
     if (i % 50 === 0) {
       log.info(`Processing file: ${i}`);
+    } else {
+      log.debug(`Processing file: ${i}`);
     }
 
     let link = cacheContent?.items?.[index]?.link;
@@ -136,6 +140,8 @@ export async function upload(
             );
           } else if (storage === 'ipfs') {
             link = await ipfsUpload(ipfsCredentials, image, manifestBuffer);
+          } else if (storage === 'aws') {
+            link = await awsUpload(awsS3Bucket, image, manifestBuffer);
           }
 
           if (link) {

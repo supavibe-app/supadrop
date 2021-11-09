@@ -1,18 +1,28 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router';
-import { Button } from 'antd';
-import { ConnectButton, CurrentUserBadge } from '@oyster/common';
+import { Badge, Button } from 'antd';
+import { ConnectButton, CurrentUserBadge, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Notifications } from '../Notifications';
 
+// utils
+import getUserData from '../../database/userData';
+
+// components
+import { Notifications } from '../Notifications';
 import { LABELS } from '../../constants';
-import { ButtonContainer, LinkButton, LogoWrapper, RoundButton, Title } from './style';
+
+// styles
+import { ActivityBadge, ButtonContainer, LinkButton, LogoWrapper, RoundButton, Title } from './style';
 import { GreyColor, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
-  const { connected } = useWallet();
+  const { publicKey, connected } = useWallet();
+  const { data: userData } = getUserData(publicKey?.toBase58());
   const { pathname } = useLocation();
+  const { isBidPlaced, setBidPlaced } = useMeta();
+
+  const hideActivityBadge = useCallback(() => setBidPlaced(false), [setBidPlaced]);
 
   if (connected) {
     return (
@@ -36,16 +46,26 @@ export const AppBar = () => {
           </Link>
 
           <Link to={`/activity`}>
-            <Button className={`${LinkButton} ${pathname.includes('activity') ? WhiteColor : GreyColor}`} type="link">
-              ACTIVITY
-            </Button>
+            {isBidPlaced && (
+              <Badge dot className={ActivityBadge} color="#FF2D55">
+                <Button className={`${LinkButton} ${GreyColor}`} type="link" onClick={hideActivityBadge}>
+                  ACTIVITY
+                </Button>
+              </Badge>
+            )}
+
+            {!isBidPlaced && (
+              <Button className={`${LinkButton} ${pathname.includes('activity') ? WhiteColor : GreyColor}`} type="link">
+                ACTIVITY
+              </Button>
+            )}
           </Link>
 
           <Notifications />
 
-          <CurrentUserBadge showBalance={true} showAddress={true} />
+          <CurrentUserBadge userData={userData} />
 
-          <Link to={`/auction/create/0`}>
+          <Link to={`/${userData ? userData.username : publicKey?.toBase58()}`}>
             <Button className={RoundButton} type="default" shape="round">
               SELL
             </Button>

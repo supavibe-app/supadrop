@@ -55,7 +55,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createConfigAccount = exports.createAssociatedTokenAccountInstruction = void 0;
+exports.createConfigAccount = exports.createUpdateMetadataInstruction = exports.createMasterEditionInstruction = exports.createMetadataInstruction = exports.createAssociatedTokenAccountInstruction = void 0;
 var web3_js_1 = require("@solana/web3.js");
 var constants_1 = require("./constants");
 var anchor = __importStar(require("@project-serum/anchor"));
@@ -104,6 +104,126 @@ function createAssociatedTokenAccountInstruction(associatedTokenAddress, payer, 
     });
 }
 exports.createAssociatedTokenAccountInstruction = createAssociatedTokenAccountInstruction;
+function createMetadataInstruction(metadataAccount, mint, mintAuthority, payer, updateAuthority, txnData) {
+    var keys = [
+        {
+            pubkey: metadataAccount,
+            isSigner: false,
+            isWritable: true,
+        },
+        {
+            pubkey: mint,
+            isSigner: false,
+            isWritable: false,
+        },
+        {
+            pubkey: mintAuthority,
+            isSigner: true,
+            isWritable: false,
+        },
+        {
+            pubkey: payer,
+            isSigner: true,
+            isWritable: false,
+        },
+        {
+            pubkey: updateAuthority,
+            isSigner: false,
+            isWritable: false,
+        },
+        {
+            pubkey: web3_js_1.SystemProgram.programId,
+            isSigner: false,
+            isWritable: false,
+        },
+        {
+            pubkey: web3_js_1.SYSVAR_RENT_PUBKEY,
+            isSigner: false,
+            isWritable: false,
+        },
+    ];
+    return new web3_js_1.TransactionInstruction({
+        keys: keys,
+        programId: constants_1.TOKEN_METADATA_PROGRAM_ID,
+        data: txnData,
+    });
+}
+exports.createMetadataInstruction = createMetadataInstruction;
+function createMasterEditionInstruction(metadataAccount, editionAccount, mint, mintAuthority, payer, updateAuthority, txnData) {
+    var keys = [
+        {
+            pubkey: editionAccount,
+            isSigner: false,
+            isWritable: true,
+        },
+        {
+            pubkey: mint,
+            isSigner: false,
+            isWritable: true,
+        },
+        {
+            pubkey: updateAuthority,
+            isSigner: true,
+            isWritable: false,
+        },
+        {
+            pubkey: mintAuthority,
+            isSigner: true,
+            isWritable: false,
+        },
+        {
+            pubkey: payer,
+            isSigner: true,
+            isWritable: false,
+        },
+        {
+            pubkey: metadataAccount,
+            isSigner: false,
+            isWritable: false,
+        },
+        {
+            pubkey: constants_1.TOKEN_PROGRAM_ID,
+            isSigner: false,
+            isWritable: false,
+        },
+        {
+            pubkey: web3_js_1.SystemProgram.programId,
+            isSigner: false,
+            isWritable: false,
+        },
+        {
+            pubkey: web3_js_1.SYSVAR_RENT_PUBKEY,
+            isSigner: false,
+            isWritable: false,
+        },
+    ];
+    return new web3_js_1.TransactionInstruction({
+        keys: keys,
+        programId: constants_1.TOKEN_METADATA_PROGRAM_ID,
+        data: txnData,
+    });
+}
+exports.createMasterEditionInstruction = createMasterEditionInstruction;
+function createUpdateMetadataInstruction(metadataAccount, payer, txnData) {
+    var keys = [
+        {
+            pubkey: metadataAccount,
+            isSigner: false,
+            isWritable: true,
+        },
+        {
+            pubkey: payer,
+            isSigner: true,
+            isWritable: false,
+        },
+    ];
+    return new web3_js_1.TransactionInstruction({
+        keys: keys,
+        programId: constants_1.TOKEN_METADATA_PROGRAM_ID,
+        data: txnData,
+    });
+}
+exports.createUpdateMetadataInstruction = createUpdateMetadataInstruction;
 function createConfigAccount(anchorProgram, configData, payerWallet, configAccount) {
     return __awaiter(this, void 0, void 0, function () {
         var size, _a, _b;

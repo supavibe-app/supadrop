@@ -49,7 +49,7 @@ const processAuctions = ({ account, pubkey }, setter) => {
     }
 };
 exports.processAuctions = processAuctions;
-const isAuctionAccount = account => utils_1.pubkeyToString(account.owner) === utils_1.AUCTION_ID;
+const isAuctionAccount = account => account && utils_1.pubkeyToString(account.owner) === utils_1.AUCTION_ID;
 const isExtendedAuctionAccount = account => account.data.length === actions_1.MAX_AUCTION_DATA_EXTENDED_SIZE;
 const isBidderMetadataAccount = account => account.data.length === actions_1.BIDDER_METADATA_LEN;
 const isBidderPotAccount = account => account.data.length === actions_1.BIDDER_POT_LEN;

@@ -1,10 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.processMetaplexAccounts = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const models_1 = require("../../models");
 const utils_1 = require("../../utils");
 const accounts_1 = require("../accounts");
+const userNames_json_1 = __importDefault(require("../../config/userNames.json"));
 const processMetaplexAccounts = async ({ account, pubkey }, setter) => {
     if (!isMetaplexAccount(account))
         return;
@@ -48,6 +52,26 @@ const processMetaplexAccounts = async ({ account, pubkey }, setter) => {
             };
             setter('payoutTickets', pubkey, parsedAccount);
         }
+        if (isAuctionCacheV1Account(account)) {
+            const cache = models_1.decodeAuctionCache(account.data);
+            const parsedAccount = {
+                pubkey,
+                account,
+                info: cache,
+            };
+            setter('auctionCaches', pubkey, parsedAccount);
+        }
+        if (isStoreIndexerV1Account(account)) {
+            const indexer = models_1.decodeStoreIndexer(account.data);
+            const parsedAccount = {
+                pubkey,
+                account,
+                info: indexer,
+            };
+            if (parsedAccount.info.store == (STORE_ID === null || STORE_ID === void 0 ? void 0 : STORE_ID.toBase58())) {
+                setter('storeIndexer', pubkey, parsedAccount);
+            }
+        }
         if (isPrizeTrackingTicketV1Account(account)) {
             const ticket = models_1.decodePrizeTrackingTicket(account.data);
             const parsedAccount = {
@@ -67,7 +91,6 @@ const processMetaplexAccounts = async ({ account, pubkey }, setter) => {
             if (STORE_ID && pubkey === STORE_ID.toBase58()) {
                 setter('store', pubkey, parsedAccount);
             }
-            //       setter('stores', pubkey, parsedAccount);
         }
         if (isSafetyDepositConfigV1Account(account)) {
             const config = models_1.decodeSafetyDepositConfig(account.data);
@@ -84,17 +107,14 @@ const processMetaplexAccounts = async ({ account, pubkey }, setter) => {
             // should we store store id inside creator?
             if (STORE_ID) {
                 const isWhitelistedCreator = await models_1.isCreatorPartOfTheStore(parsedAccount.info.address, pubkey);
+                const nameInfo = userNames_json_1.default[parsedAccount.info.address];
+                if (nameInfo) {
+                    parsedAccount.info = { ...parsedAccount.info, ...nameInfo };
+                }
                 if (isWhitelistedCreator) {
                     setter('whitelistedCreatorsByCreator', parsedAccount.info.address, parsedAccount);
                 }
             }
-            //       if (useAll) {
-            //         setter(
-            //           'creators',
-            //           parsedAccount.info.address + '-' + pubkey,
-            //           parsedAccount,
-            //         );
-            //       }
         }
     }
     catch {
@@ -103,7 +123,7 @@ const processMetaplexAccounts = async ({ account, pubkey }, setter) => {
     }
 };
 exports.processMetaplexAccounts = processMetaplexAccounts;
-const isMetaplexAccount = (account) => utils_1.pubkeyToString(account.owner) === utils_1.METAPLEX_ID;
+const isMetaplexAccount = (account) => account && utils_1.pubkeyToString(account.owner) === utils_1.METAPLEX_ID;
 const isAuctionManagerV1Account = (account) => account.data[0] === models_1.MetaplexKey.AuctionManagerV1;
 const isAuctionManagerV2Account = (account) => account.data[0] === models_1.MetaplexKey.AuctionManagerV2;
 const isBidRedemptionTicketV1Account = (account) => account.data[0] === models_1.MetaplexKey.BidRedemptionTicketV1;
@@ -113,4 +133,6 @@ const isPrizeTrackingTicketV1Account = (account) => account.data[0] === models_1
 const isStoreV1Account = (account) => account.data[0] === models_1.MetaplexKey.StoreV1;
 const isSafetyDepositConfigV1Account = (account) => account.data[0] === models_1.MetaplexKey.SafetyDepositConfigV1;
 const isWhitelistedCreatorV1Account = (account) => account.data[0] === models_1.MetaplexKey.WhitelistedCreatorV1;
+const isAuctionCacheV1Account = (account) => account.data[0] === models_1.MetaplexKey.AuctionCacheV1;
+const isStoreIndexerV1Account = (account) => account.data[0] === models_1.MetaplexKey.StoreIndexerV1;
 //# sourceMappingURL=processMetaplexAccounts.js.map

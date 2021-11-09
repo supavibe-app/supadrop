@@ -3,7 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getEmptyMetaState = void 0;
 const getEmptyMetaState = () => ({
     metadata: [],
+    metadataByMetadata: {},
     metadataByMint: {},
+    metadataByAuction: {},
     masterEditions: {},
     masterEditionsByPrintingMint: {},
     masterEditionsByOneTimeAuthMint: {},
@@ -23,6 +25,8 @@ const getEmptyMetaState = () => ({
     prizeTrackingTickets: {},
     safetyDepositConfigsByAuctionManagerAndIndex: {},
     bidRedemptionV2sByAuctionManagerAndWinningIndex: {},
+    auctionCaches: {},
+    storeIndexer: [],
 });
 exports.getEmptyMetaState = getEmptyMetaState;
 //# sourceMappingURL=getEmptyMetaState.js.map

@@ -38,7 +38,6 @@ export async function mintEditionsToWallet(
   // Overall we have 10 parallel txns.
   // That's what this loop is building.
   for (let i = 0; i < editions; i++) {
-    console.log('Minting', i);
     await setupMintEditionIntoWalletInstructions(
       art,
       wallet,
@@ -78,11 +77,9 @@ export async function mintEditionsToWallet(
     signers.push(currSignerBatch);
     instructions.push(currInstrBatch);
   }
-  console.log('Instructions', instructions);
   for (let i = 0; i < instructions.length; i++) {
     const instructionBatch = instructions[i];
     const signerBatch = signers[i];
-    console.log('Running batch', i);
     if (instructionBatch.length >= 2)
       // Pump em through!
       await sendTransactions(
@@ -101,6 +98,5 @@ export async function mintEditionsToWallet(
         signerBatch[0],
         'single',
       );
-    console.log('Done');
   }
 }

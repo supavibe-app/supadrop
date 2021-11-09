@@ -41,10 +41,21 @@ describe('`metaplex verify_token_metadata`', function () {
                 { address: 'some-solana-address', share: 80 },
                 {
                     address: 'some-other-solana-address',
+                    share: 19,
+                },
+            ], 'placeholder-manifest-file');
+        }).toThrowErrorMatchingInlineSnapshot("\"Creator share for placeholder-manifest-file does not add up to 100, got: 99.\"");
+    });
+    it('throws on invalid share number type', function () {
+        expect(function () {
+            return index_1.verifyAggregateShare([
+                { address: 'some-solana-address', share: 80 },
+                {
+                    address: 'some-other-solana-address',
                     share: 19.9,
                 },
             ], 'placeholder-manifest-file');
-        }).toThrowErrorMatchingInlineSnapshot("\"Creator share for placeholder-manifest-file does not add up to 100, got: 99.9.\"");
+        }).toThrowErrorMatchingInlineSnapshot("\"Creator share for placeholder-manifest-file contains floats. Only use integers for this number.\"");
     });
     it('warns when using different image URIs', function () {
         index_1.verifyImageURL('https://google.com?ext=png', [{ uri: 'https://google.com?ext=png', type: 'image/png' }], '0.json');

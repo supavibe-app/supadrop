@@ -15,8 +15,10 @@ import {
   toPublicKey,
   WalletSigner,
   Attribute,
+  getAssetCostToStore,
+  ARWEAVE_UPLOAD_ENDPOINT
 } from '@oyster/common';
-import React from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 import { MintLayout, Token } from '@solana/spl-token';
 import {
   Keypair,
@@ -25,10 +27,10 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import crypto from 'crypto';
-import { getAssetCostToStore } from '../utils/assets';
 import { AR_SOL_HOLDER_ID } from '../utils/ids';
 import BN from 'bn.js';
 import { supabase } from '../../supabaseClient';
+
 const RESERVED_TXN_MANIFEST = 'manifest.json';
 const RESERVED_METADATA = 'metadata.json';
 
@@ -44,7 +46,7 @@ interface IArweaveResult {
 
 const uploadToArweave = async (data: FormData): Promise<IArweaveResult> => {
   const resp = await fetch(
-    'https://us-central1-principal-lane-200702.cloudfunctions.net/uploadFile4',
+    ARWEAVE_UPLOAD_ENDPOINT,
     {
       method: 'POST',
       // @ts-ignore
@@ -86,6 +88,7 @@ export const mintNFT = async (
     creators: Creator[] | null;
     sellerFeeBasisPoints: number;
   },
+  progressCallback: Dispatch<SetStateAction<number>>,
   maxSupply?: number,
 ): Promise<{
   metadataAccount: StringPublicKey;
@@ -119,6 +122,8 @@ export const mintNFT = async (
 
   const { instructions: pushInstructions, signers: pushSigners } =
     await prepPayForFilesTxn(wallet, realFiles, metadata);
+
+  progressCallback(1);
 
   const TOKEN_PROGRAM_ID = programIds().token;
 
@@ -183,6 +188,7 @@ export const mintNFT = async (
     instructions,
     wallet.publicKey.toBase58(),
   );
+  progressCallback(2);
 
   // TODO: enable when using payer account to avoid 2nd popup
   // const block = await connection.getRecentBlockhash('singleGossip');
@@ -201,9 +207,11 @@ export const mintNFT = async (
     signers,
     'single',
   );
+  progressCallback(3);
 
   try {
     await connection.confirmTransaction(txid, 'max');
+    progressCallback(4);
   } catch {
     // ignore
   }
@@ -211,6 +219,8 @@ export const mintNFT = async (
   // Force wait for max confirmations
   // await connection.confirmTransaction(txid, 'max');
   await connection.getParsedConfirmedTransaction(txid, 'confirmed');
+
+  progressCallback(5);
 
   // this means we're done getting AR txn setup. Ship it off to ARWeave!
   const data = new FormData();
@@ -228,12 +238,9 @@ export const mintNFT = async (
   realFiles.map(f => data.append('file[]', f));
 
   // TODO: convert to absolute file name for image
-  console.log("env",env);
-  
-  const result: IArweaveResult = await uploadToArweave(data);
 
-  console.log("test: ", result);
-  console.log("test2: ", wallet.publicKey);
+  const result: IArweaveResult = await uploadToArweave(data);
+  progressCallback(6);
 
   const metadataFile = result.messages?.find(
     m => m.filename === RESERVED_TXN_MANIFEST,
@@ -249,7 +256,7 @@ export const mintNFT = async (
     // TODO: connect to testnet arweave
     const arweaveLink = `https://arweave.net/${metadataFile.transactionId}`;
     const imgLink = `https://arweave.net/${imgFile?.transactionId}`;
-    let idNFT = await updateMetadata(
+    const idNFT = await updateMetadata(
       new Data({
         name: metadata.name,
         symbol: metadata.symbol,
@@ -275,6 +282,8 @@ export const mintNFT = async (
         1,
       ),
     );
+
+    progressCallback(7);
     // // In this instruction, mint authority will be removed from the main mint, while
     // // minting authority will be maintained for the Printing mint (which we want.)
     const masterEdition = await createMasterEdition(
@@ -285,13 +294,6 @@ export const mintNFT = async (
       payerPublicKey,
       updateInstructions,
     );
-    console.log("🚀 ~ file: nft.tsx ~ line 277 ~ masterEdition", masterEdition)
-    console.log("🚀 ~ file: nft.tsx ~ line 277 ~ mintInstructions", {
-      TOKEN_PROGRAM_ID,
-      mintKey,
-      recipientKey,
-      payerPublicKey,
-    })
 
     // TODO: enable when using payer account to avoid 2nd popup
     /*  if (maxSupply !== undefined)
@@ -313,14 +315,9 @@ export const mintNFT = async (
     //   updateInstructions,
     // );
 
-    const txid = await sendTransactionWithRetry(
-      connection,
-      wallet,
-      updateInstructions,
-      updateSigners,
-    );
+    progressCallback(8);
 
-      supabase.from('nft_data')
+    supabase.from('nft_data')
         .insert([{
           id:idNFT,
           img_nft:imgLink,
@@ -333,6 +330,13 @@ export const mintNFT = async (
           mint_key:mintKey,
         }])
         .then()
+
+    const txid = await sendTransactionWithRetry(
+      connection,
+      wallet,
+      updateInstructions,
+      updateSigners,
+    );
 
     notify({
       message: 'Art created on Solana',
@@ -352,7 +356,6 @@ export const mintNFT = async (
   // 1. Jordan: --- upload file and metadata to storage API
   // 2. pay for storage by hashing files and attaching memo for each file
 
-  console.log("🚀 ~ file: nft.tsx ~ line 355 ~ metadataAccount", metadataAccount)
   return { metadataAccount };
 };
 
@@ -374,8 +377,7 @@ export const prepPayForFilesTxn = async (
       SystemProgram.transfer({
         fromPubkey: wallet.publicKey,
         toPubkey: AR_SOL_HOLDER_ID,
-        lamports: 2300000 // 0.0023 SOL per file (paid to arweave)
-          // await getAssetCostToStore(files),
+        lamports: await getAssetCostToStore(files),
       }),
     );
 

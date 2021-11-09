@@ -1,20 +1,28 @@
-import React from 'react';
-import { Card, CardProps, Button, Badge } from 'antd';
-import { MetadataCategory, StringPublicKey } from '@oyster/common';
+import React, { useEffect, useRef, useState } from 'react';
+import { Avatar, Card, CardProps, Button, Badge, Row, Col } from 'antd';
+import {
+  MetadataCategory,
+  shortenAddress,
+  StringPublicKey,
+} from '@oyster/common';
 import { ArtContent } from './../ArtContent';
 import { useArt } from '../../hooks';
-import { PublicKey } from '@solana/web3.js';
 import { Artist, ArtType } from '../../types';
-import { MetaAvatar } from '../MetaAvatar';
+
+import { uTextAlignEnd } from '../../styles';
+import { AuctionImage, AvatarStyle, CardStyle, UserWrapper } from './style';
+import { Link } from 'react-router-dom';
+import { SafetyDepositDraft } from '../../actions/createAuctionManager';
+import { getUsernameByPublicKeys } from '../../database/userData';
 
 const { Meta } = Card;
 
 export interface ArtCardProps extends CardProps {
   pubkey?: StringPublicKey;
-
+  artItem?: SafetyDepositDraft[];
   image?: string;
   animationURL?: string;
-
+  isCollected?: boolean;
   category?: MetadataCategory;
 
   name?: string;
@@ -31,24 +39,26 @@ export interface ArtCardProps extends CardProps {
 
 export const ArtCard = (props: ArtCardProps) => {
   let {
-    className,
-    small,
     category,
     image,
     animationURL,
     name,
     preview,
     creators,
-    description,
-    close,
     pubkey,
-    height,
-    width,
-    ...rest
+    artItem,
+    isCollected,
   } = props;
   const art = useArt(pubkey);
   creators = art?.creators || creators || [];
+  const [cardWidth, setCardWidth] = useState(0);
+
   name = art?.title || name || ' ';
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const creatorsAddress = creators[0]?.address || '';
+
+  const { data = {} } = getUsernameByPublicKeys([creatorsAddress]);
 
   let badge = '';
   if (art.type === ArtType.NFT) {
@@ -56,58 +66,72 @@ export const ArtCard = (props: ArtCardProps) => {
   } else if (art.type === ArtType.Master) {
     badge = 'NFT 0';
   } else if (art.type === ArtType.Print) {
-    badge = `${art.edition} of ${art.supply}`;
+    badge = `edition ${art.edition} of ${art.supply}`;
   }
+
+  useEffect(() => {
+    if (cardRef.current?.offsetWidth)
+      setCardWidth(cardRef.current?.offsetWidth);
+  }, [cardRef.current?.offsetWidth, setCardWidth]);
 
   const card = (
     <Card
-      hoverable={true}
-      className={`art-card ${small ? 'small' : ''} ${className ?? ''}`}
+      hoverable
+      className={CardStyle}
       cover={
-        <>
-          {close && (
-            <Button
-              className="card-close-button"
-              shape="circle"
-              onClick={e => {
-                e.stopPropagation();
-                e.preventDefault();
-                close && close();
-              }}
-            >
-              X
-            </Button>
-          )}
+        <div ref={cardRef}>
           <ArtContent
+            className={AuctionImage(cardWidth)}
+            preview={preview}
             pubkey={pubkey}
             uri={image}
             animationURL={animationURL}
             category={category}
-            preview={preview}
-            height={height}
-            width={width}
+            allowMeshRender={false}
           />
-        </>
+        </div>
       }
-      {...rest}
     >
       <Meta
-        title={`${name}`}
+        title={name}
         description={
           <>
-            <MetaAvatar creators={creators} size={32} />
-            {/* {art.type === ArtType.Master && (
-              <>
-                <br />
-                {!endAuctionAt && (
-                  <span style={{ padding: '24px' }}>
-                    {(art.maxSupply || 0) - (art.supply || 0)}/
-                    {art.maxSupply || 0} prints remaining
-                  </span>
-                )}
-              </>
-            )} */}
-            <div className="edition-badge">{badge}</div>
+            <div className={UserWrapper}>
+              <Avatar
+                src={
+                  data[creatorsAddress]
+                    ? data[creatorsAddress].img_profile
+                    : null
+                }
+                size={32}
+                className={AvatarStyle}
+              />
+              <span>
+                {data[creatorsAddress]
+                  ? data[creatorsAddress].username
+                  : shortenAddress(creatorsAddress)}
+              </span>
+            </div>
+
+            <Row>
+              <Col span={12}>
+                <div>sold for</div>
+                <div>... SOL</div>
+              </Col>
+
+              {isCollected && (
+                <Col className={uTextAlignEnd} span={12}>
+                  <Link
+                    to={{
+                      pathname: `/list/create`,
+                      state: { idNFT: pubkey, item: artItem },
+                    }}
+                  >
+                    <Button shape="round">LIST</Button>
+                  </Link>
+                </Col>
+              )}
+            </Row>
           </>
         }
       />

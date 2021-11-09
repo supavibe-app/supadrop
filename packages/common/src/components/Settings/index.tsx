@@ -1,103 +1,51 @@
-import React, { useCallback } from 'react';
-import { Avatar, List, Button, Select } from 'antd';
+import React from 'react';
+import { Avatar, List } from 'antd';
 import FeatherIcon from 'feather-icons-react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useHistory } from 'react-router-dom';
 
-import { ENDPOINTS, useConnectionConfig } from '../../contexts/connection';
-import { useWalletModal } from '../../contexts';
-import { notify, shortenAddress } from '../../utils';
-import { CopyOutlined } from '@ant-design/icons';
-import { ItemIcon, ListStyle } from './style';
+import { shortenAddress } from '../../utils';
+import { useNativeAccount, formatNumber, UserData } from '../..';
+import { AddressInfo, BalanceInfo, ItemIcon, ListStyle } from './style';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
-export const Settings = ({ additionalSettings, setShowEdit = () => { } }: {
-  additionalSettings?: JSX.Element;
-  setShowEdit?: Function;
+export const Settings = ({ userData, setShowPopover = () => { } }: {
+  userData?: UserData;
+  setShowPopover?: Function;
 }) => {
-  const { connected, disconnect, publicKey } = useWallet();
-  const { endpoint, setEndpoint } = useConnectionConfig();
-  const { setVisible } = useWalletModal();
-  const open = useCallback(() => setVisible(true), [setVisible]);
-
-  //   return (
-  //     <>
-  //       <div style={{ display: 'grid' }}>
-  //         Network:{' '}
-  //         <Select
-  //           onSelect={setEndpoint}
-  //           value={endpoint}
-  //           style={{ marginBottom: 20 }}
-  //         >
-  //           {ENDPOINTS.map(({ name, endpoint }) => (
-  //             <Select.Option value={endpoint} key={endpoint}>
-  //               {name}
-  //             </Select.Option>
-  //           ))}
-  //         </Select>
-  //         {connected && (
-  //           <>
-  //             <span>Wallet:</span>
-  //             {publicKey && (
-  //               <Button
-  //                 style={{ marginBottom: 5 }}
-  //                 onClick={async () => {
-  //                   if (publicKey) {
-  //                     await navigator.clipboard.writeText(publicKey.toBase58());
-  //                     notify({
-  //                       message: 'Wallet update',
-  //                       description: 'Address copied to clipboard',
-  //                     });
-  //                   }
-  //                 }}
-  //               >
-  //                 <CopyOutlined />
-  //                 {shortenAddress(publicKey.toBase58())}
-  //               </Button>
-  //             )}
-  //
-  //             <Button onClick={open} style={{ marginBottom: 5 }}>
-  //               Change
-  //             </Button>
-  //             <Button
-  //               type="primary"
-  //               onClick={() => disconnect().catch()}
-  //               style={{ marginBottom: 5 }}
-  //             >
-  //               Disconnect
-  //             </Button>
-  //           </>
-  //         )}
-  //         {additionalSettings}
-  //       </div>
-  //     </>
-  //   );
+  const { disconnect, publicKey } = useWallet();
+  const { push } = useHistory();
+  const { account } = useNativeAccount();
+  const balance = formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL);
 
   return (
-    <>
-      {/* TODO-Iyai: Show this in staging */}
-      {/* Network:{' '}
-        <Select
-          onSelect={setEndpoint}
-          value={endpoint}
-          style={{ marginBottom: 20 }}
-        >
-          {ENDPOINTS.map(({ name, endpoint }) => (
-            <Select.Option value={endpoint} key={endpoint}>
-              {name}
-            </Select.Option>
-          ))}
-        </Select> */}
-      <List className={ListStyle}>
-        <List.Item onClick={() => setShowEdit()}>
-          <Avatar className={ItemIcon} src="https://cdn.discordapp.com/attachments/459348449415004161/888712098589319168/Frame_40_1.png" />
-          edit profile
-        </List.Item>
+    <List className={ListStyle}>
+      <List.Item>
+        <div onClick={() => {
+          setShowPopover(false);
+          push(`/${userData?.username ? userData.username : publicKey}`);
+        }}>
+          <Avatar src={userData?.img_profile} className={ItemIcon} />
+          view profile
+        </div>
+      </List.Item>
 
-        <List.Item onClick={() => disconnect().catch()}>
-          <FeatherIcon icon="power" className={ItemIcon} />
-          disconnect
-        </List.Item>
-      </List>
-      {additionalSettings}
-    </>
+      <List.Item>
+        {publicKey && (
+          <a href={`https://explorer.solana.com/address/${publicKey.toBase58()}`} target="_blank">
+            <div className={BalanceInfo}>{balance} SOL</div>
+            <div className={AddressInfo}>
+              <div>{publicKey && shortenAddress(publicKey.toBase58())}{' '}</div>
+              <FeatherIcon icon="external-link" size="16" />
+            </div>
+          </a>
+        )}
+      </List.Item>
+
+      <List.Item onClick={() => disconnect().catch()}>
+        <FeatherIcon icon="power" className={ItemIcon} />
+        disconnect
+      </List.Item>
+    </List>
   );
 };

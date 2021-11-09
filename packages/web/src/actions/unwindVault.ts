@@ -41,7 +41,6 @@ export async function unwindVault(
   let currInstructions: TransactionInstruction[] = [];
 
   if (vault.info.state === VaultState.Inactive) {
-    console.log('Vault is inactive, combining');
     const epa = await connection.getAccountInfo(
       toPublicKey(vault.info.pricingLookupAddress),
     );
@@ -78,7 +77,6 @@ export async function unwindVault(
       i++;
     }
   }
-  console.log('Found boxes', boxes);
   for (let i = 0; i < boxes.length; i++) {
     const nft = boxes[i];
     const ata = (
@@ -93,7 +91,6 @@ export async function unwindVault(
     )[0];
 
     const existingAta = await connection.getAccountInfo(toPublicKey(ata));
-    console.log('Existing ata?', existingAta);
     if (!existingAta)
       createAssociatedTokenAccountInstruction(
         currInstructions,

@@ -1,18 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useMeta, VaultState } from '@oyster/common';
 
 import ActivityCard from './activityCard';
 import ActionButton from '../../components/ActionButton';
-import { AuctionViewState, useAuctions } from '../../hooks';
+import {
+  AuctionViewState,
+  useAuctions,
+  useHighestBidForAuction,
+} from '../../hooks';
 import { PageTitle, TabStyle, SubTitle, Content } from './style';
+import Congratulations from '../../components/Congratulations';
+import { getUsernameByPublicKeys } from '../../database/userData';
 
 const { TabPane } = Tabs;
+
+const uniq = a => [...new Set(a)];
 
 const ActivityView = () => {
   const wallet = useWallet();
   const { isLoadingMetaplex } = useMeta();
+
+  // if not empty, show congratulations page
+  const [auctionID, setAuctionID] = useState('');
 
   const allAuctions = [
     ...useAuctions(AuctionViewState.Live),
@@ -21,68 +32,127 @@ const ActivityView = () => {
     ...useAuctions(AuctionViewState.BuyNow),
   ];
 
-  //NOTE: blm ketemu buat filter yg blm settle 
-  const allOnSale = allAuctions.filter(v => v.auctionManager.authority === wallet.publicKey?.toBase58());
+  //NOTE: blm ketemu buat filter yg blm settle
+  const allOnSale = allAuctions.filter(
+    v => v.auctionManager.authority === wallet.publicKey?.toBase58(),
+  );
 
   // NOTE: buat nentuin sudah pernah redeem atau blm cek -> m.vault.info.tokenTypeCount > 0
   // besok rencananya kucobain semua scenario, buat mastiin udah fix atau blm
-  const activeBids = allAuctions.filter(m =>
-    (m.myBidderMetadata?.info.bidderPubkey == wallet.publicKey?.toBase58()) &&  m.vault.info.tokenTypeCount > 0,
+  const activeBids = allAuctions.filter(
+    m =>
+      m.state !== AuctionViewState.Defective &&
+      m.auction.info.bidState.bids.some(
+        b => b.key == wallet.publicKey?.toBase58(),
+      ) &&
+      m.vault.info.tokenTypeCount > 0,
   );
 
-  const onSale = allAuctions.filter(m =>
-    m.vault.info.authority === wallet.publicKey?.toBase58() &&
-    (m.vault.info.state !== VaultState.Deactivated || m.vault.info.tokenTypeCount > 0),
+  // const activeBids = allAuctions.filter(m =>
+  //   (m.myBidderMetadata?.info.bidderPubkey == wallet.publicKey?.toBase58()) && m.vault.info.tokenTypeCount > 0,
+  // );
+
+  const onSale = allAuctions.filter(
+    m =>
+      m.auctionManager.authority === wallet.publicKey?.toBase58() &&
+      m.vault.info.tokenTypeCount > 0,
   );
 
-//   isAuctionManagerAuthorityNotWalletOwner &&
-//   auctionView.auction.info.bidState.max.toNumber() === bids.length) ||
-// auctionView.vault.info.state === VaultState.Deactivated
+  //   isAuctionManagerAuthorityNotWalletOwner &&
+  //   auctionView.auction.info.bidState.max.toNumber() === bids.length) ||
+  //   auctionView.vault.info.state === VaultState.Deactivated
 
-  const complete = allAuctions.filter(m => m.vault.info.state == VaultState.Deactivated);
+  const complete = allAuctions.filter(
+    m => m.vault.info.state == VaultState.Deactivated,
+  );
 
-  if (!isLoadingMetaplex) {
-    console.log("🚀 ~ file: index.tsx ~ line 57 ~ ActivityView ~ complete", complete)
-    console.log("🚀 ~ file: index.tsx ~ line 33 ~ ActivityView ~ onSale", allAuctions.length, onSale)
-    console.log("🚀 ~ file: index.tsx ~ line 27 ~ ActivityView ~ activeBids", activeBids)
-    console.log("🚀 ~ file: index.tsx ~ line 23 ~ ActivityView ~ allOnSale", allOnSale)
-    console.log('==============================================');
-  }
-
-  const EmptyState = ({ }) => (
+  const EmptyState = ({}) => (
     <div>
       <div className={Content}>
         <div className={SubTitle}>no activity at the moment</div>
         <div>your auction or sell activity will be show up here</div>
       </div>
+
       <ActionButton to="/auction">view auction</ActionButton>
     </div>
   );
 
+  // const userIDs = allAuctions.map(auction => auction.auctionManager.authority);
+  // const { data: ownerIDs = {} } = getUsernameByPublicKeys(uniq(userIDs));
+
+  // show congratulations page if auction id is not empty
+  if (Boolean(auctionID)) return <Congratulations id={auctionID} />;
+
   return (
     <Row justify="center">
       <Col span={14}>
-        <div className={PageTitle}>ACTIVITY</div>
+        <div className={PageTitle}>
+          ACTIVITY {[...activeBids, ...onSale].length}
+        </div>
         <Tabs className={TabStyle} defaultActiveKey="1">
-          <TabPane tab="all" key="1">
-            {[...activeBids, ...onSale].map(auction => <ActivityCard auctionView={auction} />)}
+          <TabPane tab="allsd" key="1">
+            {[...activeBids, ...onSale].map(auction => {
+              // const highestBid = useHighestBidForAuction(auction.auction.pubkey);
+              // const bidderID = highestBid.info.bidderPubkey;
+              // const { data: highestUserIDs = {} } = getUsernameByPublicKeys([bidderID]);
 
-            {!Boolean([...activeBids, ...onSale].length) && !isLoadingMetaplex && <EmptyState />}
+              // const users = { ...highestUserIDs, ...ownerIDs };
+
+              // return <ActivityCard auctionView={auction} setAuctionView={setAuctionID} users={users} />
+              return (
+                <ActivityCard
+                  auctionView={auction}
+                  setAuctionView={setAuctionID}
+                />
+              );
+            })}
+            {!Boolean([...activeBids, ...onSale].length) &&
+              !isLoadingMetaplex && <EmptyState />}
           </TabPane>
 
           <TabPane tab="my bids" key="2">
-            {activeBids.map(auction => <ActivityCard auctionView={auction} />)}
+            {activeBids.map(auction => {
+              // const highestBid = useHighestBidForAuction(auction.auction.pubkey);
+              // const bidderID = highestBid.info.bidderPubkey;
+              // const { data: highestUserIDs = {} } = getUsernameByPublicKeys([bidderID]);
 
-            {!Boolean(activeBids.length) && !isLoadingMetaplex && <EmptyState />}
+              // const users = { ...highestUserIDs, ...ownerIDs };
+
+              // return <ActivityCard auctionView={auction} setAuctionView={setAuctionID} users={users} />
+              return (
+                <ActivityCard
+                  auctionView={auction}
+                  setAuctionView={setAuctionID}
+                />
+              );
+            })}
+
+            {!Boolean(activeBids.length) && !isLoadingMetaplex && (
+              <EmptyState />
+            )}
           </TabPane>
           <TabPane tab="on sale" key="3">
-            {onSale.map(auction => <ActivityCard auctionView={auction} />)}
+            {onSale.map(auction => {
+              // const highestBid = useHighestBidForAuction(auction.auction.pubkey);
+              // const bidderID = highestBid.info.bidderPubkey;
+              // const { data: highestUserIDs = {} } = getUsernameByPublicKeys([bidderID]);
+
+              // const users = { ...highestUserIDs, ...ownerIDs };
+
+              // return <ActivityCard auctionView={auction} setAuctionView={setAuctionID} users={users} />
+              return (
+                <ActivityCard
+                  auctionView={auction}
+                  setAuctionView={setAuctionID}
+                />
+              );
+            })}
 
             {!Boolean(onSale.length) && !isLoadingMetaplex && <EmptyState />}
           </TabPane>
         </Tabs>
-      </Col >
-    </Row >
+      </Col>
+    </Row>
   );
 };
 

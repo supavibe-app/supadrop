@@ -22,6 +22,10 @@ export const uTextAlignEnd = css`
   text-align: end;
 `;
 
+export const uTextAlignCenter = css`
+  text-align: center;
+`;
+
 export const uFlex = css`
   display: flex;
 `;
@@ -36,10 +40,31 @@ export const uFlexAlignItemsCenter = css`
   align-items: center;
 `;
 
+export const uFlexJustifyCenter = css`
+  display: flex;
+  justify-content: center;
+`;
+
 export const uFontSize24 = css`
   font-size: 24px;
 `;
 
+export const uFontSize18 = css`
+  font-size: 18px;
+`;
+
 export const uPointer = css`
   cursor: pointer;
+`;
+
+export const uLowerCase = css`
+  text-transform: lowercase;
+`;
+
+export const uUpperCase = css`
+  text-transform: uppercase;
+`;
+
+export const uHeightMax = css`
+  height: 100%;
 `;

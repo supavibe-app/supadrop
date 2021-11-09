@@ -26,13 +26,13 @@ const wallet_adapter_react_1 = require("@solana/wallet-adapter-react");
 const contexts_1 = require("../../contexts");
 const style_1 = require("./style");
 const ConnectButton = (props) => {
-    const { onClick, children, disabled, allowWalletChange, ...rest } = props;
+    const { onClick, allowWalletChange, ...rest } = props;
     const { wallet, connect, connected } = wallet_adapter_react_1.useWallet();
     const { setVisible } = contexts_1.useWalletModal();
     const open = react_1.useCallback(() => setVisible(true), [setVisible]);
     const handleClick = react_1.useCallback(() => (wallet ? connect().catch(() => { }) : open()), [wallet, connect, open]);
     // only show if wallet selected or user connected
-    return (react_1.default.createElement(antd_1.Button, { className: style_1.ButtonStyle, ...rest, onClick: handleClick, disabled: connected && disabled, shape: "round" }, connected ? props.children : 'CONNECT'));
+    return (react_1.default.createElement(antd_1.Button, { className: style_1.ButtonStyle, ...rest, onClick: handleClick, disabled: connected, shape: "round" }, "CONNECT"));
     //   if (!wallet || !allowWalletChange) {
     //     return (
     //       <Button {...rest} onClick={handleClick} disabled={connected && disabled}>

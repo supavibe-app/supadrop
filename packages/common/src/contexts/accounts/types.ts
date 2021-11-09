@@ -12,6 +12,40 @@ export type AccountParser = (
   data: AccountInfo<Buffer>,
 ) => ParsedAccountBase | undefined;
 
+export class UserData {
+  bio: string;
+  created_at: string;
+  img_profile: string;
+  name: string;
+  twitter: string;
+  updated_at: string;
+  username: string;
+  website: string;
+  wallet_address: string;
+
+  constructor(
+    bio: string,
+    created_at: string,
+    img_profile: string,
+    name: string,
+    twitter: string,
+    updated_at: string,
+    username: string,
+    website: string,
+    wallet_address: string,
+  ) {
+    this.bio = bio;
+    this.created_at = created_at;
+    this.img_profile = img_profile;
+    this.name = name;
+    this.twitter = twitter;
+    this.updated_at = updated_at;
+    this.username = username;
+    this.website = website;
+    this.wallet_address = wallet_address;
+  }
+}
+
 export interface ParsedAccount<T> extends ParsedAccountBase {
   info: T;
 }

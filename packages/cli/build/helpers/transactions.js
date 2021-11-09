@@ -150,7 +150,7 @@ function sendSignedTransaction(_a) {
                     _c.label = 2;
                 case 2:
                     _c.trys.push([2, 4, 9, 10]);
-                    return [4 /*yield*/, awaitTransactionSignatureConfirmation(txid, timeout, connection, 'recent', true)];
+                    return [4 /*yield*/, awaitTransactionSignatureConfirmation(txid, timeout, connection, 'confirmed', true)];
                 case 3:
                     confirmation = _c.sent();
                     if (!confirmation)
@@ -196,7 +196,7 @@ function sendSignedTransaction(_a) {
                     done = true;
                     return [7 /*endfinally*/];
                 case 10:
-                    loglevel_1.default.debug('Latency', txid, various_1.getUnixTs() - startTime);
+                    loglevel_1.default.debug('Latency (ms)', txid, various_1.getUnixTs() - startTime);
                     return [2 /*return*/, { txid: txid, slot: slot }];
             }
         });

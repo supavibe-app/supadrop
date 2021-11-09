@@ -1,4 +1,5 @@
 import { AccountInfo } from '@solana/web3.js';
+import { Dispatch, SetStateAction } from 'react';
 import {
   AuctionData,
   AuctionDataExtended,
@@ -12,6 +13,7 @@ import {
   Vault,
 } from '../../actions';
 import {
+  AuctionCache,
   AuctionManagerV1,
   AuctionManagerV2,
   BidRedemptionTicket,
@@ -20,14 +22,18 @@ import {
   PrizeTrackingTicket,
   SafetyDepositConfig,
   Store,
+  StoreIndexer,
   WhitelistedCreator,
 } from '../../models/metaplex';
-import { PublicKeyStringAndAccount } from '../../utils';
+import { PublicKeyStringAndAccount, StringPublicKey } from '../../utils';
 import { ParsedAccount } from '../accounts/types';
 
 export interface MetaState {
   metadata: ParsedAccount<Metadata>[];
   metadataByMint: Record<string, ParsedAccount<Metadata>>;
+  metadataByMetadata: Record<string, ParsedAccount<Metadata>>;
+
+  metadataByAuction: Record<string, ParsedAccount<Metadata>[]>;
   metadataByMasterEdition: Record<string, ParsedAccount<Metadata>>;
   editions: Record<string, ParsedAccount<Edition>>;
   masterEditions: Record<
@@ -71,12 +77,17 @@ export interface MetaState {
     ParsedAccount<WhitelistedCreator>
   >;
   payoutTickets: Record<string, ParsedAccount<PayoutTicket>>;
+  auctionCaches: Record<string, ParsedAccount<AuctionCache>>;
+  storeIndexer: ParsedAccount<StoreIndexer>[];
 }
 
 export interface MetaContextState extends MetaState {
   isLoadingMetaplex: boolean;
   isLoadingDatabase: boolean;
+  dataCollection: Collection;
+  endingTime: number;
   liveDataAuctions: { [key: string]: ItemAuction };
+  allDataAuctions: { [key: string]: ItemAuction };
   update: (
     auctionAddress?: any,
     bidderAddress?: any,
@@ -85,12 +96,50 @@ export interface MetaContextState extends MetaState {
     ParsedAccount<BidderPot>,
     ParsedAccount<BidderMetadata>,
   ];
+  pullAuctionPage: (auctionAddress: StringPublicKey) => Promise<MetaState>;
+  pullBillingPage: (auctionAddress: StringPublicKey) => void;
+  updateLiveDataAuction: () => void;
+  updateAllDataAuction: () => void;
+  pullAllSiteData: () => void;
+  pullAllMetadata: () => void;
+  isBidPlaced: boolean;
+  setBidPlaced: Dispatch<SetStateAction<boolean>>;
 }
 
 export type AccountAndPubkey = {
   pubkey: string;
   account: AccountInfo<Buffer>;
 };
+export class Collection {
+  id: string;
+  name: string;
+  description: string;
+  supply: number;
+  price: number;
+  sold: number;
+  start_publish: number;
+  images: string[];
+
+  constructor(
+    id: string,
+    name: string,
+    description: string,
+    supply: number,
+    price: number,
+    sold: number,
+    start_publish: number,
+    images: string[],
+  ) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+    this.supply = supply;
+    this.price = price;
+    this.sold = sold;
+    this.start_publish = start_publish;
+    this.images = images;
+  }
+}
 
 export type UpdateStateValueFunc<T = void> = (
   prop: keyof MetaState,
@@ -122,6 +171,7 @@ export class ItemAuction {
   arweave_link: string;
   owner: string;
   mint_key: string;
+  isInstantSale: boolean;
 
   constructor(
     id: string,
@@ -140,6 +190,7 @@ export class ItemAuction {
     arweave_link: string,
     owner: string,
     mint_key: string,
+    isInstantSale: boolean,
   ) {
     this.id = id;
     this.name = name;
@@ -157,9 +208,9 @@ export class ItemAuction {
     this.arweave_link = arweave_link;
     this.owner = owner;
     this.mint_key = mint_key;
+    this.isInstantSale = isInstantSale;
   }
 }
-
 export type UnPromise<T extends Promise<any>> = T extends Promise<infer U>
   ? U
   : never;

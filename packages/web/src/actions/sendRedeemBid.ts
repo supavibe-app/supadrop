@@ -56,12 +56,12 @@ import { QUOTE_MINT } from '../constants';
 
 export function eligibleForParticipationPrizeGivenWinningIndex(
   winnerIndex: number | null,
-  auctionView: AuctionView,
+  auctionView: AuctionView | undefined,
   bidderMetadata: ParsedAccount<BidderMetadata> | undefined,
   bidRedemption: ParsedAccount<BidRedemptionTicket> | undefined,
 ) {
   const index =
-    auctionView.auctionManager.participationConfig?.safetyDepositBoxIndex;
+    auctionView?.auctionManager.participationConfig?.safetyDepositBoxIndex;
   if (index == undefined || index == null) {
     return false;
   }
@@ -71,10 +71,10 @@ export function eligibleForParticipationPrizeGivenWinningIndex(
 
   return (
     (winnerIndex === null &&
-      auctionView.auctionManager.participationConfig?.nonWinningConstraint !==
+      auctionView?.auctionManager.participationConfig?.nonWinningConstraint !==
         NonWinningConstraint.NoParticipationPrize) ||
     (winnerIndex !== null &&
-      auctionView.auctionManager.participationConfig?.winnerConstraint !==
+      auctionView?.auctionManager.participationConfig?.winnerConstraint !==
         WinningConstraint.NoParticipationPrize)
   );
 }
