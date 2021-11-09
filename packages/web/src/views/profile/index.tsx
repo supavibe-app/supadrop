@@ -55,10 +55,6 @@ const Profile = ({ userId }: { userId: string }) => {
   const onSale = useAuctions(AuctionViewState.Live).filter(
     m => m.auctionManager.authority === walletAddress,
   );
-  console.log(
-    '🚀 ~ file: index.tsx ~ line 67 ~ Profile ~ onSale',
-    useAuctions(AuctionViewState.Live),
-  );
 
   const allData: any = {};
   const allDataArray = [...collected, ...artwork, ...onSale];
