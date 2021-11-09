@@ -1,13 +1,30 @@
 import React from 'react';
 import { Avatar, Col, Row, Skeleton } from 'antd';
-import { BidderMetadata, formatTokenAmount, ItemAuction, ParsedAccount, shortenAddress, useMeta, useMint } from '@oyster/common';
+import {
+  BidderMetadata,
+  formatTokenAmount,
+  ItemAuction,
+  ParsedAccount,
+  shortenAddress,
+  useMeta,
+  useMint,
+} from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import { AuctionView, useArt, useBidsForAuction } from '../../../hooks';
-import { GreyColor, uBoldFont, uFlexAlignItemsCenter, YellowGlowColor } from '../../../styles';
+import {
+  GreyColor,
+  uBoldFont,
+  uFlexAlignItemsCenter,
+  YellowGlowColor,
+} from '../../../styles';
 import { Activity, ActivityHeader, IsMyBid } from './style';
 
-const TransactionHistory = ({ auction, bids, users }: {
+const TransactionHistory = ({
+  auction,
+  bids,
+  users,
+}: {
   auction: ItemAuction | undefined;
   bids: ParsedAccount<BidderMetadata>[];
   users: any;
@@ -18,7 +35,9 @@ const TransactionHistory = ({ auction, bids, users }: {
 
   const TransactionHistorySkeleton = (
     <div>
-      {[...Array(3)].map(i => <Skeleton avatar paragraph={{ rows: 0 }} />)}
+      {[...Array(3)].map(i => (
+        <Skeleton avatar paragraph={{ rows: 0 }} />
+      ))}
     </div>
   );
 
@@ -40,14 +59,27 @@ const TransactionHistory = ({ auction, bids, users }: {
 
       {bids.map((bid, idx) => (
         <div key={idx}>
-          {publicKey?.toBase58() === bid.info.bidderPubkey && <div className={IsMyBid} />}
+          {publicKey?.toBase58() === bid.info.bidderPubkey && (
+            <div className={IsMyBid} />
+          )}
           <Row className={Activity} justify="space-between" align="middle">
             <Col className={uFlexAlignItemsCenter} span={12}>
               <div>
-                <Avatar src={users[bid.info.bidderPubkey]?.img_profile ? users[bid.info.bidderPubkey].img_profile : null} size={24} />
+                <Avatar
+                  src={
+                    users[bid.info.bidderPubkey]?.img_profile
+                      ? users[bid.info.bidderPubkey].img_profile
+                      : null
+                  }
+                  size={24}
+                />
               </div>
 
-              <div>{users[bid.info.bidderPubkey]?.username ? users[bid.info.bidderPubkey].username : shortenAddress(bid.info.bidderPubkey)}</div>
+              <div>
+                {users[bid.info.bidderPubkey]?.username
+                  ? users[bid.info.bidderPubkey].username
+                  : shortenAddress(bid.info.bidderPubkey)}
+              </div>
             </Col>
 
             <Col className={uBoldFont} span={12}>

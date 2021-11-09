@@ -51,8 +51,14 @@ export const AuctionView = () => {
   const [bidAmount, setBidAmount] = useState<number>();
   const [showPlaceBid, setShowPlaceBid] = useState(action === 'bid');
 
-  const setBidAmountNumber = useCallback((num: number) => setBidAmount(num), [setBidAmount]);
-  const setPlaceBidVisibility = useCallback((visible: boolean) => setShowPlaceBid(visible), [setShowPlaceBid]);
+  const setBidAmountNumber = useCallback(
+    (num: number) => setBidAmount(num),
+    [setBidAmount],
+  );
+  const setPlaceBidVisibility = useCallback(
+    (visible: boolean) => setShowPlaceBid(visible),
+    [setShowPlaceBid],
+  );
 
   const { allDataAuctions, isLoadingDatabase, pullAuctionPage } = useMeta();
   const auctionDatabase = allDataAuctions[id];
@@ -68,7 +74,12 @@ export const AuctionView = () => {
   const creatorPublicKeys = creators.map(creator => creator.address);
   const bidderPublicKeys = bids.map(bid => bid.info.bidderPubkey);
 
-  const userIDs = [auctionDatabase?.owner, highestBid?.info.bidderPubkey, ...bidderPublicKeys, ...creatorPublicKeys];
+  const userIDs = [
+    auctionDatabase?.owner,
+    highestBid?.info.bidderPubkey,
+    ...bidderPublicKeys,
+    ...creatorPublicKeys,
+  ];
   const { data: users = {} } = getUsernameByPublicKeys(userIDs);
 
   let edition = '';
@@ -118,13 +129,21 @@ export const AuctionView = () => {
 
               {/* Show back button if showing place bid */}
               {isDataReady && showPlaceBid && connected && (
-                <div className={BackButton} onClick={() => setPlaceBidVisibility(false)}>
+                <div
+                  className={BackButton}
+                  onClick={() => setPlaceBidVisibility(false)}
+                >
                   <FeatherIcon icon="arrow-left" size={20} />
                   <span className={YellowGlowColor}>{art.title}</span>
                 </div>
               )}
 
-              <Popover overlayClassName={OptionsPopover} trigger="click" placement="bottomRight" content={<MoreOptions art={art} />}>
+              <Popover
+                overlayClassName={OptionsPopover}
+                trigger="click"
+                placement="bottomRight"
+                content={<MoreOptions art={art} />}
+              >
                 <div style={{ cursor: 'pointer', color: '#FAFAFB' }}>
                   <FeatherIcon icon="more-horizontal" size={20} />
                 </div>
@@ -134,8 +153,22 @@ export const AuctionView = () => {
             {/* Show Skeleton when Loading */}
             {!isDataReady && <ArtDetailSkeleton />}
 
-            {isDataReady && showPlaceBid && <PlaceBid auction={auctionDatabase} bidAmount={bidAmount} setBidAmount={setBidAmountNumber} />}
-            {isDataReady && !showPlaceBid && <ArtDetails auction={auctionDatabase} art={art} extendedArt={data} highestBid={highestBid} users={users} />}
+            {isDataReady && showPlaceBid && (
+              <PlaceBid
+                auction={auctionDatabase}
+                bidAmount={bidAmount}
+                setBidAmount={setBidAmountNumber}
+              />
+            )}
+            {isDataReady && !showPlaceBid && (
+              <ArtDetails
+                auction={auctionDatabase}
+                art={art}
+                extendedArt={data}
+                highestBid={highestBid}
+                users={users}
+              />
+            )}
           </div>
 
           <div className={StatusContainer}>
@@ -156,7 +189,11 @@ export const AuctionView = () => {
 
       {/* Bids History Column */}
       <Col className={`${ColumnBox} ${PaddingBox} `} span={24} md={4}>
-        <TransactionHistory auction={auctionDatabase} bids={bids} users={users} />
+        <TransactionHistory
+          auction={auctionDatabase}
+          bids={bids}
+          users={users}
+        />
       </Col>
     </Row>
   );
