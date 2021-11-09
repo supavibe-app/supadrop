@@ -4,7 +4,13 @@ import { Link } from 'react-router-dom';
 import FeatherIcon from 'feather-icons-react';
 import { ItemAuction, useMeta } from '@oyster/common';
 import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
-import { ActiveSortBy, CreatorName, DetailsInformation, DropdownStyle, OverlayStyle } from './style';
+import {
+  ActiveSortBy,
+  CreatorName,
+  DetailsInformation,
+  DropdownStyle,
+  OverlayStyle,
+} from './style';
 import { GreyColor, uTextAlignEnd, YellowGlowColor } from '../../styles';
 import { supabase } from '../../../supabaseClient';
 import { getUsernameByPublicKeys } from '../../database/userData';
@@ -14,67 +20,113 @@ const { Option } = Select;
 
 const MarketComponent = () => {
   const [sortBy, setSortBy] = useState(1);
-  const [updatedData, handleUpdatedData] = useState(null)
+  const [updatedData, handleUpdatedData] = useState(null);
+
   // const now = moment().unix();
-  const [list, setList] = useState<ItemAuction[]>([])
-  const getData = async () =>{
-    supabase.from('auction_status')
-    .select(`
+  const [list, setList] = useState<ItemAuction[]>([]);
+  const [lowestPrice, setLowestPrice] = useState(0);
+
+  let sortByText = 'lowest price';
+  const getData = async () => {
+    supabase
+      .from('auction_status')
+      .select(
+        `
     *,
     nft_data (
       *
     )
-    `)
-    .is('type_auction',true)
-    .is('isLiveMarket',true)
-    .then(dataAuction=>{
-      if (dataAuction.body != null) {
-        let data:ItemAuction[] = []
-        dataAuction.body.forEach( v =>{
-          data.push(new ItemAuction(v.id, v.nft_data.name,v.id_nft,v.token_mint,v.price_floor,v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault,v.nft_data.arweave_link,v.owner,v.nft_data.mint_key, v.type_auction))
-        })
-        setList(data)
-      }
-    })
-  }
+    `,
+      )
+      .is('type_auction', true)
+      .is('isLiveMarket', true)
+      .then(dataAuction => {
+        if (dataAuction.body != null) {
+          let data: ItemAuction[] = [];
+          dataAuction.body.forEach(v => {
+            data.push(
+              new ItemAuction(
+                v.id,
+                v.nft_data.name,
+                v.id_nft,
+                v.token_mint,
+                v.price_floor,
+                v.nft_data.img_nft,
+                v.start_auction,
+                v.end_auction,
+                v.highest_bid,
+                v.price_tick,
+                v.gap_time,
+                v.tick_size_ending_phase,
+                v.vault,
+                v.nft_data.arweave_link,
+                v.owner,
+                v.nft_data.mint_key,
+                v.type_auction,
+              ),
+            );
+          });
+          setList(data);
+        }
+      });
+  };
+  const getInfo = async () => {
+    supabase
+      .from('auction_status')
+      .select(
+        `
+    *,
+    nft_data (
+      *
+    )
+    `,
+      )
+      .is('type_auction', true)
+      .is('isLiveMarket', true)
+      .order('price_floor', { ascending: true })
+      .limit(1)
+      .then(dataAuction => {
+        if (dataAuction.body && dataAuction.body?.length > 0) {
+          setLowestPrice(dataAuction.body[0].price_floor);
+        }
+      });
+  };
   const getChange = () => {
     const mySubscription = supabase
-      .from("auction_status")
-      .on('UPDATE',payload =>{
-        handleUpdatedData(payload.new.id)
+      .from('auction_status')
+      .on('UPDATE', payload => {
+        handleUpdatedData(payload.new.id);
       })
       .subscribe();
     return mySubscription;
   };
-  useEffect(()=>{
-    getData()
-    const mySubscription = getChange()
+  useEffect(() => {
+    getData();
+    getInfo();
+    const mySubscription = getChange();
 
     return () => {
       supabase.removeSubscription(mySubscription);
     };
-  },[])
+  }, []);
 
-  useEffect(()=>{
-    const newData = list.filter(tes => tes.id !== updatedData)
-    console.log(updatedData);
-    console.log(list);
-    console.log(newData);
-    
-    setList(newData)
-  },[updatedData])
+  useEffect(() => {
+    const newData = list.filter(tes => tes.id !== updatedData);
+    setLowestPrice(
+      newData.length > 0
+        ? newData.reduce((prev, curr) =>
+            prev.price_floor < curr.price_floor ? prev : curr,
+          ).price_floor
+        : 0,
+    );
+    setList(newData);
+  }, [updatedData]);
   // TODO: Filter sold NFT
-
-  const lowestPrice = list.length > 0
-    ? list.reduce((prev, curr) => prev.price_floor < curr.price_floor ? prev : curr).price_floor
-    : 2;
-
-  let sortByText = 'lowest price';
 
   switch (sortBy) {
     case 1:
       list.sort((a, b) => a.price_floor - b.price_floor);
-      break
+      break;
     case 2:
       list.sort((a, b) => b.price_floor - a.price_floor);
       sortByText = 'highest price';
@@ -87,8 +139,20 @@ const MarketComponent = () => {
 
   const SortByOption = (
     <Menu>
-      <Menu.Item className={sortBy === 1 ? ActiveSortBy : ''} key="0" onClick={() => setSortBy(1)}>lowest price</Menu.Item>
-      <Menu.Item className={sortBy === 2 ? ActiveSortBy : ''} key="1" onClick={() => setSortBy(2)}>highest price</Menu.Item>
+      <Menu.Item
+        className={sortBy === 1 ? ActiveSortBy : ''}
+        key="0"
+        onClick={() => setSortBy(1)}
+      >
+        lowest price
+      </Menu.Item>
+      <Menu.Item
+        className={sortBy === 2 ? ActiveSortBy : ''}
+        key="1"
+        onClick={() => setSortBy(2)}
+      >
+        highest price
+      </Menu.Item>
     </Menu>
   );
 
@@ -97,7 +161,16 @@ const MarketComponent = () => {
 
   return (
     <Row justify="center">
-      <Col style={{ margin: '24px 0 48px 0' }} span={20} xs={20} sm={20} md={20} lg={20} xl={18} xxl={16}>
+      <Col
+        style={{ margin: '24px 0 48px 0' }}
+        span={20}
+        xs={20}
+        sm={20}
+        md={20}
+        lg={20}
+        xl={18}
+        xxl={16}
+      >
         <div className={CreatorName}>
           <span>CRYSTAL PUNKS </span>
           <FeatherIcon icon="check-circle" />
@@ -145,12 +218,27 @@ const MarketComponent = () => {
 
         <Row gutter={[36, 36]}>
           {list.map((m, idx) => {
-            const defaultOwnerData = { wallet_address: m.owner, img_profile: null };
+            const defaultOwnerData = {
+              wallet_address: m.owner,
+              img_profile: null,
+            };
 
             return (
-              <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
+              <Col
+                key={idx}
+                span={24}
+                xxl={8}
+                xl={8}
+                lg={8}
+                md={12}
+                sm={24}
+                xs={24}
+              >
                 <Link to={`/auction/${m.id}`}>
-                  <AuctionRenderCard2 auctionView={m} owner={data[m.owner] || defaultOwnerData} />
+                  <AuctionRenderCard2
+                    auctionView={m}
+                    owner={data[m.owner] || defaultOwnerData}
+                  />
                 </Link>
               </Col>
             );
@@ -158,7 +246,7 @@ const MarketComponent = () => {
         </Row>
       </Col>
     </Row>
-  )
+  );
 };
 
 export default MarketComponent;

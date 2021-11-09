@@ -286,7 +286,7 @@ export class AuctionManager {
           const amount = s.info.getAmountForWinner(new BN(i));
           if (amount.gt(new BN(0))) {
             const safetyDeposit = boxes[s.info.order.toNumber()];
-            const metadata = metadataByMint[safetyDeposit.info.tokenMint];
+            const metadata = metadataByMint[safetyDeposit?.info?.tokenMint];
             newWinnerArr.push({
               metadata,
               winningConfigType: s.info.winningConfigType,
