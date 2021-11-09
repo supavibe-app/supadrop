@@ -2,12 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ItemAuction = exports.Collection = void 0;
 class Collection {
-    constructor(id, name, supply, sold, start_publish) {
+    constructor(id, name, description, supply, price, sold, start_publish, images) {
         this.id = id;
         this.name = name;
+        this.description = description;
         this.supply = supply;
+        this.price = price;
         this.sold = sold;
         this.start_publish = start_publish;
+        this.images = images;
     }
 }
 exports.Collection = Collection;

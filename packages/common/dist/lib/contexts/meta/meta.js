@@ -44,7 +44,7 @@ const MetaContext = react_1.default.createContext({
     isBidPlaced: false,
     liveDataAuctions: {},
     allDataAuctions: {},
-    dataCollection: new types_1.Collection('', '', 0, 0, 0),
+    dataCollection: new types_1.Collection('', '', '', 0, 0, 0, 0, []),
     // @ts-ignore
     update: () => [actions_1.AuctionData, actions_1.BidderMetadata, actions_1.BidderPot],
     // @ts-ignore
@@ -54,7 +54,7 @@ const MetaContext = react_1.default.createContext({
 function MetaProvider({ children = null }) {
     const connection = connection_1.useConnection();
     const { isReady, storeAddress } = store_1.useStore();
-    const [dataCollection, setDataCollection] = react_1.useState(new types_1.Collection('', '', 0, 0, 0));
+    const [dataCollection, setDataCollection] = react_1.useState(new types_1.Collection('', '', '', 0, 0, 0, 0, []));
     const [endingTime, setEndingTime] = react_1.useState(0);
     const [state, setState] = react_1.useState(getEmptyMetaState_1.getEmptyMetaState());
     const [liveDataAuctions, setLiveDataAuction] = react_1.useState({});
@@ -174,7 +174,6 @@ function MetaProvider({ children = null }) {
                 setEndingTime(dataAuction.body[dataAuction.body.length - 1].end_auction);
                 setLiveDataAuction(listData);
             }
-            setIsLoadingDatabase(false);
         });
     }
     async function updateAllDataAuction() {
@@ -201,8 +200,8 @@ function MetaProvider({ children = null }) {
             .eq('id', 1)
             .then(data => {
             if (data.body != null) {
-                const { id, name, supply, sold, start_publish } = data.body[0];
-                let collection = new types_1.Collection(id, name, supply, sold, start_publish);
+                const { id, name, description, supply, price, sold, start_publish, sample_images } = data.body[0];
+                let collection = new types_1.Collection(id, name, description, supply, price, sold, start_publish, sample_images);
                 setDataCollection(collection);
             }
         });
@@ -222,6 +221,14 @@ function MetaProvider({ children = null }) {
             setIsLoadingMetaplex(true);
         }
         console.log('-----> Query started', new Date());
+        Promise.all([
+            updateLiveDataAuction(),
+            updateAllDataAuction(),
+            getDataCollection()
+        ])
+            .finally(() => {
+            setIsLoadingDatabase(false);
+        });
         let nextState = await _1.pullPage(connection, page, state);
         if (nextState.storeIndexer.length) {
             if (loadAccounts_1.USE_SPEED_RUN) {
@@ -283,10 +290,6 @@ function MetaProvider({ children = null }) {
             window.loadingData = false;
             setIsLoadingMetaplex(false);
         }
-        //Todo handle not-started, starting, ended
-        updateLiveDataAuction();
-        updateAllDataAuction();
-        getDataCollection();
         console.log('------->set finished', new Date());
         await updateMints(nextState.metadataByMint);
         if (auctionAddress && bidderAddress) {
