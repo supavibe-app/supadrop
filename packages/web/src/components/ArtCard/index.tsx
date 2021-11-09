@@ -56,7 +56,7 @@ export const ArtCard = (props: ArtCardProps) => {
   name = art?.title || name || ' ';
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const creatorsAddress = creators[0].address || '';
+  const creatorsAddress = creators[0]?.address || '';
 
   const { data = {} } = getUsernameByPublicKeys([creatorsAddress]);
 
@@ -70,7 +70,8 @@ export const ArtCard = (props: ArtCardProps) => {
   }
 
   useEffect(() => {
-    if (cardRef.current?.offsetWidth) setCardWidth(cardRef.current?.offsetWidth);
+    if (cardRef.current?.offsetWidth)
+      setCardWidth(cardRef.current?.offsetWidth);
   }, [cardRef.current?.offsetWidth, setCardWidth]);
 
   const card = (
@@ -96,9 +97,19 @@ export const ArtCard = (props: ArtCardProps) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar src={data[creatorsAddress] ? data[creatorsAddress].img_profile : null} size={32} className={AvatarStyle} />
+              <Avatar
+                src={
+                  data[creatorsAddress]
+                    ? data[creatorsAddress].img_profile
+                    : null
+                }
+                size={32}
+                className={AvatarStyle}
+              />
               <span>
-                {data[creatorsAddress] ? data[creatorsAddress].username : shortenAddress(creatorsAddress)}
+                {data[creatorsAddress]
+                  ? data[creatorsAddress].username
+                  : shortenAddress(creatorsAddress)}
               </span>
             </div>
 
