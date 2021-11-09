@@ -14,14 +14,14 @@ import { TwitterURL } from '../../constants';
 const Home = () => {
   const [state, setState] = useState<CountdownState>();
   const {endingTime,dataCollection} = useMeta();
-
+  
   useEffect(() => {
-    const calc = () => setState(countDown(endingTime));
+    const calc = () => setState(countDown(endingTime ? endingTime : dataCollection.start_publish));
     const interval = setInterval(() => calc(), 1000);
     calc();
 
     return () => clearInterval(interval);
-  }, [endingTime]);
+  }, [endingTime,dataCollection]);
 
   return (
     <Row className={HomeStyle}>
@@ -46,8 +46,8 @@ const Home = () => {
         <Numbers state={state} />
 
         <div className={ButtonWrapper}>
-          {!isEnded(state) && <ActionButton to="auction" size="large">view auction</ActionButton>}
-          {isEnded(state) && (
+          {(endingTime > 0) && <ActionButton to="auction" size="large">view auction</ActionButton>}
+          {(endingTime === 0) && (
             <a href={TwitterURL}>
               <ActionButton size="large">notify me</ActionButton>
             </a>
