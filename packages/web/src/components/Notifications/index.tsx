@@ -14,6 +14,7 @@ import {
   useUserAccounts,
   VaultState,
   WalletSigner,
+  WRAPPED_SOL_MINT,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -32,6 +33,7 @@ import {
   AuctionViewState,
   processAccountsIntoAuctionView,
   useAuctions,
+  useHighestBidForAuction,
 } from '../../hooks';
 import {
   BadgeStyle,
@@ -211,6 +213,12 @@ export function useSettlementAuctions({
     ...useAuctions(AuctionViewState.BuyNow),
   ];
 
+  // const auctionsEnded = useAuctions(AuctionViewState.Ended);
+  // const auctionPush = auctionsEnded.filter(auction => 
+  //   auction.totallyComplete === false && auction.isInstantSale === false
+  // )
+  // console.log('auctionEnd', auctionPush);
+
   const [validDiscoveredEndedAuctions, setValidDiscoveredEndedAuctions] =
     useState<Record<string, number>>({});
   useMemo(() => {
@@ -265,6 +273,14 @@ export function useSettlementAuctions({
     };
     f();
   }, [auctionsNeedingSettling.length, walletPubkey]);
+
+  // async function tod () {
+  //   const checked = auctionsNeedingSettling.filter(a => a.totallyComplete === false);
+  //   checked[0].
+  //   console.log('notif', checked);
+  // }
+
+  // tod();
 
   Object.keys(validDiscoveredEndedAuctions).forEach(auctionViewKey => {
     const auctionView = auctionsNeedingSettling.find(
@@ -353,7 +369,8 @@ export function useSettlementAuctions({
                 myPayingAccount?.pubkey,
                 accountByMint,
               );
-              if (wallet.publicKey) {
+              // accept funds (open WSOL & close WSOL) only if Auction currency SOL
+              if (wallet.publicKey && auctionView.auction.info.tokenMint == WRAPPED_SOL_MINT.toBase58()) {
                 const ata = await getPersonalEscrowAta(wallet);
                 if (ata) await closePersonalEscrow(connection, wallet, ata);
               }
@@ -381,9 +398,10 @@ export function Notifications() {
     AuctionViewState.Defective,
   );
 
-  const liveAuctions = useAuctions(
-    AuctionViewState.Live,
-  );
+
+  // const liveAuctions = useAuctions(
+  //   AuctionViewState.Live,
+  // );
 
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
@@ -399,37 +417,53 @@ export function Notifications() {
 
   useSettlementAuctions({ connection, wallet, notifications });
 
-  const participated = useMemo(
-    () =>
-      liveAuctions
-        .filter((m, idx) =>
-          m.auction.info.bidState.bids.find(b => b.key == walletPubkey),
-        ),
-    [walletPubkey],
-  );
+  // const participated = useMemo(
+  //   () =>
+  //     liveAuctions
+  //       .filter((m, idx) =>
+  //         m.auction.info.bidState.bids.find(b => b.key == walletPubkey),
+  //       ),
+  //   [walletPubkey],
+  // );
 
-  participated.forEach(v => {
-    console.log('data', v)
-    notifications.push({
-      id: v.auctionManager.pubkey,
-      title: 'You have participated in a auction!',
-      textButton: '',
-      description: (
-        <span>BRAH! <Link to={`/activity`}>here.</Link></span>
-      ),
-      action: 
-      async () => {
-        // Action hanya pemanis
-        try {
-          await pullAllSiteData();
-        } catch (e) {
-          console.error(e);
-          return false;
-        }
-        return true;
-      },
-    })
-  })
+  // participated.forEach(v => {
+  //   console.log('data', v)
+  //   notifications.push({
+  //     id: v.auctionManager.pubkey,
+  //     title: 'You have participated in a auction!',
+  //     textButton: '',
+  //     description: (
+  //       <span>BRAH! <Link to={`/activity`}>here.</Link></span>
+  //     ),
+  //     action: 
+  //     async () => {
+  //       // Action hanya pemanis
+  //       try {
+  //         await pullAllSiteData();
+  //       } catch (e) {
+  //         console.error(e);
+  //         return false;
+  //       }
+  //       return true;
+  //     },
+  //   })
+  // })
+
+  // const metaBruh = useMemo(
+  //   () =>
+  //     metadata.filter(m => {
+  //       return (
+  //         m.info.data.creators &&
+  //         (whitelistedCreatorsByCreator[m.info.updateAuthority]?.info
+  //           ?.activated ||
+  //           store?.info.public) &&
+  //         m.info.data.creators.find(
+  //           c => c.address === walletPubkey && !c.verified,
+  //         )
+  //       );
+  //     }),
+  //   [metadata, whitelistedCreatorsByCreator, walletPubkey],
+  // );
 
   const vaultsNeedUnwinding = useMemo(
     () =>
