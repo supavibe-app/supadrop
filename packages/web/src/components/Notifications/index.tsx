@@ -51,6 +51,7 @@ import {
 } from '../../styles';
 import Coffee from '../../assets/icons/coffee';
 import FeatherIcon from 'feather-icons-react';
+import { supabase } from '../../../supabaseClient';
 
 interface NotificationCard {
   id: string;
@@ -213,6 +214,57 @@ export function useSettlementAuctions({
     ...useAuctions(AuctionViewState.BuyNow),
   ];
 
+  const showNotifWin = async () => {
+    supabase.from('action_bidding')
+      .select(`
+      *,
+      auction_status (
+        *
+      )
+      `)
+      .ilike('id', `%${walletPubkey}%`)
+      .eq('is_redeem', false).then(action => {
+        if (action.body != null) {
+          console.log('total', action.body)
+          console.log('bidding', action.body.find(data =>
+            data.auction_status.end_auction <= moment().unix()
+          ));
+          const notif = action.body.find(data =>
+            data.auction_status.end_auction <= moment().unix() && data.price_bid >= data.auction_status.highest_bid
+          );
+
+          if (notif) {
+            console.log('masuk', notif.id)
+            notifications.push({
+              id: notif.id,
+              title: 'Your bid won',
+              textButton: 'claim',
+              notifiedAt: moment().unix(),
+              description: (
+                <span>
+                  Your bid won
+                  <Link to={`/auction`}>click here.</Link>
+                </span>
+              ),
+              action: async () => {
+                try {
+                  
+                } catch (e) {
+                  console.error(e);
+                  return false;
+                }
+                return true;
+              },
+            });
+          }
+
+        }
+      });
+
+  }
+  
+  showNotifWin();
+
   // const auctionsEnded = useAuctions(AuctionViewState.Ended);
   // const auctionPush = auctionsEnded.filter(auction => 
   //   auction.totallyComplete === false && auction.isInstantSale === false
@@ -274,13 +326,6 @@ export function useSettlementAuctions({
     f();
   }, [auctionsNeedingSettling.length, walletPubkey]);
 
-  // async function tod () {
-  //   const checked = auctionsNeedingSettling.filter(a => a.totallyComplete === false);
-  //   checked[0].
-  //   console.log('notif', checked);
-  // }
-
-  // tod();
 
   Object.keys(validDiscoveredEndedAuctions).forEach(auctionViewKey => {
     const auctionView = auctionsNeedingSettling.find(
@@ -305,6 +350,7 @@ export function useSettlementAuctions({
         !b.info.emptied &&
         b.info.auctionAct === auctionKey,
     );
+    
 
     if (bidsToClaim.length || validDiscoveredEndedAuctions[auctionViewKey] > 0)
       notifications.push({
