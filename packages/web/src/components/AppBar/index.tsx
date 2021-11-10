@@ -1,19 +1,20 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router';
-import { Badge, Button } from 'antd';
+import { useHistory, useLocation } from 'react-router';
+import { Badge, Button, Row, Col, Drawer, List } from 'antd';
 import { ConnectButton, CurrentUserBadge, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
+import FeatherIcon from 'feather-icons-react';
 
 // utils
 import getUserData from '../../database/userData';
 
 // components
 import { Notifications } from '../Notifications';
-import { LABELS } from '../../constants';
+import { FaqURL, LABELS } from '../../constants';
 
 // styles
-import { ActivityBadge, ButtonContainer, LinkButton, LogoWrapper, RoundButton, Title } from './style';
+import { ActivityBadge, ButtonContainer, ButtonStyle, ButtonStyleFAQ, LinkButton, LogoWrapper, MobileTitle, RoundButton, Title } from './style';
 import { GreyColor, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
@@ -21,6 +22,8 @@ export const AppBar = () => {
   const { data: userData } = getUserData(publicKey?.toBase58());
   const { pathname } = useLocation();
   const { isBidPlaced, setBidPlaced } = useMeta();
+  const [showMenu, setShowMenu] = useState(false);
+  const { push } = useHistory();
 
   const hideActivityBadge = useCallback(() => setBidPlaced(false), [setBidPlaced]);
 
@@ -78,16 +81,56 @@ export const AppBar = () => {
   }
 
   return (
-    <>
-      <Link className={LogoWrapper} to="/">
-        <img src="/logo.svg" height="80" alt="Logo" />
-        <span className={Title}>{LABELS.APP_TITLE}</span>
-      </Link>
+    <Row justify="space-between" style={{ width: '100%' }}>
+      {/*  DESKTOP */}
+      <Col xs={0} sm={12}>
+        <Link className={LogoWrapper} to="/">
+          <img src="/logo.svg" height="80" alt="Logo" />
+          <span className={Title}>{LABELS.APP_TITLE}</span>
+        </Link>
+      </Col>
 
-      <div className={ButtonContainer}>
-        <ConnectButton type="default" allowWalletChange />
+      <Col className={ButtonContainer} xs={0} sm={12}>
+        <Link to="/about">
+          <Button type="link" size="large" className={ButtonStyle}>our story</Button>
+        </Link>
+        <Button type="link" size="large" href={FaqURL} className={ButtonStyleFAQ}>faq</Button>
+        {/* <ConnectButton type="default" allowWalletChange /> */}
         {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
-      </div>
-    </>
+      </Col>
+
+      {/* MOBILE */}
+      <Col xs={12} sm={0}>
+        <Link className={LogoWrapper} to="/">
+          <img src="/logo.svg" height="58" alt="Logo" />
+          <span className={MobileTitle}>{LABELS.APP_TITLE}</span>
+        </Link>
+      </Col>
+
+      <Col className={ButtonContainer} xs={12} sm={0}>
+        <div onClick={() => setShowMenu(true)}>
+          <FeatherIcon icon="menu" />
+        </div>
+      </Col>
+
+      <Drawer title="SUPADROP" placement="top" onClose={() => setShowMenu(false)} visible={showMenu}>
+        <List>
+          <List.Item className={ButtonStyle} style={{ fontSize: 18 }} onClick={() => {
+            push('/about');
+            setShowMenu(false);
+          }}>
+            <span>our story</span>
+            <FeatherIcon icon="arrow-up-right" size={18} />
+          </List.Item>
+
+          <List.Item style={{ fontSize: 18 }} onClick={() => {
+            window.location.href = FaqURL;
+          }}>
+            <span>faq</span>
+            <FeatherIcon icon="arrow-up-right" size={18} />
+          </List.Item>
+        </List>
+      </Drawer>
+    </Row>
   );
 };

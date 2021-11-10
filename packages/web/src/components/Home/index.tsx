@@ -8,20 +8,19 @@ import Twitter from '../../assets/icons/twitter';
 import countDown from '../../helpers/countdown';
 import { ButtonWrapper, CarouselStyle, Description, DiscordButton, HomeStyle, ImageStyle, SocialMediaButton, Title, TwitterButton } from './style';
 import Numbers from './numbers';
-import isEnded from './helpers/isEnded';
 import { TwitterURL } from '../../constants';
 
 const Home = () => {
   const [state, setState] = useState<CountdownState>();
-  const {endingTime,dataCollection} = useMeta();
-  
+  const { endingTime, dataCollection } = useMeta();
+
   useEffect(() => {
     const calc = () => setState(countDown(endingTime ? endingTime : dataCollection.start_publish));
     const interval = setInterval(() => calc(), 1000);
     calc();
 
     return () => clearInterval(interval);
-  }, [endingTime,dataCollection]);
+  }, [endingTime, dataCollection]);
 
   return (
     <Row className={HomeStyle}>
