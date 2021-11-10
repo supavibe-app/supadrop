@@ -18,44 +18,89 @@ import {
   UploadStyle,
 } from './style';
 import { supabase, UserData } from '@oyster/common';
+import { useHistory } from 'react-router';
+// import { replace } from 'lodash';
 
 const { TextArea } = Input;
 const maxChar = 280;
-const BASE_STORAGE_URL = "https://fjgyltuahsuzqqkdnhay.supabase.in/storage/v1/object/public/profile/avatars/" // TODO NEED TO MOVE or CHANGE
+const BASE_STORAGE_URL =
+  'https://fjgyltuahsuzqqkdnhay.supabase.in/storage/v1/object/public/profile/avatars/'; // TODO NEED TO MOVE or CHANGE
 
-const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; refetch: () => void; userData: UserData | undefined; }) => {
+const EditProfile = ({
+  closeEdit,
+  refetch,
+  userData,
+}: {
+  closeEdit: () => void;
+  refetch: () => void;
+  userData: UserData | undefined;
+}) => {
+  const { replace } = useHistory();
   const { publicKey } = useWallet();
   const [form] = Form.useForm();
   const [bio, setBio] = useState(userData?.bio || ''); // to get the length of bio
   const [file, setFile] = useState<File>();
   const [avatarUrl, setAvatarUrl] = useState<String>();
 
-  // will return localhost link just for temp data
-  async function downloadImage(path) {
-    console.log('downloadImage: ', path)
-    const { data, error } = await supabase.storage.from('profile').download(`avatars/${path}`)
-    if (error) {
-      throw error
-    }
-    const url = URL.createObjectURL(data)
-    setAvatarUrl(url)
-  }
-
-  const saveProfile = async (values) => {
+  async function deleteLastImage() {
     let exProfpic;
     if (userData?.img_profile) {
-      exProfpic = userData.img_profile.split("/");
-      await supabase
-        .storage
+      exProfpic = userData.img_profile.split('/');
+      await supabase.storage
         .from('profile')
-        .remove([`avatars/${exProfpic[exProfpic.length-1]}`])
+        .remove([
+          `avatars/${userData?.wallet_address}_${
+            exProfpic[exProfpic.length - 1]
+          }`,
+        ]);
+    }
+  }
+
+  // will return localhost link just for temp data
+  async function downloadImage(path) {
+    console.log('downloadImage: ', path);
+    const { data, error } = await supabase.storage
+      .from('profile')
+      .download(`avatars/${userData?.wallet_address}_${path}`);
+    if (error) {
+      throw error;
+    }
+    const url = URL.createObjectURL(data);
+    setAvatarUrl(url);
+  }
+
+  // NEED CLEAN THE CODE FOR THIS FUNC MAYBE
+  const saveProfile = async values => {
+    let imageProfile = '';
+
+    if (values.username != userData?.username) {
+      let { data: user_data, error: error_user } = await supabase
+        .from('user_data')
+        .select('username')
+        .eq('username', `${values.username}`);
+
+      if (user_data && user_data?.length > 0) {
+        message.error(`username already taken`);
+        return;
+      }
+
+      if (error_user) {
+        console.log('error', error_user.message);
+      }
     }
 
-    let { data, error } = await supabase.from('user_data')
+    if (file) {
+      deleteLastImage();
+
+      imageProfile = `${BASE_STORAGE_URL}${userData?.wallet_address}_${file?.name}`;
+    } else imageProfile = userData?.img_profile || '';
+
+    let { data, error } = await supabase
+      .from('user_data')
       // .update([{ ...values, img_profile: avatarUrl }])
-      .update([{ ...values, img_profile: `${BASE_STORAGE_URL}${file?.name}` }])
+      .update([{ ...values, img_profile: imageProfile }])
       .eq('wallet_address', publicKey)
-      .limit(1)
+      .limit(1);
 
     if (error) {
       console.log(error);
@@ -65,49 +110,56 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
 
     if (data != null) {
       message.success('profile updated 🎉');
+      if (values.username) {
+        replace(`/${values.username}`);
+      }
       refetch();
       closeEdit();
     }
   };
 
-  const onUpload = async (event) => {
+  const onUpload = async event => {
     console.log('onUpload', typeof event);
+    if (file) {
+      deleteLastImage();
+    }
     setFile(event);
     const { error: uploadError } = await supabase.storage
       .from('profile')
-      .upload(`avatars/${event.name}`, event);
+      .upload(`avatars/${userData?.wallet_address}_${event.name}`, event);
 
     if (uploadError) {
       downloadImage(event.name);
-      throw uploadError
+      // message.error(`upload failed, reason: ${uploadError.message}`);
+      throw uploadError;
     } else downloadImage(event.name);
 
-    return ''
-  }
+    return '';
+  };
 
   const props = {
-    action:onUpload,
+    action: onUpload,
     onStart(file) {
       console.log('onStart file', file);
       console.log('onStart file name', file.name);
     },
     onSuccess(ret) {
       console.log('onSuccess', ret);
-      onUpload
+      onUpload;
     },
     onError(err) {
       console.log('onError', err);
     },
     beforeUpload(file) {
       console.log(file);
-      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+      const isJpgOrPng =
+        file.type === 'image/jpeg' || file.type === 'image/png';
       if (!isJpgOrPng) {
         message.error('You can only upload PNG file!');
       }
       const isLt1M = file.size / 1024 / 1024 < 1;
       if (!isLt1M) {
         message.error('Image must smaller than 1MB!');
-  
       }
       return isJpgOrPng && isLt1M;
     },
@@ -121,9 +173,27 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
         <div className={UploadImageContainer}>
           <div>
             <Upload {...props} className={UploadStyle}>
-              {userData?.img_profile && avatarUrl && <Avatar size={86} src={avatarUrl} style={{ cursor: 'pointer' }} />}
-              {userData?.img_profile && !avatarUrl && <Avatar size={86} src={userData.img_profile} style={{ cursor: 'pointer' }} />}
-              {!userData?.img_profile && !avatarUrl && <Avatar size={86} icon={<FeatherIcon icon="image" size="32" />} style={{ cursor: 'pointer' }} />}
+              {userData?.img_profile && avatarUrl && (
+                <Avatar
+                  size={86}
+                  src={avatarUrl}
+                  style={{ cursor: 'pointer' }}
+                />
+              )}
+              {userData?.img_profile && !avatarUrl && (
+                <Avatar
+                  size={86}
+                  src={userData.img_profile}
+                  style={{ cursor: 'pointer' }}
+                />
+              )}
+              {!userData?.img_profile && !avatarUrl && (
+                <Avatar
+                  size={86}
+                  icon={<FeatherIcon icon="image" size="32" />}
+                  style={{ cursor: 'pointer' }}
+                />
+              )}
             </Upload>
           </div>
 
@@ -131,7 +201,9 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
             <div>We recommend an image of at least 400x400.</div>
 
             <Upload {...props} className={UploadStyle}>
-              <Button className={ChooseFileButton} type="link">choose file</Button>
+              <Button className={ChooseFileButton} type="link">
+                choose file
+              </Button>
             </Upload>
           </div>
         </div>
@@ -147,9 +219,7 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
             className={FormItemStyle}
             name="name"
             label="name"
-            rules={[
-              { type: 'string', max: 52, message: 'max 52 characters' },
-            ]}
+            rules={[{ type: 'string', max: 52, message: 'max 52 characters' }]}
           >
             <Input className={InputStyle} />
           </Form.Item>
@@ -161,7 +231,11 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
             rules={[
               { type: 'string', max: 16, message: 'max 16 characters' },
               { type: 'string', min: 2, message: 'min 2 characters' },
-              { type: 'string', pattern: /^[A-Za-z0-9_]+$/, message: 'cannot use symbol' }
+              {
+                type: 'string',
+                pattern: /^[A-Za-z0-9_]+$/,
+                message: 'cannot use symbol',
+              },
             ]}
           >
             <Input className={InputPrefixStyle} prefix="@" />
@@ -172,7 +246,10 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
             name="twitter"
             label="twitter handle"
             rules={[
-              { pattern: /^@?(\w){1,15}$/, message: 'invalid Twitter username' }
+              {
+                pattern: /^@?(\w){1,15}$/,
+                message: 'invalid Twitter username',
+              },
             ]}
           >
             <Input className={InputPrefixStyle} prefix="@" />
@@ -183,7 +260,10 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
             name="website"
             label="website"
             rules={[
-              { pattern: urlValidator, message: 'please enter a valid and secure url' },
+              {
+                pattern: urlValidator,
+                message: 'please enter a valid and secure url',
+              },
             ]}
           >
             <Input className={InputStyle} placeholder="https://" />
@@ -192,20 +272,37 @@ const EditProfile = ({ closeEdit, refetch, userData }: { closeEdit: () => void; 
           <Form.Item
             className={FormItemStyle}
             name="bio"
-            label={(
+            label={
               <div className={BioLabel}>
                 <div>add short bio</div>
-                <div>{bio.length}/{maxChar}</div>
+                <div>
+                  {bio.length}/{maxChar}
+                </div>
               </div>
-            )}
-            rules={[{ type: 'string', max: maxChar, message: `max ${maxChar} characters` }]}
+            }
+            rules={[
+              {
+                type: 'string',
+                max: maxChar,
+                message: `max ${maxChar} characters`,
+              },
+            ]}
           >
-            <TextArea className={TextAreaStyle} placeholder="enter short bio" rows={8} onChange={e => setBio(e.target.value)} />
+            <TextArea
+              className={TextAreaStyle}
+              placeholder="enter short bio"
+              rows={8}
+              onChange={e => setBio(e.target.value)}
+            />
           </Form.Item>
 
           <Form.Item>
-            <ActionButton width="100%" size="small" onClick={form.submit}>SAVE CHANGE</ActionButton>
-            <Button className={CancelButton} type="link" onClick={closeEdit}>CANCEL</Button>
+            <ActionButton width="100%" size="small" onClick={form.submit}>
+              SAVE CHANGE
+            </ActionButton>
+            <Button className={CancelButton} type="link" onClick={closeEdit}>
+              CANCEL
+            </Button>
           </Form.Item>
         </Form>
       </div>
