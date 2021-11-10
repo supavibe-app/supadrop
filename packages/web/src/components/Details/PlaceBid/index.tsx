@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Col, Input, Row } from 'antd';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { formatNumber, formatTokenAmount, fromLamports, ItemAuction, PriceFloorType, useMint, useNativeAccount } from '@oyster/common';
+import {
+  formatNumber,
+  formatTokenAmount,
+  fromLamports,
+  ItemAuction,
+  PriceFloorType,
+  useMint,
+  useNativeAccount,
+} from '@oyster/common';
 import { useHighestBidForAuction } from '../../../hooks';
 import getMinimumBid from '../../../helpers/getMinimumBid';
 import AddFundsComponent from './addFunds';
 import { WhiteColor } from '../../../styles';
-import { AddFunds, BidInput, BidRuleInformation, Information, PlaceBidTitle } from './style';
+import {
+  AddFunds,
+  BidInput,
+  BidRuleInformation,
+  Information,
+  PlaceBidTitle,
+} from './style';
 
-const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
+const PlaceBid = ({
+  auction,
+  setBidAmount,
+  bidAmount,
+}: {
   auction: ItemAuction | undefined;
   bidAmount: number | undefined;
   setBidAmount: (num: number) => void;
@@ -20,10 +38,22 @@ const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
   const mintInfo = useMint(auction?.token_mint);
   const priceFloor = auction?.price_floor;
 
-  const balance = formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL);
-  const currentBid = parseFloat(formatTokenAmount(bid?.info.lastBid)) || fromLamports(priceFloor, mintInfo);
-  const minimumBid = getMinimumBid(currentBid);
+  const balance = formatNumber.format(
+    (account?.lamports || 0) / LAMPORTS_PER_SOL,
+  );
+  const [currentBid, setCurrentBid] = useState(
+    bid ? parseFloat(formatTokenAmount(bid?.info.lastBid)) : priceFloor,
+  );
 
+  const [minimumBid, setMinimumBid] = useState(
+    bid ? getMinimumBid(currentBid) : priceFloor,
+  );
+  useEffect(() => {
+    setCurrentBid(
+      bid ? parseFloat(formatTokenAmount(bid?.info.lastBid)) : priceFloor,
+    );
+    setMinimumBid(bid ? getMinimumBid(currentBid) : priceFloor);
+  }, [bid, auction]);
   return (
     <>
       <div className={PlaceBidTitle}>place a bid </div>
@@ -58,14 +88,18 @@ const PlaceBid = ({ auction, setBidAmount, bidAmount }: {
       <Row>
         <Col span={20}>
           <div className={BidRuleInformation}>
-            Bids placed in the last 15 minutes will extend bidding for another 15 minutes beyond the point in time that bid was made. Bids must at least 10% higher.
+            Bids placed in the last 15 minutes will extend bidding for another
+            15 minutes beyond the point in time that bid was made. Bids must at
+            least 10% higher.
           </div>
         </Col>
       </Row>
 
-      {showFundModal && <AddFundsComponent onCancel={() => setShowFundModal(false)} />}
+      {showFundModal && (
+        <AddFundsComponent onCancel={() => setShowFundModal(false)} />
+      )}
     </>
-  )
+  );
 };
 
 export default PlaceBid;
