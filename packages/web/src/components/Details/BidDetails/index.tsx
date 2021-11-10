@@ -293,7 +293,7 @@ const BidDetails = ({
         );
         pullAuctionPage(auction?.auction.pubkey || '');
         supabaseUpdateBid(
-          auction.auction.pubkey,
+          auction?.auction.pubkey,
           wallet.publicKey?.toBase58(),
           instantSalePrice.toNumber(),
         );
