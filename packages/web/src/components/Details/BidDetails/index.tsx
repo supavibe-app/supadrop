@@ -19,6 +19,10 @@ import {
   BidStateType,
   ItemAuction,
   WinningConfigType,
+  supabase,
+  supabaseUpdateBid,
+  supabaseUpdateStatusInstantSale,
+  supabaseUpdateIsRedeem,
 } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
@@ -54,8 +58,9 @@ import {
 import countDown from '../../../helpers/countdown';
 import { endSale } from '../../AuctionCard/utils/endSale';
 import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState';
-import { supabase } from '../../../../supabaseClient';
 import { sendCancelBid } from '../../../actions/cancelBid';
+import { Link } from 'react-router-dom';
+import isEnded from '../../Home/helpers/isEnded';
 
 const BidDetails = ({
   art,
@@ -95,13 +100,11 @@ const BidDetails = ({
   const { wallet, connect, connected, publicKey } = walletContext;
 
   const owner = auctionDatabase?.owner;
-  const endAt = auctionDatabase?.endAt;
+  const endAt = auction?.auction.info.endedAt?.toNumber();
 
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
-  const [ended, setEnded] = useState(
-    state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0,
-  );
+
   const isAuctionManagerAuthorityNotWalletOwner =
     auction?.auctionManager.authority !== publicKey?.toBase58();
 
@@ -113,9 +116,12 @@ const BidDetails = ({
     formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL),
   );
   const [currentBid, setCurrentBid] = useState(
-    parseFloat(formatTokenAmount(bid?.info.lastBid)) || priceFloor,
+    bid ? parseFloat(formatTokenAmount(bid?.info.lastBid)) : priceFloor,
   );
-  const [minimumBid, setMinimumBid] = useState(getMinimumBid(currentBid));
+
+  const [minimumBid, setMinimumBid] = useState(
+    bid ? getMinimumBid(currentBid) : priceFloor,
+  );
   const myPayingAccount = useUserBalance(auctionDatabase?.token_mint)
     .accounts[0];
 
@@ -147,26 +153,23 @@ const BidDetails = ({
       winnerIndex = auction?.auction.info.bidState.getWinnerIndex(
         auction?.myBidderPot?.info.bidderAct,
       );
-    setEnded(
-      state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0,
-    );
+
     setEligibleForAnything(winnerIndex !== null || eligibleForOpenEdition);
     setCurrentBid(
-      parseFloat(formatTokenAmount(bid?.info.lastBid)) || priceFloor,
+      bid ? parseFloat(formatTokenAmount(bid?.info.lastBid)) : priceFloor,
     );
-
-    setMinimumBid(getMinimumBid(currentBid));
+    setMinimumBid(bid ? getMinimumBid(currentBid) : priceFloor);
   }, [auctionDatabase, bid, auction]);
 
   // countdown
   useEffect(() => {
-    if (!ended) {
-      const calc = () => setState(countDown(endAt));
+    if (endAt) {
+      const calc = () => setState(countDown(auction?.auction.info.endedAt));
       const interval = setInterval(() => calc(), 1000);
       calc();
       return () => clearInterval(interval);
     }
-  }, [auction, setState]);
+  }, [endAt]);
 
   const handleConnect = useCallback(() => {
     if (wallet) connect();
@@ -194,9 +197,17 @@ const BidDetails = ({
           prizeTrackingTickets,
           bidRedemptions,
           bids,
-        ).then(() => {
-          console.log('redeem');
-        });
+        )
+          .then(data => {
+            supabaseUpdateIsRedeem(
+              auctionView.auction.pubkey,
+              publicKey?.toBase58(),
+            );
+            console.log('action ended auction cancel redeem', data);
+          })
+          .catch(err => {
+            console.log('action ended auction', err);
+          });
       } else {
         const wallet = walletContext;
         const auctionView = auction!!;
@@ -209,8 +220,117 @@ const BidDetails = ({
           bids,
           bidRedemptions,
           prizeTrackingTickets,
-        );
+        )
+          .then(data => {
+            supabaseUpdateIsRedeem(
+              auctionView.auction.pubkey,
+              publicKey?.toBase58(),
+            );
+
+            console.log('action ended auction cancel bid', data);
+          })
+          .catch(err => {
+            console.log('action ended auction', err);
+          });
       }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const endInstantSale = async () => {
+    try {
+      const auctionView = auction!!;
+      const wallet = walletContext;
+      await endSale({
+        auctionView,
+        connection,
+        accountByMint,
+        bids,
+        bidRedemptions,
+        prizeTrackingTickets,
+        wallet,
+      }).then(data => {});
+      supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
+      supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
+    } catch (e) {
+      console.error('endAuction', e);
+      return;
+    }
+  };
+
+  const instantSale = async () => {
+    const instantSalePrice =
+      auction?.auctionDataExtended?.info.instantSalePrice;
+    const winningConfigType =
+      auction?.participationItem?.winningConfigType ||
+      auction?.items[0][0].winningConfigType;
+    const isAuctionItemMaster = [
+      WinningConfigType.FullRightsTransfer,
+      WinningConfigType.TokenOnlyTransfer,
+    ].includes(winningConfigType!!);
+    const allowBidToPublic =
+      myPayingAccount &&
+      !auction?.myBidderPot &&
+      isAuctionManagerAuthorityNotWalletOwner;
+    const allowBidToAuctionOwner =
+      myPayingAccount &&
+      !isAuctionManagerAuthorityNotWalletOwner &&
+      isAuctionItemMaster;
+
+    // Placing a "bid" of the full amount results in a purchase to redeem.
+    if (instantSalePrice && (allowBidToPublic || allowBidToAuctionOwner)) {
+      try {
+        const wallet = walletContext;
+        const auctionView = auction!!;
+        await sendPlaceBid(
+          connection,
+          wallet,
+          myPayingAccount.pubkey,
+          auctionView,
+          accountByMint,
+          instantSalePrice,
+        );
+        pullAuctionPage(auction?.auction.pubkey || '');
+        supabaseUpdateBid(
+          auction.auction.pubkey,
+          wallet.publicKey?.toBase58(),
+          instantSalePrice.toNumber(),
+        );
+        supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
+      } catch (e) {
+        console.error('sendPlaceBid', e);
+        return;
+      }
+    }
+
+    const newAuctionState = await update(auction?.auction.pubkey, publicKey);
+    if (auction) {
+      auction.auction = newAuctionState[0];
+      auction.myBidderPot = newAuctionState[1];
+      auction.myBidderMetadata = newAuctionState[2];
+    }
+    // Claim the purchase
+    try {
+      const wallet = walletContext;
+      const auctionView = auction!!;
+      await sendRedeemBid(
+        connection,
+        wallet,
+        myPayingAccount.pubkey,
+        auctionView,
+        accountByMint,
+        prizeTrackingTickets,
+        bidRedemptions,
+        bids,
+      ).then(async () => {
+        supabaseUpdateIsRedeem(
+          auction?.auction.pubkey,
+          wallet.publicKey?.toBase58(),
+        );
+        pullAuctionPage(auction?.auction.pubkey || '');
+        await update();
+      });
     } catch (e) {
       console.error(e);
     }
@@ -260,7 +380,7 @@ const BidDetails = ({
 
       return <></>;
     }
-    if (ended && !auction?.isInstantSale) {
+    if (isEnded(state) && !auction?.isInstantSale) {
       return (
         <div className={art.title && highestBid ? PaddingBox : SmallPaddingBox}>
           {art.title && highestBid && (
@@ -384,103 +504,6 @@ const BidDetails = ({
     );
   };
 
-  const endInstantSale = async () => {
-    try {
-      const auctionView = auction!!;
-      const wallet = walletContext;
-      const endStatus = await endSale({
-        auctionView,
-        connection,
-        accountByMint,
-        bids,
-        bidRedemptions,
-        prizeTrackingTickets,
-        wallet,
-      });
-
-      supabase
-        .from('auction_status')
-        .update({ isLiveMarket: false })
-        .eq('id', auction?.auction.pubkey)
-        .then();
-    } catch (e) {
-      console.error('endAuction', e);
-      return;
-    }
-  };
-
-  const instantSale = async () => {
-    const instantSalePrice =
-      auction?.auctionDataExtended?.info.instantSalePrice;
-    const winningConfigType =
-      auction?.participationItem?.winningConfigType ||
-      auction?.items[0][0].winningConfigType;
-    const isAuctionItemMaster = [
-      WinningConfigType.FullRightsTransfer,
-      WinningConfigType.TokenOnlyTransfer,
-    ].includes(winningConfigType!!);
-    const allowBidToPublic =
-      myPayingAccount &&
-      !auction?.myBidderPot &&
-      isAuctionManagerAuthorityNotWalletOwner;
-    const allowBidToAuctionOwner =
-      myPayingAccount &&
-      !isAuctionManagerAuthorityNotWalletOwner &&
-      isAuctionItemMaster;
-
-    // Placing a "bid" of the full amount results in a purchase to redeem.
-    if (instantSalePrice && (allowBidToPublic || allowBidToAuctionOwner)) {
-      try {
-        const wallet = walletContext;
-        const auctionView = auction!!;
-        await sendPlaceBid(
-          connection,
-          wallet,
-          myPayingAccount.pubkey,
-          auctionView,
-          accountByMint,
-          instantSalePrice,
-        );
-        pullAuctionPage(auction?.auction.pubkey || '');
-        supabase
-          .from('auction_status')
-          .update({ isLiveMarket: false })
-          .eq('id', auction?.auction.pubkey)
-          .then();
-      } catch (e) {
-        console.error('sendPlaceBid', e);
-        return;
-      }
-    }
-
-    const newAuctionState = await update(auction?.auction.pubkey, publicKey);
-    if (auction) {
-      auction.auction = newAuctionState[0];
-      auction.myBidderPot = newAuctionState[1];
-      auction.myBidderMetadata = newAuctionState[2];
-    }
-    // Claim the purchase
-    try {
-      const wallet = walletContext;
-      const auctionView = auction!!;
-      await sendRedeemBid(
-        connection,
-        wallet,
-        myPayingAccount.pubkey,
-        auctionView,
-        accountByMint,
-        prizeTrackingTickets,
-        bidRedemptions,
-        bids,
-      ).then(async () => {
-        pullAuctionPage(auction?.auction.pubkey || '');
-        await update();
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   if (confirmTrigger) {
     return (
       <BidDetailsContent>
@@ -511,10 +534,10 @@ const BidDetails = ({
   }
 
   // if auction ended
-
-  if (ended) {
+  if (isEnded(state)) {
     if (!auction?.isInstantSale) {
       // case 1: you win the bid
+
       if (
         highestBid &&
         publicKey &&
@@ -529,9 +552,17 @@ const BidDetails = ({
           return (
             <BidDetailsContent>
               <div className={ButtonWrapper}>
-                <ActionButton to="/create/0" width="100%">
-                  LIST NFT
-                </ActionButton>
+                <Link
+                  to={{
+                    pathname: `/list/create`,
+                    state: {
+                      idNFT: filterMetadata[0].metadata.pubkey,
+                      item: filterMetadata[0],
+                    },
+                  }}
+                >
+                  <ActionButton width="100%">LIST NFT</ActionButton>
+                </Link>
               </div>
             </BidDetailsContent>
           );
@@ -618,7 +649,7 @@ const BidDetails = ({
       );
     }
 
-    if (!ended) {
+    if (!isEnded(state)) {
       return (
         <BidDetailsContent>
           <a className={ButtonWrapper} href={twitterIntent}>
@@ -719,7 +750,11 @@ const BidDetails = ({
                     setConfirmTrigger(false);
                     pullAuctionPage(auctionDatabase?.id || '');
                     setBidPlaced(true);
-                    supabase.from('action_bidding');
+                    supabaseUpdateBid(
+                      auction?.auction.pubkey,
+                      publicKey?.toBase58(),
+                      currentBidAmount,
+                    );
                   })
                   .catch(() => {
                     // user click cancel
@@ -747,7 +782,7 @@ const BidDetails = ({
   }
 
   // case : instant sale end
-  if (auction?.isInstantSale && ended && eligibleForAnything) {
+  if (auction?.isInstantSale && isEnded(state) && eligibleForAnything) {
     return <></>;
   }
 
