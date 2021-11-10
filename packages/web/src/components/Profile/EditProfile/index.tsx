@@ -4,7 +4,6 @@ import { Avatar, Button, Form, Input, Upload, message } from 'antd';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import ActionButton from '../../ActionButton';
-import { supabase } from '../../../../supabaseClient';
 import urlValidator from '../../../helpers/urlValidator';
 import {
   BioLabel,
@@ -18,7 +17,7 @@ import {
   UploadImageContainer,
   UploadStyle,
 } from './style';
-import { UserData } from '@oyster/common';
+import { supabase, UserData } from '@oyster/common';
 
 const { TextArea } = Input;
 const maxChar = 280;
