@@ -13,7 +13,7 @@ import { TwitterURL } from '../../constants';
 
 const Home = () => {
   const [state, setState] = useState<CountdownState>();
-  const {endingTime,dataCollection} = useMeta();
+  const { endingTime, dataCollection } = useMeta();
 
   useEffect(() => {
     const calc = () => setState(countDown(endingTime));
