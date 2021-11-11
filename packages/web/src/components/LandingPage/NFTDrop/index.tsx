@@ -101,13 +101,7 @@ const NFTDrop = () => {
 
       <Col className={AssetBorder} span={10}>
         <div style={{ textAlign: 'center' }}>
-          <Carousel className={CarouselStyle} autoplay effect="fade" autoplaySpeed={1000}>
-            {dataCollection.images.map((img, idx) => (
-              <div key={idx}>
-                <Image src={img} className={ImageStyle} />
-              </div>
-            ))}
-          </Carousel>
+          <Image src="/img/assets/crystalpunks-logo.png" className={ImageStyle} preview={false} />
         </div>
       </Col>
     </Row>
@@ -124,20 +118,14 @@ export const MobileNFTDrop = () => {
     calc();
 
     return () => clearInterval(interval);
-  }, [endingTime]);
+  }, [endingTime, dataCollection]);
 
   return (
     <>
       <Row justify="end" style={{ marginBottom: 42 }}>
         <Col className={AssetBorder} span={22}>
           <div style={{ textAlign: 'center' }}>
-            <Carousel className={CarouselStyle} autoplay effect="fade" autoplaySpeed={1000}>
-              {dataCollection.images.map((img, idx) => (
-                <div key={idx}>
-                  <Image src={img} className={ImageStyle} />
-                </div>
-              ))}
-            </Carousel>
+            <Image src="/img/assets/crystalpunks-logo.png" className={ImageStyle} preview={false} />
           </div>
         </Col>
       </Row>

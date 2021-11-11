@@ -9,8 +9,8 @@ const About = () => {
     <Row justify="center">
       {/* DESKTOP */}
       <Col xs={0} sm={14} style={{ marginTop: 72 }}>
-        <div style={{ fontSize: 56, color: 'FAFAFB', fontWeight: 'bold', marginBottom: 34 }}>OUR STORY</div>
-        <p style={{ fontSize: 20, marginBottom: 120 }}>
+        <div style={{ fontSize: 56, color: '#FAFAFB', fontWeight: 'bold', marginBottom: 34 }}>OUR STORY</div>
+        <p style={{ fontSize: 20, marginBottom: 120, color: '#7E7C7C' }}>
           We believe all the great things that shaped how we live today started from a personal project. We want to see a world where everyone feels excited waking up in the morning and make it easier to make a living doing something they love. We do this by empowering creators to start something they love and find their 1000 true fans.<br /><br />
 
           All of our initiatives in the future will hold and stay true to that vision and goal.<br /><br />
@@ -44,8 +44,8 @@ const About = () => {
 
       {/* MOBILE */}
       <Col xs={20} sm={0} style={{ marginTop: 32 }}>
-        <div style={{ fontSize: 28, color: 'FAFAFB', fontWeight: 'bold', marginBottom: 20 }}>OUR STORY</div>
-        <p style={{ fontSize: 14, marginBottom: 120 }}>
+        <div style={{ fontSize: 28, color: '#FAFAFB', fontWeight: 'bold', marginBottom: 20 }}>OUR STORY</div>
+        <p style={{ fontSize: 14, marginBottom: 120, color: '#7E7C7C' }}>
           We believe all the great things that shaped how we live today started from a personal project. We want to see a world where everyone feels excited waking up in the morning and make it easier to make a living doing something they love. We do this by empowering creators to start something they love and find their 1000 true fans.<br /><br />
 
           All of our initiatives in the future will hold and stay true to that vision and goal.<br /><br />
