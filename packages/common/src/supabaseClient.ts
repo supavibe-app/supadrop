@@ -22,7 +22,13 @@ export const supabaseUpdateBid = (
           .from('action_bidding')
           .update({ price_bid: bidAmount })
           .eq('id', `${idAuction}_${walletAddress}`)
-          .then();
+          .then(() => {
+            supabaseUpdateHighestBid(
+              idAuction || '',
+              bidAmount || 0,
+              walletAddress || '',
+            );
+          });
       } else {
         supabase
           .from('action_bidding')
@@ -34,8 +40,12 @@ export const supabaseUpdateBid = (
               price_bid: bidAmount,
             },
           ])
-          .then(data => {
-            console.log('masuk buy now', data);
+          .then(() => {
+            supabaseUpdateHighestBid(
+              idAuction || '',
+              bidAmount || 0,
+              walletAddress || '',
+            );
           });
       }
     });
@@ -101,5 +111,37 @@ export const supabaseUpdateIsRedeem = (
     .eq('id', `${idAuction}_${walletAddress}`)
     .then(data => {
       console.log('masuk kesini', data, `${idAuction}_${walletAddress}`);
+    });
+};
+
+export const supabaseUpdateHighestBid = (
+  idAuction: string,
+  bid: number,
+  walletAddress: string,
+) => {
+  console.log('masuk sini');
+
+  supabase
+    .from('auction_status')
+    .select('highest_bid')
+    .eq('id', idAuction)
+    .single()
+    .then(data => {
+      if (data.body && data.body.highest_bid < bid) {
+        console.log(
+          'masuk sini lagi',
+          data.body.highest_bid,
+          bid,
+          walletAddress,
+        );
+
+        supabase
+          .from('auction_status')
+          .update({ highest_bid: bid, winner: walletAddress })
+          .eq('id', idAuction)
+          .then(data => {
+            console.log('data ', data);
+          });
+      }
     });
 };
