@@ -123,7 +123,7 @@ export const AppBar = () => {
             <FeatherIcon icon="arrow-up-right" size={18} />
           </List.Item>
 
-          <List.Item style={{ fontSize: 18 }} onClick={() => {
+          <List.Item className={ButtonStyle} style={{ fontSize: 18 }} onClick={() => {
             window.location.href = FaqURL;
           }}>
             <span>faq</span>

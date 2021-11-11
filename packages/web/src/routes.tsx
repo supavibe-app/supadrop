@@ -18,13 +18,10 @@ import MarketComponent from './views/market';
 import LandingPage from './views/landingPage';
 import About from './views/about';
 
-
 const DirectPath = () => {
   const { path } = useParams<{ path: string }>();
   const paths = ['auction', 'activity', 'market', 'about'];
   const visitedPath = paths.indexOf(path);
-
-  ReactGA.initialize('UA-212246916-1', { debug: true });
 
   const history = createBrowserHistory();
 
@@ -52,6 +49,8 @@ const DirectPath = () => {
 };
 
 export function Routes() {
+  ReactGA.initialize('UA-212246916-1', { debug: false });
+
   return (
     <BrowserRouter basename={'/'}>
       <Providers>

@@ -79,7 +79,7 @@ export const MobileFeatures = () => {
 
         <div className={MobilePoweredDescription}>powered by metaplex, supadrop will help you create the best experience launching your NFT drop on solana</div>
 
-        <Row justify="start" gutter={[16, 16]} style={{ paddingLeft: 10 }}>
+        <Row justify="start" style={{ paddingLeft: 10 }}>
           {features.map((feature, index) => (
             <Col className={MobileFeatureBox(index === features.length - 1)} key={feature.key}>
               <div onClick={() => {
