@@ -93,7 +93,6 @@ export const ImageStyle = css`
   max-height: 512px;
   max-width: 512px;
   object-fit: contain;
-  filter: drop-shadow(2px 4px 16px rgba(255, 255, 255, 0.12));
   border-radius: 2px;
 `;
 

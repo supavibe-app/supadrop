@@ -45,6 +45,7 @@ export const MobileFeatureBox = isLastFeature => css`
 
   color: #fafafb;
   margin-right: 16px;
+  margin-bottom: 16px;
 
   border: 1px solid ${isLastFeature ? '#7E7C7C' : 'transparent'};
   background-image: ${isLastFeature
