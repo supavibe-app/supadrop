@@ -106,7 +106,8 @@ const BidDetails = ({
     if (
       auction?.auction.info.auctionGap &&
       auction?.auction.info.lastBid &&
-      endAt
+      endAt &&
+      auctionDatabase?.id
     ) {
       let latestTime =
         auction?.auction.info.auctionGap?.toNumber() +
