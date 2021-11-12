@@ -93,6 +93,7 @@ const BidDetails = ({
     bidRedemptions,
     pullAuctionPage,
     setBidPlaced,
+    updateDetailAuction,
   } = useMeta();
   const ownedMetadata = useUserArts();
 
@@ -100,7 +101,30 @@ const BidDetails = ({
   const { wallet, connect, connected, publicKey } = walletContext;
 
   const owner = auctionDatabase?.owner;
-  const endAt = auction?.auction.info.endedAt?.toNumber();
+  const endAt = auctionDatabase?.endAt;
+  useEffect(() => {
+    if (
+      auction?.auction.info.auctionGap &&
+      auction?.auction.info.lastBid &&
+      endAt &&
+      auctionDatabase?.id
+    ) {
+      let latestTime =
+        auction?.auction.info.auctionGap?.toNumber() +
+        auction?.auction.info.lastBid?.toNumber();
+      if (latestTime > endAt) {
+        supabase
+          .from('auction_status')
+          .update({
+            end_auction: latestTime,
+          })
+          .eq('id', auctionDatabase.id)
+          .then(data => {
+            updateDetailAuction(auctionDatabase.id);
+          });
+      }
+    }
+  }, [auction?.auction.info.lastBid]);
 
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
@@ -164,7 +188,7 @@ const BidDetails = ({
   // countdown
   useEffect(() => {
     if (endAt) {
-      const calc = () => setState(countDown(auction?.auction.info.endedAt));
+      const calc = () => setState(countDown(endAt));
       const interval = setInterval(() => calc(), 1000);
       calc();
       return () => clearInterval(interval);
