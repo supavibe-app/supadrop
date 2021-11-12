@@ -15,6 +15,7 @@ import {
   StringPublicKey,
   ItemAuction,
   pubkeyToString,
+  supabase,
 } from '@oyster/common';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -30,12 +31,12 @@ import {
 import BN from 'bn.js';
 import { useMeta } from '../../contexts';
 import { SystemProgram } from '@solana/web3.js';
-import { supabase } from '../../../supabaseClient';
 import SellStep from '../../components/Listing/SellStep';
 import WaitingStep from '../../components/Listing/WaitingStep';
 import { BackButton } from './style';
 import CongratsStep from '../../components/Listing/CongratsStep';
 import { ArtCard } from '../../components/ArtCard';
+import { useUserSingleArt } from '../../hooks';
 
 const { ZERO } = constants;
 
@@ -90,7 +91,9 @@ export const AuctionCreateView = () => {
   const history = useHistory();
   const wallet = useWallet();
   const { state } = history.location;
-  const { idNFT, item: itemNFT }: any = state || {};
+  const { idNFT }: any = state || {};
+
+  const singleUser = useUserSingleArt(idNFT);
 
   const connection = useConnection();
   const mint = useMint(QUOTE_MINT);
@@ -107,7 +110,7 @@ export const AuctionCreateView = () => {
     >(undefined);
   const [attributes, setAttributes] = useState<AuctionState>({
     reservationPrice: 0,
-    items: itemNFT,
+    items: singleUser,
     category: AuctionCategory.InstantSale,
     auctionDurationType: 'days',
     gapTimeType: 'minutes',

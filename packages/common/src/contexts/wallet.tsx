@@ -27,8 +27,7 @@ import React, {
 import { notify } from '../utils';
 import { MetaplexModal } from '../components';
 import { LogoStyle } from './style';
-
-import { supabase } from '../supabaseClient'
+import { supabaseAddNewUser } from '..';
 
 export interface WalletModalContextState {
   visible: boolean;
@@ -54,7 +53,7 @@ export const WalletModal: FC = () => {
 
   return (
     <MetaplexModal visible={visible} onCancel={close}>
-      <Avatar className={LogoStyle} size={64} src='./logo.svg' />
+      <Avatar className={LogoStyle} size={64} src="./logo.svg" />
 
       <h2>{selected ? 'Change provider' : 'Welcome to Supadrop'}</h2>
       <p>
@@ -93,8 +92,7 @@ export const WalletModal: FC = () => {
             {wallet.name}
           </Button>
         );
-      })
-      }
+      })}
     </MetaplexModal>
   );
 };
@@ -112,21 +110,12 @@ export const WalletModalProvider: FC<{ children: ReactNode }> = ({
       const keyToDisplay =
         base58.length > 20
           ? `${base58.substring(0, 7)}.....${base58.substring(
-            base58.length - 7,
-            base58.length,
-          )}`
+              base58.length - 7,
+              base58.length,
+            )}`
           : base58;
 
-      supabase.from('user_data')
-        .select('*')
-        .eq('wallet_address', base58)
-        .then(data => {
-          if (data.body && data.body.length === 0) {
-            supabase.from('user_data')
-              .insert([{ wallet_address: base58 }])
-              .then()
-          }
-        });
+      supabaseAddNewUser(base58);
 
       notify({
         message: 'Wallet update',

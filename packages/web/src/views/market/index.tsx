@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Col, Divider, Dropdown, Menu, Row, Select } from 'antd';
 import { Link } from 'react-router-dom';
 import FeatherIcon from 'feather-icons-react';
-import { ItemAuction, useMeta } from '@oyster/common';
+import { ItemAuction, supabase, useMeta } from '@oyster/common';
 import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
 import {
   ActiveSortBy,
@@ -12,7 +12,6 @@ import {
   OverlayStyle,
 } from './style';
 import { GreyColor, uTextAlignEnd, YellowGlowColor } from '../../styles';
-import { supabase } from '../../../supabaseClient';
 import { getUsernameByPublicKeys } from '../../database/userData';
 // import moment from 'moment';
 
