@@ -46,12 +46,12 @@ const DirectPath = () => {
     case 3:
       return <About />
 
-    default:
-      return (
-        <Providers>
-          <Profile userId={path} />
-        </Providers>
-      );
+    // default:
+    //   return (
+    //     <Providers>
+    //       <Profile userId={path} />
+    //     </Providers>
+    //   );
   }
 
   return <div />
