@@ -291,11 +291,13 @@ export function MetaProvider({ children = null as any }) {
       });
   }
   async function getDataCollection() {
+    console.log('masuk ke data collection')
     supabase
       .from('collections')
       .select(`*`)
       .eq('id', 1)
       .then(data => {
+        console.log("data collection",data)
         if (data.body != null) {
           const {
             id,
