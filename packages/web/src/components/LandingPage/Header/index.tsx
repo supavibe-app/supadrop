@@ -12,7 +12,7 @@ const HeaderSection = () => {
   return (
     <Row justify="center" style={{ marginTop: 80 }}>
       <Col span={13}>
-        <div className={`${MainTitle} ${GradientText}`}>Invest in Culture</div>
+        <div className={MainTitle}>Invest in Culture</div>
         <div className={SecondaryTitle}>Create • Share • Collect Digital Arts</div>
         <div className={Description}>a curated NFT art & collectibles marketplace on solana –empowering the future of creative economy • connecting authentic creators and collectors</div>
 
@@ -67,7 +67,7 @@ const HeaderSection = () => {
       </Col>
 
       <Col span={9} style={{ textAlign: 'center' }}>
-        <img src="img/logo/supadrop-green.png" width="320" />
+        <img src="img/logo/supadrop-green.webp" width="320" style={{ marginTop: 56 }} alt="SUPADROP" />
       </Col>
     </Row>
   );
@@ -77,9 +77,9 @@ export const MobileHeaderSection = () => {
   return (
     <Row justify="center">
       <Col span={20}>
-        <img src="img/logo/supadrop-green.png" width="80" style={{ marginTop: 40 }} />
+        <img src="img/logo/supadrop-green.webp" width="80" style={{ marginTop: 40 }} alt="SUPADROP" />
 
-        <div className={`${MobileMainTitle} ${GradientText}`}>Invest in Culture</div>
+        <div className={MobileMainTitle}>Invest in Culture</div>
         <div className={MobileSecondaryTitle}>Create • Share • Collect Digital Arts</div>
         <div className={MobileDescription}>a curated NFT art & collectibles marketplace on solana –empowering the future of creative economy • connecting authentic creators and collectors</div>
 
@@ -108,7 +108,7 @@ export const MobileHeaderSection = () => {
               });
             }}>
               <div className={DiscordButton}>
-                <img src="img/logo/discord.svg" width="24" />
+                <img src="img/logo/discord.svg" width="24" alt="discord" />
               </div>
             </a>
           </div>
@@ -122,7 +122,7 @@ export const MobileHeaderSection = () => {
               });
             }}>
               <div className={TwitterButton}>
-                <img src="img/logo/twitter.svg" width="24" />
+                <img src="img/logo/twitter.svg" width="24" alt="twitter" />
               </div>
             </a>
           </div>

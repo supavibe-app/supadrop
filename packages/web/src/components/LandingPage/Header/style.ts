@@ -5,6 +5,26 @@ export const MainTitle = css`
   font-weight: bold;
   font-size: 56px;
   line-height: 70px;
+
+  text-transform: uppercase;
+  background: linear-gradient(125deg, #1cefff 0%, #ccff00 65.1%, #1cefff 100%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation-name: shimmer;
+  animation-duration: 10s;
+  animation-iteration-count: infinite;
+
+  @keyframes shimmer {
+    0% {
+      background-position: 250px top;
+    }
+    60% {
+      background-position: 1000px top;
+    }
+    100% {
+      background-position: 250px top;
+    }
+  }
 `;
 
 export const MobileMainTitle = css`
@@ -12,6 +32,26 @@ export const MobileMainTitle = css`
   font-weight: bold;
   font-size: 28px;
   line-height: 35px;
+
+  text-transform: uppercase;
+  background: linear-gradient(125deg, #1cefff 0%, #ccff00 65.1%, #1cefff 100%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation-name: shimmer;
+  animation-duration: 10s;
+  animation-iteration-count: infinite;
+
+  @keyframes shimmer {
+    0% {
+      background-position: 250px top;
+    }
+    60% {
+      background-position: 1000px top;
+    }
+    100% {
+      background-position: 250px top;
+    }
+  }
 `;
 
 export const GradientText = css`
