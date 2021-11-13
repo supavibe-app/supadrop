@@ -95,7 +95,7 @@ export const AppBar = () => {
           <Button type="link" size="large" className={ButtonStyle}>our story</Button>
         </Link>
         <Button type="link" size="large" href={FaqURL} className={ButtonStyleFAQ}>faq</Button>
-        {/* <ConnectButton type="default" allowWalletChange /> */}
+        <ConnectButton type="default" allowWalletChange />
         {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
       </Col>
 
