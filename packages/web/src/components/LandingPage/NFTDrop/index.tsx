@@ -6,7 +6,7 @@ import { useMeta } from '../../../contexts';
 import Discord from '../../../assets/icons/discord';
 import Twitter from '../../../assets/icons/twitter';
 import countDown from '../../../helpers/countdown';
-import { AssetBorder, ButtonWrapper, CarouselStyle, Description, DiscordButton, GradientGreenText, ImageStyle, MobileDescription, MobileSocialMediaButton, MobileStoryStyle, MobileTitle, SocialMediaButton, StoryStyle, Title, TwitterButton } from './style';
+import { AssetBorder, ButtonWrapper, Description, DiscordButton, GradientGreenText, ImageStyle, MobileDescription, MobileSocialMediaButton, MobileStoryStyle, MobileTitle, SocialMediaButton, StoryStyle, Title, TwitterButton } from './style';
 import Numbers, { MobileNumbers } from './numbers';
 import { CrystalPunkTwitterURL, DiscordURL, TwitterURL } from '../../../constants';
 import { ButtonStyle, GradientText, MobileButtonStyle } from '../Header/style';
@@ -101,7 +101,7 @@ const NFTDrop = () => {
 
       <Col className={AssetBorder} span={10}>
         <div style={{ textAlign: 'center' }}>
-          <Image src="/img/assets/crystalpunks-logo.png" className={ImageStyle} preview={false} />
+          <Image src="/img/logo/crystalpunks.webp" className={ImageStyle} preview={false} alt="crystalpunks" />
         </div>
       </Col>
     </Row>
@@ -125,7 +125,7 @@ export const MobileNFTDrop = () => {
       <Row justify="end" style={{ marginBottom: 42 }}>
         <Col className={AssetBorder} span={22}>
           <div style={{ textAlign: 'center' }}>
-            <Image src="/img/assets/crystalpunks-logo.png" className={ImageStyle} preview={false} />
+            <Image src="/img/logo/crystalpunks.webp" className={ImageStyle} preview={false} />
           </div>
         </Col>
       </Row>
@@ -183,7 +183,7 @@ export const MobileNFTDrop = () => {
                 });
               }}>
                 <div className={DiscordButton}>
-                  <img src="img/logo/discord.svg" width="24" />
+                  <img src="img/logo/discord.svg" width="24" alt="discord" />
                 </div>
               </a>
 
@@ -195,7 +195,7 @@ export const MobileNFTDrop = () => {
                 });
               }}>
                 <div className={TwitterButton}>
-                  <img src="img/logo/twitter.svg" width="24" />
+                  <img src="img/logo/twitter.svg" width="24" alt="twitter" />
                 </div>
               </a>
             </div>

@@ -18,6 +18,7 @@ const Footer = () => {
             ReactGA.event({
               category: 'Our Story Button Selected',
               action: 'ourStoryButton',
+              label: 'footer',
             });
           }}>
             <span>our story</span>
@@ -29,6 +30,7 @@ const Footer = () => {
           ReactGA.event({
             category: 'FAQ Button Selected',
             action: 'faqButton',
+            label: 'footer',
           });
         }}>
           <span>faq</span>
@@ -92,6 +94,7 @@ export const MobileFooter = () => {
             ReactGA.event({
               category: 'Our Story Button Selected',
               action: 'ourStoryButton',
+              label: 'footer',
             });
           }}>
             <span>our story</span>
@@ -103,6 +106,7 @@ export const MobileFooter = () => {
           ReactGA.event({
             category: 'FAQ Button Selected',
             action: 'faqButton',
+            label: 'footer',
           });
         }}>
           <span>faq</span>
@@ -120,7 +124,7 @@ export const MobileFooter = () => {
             });
           }}>
             <div className={DiscordButton}>
-              <img src="img/logo/discord.svg" width="20" />
+              <img src="img/logo/discord.svg" width="20" alt="discord" />
             </div>
           </a>
         </div>
@@ -134,7 +138,7 @@ export const MobileFooter = () => {
             });
           }}>
             <div className={TwitterButton}>
-              <img src="img/logo/twitter.svg" width="20" />
+              <img src="img/logo/twitter.svg" width="20" alt="twitter" />
             </div>
           </a>
         </div>

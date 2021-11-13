@@ -69,6 +69,7 @@ const SubHeader = () => {
         >
           <TabPane
             key="1"
+            forceRender
             tab={(
               <>
                 {activeKey === '1' && <div className="tab-indicator" />}
@@ -76,11 +77,12 @@ const SubHeader = () => {
               </>
             )}
           >
-            <Image className={ImagePreview} src="/img/preview-create.png" preview={false} />
+            <Image className={ImagePreview} src="/img/preview/create.webp" preview={false} alt="create" />
           </TabPane>
 
           <TabPane
             key="2"
+            forceRender
             tab={(
               <>
                 {activeKey === '2' && <div className="tab-indicator" />}
@@ -88,11 +90,12 @@ const SubHeader = () => {
               </>
             )}
           >
-            <Image className={ImagePreview} src="/img/preview-share.png" preview={false} />
+            <Image className={ImagePreview} src="/img/preview/share.webp" preview={false} alt="share" />
           </TabPane>
 
           <TabPane
             key="3"
+            forceRender
             tab={(
               <>
                 {activeKey === '3' && <div className="tab-indicator" />}
@@ -100,7 +103,7 @@ const SubHeader = () => {
               </>
             )}
           >
-            <Image className={ImagePreview} src="/img/preview-collect.png" preview={false} />
+            <Image className={ImagePreview} src="/img/preview/collect.webp" preview={false} alt="collect" />
           </TabPane>
         </Tabs>
       </Col>
@@ -137,7 +140,7 @@ const MobilePreview = () => {
               className={CardStyle}
               cover={
                 <div>
-                  <Image src="/img/preview/1.png" preview={false} height={175} width={175} />
+                  <Image src="/img/preview/1.png" preview={false} height={175} width={175} alt="preview" />
                 </div>
               }
             >
@@ -146,7 +149,7 @@ const MobilePreview = () => {
                 description={
                   <>
                     <div className={UserWrapper}>
-                      <Avatar src="/img/profile/exnd.png" size={32} style={{ marginRight: 12 }} />
+                      <Avatar src="/img/profile/exnd.png" size={32} style={{ marginRight: 12 }} alt="exnd" />
                       <span>@exnd</span>
                     </div>
 
@@ -179,7 +182,7 @@ const MobilePreview = () => {
               className={CardStyle}
               cover={
                 <div>
-                  <Image src="/img/preview/2.png" preview={false} height={175} width={175} />
+                  <Image src="/img/preview/2.png" preview={false} height={175} width={175} alt="preview" />
                 </div>
               }
             >
@@ -188,7 +191,7 @@ const MobilePreview = () => {
                 description={
                   <>
                     <div className={UserWrapper}>
-                      <Avatar src="/img/profile/exnd.png" size={32} style={{ marginRight: 12 }} />
+                      <Avatar src="/img/profile/exnd.png" size={32} style={{ marginRight: 12 }} alt="exnd" />
                       <span>@exnd</span>
                     </div>
 
@@ -221,7 +224,7 @@ const MobilePreview = () => {
               className={CardStyle}
               cover={
                 <div>
-                  <Image src="/img/preview/3.png" preview={false} height={175} width={175} />
+                  <Image src="/img/preview/3.png" preview={false} height={175} width={175} alt="preview" />
                 </div>
               }
             >
@@ -230,7 +233,7 @@ const MobilePreview = () => {
                 description={
                   <>
                     <div className={UserWrapper}>
-                      <Avatar src="/img/profile/exnd.png" size={32} style={{ marginRight: 12 }} />
+                      <Avatar src="/img/profile/exnd.png" size={32} style={{ marginRight: 12 }} alt="exnd" />
                       <span>@exnd</span>
                     </div>
 
