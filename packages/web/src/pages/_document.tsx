@@ -13,6 +13,8 @@ export default class MetaplexDocument extends Document {
   }
 
   render() {
+    const host = window.location.protocol + "//" + window.location.host;
+
     return (
       <Html lang="en">
         <Head>
@@ -42,7 +44,7 @@ export default class MetaplexDocument extends Document {
           <meta property="twitter:url" content="https://supadrop.com/" />
           <meta property="twitter:title" content="SUPADROP – Invest in Culture" />
           <meta property="twitter:description" content="a curated NFT art & collectibles marketplace on Solana • connecting authentic artists and collectors." />
-          <meta property="twitter:image" content="/img/metatag.png" />
+          <meta property="twitter:image" content={host + "/img/metatag.png"} />
 
           <link
             rel="icon"

@@ -59,7 +59,7 @@ export function Routes() {
   const history = createBrowserHistory();
 
   ReactGA.initialize('UA-212819386-1', {
-    debug: true,
+    debug: false,
     standardImplementation: true,
   });
 
