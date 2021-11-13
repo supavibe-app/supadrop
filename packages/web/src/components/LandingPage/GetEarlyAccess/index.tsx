@@ -9,7 +9,7 @@ const GetEarlyAccess = () => {
     <Row justify="center">
       <Col style={{ textAlign: 'center' }}>
         <div style={{ overflowX: 'auto' }}>
-          <img src="/artworks.png" style={{ marginBottom: 66 }} />
+          <img src="/img/landing/artwork.webp" style={{ marginBottom: 66 }} alt="artworks" />
         </div>
         <div className={Description}>calling for all artists and creators – it’s your turn</div>
         <Button className={ButtonStyle} style={{ marginBottom: 128 }} href="https://forms.gle/Wxotbnjj9j5mPdBaA" target="_blank" onClick={() => {
@@ -34,7 +34,7 @@ export const MobileGetEarlyAccess = () => {
     <Row justify="center">
       <Col span={24}>
         <div style={{ overflowX: 'auto', padding: '0 32px' }}>
-          <img src="/artworks.png" style={{ marginBottom: 48 }} />
+          <img src="/img/landing/artwork.png" style={{ marginBottom: 48 }} alt="artworks" />
         </div>
       </Col>
 

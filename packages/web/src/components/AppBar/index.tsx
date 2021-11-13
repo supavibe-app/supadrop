@@ -5,6 +5,7 @@ import { Badge, Button, Row, Col, Drawer, List } from 'antd';
 import { ConnectButton, CurrentUserBadge, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import FeatherIcon from 'feather-icons-react';
+import ReactGA from 'react-ga';
 
 // utils
 import getUserData from '../../database/userData';
@@ -24,6 +25,7 @@ export const AppBar = () => {
   const { isBidPlaced, setBidPlaced } = useMeta();
   const [showMenu, setShowMenu] = useState(false);
   const { push } = useHistory();
+  const isLandingPage = pathname === "/" || pathname === "/about";
 
   const hideActivityBadge = useCallback(() => setBidPlaced(false), [setBidPlaced]);
 
@@ -91,11 +93,31 @@ export const AppBar = () => {
       </Col>
 
       <Col className={ButtonContainer} xs={0} sm={12}>
-        <Link to="/about">
-          <Button type="link" size="large" className={ButtonStyle}>our story</Button>
-        </Link>
-        <Button type="link" size="large" href={FaqURL} className={ButtonStyleFAQ}>faq</Button>
-        <ConnectButton type="default" allowWalletChange />
+        {isLandingPage && (
+          <>
+            <Link to="/about" onClick={() => {
+              ReactGA.event({
+                category: 'Our Story Button Selected',
+                action: 'ourStoryButton',
+                label: 'header',
+              });
+            }}>
+              <Button type="link" size="large" className={ButtonStyle}>our story</Button>
+            </Link>
+
+            <Button type="link" size="large" href={FaqURL} className={ButtonStyleFAQ} onClick={() => {
+              ReactGA.event({
+                category: 'FAQ Button Selected',
+                action: 'faqButton',
+                label: 'header',
+              });
+            }}>
+              faq
+            </Button>
+          </>
+        )}
+
+        {!isLandingPage && <ConnectButton type="default" allowWalletChange />}
         {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
       </Col>
 
@@ -118,6 +140,11 @@ export const AppBar = () => {
           <List.Item className={ButtonStyle} style={{ fontSize: 18 }} onClick={() => {
             push('/about');
             setShowMenu(false);
+            ReactGA.event({
+              category: 'Our Story Button Selected',
+              action: 'ourStoryButton',
+              label: 'header',
+            });
           }}>
             <span>our story</span>
             <FeatherIcon icon="arrow-up-right" size={18} />
@@ -125,6 +152,11 @@ export const AppBar = () => {
 
           <List.Item className={ButtonStyle} style={{ fontSize: 18 }} onClick={() => {
             window.location.href = FaqURL;
+            ReactGA.event({
+              category: 'FAQ Button Selected',
+              action: 'faqButton',
+              label: 'header',
+            });
           }}>
             <span>faq</span>
             <FeatherIcon icon="arrow-up-right" size={18} />

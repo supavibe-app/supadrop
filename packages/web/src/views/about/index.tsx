@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Col, Row } from 'antd';
 import ReactGA from 'react-ga';
 
 const About = () => {
   ReactGA.pageview(window.location.pathname + window.location.search);
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   return (
     <Row justify="center">

@@ -30,7 +30,7 @@ const initiatives = [
 const Initiatives = () => {
   return (
     <Row justify="end">
-      <img src="/initiativebg.png" className={BackgroundImage} width="480" />
+      <img src="/img/landing/initiatives.webp" className={BackgroundImage} width="480" alt="/" />
       <Col span={23} style={{ marginTop: 236 }}>
         <div className={Title}>POTENTIAL INITIATIVES</div>
         <div className={Description}>
@@ -49,13 +49,21 @@ const Initiatives = () => {
                   action: 'tagsButton',
                   label: initiative,
                 });
-              }}>{initiative}</Button>
+              }}>
+                {initiative}
+              </Button>
             </Col>
           ))}
         </Row>
 
         <Divider className={DividerStyle} orientation="left">
-          <Button className={ButtonStyle} href="https://discord.gg/xhXXeZ2ARA" target="_blanks">
+          <Button className={ButtonStyle} href="https://discord.gg/xhXXeZ2ARA" target="_blanks" onClick={() => {
+            ReactGA.event({
+              category: 'Submit Button Selected',
+              action: 'submitButton',
+              label: 'discord',
+            });
+          }}>
             <div>
               <span style={{ marginRight: 8 }}>SUBMIT YOURS ON DISCORD</span>
               <span className={GradientText}>//</span>
@@ -70,7 +78,7 @@ const Initiatives = () => {
 export const MobileInitiatives = () => {
   return (
     <Row justify="end">
-      <img src="/initiativebg.png" className={BackgroundImage} width="132" />
+      <img src="/img/landing/initiatives.webp" className={BackgroundImage} width="132" alt="/" />
       <Col span={22} offset={2} style={{ marginTop: 52 }}>
         <div className={MobileTitle}>POTENTIAL INITIATIVES</div>
         <div className={MobileDescription}>
@@ -92,7 +100,9 @@ export const MobileInitiatives = () => {
                     action: 'tagsButton',
                     label: initiative,
                   });
-                }}>{initiative}</Button>
+                }}>
+                  {initiative}
+                </Button>
               </Col>
             ))}
           </Row>
@@ -143,7 +153,13 @@ export const MobileInitiatives = () => {
 
       <Col span={22} offset={2}>
         <Divider className={DividerStyle} orientation="left">
-          <Button className={MobileButtonStyle} href="https://discord.gg/xhXXeZ2ARA" target="_blanks">
+          <Button className={MobileButtonStyle} href="https://discord.gg/xhXXeZ2ARA" target="_blanks" onClick={() => {
+            ReactGA.event({
+              category: 'Submit Button Selected',
+              action: 'submitButton',
+              label: 'discord',
+            });
+          }}>
             <div>
               <span style={{ marginRight: 8 }}>SUBMIT YOURS ON DISCORD</span>
               <span className={GradientText}>//</span>
