@@ -3,7 +3,6 @@ import { Col, Row, Tabs } from 'antd';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useMeta, VaultState } from '@oyster/common';
 
-import ActivityCard from './activityCard';
 import ActionButton from '../../components/ActionButton';
 import {
   AuctionViewState,
@@ -12,7 +11,12 @@ import {
 } from '../../hooks';
 import { PageTitle, TabStyle, SubTitle, Content } from './style';
 import Congratulations from '../../components/Congratulations';
-import { getUsernameByPublicKeys } from '../../database/userData';
+import {
+  getActiveBids,
+  getOnSale,
+  getUsernameByPublicKeys,
+} from '../../database/userData';
+import { ActivityCard2, ActivityCard3 } from './activityCard';
 
 const { TabPane } = Tabs;
 
@@ -25,47 +29,9 @@ const ActivityView = () => {
   // if not empty, show congratulations page
   const [auctionID, setAuctionID] = useState('');
 
-  const allAuctions = [
-    ...useAuctions(AuctionViewState.Live),
-    ...useAuctions(AuctionViewState.Ended),
-    ...useAuctions(AuctionViewState.Upcoming),
-    ...useAuctions(AuctionViewState.BuyNow),
-  ];
-
-  //NOTE: blm ketemu buat filter yg blm settle
-  const allOnSale = allAuctions.filter(
-    v => v.auctionManager.authority === wallet.publicKey?.toBase58(),
-  );
-
-  // NOTE: buat nentuin sudah pernah redeem atau blm cek -> m.vault.info.tokenTypeCount > 0
-  // besok rencananya kucobain semua scenario, buat mastiin udah fix atau blm
-  const activeBids = allAuctions.filter(
-    m =>
-      m.state !== AuctionViewState.Defective &&
-      m.auction.info.bidState.bids.some(
-        b => b.key == wallet.publicKey?.toBase58(),
-      ) &&
-      m.vault.info.tokenTypeCount > 0,
-  );
-
-  // const activeBids = allAuctions.filter(m =>
-  //   (m.myBidderMetadata?.info.bidderPubkey == wallet.publicKey?.toBase58()) && m.vault.info.tokenTypeCount > 0,
-  // );
-
-  const onSale = allAuctions.filter(
-    m =>
-      m.auctionManager.authority === wallet.publicKey?.toBase58() &&
-      m.vault.info.tokenTypeCount > 0,
-  );
-
-  //   isAuctionManagerAuthorityNotWalletOwner &&
-  //   auctionView.auction.info.bidState.max.toNumber() === bids.length) ||
-  //   auctionView.vault.info.state === VaultState.Deactivated
-
-  const complete = allAuctions.filter(
-    m => m.vault.info.state == VaultState.Deactivated,
-  );
-
+  const activeBids = getActiveBids(wallet.publicKey?.toBase58()).data;
+  const onSale = getOnSale(wallet.publicKey?.toBase58()).data;
+  
   const EmptyState = ({}) => (
     <div>
       <div className={Content}>
@@ -99,12 +65,11 @@ const ActivityView = () => {
               // const users = { ...highestUserIDs, ...ownerIDs };
 
               // return <ActivityCard auctionView={auction} setAuctionView={setAuctionID} users={users} />
-              return (
-                <ActivityCard
-                  auctionView={auction}
-                  setAuctionView={setAuctionID}
-                />
-              );
+              if (auction.auction_status) {
+                return <ActivityCard2 auctionView={auction} />;
+              } else {
+                return <ActivityCard3 auctionView={auction} />;
+              }
             })}
             {!Boolean([...activeBids, ...onSale].length) &&
               !isLoadingMetaplex && <EmptyState />}
@@ -119,12 +84,7 @@ const ActivityView = () => {
               // const users = { ...highestUserIDs, ...ownerIDs };
 
               // return <ActivityCard auctionView={auction} setAuctionView={setAuctionID} users={users} />
-              return (
-                <ActivityCard
-                  auctionView={auction}
-                  setAuctionView={setAuctionID}
-                />
-              );
+              return <ActivityCard2 auctionView={auction} />;
             })}
 
             {!Boolean(activeBids.length) && !isLoadingMetaplex && (
@@ -140,12 +100,7 @@ const ActivityView = () => {
               // const users = { ...highestUserIDs, ...ownerIDs };
 
               // return <ActivityCard auctionView={auction} setAuctionView={setAuctionID} users={users} />
-              return (
-                <ActivityCard
-                  auctionView={auction}
-                  setAuctionView={setAuctionID}
-                />
-              );
+              return <ActivityCard3 auctionView={auction} />;
             })}
 
             {!Boolean(onSale.length) && !isLoadingMetaplex && <EmptyState />}

@@ -30,6 +30,8 @@ import {
   fromLamports,
   PriceFloorType,
   shortenAddress,
+  supabaseUpdateIsRedeem,
+  supabaseUpdateStatusInstantSale,
   useConnection,
   useMeta,
   useMint,
@@ -42,9 +44,10 @@ import {
 } from '../../../actions/sendRedeemBid';
 import { ArtContent } from '../../../components/ArtContent';
 import { sendCancelBid } from '../../../actions/cancelBid';
-import { supabase } from '../../../../supabaseClient';
 import { sendPlaceBid } from '../../../actions/sendPlaceBid';
 import { endSale } from '../../../components/AuctionCard/utils/endSale';
+import isEnded from '../../../components/Home/helpers/isEnded';
+import countDown from '../../../helpers/countdown';
 
 export const AuctionItem = ({
   item,
@@ -61,219 +64,39 @@ export const AuctionItem = ({
   />
 );
 
-const ActivityCard = ({
-  auctionView,
-  setAuctionView,
-  users,
-}: {
-  auctionView: AuctionView;
-  setAuctionView: React.Dispatch<React.SetStateAction<string>>;
-  users?: any;
-}) => {
-  const wallet = useWallet();
-  const connection = useConnection();
-  const {
-    update,
-    bidRedemptions,
-    prizeTrackingTickets,
-    pullAuctionPage,
-    isLoadingMetaplex,
-    auctionCaches,
-  } = useMeta();
-  const isAuctionManagerAuthorityWalletOwner =
-    auctionView.auctionManager.authority === wallet?.publicKey?.toBase58();
-
-  const mintKey = auctionView.auction.info.tokenMint;
-  const balance = useUserBalance(mintKey);
-  const myPayingAccount = balance.accounts[0];
-  const { accountByMint } = useUserAccounts();
-
-  const { publicKey } = useWallet();
-  const art = useArt(auctionView?.thumbnail.metadata.pubkey);
-  const owner = auctionView.auctionManager.authority.toString();
-  const highestBid = useHighestBidForAuction(auctionView.auction.pubkey);
-  const bids = useBidsForAuction(auctionView.auction.pubkey || '').filter(
-    bid => publicKey?.toBase58() === bid.info.bidderPubkey,
-  );
-
-  const mint = useMint(auctionView.auction.info.tokenMint);
-
+export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
   const [state, setState] = useState<CountdownState>();
-  const ended =
-    state?.hours === 0 && state?.minutes === 0 && state?.seconds === 0;
-
-  let winnerIndex: number | null = null;
-  if (auctionView.myBidderPot?.pubkey) {
-    winnerIndex = auctionView.auction.info.bidState.getWinnerIndex(
-      auctionView.myBidderPot?.info.bidderAct,
-    );
-  }
-
-  const [eligibleForOpenEdition, setEligibleForOpenEdition] = useState(
-    eligibleForParticipationPrizeGivenWinningIndex(
-      winnerIndex,
-      auctionView,
-      auctionView.myBidderMetadata,
-      auctionView.myBidRedemption,
-    ),
-  );
-
-  const [eligibleForAnything, setEligibleForAnything] = useState(
-    winnerIndex !== null || eligibleForOpenEdition,
-  );
-
-  const mintInfo = useMint(auctionView.auction.info.tokenMint);
-  const priceFloor =
-    auctionView.auction.info.priceFloor.type === PriceFloorType.Minimum
-      ? auctionView.auction.info.priceFloor.minPrice?.toNumber() || 0
-      : 0;
-
-  const bid = useHighestBidForAuction(auctionView.auction.pubkey || '');
-  const reservePrice =
-    parseFloat(formatTokenAmount(bid?.info.lastBid)) ||
-    fromLamports(priceFloor, mintInfo);
-
-  const isButtonDisabled =
-    !myPayingAccount ||
-    (!auctionView.myBidderMetadata && !isAuctionManagerAuthorityWalletOwner) ||
-    !!auctionView.items.find(i => i.find(item => !item.metadata));
-
+  const wallet = useWallet();
+  const isInstantSale = auctionView.auction_status.type_auction;
   const isOwner =
-    publicKey?.toBase58() === auctionView?.auctionManager.authority.toString();
-
-  const baseInstantSalePrice =
-    auctionView.auctionDataExtended?.info.instantSalePrice;
-
-  const instantSalePrice =
-    (baseInstantSalePrice?.toNumber() || 0) / Math.pow(10, 9);
+    auctionView.auction_status.owner === wallet.publicKey?.toBase58();
+  const highestBid = auctionView.auction_status.highest_bid;
+  const eligibleForAnything = auctionView.price_bid === highestBid;
   useEffect(() => {
-    if (!isLoadingMetaplex) {
-      if (isOwner && !ended) {
-      } else {
-        pullAuctionPage(auctionView.auction.pubkey);
-      }
-    }
-  }, [isLoadingMetaplex]);
-  useEffect(() => {
-    if (auctionView.myBidderPot?.pubkey) {
-      winnerIndex = auctionView.auction.info.bidState.getWinnerIndex(
-        auctionView.myBidderPot?.info.bidderAct,
-      );
-    }
-    setEligibleForOpenEdition(
-      eligibleForParticipationPrizeGivenWinningIndex(
-        winnerIndex,
-        auctionView,
-        auctionView.myBidderMetadata,
-        auctionView.myBidRedemption,
-      ),
-    );
-    setEligibleForAnything(winnerIndex !== null || eligibleForOpenEdition);
-  }, [auctionView]);
-  useEffect(() => {
-    if (!ended) {
-      const calc = () => setState(auctionView.auction.info.timeToEnd());
+    const calc = () =>
+      setState(countDown(auctionView.auction_status.end_auction));
 
-      const interval = setInterval(() => calc(), 1000);
-      calc();
-      return () => clearInterval(interval);
-    }
+    const interval = setInterval(() => calc(), 1000);
+    calc();
+    return () => clearInterval(interval);
   }, [auctionView, setState]);
-
-  const items = [
-    ...(auctionView?.items
-      .flat()
-      .reduce((agg, item) => {
-        agg.set(item.metadata.pubkey, item);
-        return agg;
-      }, new Map<string, AuctionViewItem>())
-      .values() || []),
-    auctionView?.participationItem,
-  ].map(item => {
-    if (!item || !item?.metadata || !item.metadata?.pubkey) {
-      return null;
-    }
-
-    return <AuctionItem key={item.metadata.pubkey} item={item} />;
-  });
-
-  const actionEndedAuction = async () => {
-    try {
-      if (eligibleForAnything) {
-        await sendRedeemBid(
-          connection,
-          wallet,
-          myPayingAccount.pubkey,
-          auctionView,
-          accountByMint,
-          prizeTrackingTickets,
-          bidRedemptions,
-          bids,
-        ).then(() => {
-          supabase
-            .from('action_bidding')
-            .update({ is_redeem: true })
-            .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`)
-            .then();
-          console.log('berhasil redeem');
-        });
-      } else {
-        await sendCancelBid(
-          connection,
-          wallet,
-          myPayingAccount.pubkey,
-          auctionView,
-          accountByMint,
-          bids,
-          bidRedemptions,
-          prizeTrackingTickets,
-        ).then(data => {
-          supabase
-            .from('action_bidding')
-            .update({ is_redeem: true })
-            .eq('id', `${auctionView.auction.pubkey}_${myPayingAccount.pubkey}`)
-            .then();
-          console.log('berhasil cancel bid', data);
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-  const endInstantSale = async () => {
-    try {
-      console.log('loading unlist');
-
-      const endStatus = await endSale({
-        auctionView,
-        connection,
-        accountByMint,
-        bids,
-        bidRedemptions,
-        prizeTrackingTickets,
-        wallet,
-      });
-      console.log('loading unlist selesai', endStatus);
-
-      supabase
-        .from('auction_status')
-        .update({ isLiveMarket: false })
-        .eq('id', auctionView?.auction.pubkey)
-        .then();
-    } catch (e) {
-      console.error('endAuction', e);
-      return;
-    }
-  };
 
   return (
     <Row className={ActivityCardStyle}>
       <Col className={NFTDescription} span={18}>
-        <Link to={`/auction/${auctionView.auction.pubkey}`}>
+        <Link to={`/auction/${auctionView.auction_status.id}`}>
           <Row>
-            <Col flex={1}>{items}</Col>
+            <Col flex={1}>
+              <ArtContent
+                className={ImageCard}
+                pubkey={auctionView.auction_status.id}
+                allowMeshRender={true}
+              />
+            </Col>
             <Col flex={3}>
-              <div className={NFTName}>{art.title}</div>
+              <div className={NFTName}>
+                {auctionView.auction_status.nft_data.name}
+              </div>
               {/* <div className={UserContainer}>
                 <Avatar src={users[owner].img_profile} size={32} />
                 <div>{users[owner].username ? users[owner].username : shortenAddress(owner)}</div>
@@ -281,17 +104,12 @@ const ActivityCard = ({
 
               <div className={NFTStatus}>
                 {/* case 1: my bids - auction still live */}
-                {!ended && !isOwner && (
+                {!isEnded(state) && !isOwner && (
                   <>
                     <div>
                       <div className={Label}>current bid</div>
-                      <div className={StatusValue}>
-                        {highestBid &&
-                          formatTokenAmount(highestBid.info.lastBid)}{' '}
-                        SOL
-                      </div>
+                      <div className={StatusValue}>{highestBid} SOL</div>
                     </div>
-
                     <div>
                       <div className={Label}>ending in</div>
                       {state && (
@@ -311,44 +129,36 @@ const ActivityCard = ({
                 )}
 
                 {/* case 2: my bids - auction ended */}
-                {ended && !isOwner && (
+                {isEnded(state) && !isOwner && (
                   <>
                     <div>
                       <div className={Label}>highest bid</div>
-                      <div className={StatusValue}>
-                        {highestBid &&
-                          formatTokenAmount(highestBid.info.lastBid)}{' '}
-                        SOL
-                      </div>
+                      <div className={StatusValue}>{highestBid} SOL</div>
                     </div>
 
                     {/* case 2.1: my bids - win */}
-                    {highestBid &&
-                      publicKey?.toBase58() ===
-                        highestBid.info.bidderPubkey && (
-                        <div>
-                          <div className={Label}>auction ended</div>
-                          <div
-                            className={StatusValue}
-                            style={{ color: '#4CD964' }}
-                          >
-                            you won!
-                          </div>
+                    {highestBid === auctionView.price_bid && (
+                      <div>
+                        <div className={Label}>auction ended</div>
+                        <div
+                          className={StatusValue}
+                          style={{ color: '#4CD964' }}
+                        >
+                          you won!
                         </div>
-                      )}
+                      </div>
+                    )}
 
                     {/* case 2.2: my bids - lose */}
-                    {highestBid &&
-                      publicKey?.toBase58() !==
-                        highestBid.info.bidderPubkey && (
-                        <div>
-                          <div className={Label}>winning bid</div>
-                          {/* <div className={UserContainer}>
+                    {highestBid !== auctionView.price_bid && (
+                      <div>
+                        <div className={Label}>winning bid</div>
+                        {/* <div className={UserContainer}>
                           <Avatar size={32} />
                           <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
                         </div> */}
-                        </div>
-                      )}
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -357,11 +167,13 @@ const ActivityCard = ({
                   <>
                     <div>
                       <div className={Label}>reserve price</div>
-                      <div className={StatusValue}>{reservePrice} SOL</div>
+                      <div className={StatusValue}>
+                        {auctionView.auction_status.price_floor} SOL
+                      </div>
                     </div>
 
                     {/* case 3.1: on sale - auction ended and no bid */}
-                    {ended && (
+                    {isEnded(state) && (
                       <div>
                         <div className={Label}>ending in</div>
                         <div className={StatusValue}>ended</div>
@@ -375,17 +187,13 @@ const ActivityCard = ({
                   <>
                     <div>
                       <div className={Label}>
-                        {ended ? 'highest bid' : 'current bid'}
+                        {isEnded(state) ? 'highest bid' : 'current bid'}
                       </div>
-                      <div className={StatusValue}>
-                        {highestBid &&
-                          formatTokenAmount(highestBid.info.lastBid)}{' '}
-                        SOL
-                      </div>
+                      <div className={StatusValue}>{highestBid} SOL</div>
                     </div>
 
                     {/* case 4.1: on sale - auction ended */}
-                    {!ended && (
+                    {!isEnded(state) && (
                       <div>
                         <div className={Label}>bid by</div>
                         {/* <div className={UserContainer}>
@@ -396,7 +204,7 @@ const ActivityCard = ({
                     )}
 
                     {/* case 4.2: on sale - auction still live */}
-                    {ended && (
+                    {isEnded(state) && (
                       <div>
                         <div className={Label}>bid by</div>
                         {/* <div className={UserContainer}>
@@ -417,33 +225,21 @@ const ActivityCard = ({
         {!isOwner && (
           <div>
             <div className={Label}>your bid</div>
-            <div className={Price}>
-              {Boolean(bids.length) &&
-                publicKey?.toBase58() === bids[0].info.bidderPubkey &&
-                formatTokenAmount(bids[0].info.lastBid, mint)}{' '}
-              SOL
-            </div>
+            <div className={Price}>{auctionView.price_bid} SOL</div>
           </div>
         )}
 
-        {isOwner && ended && highestBid && (
+        {isOwner && isEnded(state) && highestBid && (
           <div>
             <div className={Label}>settle fund</div>
-            <div className={Price}>
-              {Boolean(bids.length) &&
-                publicKey?.toBase58() === bids[0].info.bidderPubkey &&
-                formatTokenAmount(bids[0].info.lastBid, mint)}{' '}
-              SOL
-            </div>
+            <div className={Price}>{auctionView.price_bid} SOL</div>
           </div>
         )}
 
         {isOwner && (
           <div>
-            {!auctionView.isInstantSale && (
-              <div className={Label}>ending in</div>
-            )}
-            {state && !ended && (
+            {!isInstantSale && <div className={Label}>ending in</div>}
+            {state && !isEnded(state) && (
               <div className={StatusValue}>
                 {state.hours} :{' '}
                 {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
@@ -451,74 +247,256 @@ const ActivityCard = ({
               </div>
             )}
 
-            {ended && !auctionView.isInstantSale && (
+            {isEnded(state) && !isInstantSale && (
               <div className={StatusValue}>auction ended</div>
             )}
           </div>
         )}
 
-        {/* case 0: is owner and instant sell */}
-        {isOwner &&
-          !auctionView.auction.info.endAuctionAt &&
-          !eligibleForAnything && (
-            <ActionButton onClick={endInstantSale}>UNLIST</ActionButton>
-          )}
-
         {/* case 1: auction still live */}
-        {!ended && !isOwner && (
+        {!isEnded(state) && !isOwner && (
           <ActionButton
-            to={`/auction/${auctionView.auction.pubkey}?action=bid`}
+            to={`/auction/${auctionView.auction_status.id}?action=bid`}
           >
             bid again
           </ActionButton>
         )}
 
         {/* case 2.1: auction ended & win */}
-        {ended && eligibleForAnything && !isOwner && (
-          <ActionButton
-            disabled={isButtonDisabled}
-            onClick={actionEndedAuction}
-          >
+        {isEnded(state) && eligibleForAnything && !isOwner && (
+          <ActionButton to={`/auction/${auctionView.auction_status.id}`}>
             claim NFT
-          </ActionButton>
-        )}
-        {ended && eligibleForAnything && isOwner && (
-          <ActionButton
-            disabled={isButtonDisabled}
-            to={`/auction/${auctionView.auction.pubkey}/billing`}
-          >
-            settle
           </ActionButton>
         )}
 
         {/* case 2.2: auction ended & lose */}
-        {ended &&
-          auctionView.auction.info.endAuctionAt &&
+        {isEnded(state) &&
+          !isInstantSale &&
           !eligibleForAnything &&
           !isOwner && (
-            <ActionButton
-              disabled={isButtonDisabled}
-              onClick={actionEndedAuction}
-            >
+            <ActionButton to={`/auction/${auctionView.auction_status.id}`}>
               {'refund bid'}
             </ActionButton>
           )}
-        {ended &&
-          auctionView.auction.info.endAuctionAt &&
+      </Col>
+    </Row>
+  );
+};
+export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
+  const [state, setState] = useState<CountdownState>();
+  const wallet = useWallet();
+  const isInstantSale = auctionView.type_auction;
+  const isOwner = auctionView.owner === wallet.publicKey?.toBase58();
+  const highestBid = auctionView.highest_bid;
+  const eligibleForAnything = auctionView.price_bid === highestBid;
+  useEffect(() => {
+    const calc = () => setState(countDown(auctionView.end_auction));
+
+    const interval = setInterval(() => calc(), 1000);
+    calc();
+    return () => clearInterval(interval);
+  }, [auctionView, setState]);
+
+  return (
+    <Row className={ActivityCardStyle}>
+      <Col className={NFTDescription} span={18}>
+        <Link to={`/auction/${auctionView.id}`}>
+          <Row>
+            <Col flex={1}>
+              <ArtContent
+                className={ImageCard}
+                pubkey={auctionView.id}
+                allowMeshRender={true}
+              />
+            </Col>
+            <Col flex={3}>
+              <div className={NFTName}>{auctionView.nft_data.name}</div>
+              {/* <div className={UserContainer}>
+                <Avatar src={users[owner].img_profile} size={32} />
+                <div>{users[owner].username ? users[owner].username : shortenAddress(owner)}</div>
+              </div> */}
+
+              <div className={NFTStatus}>
+                {/* case 1: my bids - auction still live */}
+                {!isEnded(state) && !isOwner && (
+                  <>
+                    <div>
+                      <div className={Label}>current bid</div>
+                      <div className={StatusValue}>{highestBid} SOL</div>
+                    </div>
+                    <div>
+                      <div className={Label}>ending in</div>
+                      {state && (
+                        <div className={StatusValue}>
+                          {state.hours} :{' '}
+                          {state.minutes > 9
+                            ? state.minutes
+                            : `0${state.minutes}`}{' '}
+                          :{' '}
+                          {state.seconds > 9
+                            ? state.seconds
+                            : `0${state.seconds}`}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* case 2: my bids - auction ended */}
+                {isEnded(state) && !isOwner && (
+                  <>
+                    <div>
+                      <div className={Label}>highest bid</div>
+                      <div className={StatusValue}>{highestBid} SOL</div>
+                    </div>
+
+                    {/* case 2.1: my bids - win */}
+                    {highestBid === auctionView.price_bid && (
+                      <div>
+                        <div className={Label}>auction ended</div>
+                        <div
+                          className={StatusValue}
+                          style={{ color: '#4CD964' }}
+                        >
+                          you won!
+                        </div>
+                      </div>
+                    )}
+
+                    {/* case 2.2: my bids - lose */}
+                    {highestBid !== auctionView.price_bid && (
+                      <div>
+                        <div className={Label}>winning bid</div>
+                        {/* <div className={UserContainer}>
+                          <Avatar size={32} />
+                          <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
+                        </div> */}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* case 3: on sale - no bid */}
+                {!highestBid && isOwner && (
+                  <>
+                    <div>
+                      <div className={Label}>reserve price</div>
+                      <div className={StatusValue}>
+                        {auctionView.price_floor} SOL
+                      </div>
+                    </div>
+
+                    {/* case 3.1: on sale - auction ended and no bid */}
+                    {isEnded(state) && (
+                      <div>
+                        <div className={Label}>ending in</div>
+                        <div className={StatusValue}>ended</div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* case 4: on sale - have bidder */}
+                {highestBid && isOwner && (
+                  <>
+                    <div>
+                      <div className={Label}>
+                        {isEnded(state) ? 'highest bid' : 'current bid'}
+                      </div>
+                      <div className={StatusValue}>{highestBid} SOL</div>
+                    </div>
+
+                    {/* case 4.1: on sale - auction ended */}
+                    {!isEnded(state) && (
+                      <div>
+                        <div className={Label}>bid by</div>
+                        {/* <div className={UserContainer}>
+                          <Avatar src={users[highestBid.info.bidderPubkey].img_profile} size={32} />
+                          <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
+                        </div> */}
+                      </div>
+                    )}
+
+                    {/* case 4.2: on sale - auction still live */}
+                    {isEnded(state) && (
+                      <div>
+                        <div className={Label}>bid by</div>
+                        {/* <div className={UserContainer}>
+                          <Avatar src={users[highestBid.info.bidderPubkey].img_profile} size={32} />
+                          <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
+                        </div> */}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Link>
+      </Col>
+
+      <Col className={ButtonWrapper} span={6}>
+        {!isOwner && (
+          <div>
+            <div className={Label}>your bid</div>
+            <div className={Price}>{auctionView.price_bid} SOL</div>
+          </div>
+        )}
+
+        {isOwner && isEnded(state) && highestBid && (
+          <div>
+            <div className={Label}>settle fund</div>
+            <div className={Price}>{highestBid} SOL</div>
+          </div>
+        )}
+
+        {isOwner && (
+          <div>
+            {!isInstantSale && <div className={Label}>ending in</div>}
+            {state && !isEnded(state) && (
+              <div className={StatusValue}>
+                {state.hours} :{' '}
+                {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
+                {state.seconds > 0 ? state.seconds : `0${state.seconds}`}
+              </div>
+            )}
+
+            {isEnded(state) && !isInstantSale && (
+              <div className={StatusValue}>auction ended</div>
+            )}
+          </div>
+        )}
+
+        {/* case 0: is owner and instant sell */}
+        {isOwner && isInstantSale && (
+          <ActionButton to={`/auction/${auctionView.id}`}>UNLIST</ActionButton>
+        )}
+
+        {/* case 2.1: auction ended & win */}
+
+        {/* {isEnded(state) && eligibleForAnything && isOwner && (
+            <ActionButton
+              to={`/auction/${auctionView.id}/billing`}
+            >
+              settle
+            </ActionButton>
+          )} */}
+
+        {/* case 2.2: auction ended & lose */}
+
+        {isEnded(state) &&
+          !isInstantSale &&
           !eligibleForAnything &&
           isOwner &&
-          bids.length === 0 && (
-            <ActionButton
-              disabled={isButtonDisabled}
-              onClick={actionEndedAuction}
-            >
+          !highestBid && (
+            <ActionButton to={`/auction/${auctionView.id}`}>
               reclaim NFT
             </ActionButton>
           )}
 
         {/* case 2.3: owner */}
-        {isOwner && !ended && (
-          <ActionButton to={`/auction/${auctionView.auction.pubkey}`}>
+        {isOwner && !isEnded(state) && (
+          <ActionButton to={`/auction/${auctionView.id}`}>
             view auction
           </ActionButton>
         )}
@@ -526,5 +504,3 @@ const ActivityCard = ({
     </Row>
   );
 };
-
-export default ActivityCard;

@@ -1,5 +1,11 @@
 import { sendPlaceBid } from '../../actions/sendPlaceBid';
-import { useConnection, useMeta, useUserAccounts } from '@oyster/common';
+import {
+  supabase,
+  supabaseUpdateStatusInstantSale,
+  useConnection,
+  useMeta,
+  useUserAccounts,
+} from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { sendRedeemBid } from '../../actions/sendRedeemBid';
 import { AuctionView, useBidsForAuction, useUserBalance } from '../../hooks';
@@ -7,7 +13,6 @@ import { Button } from 'antd';
 import { ArtCard } from '../../components/ArtCard';
 import { Link } from 'react-router-dom';
 import { endSale } from '../AuctionCard/utils/endSale';
-import { supabase } from '../../../supabaseClient';
 
 export const ArtCardOnSale = ({
   auctionView,
@@ -42,12 +47,7 @@ export const ArtCardOnSale = ({
         wallet,
       });
       console.log('loading unlist selesai', endStatus);
-
-      supabase
-        .from('auction_status')
-        .update({ isLiveMarket: false })
-        .eq('id', auctionView?.auction.pubkey)
-        .then();
+      supabaseUpdateStatusInstantSale(auctionView.auction.pubkey);
     } catch (e) {
       console.error('endAuction', e);
       return;

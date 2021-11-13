@@ -16,7 +16,9 @@ import {
   WalletSigner,
   Attribute,
   getAssetCostToStore,
-  ARWEAVE_UPLOAD_ENDPOINT
+  ARWEAVE_UPLOAD_ENDPOINT,
+  supabase,
+  supabaseAddNewNFT,
 } from '@oyster/common';
 import React, { Dispatch, SetStateAction } from 'react';
 import { MintLayout, Token } from '@solana/spl-token';
@@ -29,7 +31,6 @@ import {
 import crypto from 'crypto';
 import { AR_SOL_HOLDER_ID } from '../utils/ids';
 import BN from 'bn.js';
-import { supabase } from '../../supabaseClient';
 
 const RESERVED_TXN_MANIFEST = 'manifest.json';
 const RESERVED_METADATA = 'metadata.json';
@@ -45,14 +46,11 @@ interface IArweaveResult {
 }
 
 const uploadToArweave = async (data: FormData): Promise<IArweaveResult> => {
-  const resp = await fetch(
-    ARWEAVE_UPLOAD_ENDPOINT,
-    {
-      method: 'POST',
-      // @ts-ignore
-      body: data,
-    },
-  );
+  const resp = await fetch(ARWEAVE_UPLOAD_ENDPOINT, {
+    method: 'POST',
+    // @ts-ignore
+    body: data,
+  });
 
   if (!resp.ok) {
     return Promise.reject(
@@ -245,9 +243,7 @@ export const mintNFT = async (
   const metadataFile = result.messages?.find(
     m => m.filename === RESERVED_TXN_MANIFEST,
   );
-  const imgFile = result.messages?.find(
-    m => m.filename.includes('png'),
-  );
+  const imgFile = result.messages?.find(m => m.filename.includes('png'));
 
   if (metadataFile?.transactionId && wallet.publicKey) {
     const updateInstructions: TransactionInstruction[] = [];
@@ -316,20 +312,16 @@ export const mintNFT = async (
     // );
 
     progressCallback(8);
-
-    supabase.from('nft_data')
-        .insert([{
-          id:idNFT,
-          img_nft:imgLink,
-          name:metadata.name,
-          description:metadata.description,
-          attribute:metadata.attributes,
-          max_supply:1,
-          royalty:metadata.sellerFeeBasisPoints,
-          arweave_link:arweaveLink,
-          mint_key:mintKey,
-        }])
-        .then()
+    supabaseAddNewNFT(
+      idNFT,
+      imgLink,
+      metadata.name,
+      metadata.description,
+      metadata.attributes || [],
+      metadata.sellerFeeBasisPoints,
+      arweaveLink,
+      mintKey,
+    );
 
     const txid = await sendTransactionWithRetry(
       connection,

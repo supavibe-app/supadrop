@@ -17,45 +17,66 @@ import Profile from './views/profile';
 import MarketComponent from './views/market';
 import LandingPage from './views/landingPage';
 import About from './views/about';
+import { AppLayout } from './components/Layout';
 
 const DirectPath = () => {
   const { path } = useParams<{ path: string }>();
   const paths = ['auction', 'activity', 'market', 'about'];
   const visitedPath = paths.indexOf(path);
 
-  const history = createBrowserHistory();
-
-  history.listen(location => {
-    ReactGA.set({ page: location.pathname }); // Update the user's current page
-    ReactGA.pageview(location.pathname); // Record a pageview for the given page
-  });
-
   switch (visitedPath) {
     case 0:
-      return <AuctionListView />
-
+      return (
+        <Providers>
+          <AuctionListView />
+        </Providers>
+      );
     case 1:
-      return <ActivityView />
-
+      return (
+        <Providers>
+          <ActivityView />
+        </Providers>
+      );
     case 2:
-      return <MarketComponent />
-
+      return (
+        <Providers>
+          <MarketComponent />
+        </Providers>
+      );
     case 3:
       return <About />
 
     default:
-      return <Profile userId={path} />
+      return (
+        <Providers>
+          <Profile userId={path} />
+        </Providers>
+      );
   }
 };
 
 export function Routes() {
-  ReactGA.initialize('UA-212246916-1', { debug: false });
+  const history = createBrowserHistory();
+
+  ReactGA.initialize('UA-212819386-1', {
+    debug: false,
+    standardImplementation: true,
+  });
+
+  history.listen(location => {
+    // ReactGA.set({ page: location.pathname }); // Update the user's current page
+    ReactGA.pageview(location.pathname); // Record a pageview for the given page
+  });
 
   return (
     <BrowserRouter basename={'/'}>
-      <Providers>
+      <AppLayout>
         <Switch>
-          {/* 
+          <Route exact path="/" component={() => <LandingPage />} />
+          <Route exact path="/:path" component={DirectPath} />
+
+          <Providers>
+            {/* 
             <Route exact path="/admin" component={() => <AdminView />} />
             <Route exact path="/analytics" component={() => <AnalyticsView />} />
             <Route exact path="/artworks/:id?" component={() => <ArtworksView />} />
@@ -64,17 +85,16 @@ export function Routes() {
             <Route exact path="/auction/:id/billing" component={() => <BillingView />} />
           */}
 
-          <Route exact path="/art/create/:step_param?" component={() => <ArtCreateView />} />
+            <Route exact path="/art/create/:step_param?" component={() => <ArtCreateView />} />
 
-          {/* Updated Path */}
-          <Route exact path="/" component={() => <LandingPage />} />
-          <Route exact path="/:path" component={DirectPath} />
+            {/* Updated Path */}
 
-          <Route path="/art/:id" component={() => <ArtView />} />
-          <Route path="/auction/:id" component={() => <AuctionView />} />
-          <Route exact path="/list/create" component={() => <AuctionCreateView />} />
+            <Route path="/art/:id" component={() => <ArtView />} />
+            <Route path="/auction/:id" component={() => <AuctionView />} />
+            <Route exact path="/list/create" component={() => <AuctionCreateView />} />
+          </Providers>
         </Switch>
-      </Providers>
+      </AppLayout>
     </BrowserRouter>
   );
 }
