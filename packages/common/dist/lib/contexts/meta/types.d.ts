@@ -52,6 +52,7 @@ export interface MetaContextState extends MetaState {
     pullBillingPage: (auctionAddress: StringPublicKey) => void;
     updateLiveDataAuction: () => void;
     updateAllDataAuction: () => void;
+    updateDetailAuction: (idAuction: string) => void;
     pullAllSiteData: () => void;
     pullAllMetadata: () => void;
     isBidPlaced: boolean;

@@ -15,6 +15,7 @@ import {
   VaultState,
   WalletSigner,
   WRAPPED_SOL_MINT,
+  supabase,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -51,7 +52,6 @@ import {
 } from '../../styles';
 import Coffee from '../../assets/icons/coffee';
 import FeatherIcon from 'feather-icons-react';
-import { supabase } from '../../../supabaseClient';
 
 interface NotificationCard {
   id: string;
@@ -258,7 +258,56 @@ export function useSettlementAuctions({
             });
           }
 
-        }
+        } // else reclaim
+      });
+
+  } 
+
+  const showNotifRefund = async () => {
+    supabase.from('action_bidding')
+      .select(`
+      *,
+      auction_status (
+        *
+      )
+      `)
+      .ilike('id', `%${walletPubkey}%`)
+      .eq('is_redeem', false).then(action => {
+        if (action.body != null) {
+          console.log('total', action.body)
+          console.log('bidding', action.body.find(data =>
+            data.auction_status.end_auction <= moment().unix()
+          ));
+          const notif = action.body.find(data =>
+            data.auction_status.end_auction <= moment().unix() && data.price_bid < data.auction_status.highest_bid
+          );
+
+          if (notif) {
+            console.log('masuk', notif.id)
+            notifications.push({
+              id: notif.id,
+              title: 'Your bid won',
+              textButton: 'refund',
+              notifiedAt: moment().unix(),
+              description: (
+                <span>
+                  Your bid won
+                  <Link to={`/auction`}>click here.</Link>
+                </span>
+              ),
+              action: async () => {
+                try {
+                  
+                } catch (e) {
+                  console.error(e);
+                  return false;
+                }
+                return true;
+              },
+            });
+          }
+
+        } // else reclaim
       });
 
   }

@@ -27,7 +27,7 @@ const react_1 = __importStar(require("react"));
 const utils_1 = require("../utils");
 const components_1 = require("../components");
 const style_1 = require("./style");
-const supabaseClient_1 = require("../supabaseClient");
+const __1 = require("..");
 exports.WalletModalContext = react_1.createContext({});
 function useWalletModal() {
     return react_1.useContext(exports.WalletModalContext);
@@ -42,7 +42,7 @@ const WalletModal = () => {
         setShowWallets(false);
     }, [setVisible, setShowWallets]);
     return (react_1.default.createElement(components_1.MetaplexModal, { visible: visible, onCancel: close },
-        react_1.default.createElement(antd_1.Avatar, { className: style_1.LogoStyle, size: 64, src: './logo.svg' }),
+        react_1.default.createElement(antd_1.Avatar, { className: style_1.LogoStyle, size: 64, src: "./logo.svg" }),
         react_1.default.createElement("h2", null, selected ? 'Change provider' : 'Welcome to Supadrop'),
         react_1.default.createElement("p", null, selected
             ? 'Feel free to switch wallet provider'
@@ -71,16 +71,7 @@ const WalletModalProvider = ({ children, }) => {
             const keyToDisplay = base58.length > 20
                 ? `${base58.substring(0, 7)}.....${base58.substring(base58.length - 7, base58.length)}`
                 : base58;
-            supabaseClient_1.supabase.from('user_data')
-                .select('*')
-                .eq('wallet_address', base58)
-                .then(data => {
-                if (data.body && data.body.length === 0) {
-                    supabaseClient_1.supabase.from('user_data')
-                        .insert([{ wallet_address: base58 }])
-                        .then();
-                }
-            });
+            __1.supabaseAddNewUser(base58);
             utils_1.notify({
                 message: 'Wallet update',
                 description: 'Connected to wallet ' + keyToDisplay,
