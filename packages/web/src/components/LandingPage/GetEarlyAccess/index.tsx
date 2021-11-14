@@ -34,7 +34,7 @@ export const MobileGetEarlyAccess = () => {
     <Row justify="center">
       <Col span={24}>
         <div style={{ overflowX: 'auto', padding: '0 32px' }}>
-          <img src="/img/landing/artwork.png" style={{ marginBottom: 48 }} alt="artworks" />
+          <img src="/img/landing/artwork.webp" style={{ marginBottom: 48 }} alt="artworks" />
         </div>
       </Col>
 
