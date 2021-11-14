@@ -24,7 +24,6 @@ export default class MetaplexDocument extends Document {
 
           {/* <!-- Primary Meta Tags --> */}
           <meta name="theme-color" content="#000000" />
-          <title>SUPADROP – Invest in Culture</title>
           <meta name="title" content="SUPADROP – Invest in Culture" />
           <meta name="description" content="a curated NFT art & collectibles marketplace on Solana • connecting authentic artists and collectors." />
 
