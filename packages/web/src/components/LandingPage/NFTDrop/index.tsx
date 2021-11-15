@@ -14,7 +14,7 @@ import { ButtonStyle, GradientText, MobileButtonStyle } from '../Header/style';
 const NFTDrop = () => {
   const [state, setState] = useState<CountdownState>();
   const { endingTime, dataCollection } = useMeta();
-
+  console.log('landing page',endingTime,dataCollection)
 
   useEffect(() => {
     const calc = () => setState(countDown(endingTime ? endingTime : dataCollection.start_publish));
