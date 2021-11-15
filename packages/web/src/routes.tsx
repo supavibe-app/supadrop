@@ -44,7 +44,7 @@ const DirectPath = () => {
     //   </Providers>
     // );
     case 3:
-      return <About />
+      return <About />;
 
     // default:
     //   return (
@@ -54,7 +54,7 @@ const DirectPath = () => {
     //   );
   }
 
-  return <div />
+  return <div />;
 };
 
 export function Routes() {
@@ -74,11 +74,10 @@ export function Routes() {
     <BrowserRouter basename={'/'}>
       <AppLayout>
         <Switch>
-          <Route exact path="/" component={() => <LandingPage />} />
-          <Route exact path="/:path" component={DirectPath} />
-
-          {/* <Providers> */}
-          {/* 
+          <Providers>
+            <Route exact path="/" component={() => <LandingPage />} />
+            <Route exact path="/:path" component={DirectPath} />
+            {/* 
             <Route exact path="/admin" component={() => <AdminView />} />
             <Route exact path="/analytics" component={() => <AnalyticsView />} />
             <Route exact path="/artworks/:id?" component={() => <ArtworksView />} />
@@ -87,14 +86,15 @@ export function Routes() {
             <Route exact path="/auction/:id/billing" component={() => <BillingView />} />
           */}
 
-          {/* <Route exact path="/art/create/:step_param?" component={() => <ArtCreateView />} /> */}
+            {/* <Route exact path="/art/create/:step_param?" component={() => <ArtCreateView />} /> */}
 
-          {/* Updated Path */}
+            {/* Updated Path */}
 
-          {/* <Route path="/art/:id" component={() => <ArtView />} />
+            {/* <Route path="/art/:id" component={() => <ArtView />} />
             <Route path="/auction/:id" component={() => <AuctionView />} />
             <Route exact path="/list/create" component={() => <AuctionCreateView />} />
-          </Providers> */}
+           */}
+          </Providers>
         </Switch>
       </AppLayout>
     </BrowserRouter>

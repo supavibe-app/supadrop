@@ -60,6 +60,7 @@ const MarketComponent = () => {
                 v.vault,
                 v.nft_data.arweave_link,
                 v.owner,
+                v.winner,
                 v.nft_data.mint_key,
                 v.type_auction,
               ),

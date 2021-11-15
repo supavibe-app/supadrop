@@ -198,6 +198,7 @@ export function MetaProvider({ children = null as any }) {
               v.vault,
               v.nft_data.arweave_link,
               v.owner,
+              v.winner,
               v.nft_data.mint_key,
               v.type_auction,
             );
@@ -240,6 +241,7 @@ export function MetaProvider({ children = null as any }) {
             dataAuction.body.vault,
             dataAuction.body.nft_data.arweave_link,
             dataAuction.body.owner,
+            dataAuction.body.winner,
             dataAuction.body.nft_data.mint_key,
             dataAuction.body.type_auction,
           );
@@ -282,10 +284,12 @@ export function MetaProvider({ children = null as any }) {
               v.vault,
               v.nft_data.arweave_link,
               v.owner,
+              v.winner,
               v.nft_data.mint_key,
               v.type_auction,
             );
           });
+
           setAllDataAuction(listData);
         }
       });

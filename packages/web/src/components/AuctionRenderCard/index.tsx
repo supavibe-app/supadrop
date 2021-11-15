@@ -17,7 +17,15 @@ import { BN } from 'bn.js';
 import { useAuctionStatus } from './hooks/useAuctionStatus';
 import { getUsernameByPublicKeys } from '../../database/userData';
 import { uTextAlignEnd } from '../../styles';
-import { AuctionImage, AvatarStyle, BidPrice, CardStyle, NumberStyle, OwnerContainer, UserWrapper } from './style';
+import {
+  AuctionImage,
+  AvatarStyle,
+  BidPrice,
+  CardStyle,
+  NumberStyle,
+  OwnerContainer,
+  UserWrapper,
+} from './style';
 import countDown from '../../helpers/countdown';
 
 const { Meta } = Card;
@@ -109,7 +117,11 @@ export const AuctionRenderCard = (props: AuctionCard) => {
                 {/* case 4: ended and have bidder */}
                 {winningBid && ended && <div>sold for</div>}
 
-                <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
+                <Statistic
+                  className={BidPrice}
+                  value={currentBid}
+                  suffix="SOL"
+                />
               </Col>
 
               <Col span={12}>
@@ -122,15 +134,27 @@ export const AuctionRenderCard = (props: AuctionCard) => {
                   {winningBid && ended && <div>owned by</div>}
                 </div>
 
-                {ended && <div className={OwnerContainer} style={{ fontSize: 20 }}>
-                  {winningBid ? shortenAddress(auctionView.auction.pubkey) : 'ended'}
-                </div>}
+                {ended && (
+                  <div className={OwnerContainer} style={{ fontSize: 20 }}>
+                    {winningBid
+                      ? shortenAddress(auctionView.auction.pubkey)
+                      : 'ended'}
+                  </div>
+                )}
 
                 {!ended && (
                   <div className={NumberStyle}>
-                    {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-                    {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
-                    {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+                    {state && state.hours < 10
+                      ? '0' + state?.hours
+                      : state?.hours}{' '}
+                    :{' '}
+                    {state && state.minutes < 10
+                      ? '0' + state?.minutes
+                      : state?.minutes}{' '}
+                    :{' '}
+                    {state && state.seconds < 10
+                      ? '0' + state?.seconds
+                      : state?.seconds}
                   </div>
                 )}
               </Col>
@@ -160,7 +184,7 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
   const now = Math.floor(new Date().getTime() / 1000);
   const endAt = auctionView.endAt;
 
-  const winningBid = useHighestBidForAuction(auctionView.id);
+  const winningBid = auctionView.winner;
   const ended = !auctionView.isInstantSale && endAt < now;
 
   let currentBid: number | string = 0;
@@ -175,14 +199,12 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
 
   if (!isUpcoming) {
     label = ended ? 'Winning bid' : 'Current bid';
-    currentBid =
-      winningBid && Number.isFinite(winningBid.info.lastBid?.toNumber())
-        ? formatTokenAmount(winningBid.info.lastBid)
-        : auctionView.price_floor;
+    currentBid = winningBid ? auctionView.highestBid : auctionView.price_floor;
   }
 
   useEffect(() => {
-    if (cardRef.current?.offsetWidth) setCardWidth(cardRef.current?.offsetWidth);
+    if (cardRef.current?.offsetWidth)
+      setCardWidth(cardRef.current?.offsetWidth);
   }, [cardRef.current?.offsetWidth, setCardWidth]);
 
   useEffect(() => {
@@ -216,8 +238,16 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar src={owner.img_profile} size={32} className={AvatarStyle} />
-              <span>{owner.username ? owner.username : shortenAddress(owner.wallet_address)}</span>
+              <Avatar
+                src={owner.img_profile}
+                size={32}
+                className={AvatarStyle}
+              />
+              <span>
+                {owner.username
+                  ? owner.username
+                  : shortenAddress(owner.wallet_address)}
+              </span>
             </div>
 
             <Row>
@@ -229,7 +259,11 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
                 {/* case 4: ended and have bidder */}
                 {winningBid && ended && <div>sold for</div>}
 
-                <Statistic className={BidPrice} value={currentBid} suffix="SOL" />
+                <Statistic
+                  className={BidPrice}
+                  value={currentBid}
+                  suffix="SOL"
+                />
               </Col>
 
               <Col className={uTextAlignEnd} span={12}>
@@ -242,15 +276,25 @@ export const AuctionRenderCard2 = (props: AuctionCard2) => {
                   {winningBid && ended && <div>owned by</div>}
                 </div>
 
-                {ended && <div className={OwnerContainer} style={{ fontSize: 20 }}>
-                  {winningBid ? shortenAddress(winningBid.info.bidderPubkey) : 'ended'}
-                </div>}
+                {ended && (
+                  <div className={OwnerContainer} style={{ fontSize: 20 }}>
+                    {winningBid ? shortenAddress(winningBid) : 'ended'}
+                  </div>
+                )}
 
                 {!ended && !auctionView.isInstantSale && (
                   <div className={NumberStyle}>
-                    {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-                    {state && state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
-                    {state && state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
+                    {state && state.hours < 10
+                      ? '0' + state?.hours
+                      : state?.hours}{' '}
+                    :{' '}
+                    {state && state.minutes < 10
+                      ? '0' + state?.minutes
+                      : state?.minutes}{' '}
+                    :{' '}
+                    {state && state.seconds < 10
+                      ? '0' + state?.seconds
+                      : state?.seconds}
                   </div>
                 )}
               </Col>
