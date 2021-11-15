@@ -171,6 +171,7 @@ export class ItemAuction {
   vault: string;
   arweave_link: string;
   owner: string;
+  winner: string;
   mint_key: string;
   isInstantSale: boolean;
 
@@ -190,6 +191,7 @@ export class ItemAuction {
     vault: string,
     arweave_link: string,
     owner: string,
+    winner: string,
     mint_key: string,
     isInstantSale: boolean,
   ) {
@@ -208,6 +210,7 @@ export class ItemAuction {
     this.vault = vault;
     this.arweave_link = arweave_link;
     this.owner = owner;
+    this.winner = winner;
     this.mint_key = mint_key;
     this.isInstantSale = isInstantSale;
   }
