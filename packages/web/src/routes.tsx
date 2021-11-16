@@ -56,9 +56,9 @@ export function Routes() {
 
   return (
     <BrowserRouter basename={'/'}>
-      <AppLayout>
-        <Switch>
-          <Providers>
+      <Providers>
+        <AppLayout>
+          <Switch>
             <Route exact path="/" component={() => <LandingPage />} />
             <Route exact path="/:path" component={DirectPath} />
 
@@ -96,9 +96,9 @@ export function Routes() {
               path="/list/create"
               component={() => <AuctionCreateView />}
             />
-          </Providers>
-        </Switch>
-      </AppLayout>
+          </Switch>
+        </AppLayout>
+      </Providers>
     </BrowserRouter>
   );
 }
