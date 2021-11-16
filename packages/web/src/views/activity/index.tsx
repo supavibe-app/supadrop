@@ -31,7 +31,7 @@ const ActivityView = () => {
 
   const activeBids = getActiveBids(wallet.publicKey?.toBase58()).data;
   const onSale = getOnSale(wallet.publicKey?.toBase58()).data;
-  
+
   const EmptyState = ({}) => (
     <div>
       <div className={Content}>
@@ -52,11 +52,9 @@ const ActivityView = () => {
   return (
     <Row justify="center">
       <Col span={14}>
-        <div className={PageTitle}>
-          ACTIVITY {[...activeBids, ...onSale].length}
-        </div>
+        <div className={PageTitle}>ACTIVITY</div>
         <Tabs className={TabStyle} defaultActiveKey="1">
-          <TabPane tab="allsd" key="1">
+          <TabPane tab="all" key="1">
             {[...activeBids, ...onSale].map(auction => {
               // const highestBid = useHighestBidForAuction(auction.auction.pubkey);
               // const bidderID = highestBid.info.bidderPubkey;
