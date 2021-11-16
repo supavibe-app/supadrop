@@ -61,6 +61,7 @@ import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState
 import { sendCancelBid } from '../../../actions/cancelBid';
 import { Link } from 'react-router-dom';
 import isEnded from '../../Home/helpers/isEnded';
+import Congratulations from '../../Congratulations';
 
 const BidDetails = ({
   art,
@@ -102,6 +103,7 @@ const BidDetails = ({
 
   const owner = auctionDatabase?.owner;
   const endAt = auctionDatabase?.endAt;
+  const [auctionID, setAuctionID] = useState('');
   useEffect(() => {
     if (
       auction?.auction.info.auctionGap &&
@@ -274,7 +276,7 @@ const BidDetails = ({
         bidRedemptions,
         prizeTrackingTickets,
         wallet,
-      }).then(data => {});
+      }).then(data => { });
       supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
     } catch (e) {
@@ -322,6 +324,7 @@ const BidDetails = ({
           instantSalePrice.toNumber(),
         );
         supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
+        setAuctionID(auction?.auction.pubkey);
       } catch (e) {
         console.error('sendPlaceBid', e);
         return;
@@ -354,6 +357,7 @@ const BidDetails = ({
         );
         pullAuctionPage(auction?.auction.pubkey || '');
         await update();
+        setAuctionID(auctionView?.auction.pubkey);
       });
     } catch (e) {
       console.error(e);
@@ -378,6 +382,8 @@ const BidDetails = ({
     const shouldHide =
       shouldHideInstantSale ||
       auction?.vault.info.state === VaultState.Deactivated;
+
+    if (Boolean(auctionID)) return <Congratulations id={auctionID} />;
 
     if (shouldHideInstantSale && isAuctionNotStarted) {
       return (

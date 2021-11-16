@@ -92,9 +92,10 @@ export declare class ItemAuction {
     vault: string;
     arweave_link: string;
     owner: string;
+    winner: string;
     mint_key: string;
     isInstantSale: boolean;
-    constructor(id: string, name: string, id_nft: string, token_mint: string, price_floor: number, img_nft: string, startAt: number, endAt: number, highestBid: number, price_tick: number, gapTime: number, tickExtend: number, vault: string, arweave_link: string, owner: string, mint_key: string, isInstantSale: boolean);
+    constructor(id: string, name: string, id_nft: string, token_mint: string, price_floor: number, img_nft: string, startAt: number, endAt: number, highestBid: number, price_tick: number, gapTime: number, tickExtend: number, vault: string, arweave_link: string, owner: string, winner: string, mint_key: string, isInstantSale: boolean);
 }
 export declare type UnPromise<T extends Promise<any>> = T extends Promise<infer U> ? U : never;
 //# sourceMappingURL=types.d.ts.map
