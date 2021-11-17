@@ -23,6 +23,7 @@ import {
   supabaseUpdateBid,
   supabaseUpdateStatusInstantSale,
   supabaseUpdateIsRedeem,
+  supabaseUpdateIsRedeemAuctionStatus,
 } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
@@ -105,13 +106,13 @@ const BidDetails = ({
   useEffect(() => {
     if (
       auction?.auction.info.auctionGap &&
-      auction?.auction.info.lastBid &&
+      highestBid?.info.lastBidTimestamp.toNumber() &&
       endAt &&
       auctionDatabase?.id
     ) {
       let latestTime =
         auction?.auction.info.auctionGap?.toNumber() +
-        auction?.auction.info.lastBid?.toNumber();
+        highestBid?.info.lastBidTimestamp.toNumber();
       if (latestTime > endAt) {
         supabase
           .from('auction_status')
@@ -124,7 +125,7 @@ const BidDetails = ({
           });
       }
     }
-  }, [auction?.auction.info.lastBid]);
+  }, [highestBid]);
 
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
@@ -208,6 +209,7 @@ const BidDetails = ({
     bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length >
     0;
   const actionEndedAuction = async () => {
+    setConfirmTrigger(true);
     try {
       if (eligibleForAnything) {
         const wallet = walletContext;
@@ -221,17 +223,16 @@ const BidDetails = ({
           prizeTrackingTickets,
           bidRedemptions,
           bids,
-        )
-          .then(data => {
+        ).then(data => {
+          if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+            supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+          } else {
             supabaseUpdateIsRedeem(
               auctionView.auction.pubkey,
               publicKey?.toBase58(),
             );
-            console.log('action ended auction cancel redeem', data);
-          })
-          .catch(err => {
-            console.log('action ended auction', err);
-          });
+          }
+        });
       } else {
         const wallet = walletContext;
         const auctionView = auction!!;
@@ -244,25 +245,25 @@ const BidDetails = ({
           bids,
           bidRedemptions,
           prizeTrackingTickets,
-        )
-          .then(data => {
+        ).then(data => {
+          if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+            supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+          } else {
             supabaseUpdateIsRedeem(
               auctionView.auction.pubkey,
               publicKey?.toBase58(),
             );
-
-            console.log('action ended auction cancel bid', data);
-          })
-          .catch(err => {
-            console.log('action ended auction', err);
-          });
+          }
+        });
       }
     } catch (e) {
       console.error(e);
     }
+    setConfirmTrigger(false);
   };
 
   const endInstantSale = async () => {
+    setConfirmTrigger(true);
     try {
       const auctionView = auction!!;
       const wallet = walletContext;
@@ -277,13 +278,16 @@ const BidDetails = ({
       }).then(data => {});
       supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
+      setConfirmTrigger(false);
     } catch (e) {
+      setConfirmTrigger(false);
       console.error('endAuction', e);
       return;
     }
   };
 
   const instantSale = async () => {
+    setConfirmTrigger(true);
     const instantSalePrice =
       auction?.auctionDataExtended?.info.instantSalePrice;
     const winningConfigType =
@@ -324,6 +328,7 @@ const BidDetails = ({
         supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       } catch (e) {
         console.error('sendPlaceBid', e);
+        setConfirmTrigger(false);
         return;
       }
     }
@@ -358,6 +363,7 @@ const BidDetails = ({
     } catch (e) {
       console.error(e);
     }
+    setConfirmTrigger(false);
   };
   const BidDetailsContent = ({ children }) => {
     const isAuctionNotStarted =
