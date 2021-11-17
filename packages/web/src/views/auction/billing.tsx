@@ -24,6 +24,7 @@ import {
   StringPublicKey,
   toPublicKey,
   WalletSigner,
+  supabaseUpdateIsRedeemAuctionStatus,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useMeta } from '../../contexts';
@@ -497,6 +498,9 @@ export const InnerBillingView = ({
                   bidsToClaim.map(b => b.pot),
                   myPayingAccount.pubkey,
                   accountByMint,
+                );
+                supabaseUpdateIsRedeemAuctionStatus(
+                  auctionView?.auction.pubkey,
                 );
                 setEscrowBalanceRefreshCounter(ctr => ctr + 1);
               }}

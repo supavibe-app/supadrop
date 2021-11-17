@@ -450,22 +450,29 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
           </div>
         )}
 
-        {isOwner && (
-          <div>
-            {!isInstantSale && <div className={Label}>ending in</div>}
-            {state && !isEnded(state) && (
-              <div className={StatusValue}>
-                {state.hours} :{' '}
-                {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
-                {state.seconds > 0 ? state.seconds : `0${state.seconds}`}
-              </div>
-            )}
+        {isOwner &&
+          !(
+            isEnded(state) &&
+            !isInstantSale &&
+            !eligibleForAnything &&
+            isOwner &&
+            highestBid
+          ) && (
+            <div>
+              {!isInstantSale && <div className={Label}>ending in</div>}
+              {state && !isEnded(state) && (
+                <div className={StatusValue}>
+                  {state.hours} :{' '}
+                  {state.minutes > 0 ? state.minutes : `0${state.minutes}`} :{' '}
+                  {state.seconds > 0 ? state.seconds : `0${state.seconds}`}
+                </div>
+              )}
 
-            {isEnded(state) && !isInstantSale && (
-              <div className={StatusValue}>auction ended</div>
-            )}
-          </div>
-        )}
+              {isEnded(state) && !isInstantSale && (
+                <div className={StatusValue}>auction ended</div>
+              )}
+            </div>
+          )}
 
         {/* case 0: is owner and instant sell */}
         {isOwner && isInstantSale && (
@@ -473,14 +480,6 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
         )}
 
         {/* case 2.1: auction ended & win */}
-
-        {/* {isEnded(state) && eligibleForAnything && isOwner && (
-            <ActionButton
-              to={`/auction/${auctionView.id}/billing`}
-            >
-              settle
-            </ActionButton>
-          )} */}
 
         {/* case 2.2: auction ended & lose */}
 
@@ -491,6 +490,15 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
           !highestBid && (
             <ActionButton to={`/auction/${auctionView.id}`}>
               reclaim NFT
+            </ActionButton>
+          )}
+        {isEnded(state) &&
+          !isInstantSale &&
+          !eligibleForAnything &&
+          isOwner &&
+          highestBid && (
+            <ActionButton to={`/auction/${auctionView.id}/billing`}>
+              settle
             </ActionButton>
           )}
 

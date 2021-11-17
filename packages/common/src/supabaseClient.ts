@@ -97,7 +97,7 @@ export const supabaseAddNewNFT = (
 export const supabaseUpdateStatusInstantSale = (idAuction?: string) => {
   supabase
     .from('auction_status')
-    .update({ isLiveMarket: false })
+    .update({ isLiveMarket: false, is_redeem: true })
     .eq('id', idAuction)
     .then();
 };
@@ -109,9 +109,14 @@ export const supabaseUpdateIsRedeem = (
     .from('action_bidding')
     .update({ is_redeem: true })
     .eq('id', `${idAuction}_${walletAddress}`)
-    .then(data => {
-      console.log('masuk kesini', data, `${idAuction}_${walletAddress}`);
-    });
+    .then();
+};
+export const supabaseUpdateIsRedeemAuctionStatus = (idAuction?: string) => {
+  supabase
+    .from('auction_status')
+    .update({ is_redeem: true })
+    .eq('id', idAuction)
+    .then();
 };
 
 export const supabaseUpdateHighestBid = (
@@ -128,13 +133,6 @@ export const supabaseUpdateHighestBid = (
     .single()
     .then(data => {
       if (data.body && data.body.highest_bid < bid) {
-        console.log(
-          'masuk sini lagi',
-          data.body.highest_bid,
-          bid,
-          walletAddress,
-        );
-
         supabase
           .from('auction_status')
           .update({ highest_bid: bid, winner: walletAddress })
