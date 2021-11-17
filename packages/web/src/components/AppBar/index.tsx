@@ -20,6 +20,7 @@ import {
   ButtonContainer,
   ButtonStyle,
   ButtonStyleFAQ,
+  LandingButtonContainer,
   LinkButton,
   LogoWrapper,
   MobileTitle,
@@ -128,7 +129,7 @@ export const AppBar = () => {
         </Link>
       </Col>
 
-      <Col className={ButtonContainer} xs={0} sm={12}>
+      <Col className={LandingButtonContainer} xs={0} sm={12}>
         {isLandingPage && (
           <>
             <Link
@@ -176,7 +177,7 @@ export const AppBar = () => {
         </Link>
       </Col>
 
-      <Col className={ButtonContainer} xs={12} sm={0}>
+      <Col className={LandingButtonContainer} xs={12} sm={0}>
         <div onClick={() => setShowMenu(true)}>
           <FeatherIcon icon="menu" />
         </div>

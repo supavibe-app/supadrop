@@ -28,6 +28,13 @@ export const MobileTitle = css`
 export const ButtonContainer = css`
   text-align: end;
   align-self: center;
+  display: flex;
+  align-items: center;
+`;
+
+export const LandingButtonContainer = css`
+  text-align: end;
+  align-self: center;
 `;
 
 export const LinkButton = css`
