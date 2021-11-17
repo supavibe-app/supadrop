@@ -50,6 +50,7 @@ const MetaContext = react_1.default.createContext({
     // @ts-ignore
     updateLiveDataAuction: function () { },
     updateAllDataAuction: function () { },
+    updateDetailAuction: function () { },
 });
 function MetaProvider({ children = null }) {
     const connection = connection_1.useConnection();
@@ -156,7 +157,8 @@ function MetaProvider({ children = null }) {
         return;
     }
     async function updateLiveDataAuction() {
-        supabaseClient_1.supabase.from('auction_status')
+        supabaseClient_1.supabase
+            .from('auction_status')
             .select(`
     *,
     nft_data (
@@ -169,15 +171,37 @@ function MetaProvider({ children = null }) {
             let listData = {};
             if (dataAuction.body != null && dataAuction.body.length > 0) {
                 dataAuction.body.forEach(v => {
-                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link, v.owner, v.nft_data.mint_key, v.type_auction);
+                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link, v.owner, v.winner, v.nft_data.mint_key, v.type_auction);
                 });
                 setEndingTime(dataAuction.body[dataAuction.body.length - 1].end_auction);
                 setLiveDataAuction(listData);
             }
         });
     }
+    async function updateDetailAuction(idAuction) {
+        supabaseClient_1.supabase
+            .from('auction_status')
+            .select(`
+    *,
+    nft_data (
+      *
+    )
+    `)
+            .eq('id', idAuction)
+            .single()
+            .then(dataAuction => {
+            if (dataAuction.body != null && dataAuction.body.length > 0) {
+                let detailAuction = new types_1.ItemAuction(dataAuction.body.id, dataAuction.body.nft_data.name, dataAuction.body.id_nft, dataAuction.body.token_mint, dataAuction.body.price_floor, dataAuction.body.nft_data.img_nft, dataAuction.body.start_auction, dataAuction.body.end_auction, dataAuction.body.highest_bid, dataAuction.body.price_tick, dataAuction.body.gap_time, dataAuction.body.tick_size_ending_phase, dataAuction.body.vault, dataAuction.body.nft_data.arweave_link, dataAuction.body.owner, dataAuction.body.winner, dataAuction.body.nft_data.mint_key, dataAuction.body.type_auction);
+                if (detailAuction.endAt > moment_1.default().unix()) {
+                    setLiveDataAuction({ ...liveDataAuctions, detailAuction });
+                }
+                setAllDataAuction({ ...allDataAuctions, detailAuction });
+            }
+        });
+    }
     async function updateAllDataAuction() {
-        supabaseClient_1.supabase.from('auction_status')
+        supabaseClient_1.supabase
+            .from('auction_status')
             .select(`
     *,
     nft_data (
@@ -188,19 +212,20 @@ function MetaProvider({ children = null }) {
             let listData = {};
             if (dataAuction.body != null && dataAuction.body.length > 0) {
                 dataAuction.body.forEach(v => {
-                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link, v.owner, v.nft_data.mint_key, v.type_auction);
+                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link, v.owner, v.winner, v.nft_data.mint_key, v.type_auction);
                 });
                 setAllDataAuction(listData);
             }
         });
     }
     async function getDataCollection() {
-        supabaseClient_1.supabase.from('collections')
+        supabaseClient_1.supabase
+            .from('collections')
             .select(`*`)
             .eq('id', 1)
             .then(data => {
             if (data.body != null) {
-                const { id, name, description, supply, price, sold, start_publish, sample_images } = data.body[0];
+                const { id, name, description, supply, price, sold, start_publish, sample_images, } = data.body[0];
                 let collection = new types_1.Collection(id, name, description, supply, price, sold, start_publish, sample_images);
                 setDataCollection(collection);
             }
@@ -224,9 +249,8 @@ function MetaProvider({ children = null }) {
         Promise.all([
             updateLiveDataAuction(),
             updateAllDataAuction(),
-            getDataCollection()
-        ])
-            .finally(() => {
+            getDataCollection(),
+        ]).finally(() => {
             setIsLoadingDatabase(false);
         });
         let nextState = await _1.pullPage(connection, page, state);
@@ -269,7 +293,7 @@ function MetaProvider({ children = null }) {
                     currLastLength = last;
                     return last;
                 });
-                if (nextState.storeIndexer.length != currLastLength) {
+                if (currLastLength && nextState.storeIndexer.length >= currLastLength) {
                     setPage(page => page + 1);
                 }
                 setLastLength(nextState.storeIndexer.length);
@@ -375,6 +399,7 @@ function MetaProvider({ children = null }) {
             allDataAuctions,
             updateLiveDataAuction,
             updateAllDataAuction,
+            updateDetailAuction,
             isBidPlaced,
             setBidPlaced,
         } }, children));
