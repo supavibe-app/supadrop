@@ -17,22 +17,35 @@ import {
 } from './style';
 import { TwitterURL } from '../../constants';
 import { getUsernameByPublicKeys } from '../../database/userData';
+import countDown from '../../helpers/countdown';
+import { CountdownState } from '@oyster/common';
 
 const { TabPane } = Tabs;
 
 const AuctionListView = () => {
+  const [state, setState] = useState<CountdownState>();
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
   const {
     isLoadingMetaplex,
     isLoadingDatabase,
     liveDataAuctions,
     allDataAuctions,
+    endingTime,
+    dataCollection,
   } = useMeta();
   const now = moment().unix();
 
   const [activeKey, setActiveKey] = useState(
     Object.entries(liveDataAuctions).length > 0 ? '1' : '2',
   );
+
+  useEffect(() => {
+    const calc = () => setState(countDown(endingTime ? endingTime : dataCollection.start_publish));
+    const interval = setInterval(() => calc(), 1000);
+    calc();
+
+    return () => clearInterval(interval);
+  }, [endingTime, dataCollection]);
 
   useEffect(() => {
     if (Object.entries(liveDataAuctions).length) setActiveKey('1');
@@ -42,6 +55,7 @@ const AuctionListView = () => {
   const liveAuctions = Object.entries(liveDataAuctions).filter(
     ([key, data]) => data.endAt > now,
   );
+
   const endAuctions = Object.entries(allDataAuctions)
     .filter(([key, data]) => data.endAt < now && !data.isInstantSale)
     .reverse();
@@ -77,26 +91,43 @@ const AuctionListView = () => {
     <div style={{ margin: '0 0 48px 28px' }}>
       <div className={Timer}>starting in</div>
 
-      {/* TODO-Iyai: implement countdown */}
       <Row gutter={[24, 0]} style={{ marginBottom: 48 }}>
-        <Col>
-          <div className={NumberStyle}>00</div>
-          <div className={Label}>days</div>
-        </Col>
+        {state && (
+          <>
+            {state.days > 0 && (
+              <Col>
+                <div className={NumberStyle}>
+                  {state.days < 10 && <span>0</span>}
+                  {state.days}
+                </div>
+                <div className={Label}>days</div>
+              </Col>
+            )}
 
-        <Col>
-          <div className={NumberStyle}>00</div>
-          <div className={Label}>hours</div>
-        </Col>
+            <Col>
+              <div className={NumberStyle}>
+                {state.hours < 10 && <span>0</span>}
+                {state.hours}
+              </div>
+              <div className={Label}>hours</div>
+            </Col>
 
-        <Col>
-          <div className={NumberStyle}>00</div>
-          <div className={Label}>minutes</div>
-        </Col>
-        <Col>
-          <div className={NumberStyle}>00</div>
-          <div className={Label}>seconds</div>
-        </Col>
+            <Col>
+              <div className={NumberStyle}>
+                {state.minutes < 10 && <span>0</span>}
+                {state.minutes}
+              </div>
+              <div className={Label}>minutes</div>
+            </Col>
+            <Col>
+              <div className={NumberStyle}>
+                {state.seconds < 10 && <span style={{ opacity: 0.2 }}>0</span>}
+                {state.seconds}
+              </div>
+              <div className={Label}>seconds</div>
+            </Col>
+          </>
+        )}
       </Row>
 
       <a href={TwitterURL}>
