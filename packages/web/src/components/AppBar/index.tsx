@@ -15,7 +15,7 @@ import { Notifications } from '../Notifications';
 import { FaqURL, LABELS } from '../../constants';
 
 // styles
-import { ActivityBadge, ButtonContainer, ButtonStyle, ButtonStyleFAQ, LinkButton, LogoWrapper, MobileTitle, RoundButton, Title } from './style';
+import { ActivityBadge, ButtonContainer, ButtonStyle, ButtonStyleFAQ, LandingButtonContainer, LinkButton, LogoWrapper, MobileTitle, RoundButton, Title } from './style';
 import { GreyColor, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
@@ -92,7 +92,7 @@ export const AppBar = () => {
         </Link>
       </Col>
 
-      <Col className={ButtonContainer} xs={0} sm={12}>
+      <Col className={LandingButtonContainer} xs={0} sm={12}>
         {isLandingPage && (
           <>
             <Link to="/about" onClick={() => {
@@ -129,7 +129,7 @@ export const AppBar = () => {
         </Link>
       </Col>
 
-      <Col className={ButtonContainer} xs={12} sm={0}>
+      <Col className={LandingButtonContainer} xs={12} sm={0}>
         <div onClick={() => setShowMenu(true)}>
           <FeatherIcon icon="menu" />
         </div>
