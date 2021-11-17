@@ -324,7 +324,7 @@ const BidDetails = ({
           instantSalePrice.toNumber(),
         );
         supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
-        setAuctionID(auction?.auction.pubkey);
+        setAuctionID(auctionView.auction.pubkey);
       } catch (e) {
         console.error('sendPlaceBid', e);
         return;
@@ -383,7 +383,7 @@ const BidDetails = ({
       shouldHideInstantSale ||
       auction?.vault.info.state === VaultState.Deactivated;
 
-    if (Boolean(auctionID)) return <Congratulations id={auctionID} />;
+    if (Boolean(auctionID)) <Congratulations id={auctionID} />;
 
     if (shouldHideInstantSale && isAuctionNotStarted) {
       return (

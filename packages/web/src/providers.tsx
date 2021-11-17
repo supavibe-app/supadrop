@@ -9,6 +9,7 @@ import React, { FC } from 'react';
 import { ConfettiProvider } from './components/Confetti';
 import { LoaderProvider } from './components/Loader';
 import { CoingeckoProvider } from './contexts/coingecko';
+import { AppLayout } from './components/Layout';
 
 export const Providers: FC = ({ children }) => {
   return (
@@ -22,7 +23,9 @@ export const Providers: FC = ({ children }) => {
             >
               <MetaProvider>
                 {/* <LoaderProvider> */}
-                <ConfettiProvider>{children}</ConfettiProvider>
+                <ConfettiProvider>
+                  <AppLayout>{children}</AppLayout>
+                </ConfettiProvider>
                 {/* </LoaderProvider> */}
               </MetaProvider>
             </StoreProvider>
