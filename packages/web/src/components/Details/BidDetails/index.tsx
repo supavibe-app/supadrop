@@ -261,6 +261,7 @@ const BidDetails = ({
     } catch (e) {
       console.error(e);
     }
+    // await update(auction?.auction.pubkey, publicKey?.toBase58());
     setConfirmTrigger(false);
   };
 
@@ -277,7 +278,7 @@ const BidDetails = ({
         bidRedemptions,
         prizeTrackingTickets,
         wallet,
-      }).then(data => { });
+      }).then();
       supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
       setConfirmTrigger(false);
@@ -330,7 +331,6 @@ const BidDetails = ({
         supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
         setAuctionID(auction?.auction.pubkey);
       } catch (e) {
-        console.error('sendPlaceBid', e);
         setConfirmTrigger(false);
         return;
       }
@@ -389,7 +389,7 @@ const BidDetails = ({
       shouldHideInstantSale ||
       auction?.vault.info.state === VaultState.Deactivated;
 
-    if (Boolean(auctionID)) return <Congratulations id={auctionID} />;
+    // if (Boolean(auctionID)) return <Congratulations id={auctionID} />;
 
     if (shouldHideInstantSale && isAuctionNotStarted) {
       return (
@@ -708,9 +708,17 @@ const BidDetails = ({
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
-            <ActionButton width="100%" onClick={instantSale}>
-              {!!auction.myBidderPot ? 'CLAIM PURCHASE' : 'BUY NOW'}
-            </ActionButton>
+            {!!auction.myBidderPot && (
+              <ActionButton width="100%" disabled>
+                CLAIMED
+              </ActionButton>
+            )}
+
+            {!auction.myBidderPot && (
+              <ActionButton width="100%" onClick={instantSale}>
+                BUY NOW
+              </ActionButton>
+            )}
           </div>
         </BidDetailsContent>
       );

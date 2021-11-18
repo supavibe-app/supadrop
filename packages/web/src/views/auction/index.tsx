@@ -98,7 +98,6 @@ export const AuctionView = () => {
   useEffect(() => {
     pullAuctionPage(id);
   }, []);
-
   return (
     <Row className={Container} ref={ref}>
       {/* Art Column */}

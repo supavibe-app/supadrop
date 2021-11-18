@@ -3,7 +3,7 @@ import { Col, Divider, Dropdown, Menu, Row, Select } from 'antd';
 import { Link } from 'react-router-dom';
 import FeatherIcon from 'feather-icons-react';
 import { ItemAuction, supabase, useMeta } from '@oyster/common';
-import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
+import { AuctionRenderCard } from '../../components/AuctionRenderCard';
 import {
   ActiveSortBy,
   CreatorName,
@@ -235,7 +235,7 @@ const MarketComponent = () => {
                 xs={24}
               >
                 <Link to={`/auction/${m.id}`}>
-                  <AuctionRenderCard2
+                  <AuctionRenderCard
                     auctionView={m}
                     owner={data[m.owner] || defaultOwnerData}
                   />

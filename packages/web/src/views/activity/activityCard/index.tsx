@@ -69,8 +69,13 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
   const wallet = useWallet();
   const isInstantSale = auctionView.auction_status.type_auction;
   const isOwner =
-    auctionView.auction_status.owner === wallet.publicKey?.toBase58();
+    auctionView.auction_status.owner.wallet_address ===
+    wallet.publicKey?.toBase58();
+  const owner = auctionView.auction_status.owner;
+  const winner = auctionView.auction_status.winner;
+
   const highestBid = auctionView.auction_status.highest_bid;
+  const haveWinner = highestBid > 0;
   const eligibleForAnything = auctionView.price_bid === highestBid;
   useEffect(() => {
     const calc = () =>
@@ -97,10 +102,14 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
               <div className={NFTName}>
                 {auctionView.auction_status.nft_data.name}
               </div>
-              {/* <div className={UserContainer}>
-                <Avatar src={users[owner].img_profile} size={32} />
-                <div>{users[owner].username ? users[owner].username : shortenAddress(owner)}</div>
-              </div> */}
+              <div className={UserContainer}>
+                <Avatar src={owner.img_profile} size={32} />
+                <div>
+                  {owner.username
+                    ? owner.username
+                    : shortenAddress(owner.wallet_address)}
+                </div>
+              </div>
 
               <div className={NFTStatus}>
                 {/* case 1: my bids - auction still live */}
@@ -153,17 +162,21 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
                     {highestBid !== auctionView.price_bid && (
                       <div>
                         <div className={Label}>winning bid</div>
-                        {/* <div className={UserContainer}>
-                          <Avatar size={32} />
-                          <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
-                        </div> */}
+                        <div className={UserContainer}>
+                          <Avatar src={winner.img_profile} size={32} />
+                          <span>
+                            {winner.username
+                              ? winner.username
+                              : shortenAddress(winner.wallet_address)}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </>
                 )}
 
                 {/* case 3: on sale - no bid */}
-                {!highestBid && isOwner && (
+                {!haveWinner && isOwner && (
                   <>
                     <div>
                       <div className={Label}>reserve price</div>
@@ -183,7 +196,7 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
                 )}
 
                 {/* case 4: on sale - have bidder */}
-                {highestBid && isOwner && (
+                {haveWinner && isOwner && (
                   <>
                     <div>
                       <div className={Label}>
@@ -196,10 +209,14 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
                     {!isEnded(state) && (
                       <div>
                         <div className={Label}>bid by</div>
-                        {/* <div className={UserContainer}>
-                          <Avatar src={users[highestBid.info.bidderPubkey].img_profile} size={32} />
-                          <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
-                        </div> */}
+                        <div className={UserContainer}>
+                          <Avatar src={winner.img_profile} size={32} />
+                          <span>
+                            {winner.username
+                              ? winner.username
+                              : shortenAddress(winner.wallet_address)}
+                          </span>{' '}
+                        </div>
                       </div>
                     )}
 
@@ -207,10 +224,14 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
                     {isEnded(state) && (
                       <div>
                         <div className={Label}>bid by</div>
-                        {/* <div className={UserContainer}>
-                          <Avatar src={users[highestBid.info.bidderPubkey].img_profile} size={32} />
-                          <span>{users[highestBid.info.bidderPubkey].username ? users[highestBid.info.bidderPubkey].username : shortenAddress(highestBid.info.bidderPubkey)}</span>
-                        </div> */}
+                        <div className={UserContainer}>
+                          <Avatar src={winner.img_profile} size={32} />
+                          <span>
+                            {winner.username
+                              ? winner.username
+                              : shortenAddress(winner.wallet_address)}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </>
@@ -229,7 +250,7 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
           </div>
         )}
 
-        {isOwner && isEnded(state) && highestBid && (
+        {isOwner && isEnded(state) && haveWinner && (
           <div>
             <div className={Label}>settle fund</div>
             <div className={Price}>{auctionView.price_bid} SOL</div>
@@ -288,6 +309,7 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
   const isInstantSale = auctionView.type_auction;
   const isOwner = auctionView.owner === wallet.publicKey?.toBase58();
   const highestBid = auctionView.highest_bid;
+  const haveWinner = highestBid > 0;
   const eligibleForAnything = auctionView.price_bid === highestBid;
   useEffect(() => {
     const calc = () => setState(countDown(auctionView.end_auction));
@@ -377,7 +399,7 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
                 )}
 
                 {/* case 3: on sale - no bid */}
-                {!highestBid && isOwner && (
+                {!haveWinner && isOwner && (
                   <>
                     <div>
                       <div className={Label}>reserve price</div>
@@ -397,7 +419,7 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
                 )}
 
                 {/* case 4: on sale - have bidder */}
-                {highestBid && isOwner && (
+                {haveWinner && isOwner && (
                   <>
                     <div>
                       <div className={Label}>
@@ -443,7 +465,7 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
           </div>
         )}
 
-        {isOwner && isEnded(state) && highestBid && (
+        {isOwner && isEnded(state) && haveWinner && (
           <div>
             <div className={Label}>settle fund</div>
             <div className={Price}>{highestBid} SOL</div>
@@ -456,7 +478,7 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
             !isInstantSale &&
             !eligibleForAnything &&
             isOwner &&
-            highestBid
+            haveWinner
           ) && (
             <div>
               {!isInstantSale && <div className={Label}>ending in</div>}
@@ -487,7 +509,7 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
           !isInstantSale &&
           !eligibleForAnything &&
           isOwner &&
-          !highestBid && (
+          !haveWinner && (
             <ActionButton to={`/auction/${auctionView.id}`}>
               reclaim NFT
             </ActionButton>
@@ -496,7 +518,7 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
           !isInstantSale &&
           !eligibleForAnything &&
           isOwner &&
-          highestBid && (
+          haveWinner && (
             <ActionButton to={`/auction/${auctionView.id}/billing`}>
               settle
             </ActionButton>
