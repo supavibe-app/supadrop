@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { supabase, UserData } from '@oyster/common';
+import moment from 'moment';
 
 interface IGetUserData {
   loading: boolean;
@@ -97,6 +98,8 @@ export const getActiveBids = publicKey => {
         auction_status (
           *,
           nft_data(*)
+          ,winner(*)
+          ,owner(*)
         ),
         user_data(*)
         `,
@@ -105,6 +108,10 @@ export const getActiveBids = publicKey => {
         .eq('is_redeem', false)
         .then(data => {
           if (data.body) {
+            console.log(
+              '🚀 ~ file: userData.ts ~ line 111 ~ useEffect ~ data.body',
+              data.body,
+            );
             setResult({ loading: false, data: data.body });
           }
         });
@@ -115,6 +122,44 @@ export const getActiveBids = publicKey => {
 
   return { ...result, refetch };
 };
+export const getInfoEndedBidding = publicKey => {
+  const [result, setResult] = useState<IGetDataActiveBids>({
+    loading: true,
+    data: [],
+  });
+
+  useEffect(() => {
+    if (publicKey) {
+      supabase
+        .from('action_bidding')
+        .select(
+          `
+      *,
+      id_auction (
+        *,
+        nft_data(name)
+      )
+      `,
+        )
+        .eq('wallet_address', publicKey)
+        .eq('is_redeem', false)
+        .lt('auction_status.end_auction', moment().unix())
+        .then(action => {
+          if (action.body != null) {
+            if (action.body.length) {
+              console.log('masuk', action.body);
+              setResult({ loading: false, data: action.body });
+            }
+          }
+        });
+    }
+  }, [publicKey]);
+
+  const refetch = () => setResult({ loading: true, data: [] });
+
+  return { ...result, refetch };
+};
+
 export const getOnSale = publicKey => {
   const [result, setResult] = useState<IGetDataActiveBids>({
     loading: true,
@@ -133,6 +178,38 @@ export const getOnSale = publicKey => {
         )
         .eq('owner', publicKey)
         .eq('is_redeem', false)
+        .then(data => {
+          if (data.body) {
+            setResult({ loading: false, data: data.body });
+          }
+        });
+    }
+  }, [publicKey]);
+
+  const refetch = () => setResult({ loading: true, data: [] });
+
+  return { ...result, refetch };
+};
+
+export const getEndedOnSale = publicKey => {
+  const [result, setResult] = useState<IGetDataActiveBids>({
+    loading: true,
+    data: [],
+  });
+
+  useEffect(() => {
+    if (publicKey) {
+      supabase
+        .from('auction_status')
+        .select(
+          `
+        *,
+        nft_data(*)
+        `,
+        )
+        .eq('owner', publicKey)
+        .eq('is_redeem', false)
+        .lte('end_auction', moment().unix())
         .then(data => {
           if (data.body) {
             setResult({ loading: false, data: data.body });

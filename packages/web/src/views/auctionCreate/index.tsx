@@ -90,6 +90,7 @@ export const AuctionCreateView = () => {
   // const history = useHistory();
   const history = useHistory();
   const wallet = useWallet();
+  const { update } = useMeta();
   const { state } = history.location;
   const { idNFT }: any = state || {};
 
@@ -119,6 +120,7 @@ export const AuctionCreateView = () => {
 
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
+
     if (
       attributes.category === AuctionCategory.InstantSale &&
       attributes.instantSaleType === InstantSaleType.Open
@@ -277,6 +279,7 @@ export const AuctionCreateView = () => {
         updateAllDataAuction();
       });
     setAuctionObj(_auctionObj);
+    await update();
   };
 
   const sellStep = (

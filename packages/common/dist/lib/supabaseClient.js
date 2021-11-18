@@ -56,7 +56,7 @@ const supabaseAddNewUser = (walletAddress) => {
     });
 };
 exports.supabaseAddNewUser = supabaseAddNewUser;
-const supabaseAddNewNFT = (id, img_nft, name, description, attribute, royalty, arweave_link, mint_key) => {
+const supabaseAddNewNFT = (id, img_nft, name, description, attribute, royalty, arweave_link, mint_key, creator) => {
     exports.supabase
         .from('nft_data')
         .insert([
@@ -69,6 +69,8 @@ const supabaseAddNewNFT = (id, img_nft, name, description, attribute, royalty, a
             royalty,
             arweave_link,
             mint_key,
+            creator,
+            holder: creator,
             max_supply: 1,
         },
     ])

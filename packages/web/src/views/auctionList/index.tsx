@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
-import { AuctionRenderCard2 } from '../../components/AuctionRenderCard';
+import { AuctionRenderCard } from '../../components/AuctionRenderCard';
 import { CardLoader } from '../../components/MyLoader';
 import { useMeta } from '../../contexts';
 import { AuctionViewState, useAuctions } from '../../hooks';
@@ -40,7 +40,10 @@ const AuctionListView = () => {
   );
 
   useEffect(() => {
-    const calc = () => setState(countDown(endingTime ? endingTime : dataCollection.start_publish));
+    const calc = () =>
+      setState(
+        countDown(endingTime ? endingTime : dataCollection.start_publish),
+      );
     const interval = setInterval(() => calc(), 1000);
     calc();
 
@@ -77,7 +80,7 @@ const AuctionListView = () => {
       return (
         <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
           <Link to={`/auction/${m.id}`}>
-            <AuctionRenderCard2
+            <AuctionRenderCard
               auctionView={m}
               owner={data[m.owner] || defaultOwnerData}
             />

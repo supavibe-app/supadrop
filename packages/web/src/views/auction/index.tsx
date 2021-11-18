@@ -101,7 +101,7 @@ export const AuctionView = () => {
     pullAuctionPage(id);
   }, []);
 
-  console.log('idAuction', id)
+  console.log('idAuction', id);
   if (showCongratulations) return (<Congratulations id={id} />);
 
   return (

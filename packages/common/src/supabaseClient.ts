@@ -75,6 +75,7 @@ export const supabaseAddNewNFT = (
   royalty: number,
   arweave_link: string,
   mint_key: string,
+  creator: string,
 ) => {
   supabase
     .from('nft_data')
@@ -88,6 +89,8 @@ export const supabaseAddNewNFT = (
         royalty,
         arweave_link,
         mint_key,
+        creator,
+        holder: creator,
         max_supply: 1,
       },
     ])
