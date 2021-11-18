@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.supabaseUpdateHighestBid = exports.supabaseUpdateIsRedeem = exports.supabaseUpdateStatusInstantSale = exports.supabaseAddNewNFT = exports.supabaseAddNewUser = exports.supabaseUpdateBid = exports.supabase = void 0;
+exports.supabaseUpdateHighestBid = exports.supabaseUpdateIsRedeemAuctionStatus = exports.supabaseUpdateIsRedeem = exports.supabaseUpdateStatusInstantSale = exports.supabaseAddNewNFT = exports.supabaseAddNewUser = exports.supabaseUpdateBid = exports.supabase = void 0;
 const supabase_js_1 = require("@supabase/supabase-js");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -78,7 +78,7 @@ exports.supabaseAddNewNFT = supabaseAddNewNFT;
 const supabaseUpdateStatusInstantSale = (idAuction) => {
     exports.supabase
         .from('auction_status')
-        .update({ isLiveMarket: false })
+        .update({ isLiveMarket: false, is_redeem: true })
         .eq('id', idAuction)
         .then();
 };
@@ -88,11 +88,17 @@ const supabaseUpdateIsRedeem = (idAuction, walletAddress) => {
         .from('action_bidding')
         .update({ is_redeem: true })
         .eq('id', `${idAuction}_${walletAddress}`)
-        .then(data => {
-        console.log('masuk kesini', data, `${idAuction}_${walletAddress}`);
-    });
+        .then();
 };
 exports.supabaseUpdateIsRedeem = supabaseUpdateIsRedeem;
+const supabaseUpdateIsRedeemAuctionStatus = (idAuction) => {
+    exports.supabase
+        .from('auction_status')
+        .update({ is_redeem: true })
+        .eq('id', idAuction)
+        .then();
+};
+exports.supabaseUpdateIsRedeemAuctionStatus = supabaseUpdateIsRedeemAuctionStatus;
 const supabaseUpdateHighestBid = (idAuction, bid, walletAddress) => {
     console.log('masuk sini');
     exports.supabase
@@ -102,7 +108,6 @@ const supabaseUpdateHighestBid = (idAuction, bid, walletAddress) => {
         .single()
         .then(data => {
         if (data.body && data.body.highest_bid < bid) {
-            console.log('masuk sini lagi', data.body.highest_bid, bid, walletAddress);
             exports.supabase
                 .from('auction_status')
                 .update({ highest_bid: bid, winner: walletAddress })

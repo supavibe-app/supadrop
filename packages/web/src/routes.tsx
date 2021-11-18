@@ -67,7 +67,13 @@ export function Routes() {
           <Route exact path="/:path" component={DirectPath} />
           <Route path="/art/:id" component={() => <ArtView />} />
           <Route path="/auction/:id" component={() => <AuctionView />} />
-          <Route exact path="/list/create" component={() => <AuctionCreateView />} />
+          {/* <Route exact path="/list/create" component={() => <AuctionCreateView />} /> */}
+          
+          <Route
+            exact
+            path="/list/create"
+            component={() => <AuctionCreateView />}
+          />
 
         </Providers>
       </Switch>
