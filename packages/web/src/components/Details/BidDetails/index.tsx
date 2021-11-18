@@ -62,7 +62,6 @@ import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState
 import { sendCancelBid } from '../../../actions/cancelBid';
 import { Link } from 'react-router-dom';
 import isEnded from '../../Home/helpers/isEnded';
-import Congratulations from '../../Congratulations';
 
 const BidDetails = ({
   art,
@@ -74,6 +73,7 @@ const BidDetails = ({
   showPlaceBid,
   currentBidAmount,
   users,
+  setShowCongratulations,
 }: {
   art: Art;
   auction?: AuctionView;
@@ -84,6 +84,7 @@ const BidDetails = ({
   setShowPlaceBid: (visible: boolean) => void;
   currentBidAmount: number | undefined;
   users: any;
+  setShowCongratulations: (visible: boolean) => void;
 }) => {
   const connection = useConnection();
   const { setVisible } = useWalletModal();
@@ -104,7 +105,6 @@ const BidDetails = ({
 
   const owner = auctionDatabase?.owner;
   const endAt = auctionDatabase?.endAt;
-  const [auctionID, setAuctionID] = useState('');
   useEffect(() => {
     if (
       auction?.auction.info.auctionGap &&
@@ -328,8 +328,6 @@ const BidDetails = ({
           instantSalePrice.toNumber(),
         );
         supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
-        console.log('idnft', auctionView.auction.pubkey)
-        setAuctionID(auctionView.auction.pubkey);
       } catch (e) {
         console.error('sendPlaceBid', e);
         setConfirmTrigger(false);
@@ -363,6 +361,7 @@ const BidDetails = ({
         );
         pullAuctionPage(auction?.auction.pubkey || '');
         await update();
+        setShowCongratulations(true);
       });
     } catch (e) {
       console.error(e);
@@ -388,12 +387,6 @@ const BidDetails = ({
     const shouldHide =
       shouldHideInstantSale ||
       auction?.vault.info.state === VaultState.Deactivated;
-
-    if (auction?.auction.pubkey) {
-      console.log('idAuction', auction?.auction.pubkey)
-      return (<Congratulations id={auction?.auction.pubkey} />);
-    }
-    // if (auctionID) return (<Congratulations id={auctionID} />);
 
     if (shouldHideInstantSale && isAuctionNotStarted) {
       return (
