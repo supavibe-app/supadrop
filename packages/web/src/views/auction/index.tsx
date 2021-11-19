@@ -38,11 +38,13 @@ import {
   StatusContainer,
 } from './style';
 import { getUsernameByPublicKeys } from '../../database/userData';
+import Congratulations from '../../components/Congratulations';
 
 export const AuctionView = () => {
   const { location } = useHistory();
   const queryParams = new URLSearchParams(location.search);
   const action = queryParams.get('action');
+  const [showCongratulations, setCongratulations] = useState(false);
 
   const { id } = useParams<{ id: string }>();
   const { connected } = useWallet();
@@ -98,6 +100,8 @@ export const AuctionView = () => {
   useEffect(() => {
     pullAuctionPage(id);
   }, []);
+
+  if (showCongratulations) return <Congratulations id={id} />;
 
   return (
     <Row className={Container} ref={ref}>
@@ -182,6 +186,7 @@ export const AuctionView = () => {
               setShowPlaceBid={setPlaceBidVisibility}
               currentBidAmount={bidAmount}
               users={users}
+              setShowCongratulations={setCongratulations}
             />
           </div>
         </div>

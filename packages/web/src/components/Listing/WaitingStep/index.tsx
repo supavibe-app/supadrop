@@ -9,14 +9,13 @@ const WaitingStep = (props: {
   goBack: () => void;
 }) => {
   const history = useHistory();
-  const [confirmed, setConfirimed] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   const title = confirmed
-    ? 'Your NFT is being listed'
-    : 'waiting for confirmation';
-  const description = confirmed
-    ? 'your NFT will be put on supadrop marketplace as soon as the transaction processed'
-    : 'confirm the transaction in your wallet to continue';
+    ? 'Your NFT succesfully listed!'
+    : 'Your NFT is being listed';
+  const description =
+    'your NFT will be put on supadrop marketplace as soon as the transaction processed';
 
   useEffect(() => {
     const func = async () => {
@@ -24,7 +23,7 @@ const WaitingStep = (props: {
         .createAuction()
         .then(() => {
           // user click approve
-          setConfirimed(true);
+          setConfirmed(true);
           props.confirm();
         })
         .catch(err => {

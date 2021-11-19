@@ -242,7 +242,7 @@ export const ArtContent = ({
   if (pubkey && data) {
     uri = data.image;
     animationURL = data.animation_url;
-  } else {
+  } else if (!uri) {
     uri = allDataAuctions[id]?.img_nft;
   }
 

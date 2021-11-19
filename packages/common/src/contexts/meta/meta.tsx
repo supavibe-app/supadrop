@@ -415,7 +415,8 @@ export function MetaProvider({ children = null as any }) {
           currLastLength = last;
           return last;
         });
-        if (currLastLength && nextState.storeIndexer.length >= currLastLength) {
+
+        if (currLastLength && nextState.storeIndexer.length > currLastLength) {
           setPage(page => page + 1);
         }
         setLastLength(nextState.storeIndexer.length);

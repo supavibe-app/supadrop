@@ -243,7 +243,9 @@ export const mintNFT = async (
   const metadataFile = result.messages?.find(
     m => m.filename === RESERVED_TXN_MANIFEST,
   );
-  const imgFile = result.messages?.find(m => m.filename.includes('png'));
+  const imgFile = result.messages?.find(m =>
+    m.filename.includes('.png') || m.filename.includes('.jpg') ||
+    m.filename.includes('.gif'));
 
   if (metadataFile?.transactionId && wallet.publicKey) {
     const updateInstructions: TransactionInstruction[] = [];
@@ -321,6 +323,7 @@ export const mintNFT = async (
       metadata.sellerFeeBasisPoints,
       arweaveLink,
       mintKey,
+      payerPublicKey
     );
 
     const txid = await sendTransactionWithRetry(

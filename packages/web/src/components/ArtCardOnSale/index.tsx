@@ -34,8 +34,6 @@ export const ArtCardOnSale = ({
 
   const endInstantSale = async () => {
     try {
-      console.log('loading unlist');
-
       const wallet = walletContext;
       const endStatus = await endSale({
         auctionView,
@@ -46,14 +44,12 @@ export const ArtCardOnSale = ({
         prizeTrackingTickets,
         wallet,
       });
-      console.log('loading unlist selesai', endStatus);
       supabaseUpdateStatusInstantSale(auctionView.auction.pubkey);
     } catch (e) {
       console.error('endAuction', e);
       return;
     }
   };
-  console.log(auctionView);
 
   return (
     <>

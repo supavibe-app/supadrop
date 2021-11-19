@@ -33,7 +33,7 @@ import {
   MetadataFile,
   StringPublicKey,
   getAssetCostToStore,
-  LAMPORT_MULTIPLIER
+  LAMPORT_MULTIPLIER,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -57,8 +57,6 @@ export const ArtCreateView = () => {
   const { env } = useConnectionConfig();
   const wallet = useWallet();
   const [alertMessage, setAlertMessage] = useState<string>();
-  const { step_param }: { step_param: string } = useParams();
-  const history = useHistory();
   const { width } = useWindowDimensions();
   const [nftCreateProgress, setNFTcreateProgress] = useState<number>(0);
 
@@ -83,19 +81,6 @@ export const ArtCreateView = () => {
       category: MetadataCategory.Image,
     },
   });
-
-  const gotoStep = useCallback(
-    (_step: number) => {
-      history.push(`/art/create/${_step.toString()}`);
-      if (_step === 0) setStepsVisible(true);
-    },
-    [history],
-  );
-
-  useEffect(() => {
-    if (step_param) setStep(parseInt(step_param));
-    else gotoStep(0);
-  }, [step_param, gotoStep]);
 
   // store files
   const mint = async () => {
@@ -171,7 +156,7 @@ export const ArtCreateView = () => {
                     category,
                   },
                 });
-                gotoStep(1);
+                setStep(step + 1);
               }}
             />
           )}
@@ -181,7 +166,7 @@ export const ArtCreateView = () => {
               setAttributes={setAttributes}
               files={files}
               setFiles={setFiles}
-              confirm={() => gotoStep(2)}
+              confirm={() => setStep(step + 1)}
             />
           )}
 
@@ -190,13 +175,13 @@ export const ArtCreateView = () => {
               attributes={attributes}
               files={files}
               setAttributes={setAttributes}
-              confirm={() => gotoStep(3)}
+              confirm={() => setStep(step + 1)}
             />
           )}
           {step === 3 && (
             <RoyaltiesStep
               attributes={attributes}
-              confirm={() => gotoStep(4)}
+              confirm={() => setStep(step + 1)}
               setAttributes={setAttributes}
             />
           )}
@@ -204,7 +189,7 @@ export const ArtCreateView = () => {
             <LaunchStep
               attributes={attributes}
               files={files}
-              confirm={() => gotoStep(5)}
+              confirm={() => setStep(step + 1)}
               connection={connection}
             />
           )}
@@ -213,12 +198,12 @@ export const ArtCreateView = () => {
               mint={mint}
               minting={isMinting}
               step={nftCreateProgress}
-              confirm={() => gotoStep(6)}
+              confirm={() => setStep(step + 1)}
             />
           )}
           {0 < step && step < 5 && (
             <div style={{ margin: 'auto', width: 'fit-content' }}>
-              <Button onClick={() => gotoStep(step - 1)}>Back</Button>
+              <Button onClick={() => setStep(step - 1)}>Back</Button>
             </div>
           )}
         </Col>
@@ -693,7 +678,7 @@ const InfoStep = (props: {
               allowClear
             />
           </label>
-          <label className="action-field">
+          {/* <label className="action-field">
             <span className="field-title">Maximum Supply</span>
             <InputNumber
               placeholder="Quantity"
@@ -708,7 +693,7 @@ const InfoStep = (props: {
               }}
               className="royalties-input"
             />
-          </label>
+          </label> */}
           <label className="action-field">
             <span className="field-title">Attributes</span>
           </label>
@@ -1248,6 +1233,7 @@ const Congrats = (props: {
   };
   alert?: string;
 }) => {
+  const { publicKey } = useWallet();
   const history = useHistory();
 
   const newTweetURL = () => {
@@ -1299,7 +1285,7 @@ const Congrats = (props: {
         </Button>
         <Button
           className="metaplex-button"
-          onClick={_ => history.push('/profile')}
+          onClick={_ => history.push(`/${publicKey?.toBase58()}`)}
         >
           <span>Sell it via auction</span>
           <span>&gt;</span>

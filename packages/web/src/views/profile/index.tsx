@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Avatar, Button, Col, Row, Skeleton, Tabs, message } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
 import { Link, useHistory } from 'react-router-dom';
-import { shortenAddress } from '@oyster/common';
+import { shortenAddress, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import FeatherIcon from 'feather-icons-react';
 
@@ -42,9 +42,16 @@ const { TabPane } = Tabs;
 const Profile = ({ userId }: { userId: string }) => {
   const { replace } = useHistory();
   const { publicKey } = useWallet();
+  const { isLoadingMetaplex, pullAllMetadata } = useMeta();
   const [onEdit, setOnEdit] = useState(false);
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
+
+  useEffect(() => {
+    if (!isLoadingMetaplex) {
+      pullAllMetadata();
+    }
+  }, [isLoadingMetaplex]);
 
   const walletAddress = userData?.wallet_address;
 
