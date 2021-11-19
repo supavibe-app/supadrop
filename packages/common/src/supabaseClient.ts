@@ -127,8 +127,6 @@ export const supabaseUpdateHighestBid = (
   bid: number,
   walletAddress: string,
 ) => {
-  console.log('masuk sini');
-
   supabase
     .from('auction_status')
     .select('highest_bid')
@@ -140,9 +138,7 @@ export const supabaseUpdateHighestBid = (
           .from('auction_status')
           .update({ highest_bid: bid, winner: walletAddress })
           .eq('id', idAuction)
-          .then(data => {
-            console.log('data ', data);
-          });
+          .then();
       }
     });
 };

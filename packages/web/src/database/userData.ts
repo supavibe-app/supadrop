@@ -108,10 +108,6 @@ export const getActiveBids = publicKey => {
         .eq('is_redeem', false)
         .then(data => {
           if (data.body) {
-            console.log(
-              '🚀 ~ file: userData.ts ~ line 111 ~ useEffect ~ data.body',
-              data.body,
-            );
             setResult({ loading: false, data: data.body });
           }
         });
@@ -147,7 +143,6 @@ export const getInfoEndedBidding = publicKey => {
         .then(action => {
           if (action.body != null) {
             if (action.body.length) {
-              console.log('masuk', action.body);
               setResult({ loading: false, data: action.body });
             }
           }
