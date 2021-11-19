@@ -66,11 +66,11 @@ export function Routes() {
             path="/art/create/:step_param?"
             component={() => <ArtCreateView />}
           />
-          <Route
+          {/* <Route
             exact
             path="/auction/:id/billing"
             component={() => <BillingView />}
-          />
+          /> */}
           <Route exact path="/" component={() => <LandingPage />} />
           <Route exact path="/:path" component={DirectPath} />
           <Route path="/art/:id" component={() => <ArtView />} />
