@@ -9,7 +9,6 @@ import {
   ArtView,
   AuctionCreateView,
   AuctionView,
-  BillingView,
 } from './views';
 import ActivityView from './views/activity';
 import AuctionListView from './views/auctionList';
@@ -32,6 +31,7 @@ const DirectPath = () => {
       return <MarketComponent />;
     case 3:
       return <About />;
+
     default:
       return <Profile userId={path} />;
   }
@@ -59,29 +59,15 @@ export function Routes() {
             <Route exact path="/artworks/:id?" component={() => <ArtworksView />} />
             <Route exact path="/artists/:id" component={() => <ArtistView />} />
             <Route exact path="/artists" component={() => <ArtistsView />} />
-            */}
+            <Route exact path="/auction/:id/billing" component={() => <BillingView />} />
+            <Route exact path="/art/create/:step_param?" component={() => <ArtCreateView />} /> */}
+
           {/* Updated Path */}
-          <Route
-            exact
-            path="/art/create/:step_param?"
-            component={() => <ArtCreateView />}
-          />
-          {/* <Route
-            exact
-            path="/auction/:id/billing"
-            component={() => <BillingView />}
-          /> */}
           <Route exact path="/" component={() => <LandingPage />} />
           <Route exact path="/:path" component={DirectPath} />
           <Route path="/art/:id" component={() => <ArtView />} />
           <Route path="/auction/:id" component={() => <AuctionView />} />
-          {/* <Route exact path="/list/create" component={() => <AuctionCreateView />} /> */}
-          
-          <Route
-            exact
-            path="/list/create"
-            component={() => <AuctionCreateView />}
-          />
+          <Route exact path="/list/create" component={() => <AuctionCreateView />} />
 
         </Providers>
       </Switch>
