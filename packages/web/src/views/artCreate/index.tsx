@@ -1233,6 +1233,7 @@ const Congrats = (props: {
   };
   alert?: string;
 }) => {
+  const { publicKey } = useWallet();
   const history = useHistory();
 
   const newTweetURL = () => {
@@ -1284,7 +1285,7 @@ const Congrats = (props: {
         </Button>
         <Button
           className="metaplex-button"
-          onClick={_ => history.push('/profile')}
+          onClick={_ => history.push(`/${publicKey?.toBase58()}`)}
         >
           <span>Sell it via auction</span>
           <span>&gt;</span>
