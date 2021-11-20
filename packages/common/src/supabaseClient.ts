@@ -68,14 +68,14 @@ export const supabaseAddNewUser = (walletAddress?: string) => {
 
 export const supabaseAddNewNFT = (
   id: string,
-  img_nft: string,
-  name: string,
-  description: string,
-  attribute: Attribute[],
-  royalty: number,
-  arweave_link: string,
-  mint_key: string,
-  creator: string,
+  img_nft?: string,
+  name?: string,
+  description?: string,
+  attribute?: Attribute[],
+  royalty?: number,
+  arweave_link?: string,
+  mint_key?: string,
+  creator?: string,
 ) => {
   supabase
     .from('nft_data')

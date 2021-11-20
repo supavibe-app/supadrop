@@ -37,7 +37,7 @@ import WaitingStep from '../../components/Listing/WaitingStep';
 import { BackButton } from './style';
 import CongratsStep from '../../components/Listing/CongratsStep';
 import { ArtCard } from '../../components/ArtCard';
-import { useUserSingleArt } from '../../hooks';
+import { useExtendedArt, useUserSingleArt } from '../../hooks';
 
 const { ZERO } = constants;
 
@@ -273,8 +273,12 @@ export const AuctionCreateView = () => {
       owner: wallet.publicKey?.toBase58(),
     };
 
-    console.log('item auction', item);
-    console.log('attributes', attributes);
+    const { ref, data } = await useExtendedArt(item.id_nft);
+    // const isDataReady = Boolean(data);
+
+    console.log('e item auction', item);
+    console.log('e attributes', attributes);
+    // console.log('e xtendArt', data);
     
     supabase
       .from('auction_status')
@@ -285,12 +289,12 @@ export const AuctionCreateView = () => {
 
         if (result.error) {
           console.log('res auction', result);
-          // supabaseAddNewNFT(item.id_nft, attributes.items[0].metadata.info.data.uri, attributes.items[0].metadata.info.data.name, )
+          supabaseAddNewNFT(item.id_nft, data?.image, data?.name, data?.description, data?.attributes, data?.seller_fee_basis_points, 
+            attributes.items[0].metadata.info.data.uri, attributes.items[0].metadata.info.mint, item.owner);
         }
-        else {
-          updateLiveDataAuction();
-          updateAllDataAuction();
-        }
+
+        updateLiveDataAuction();
+        updateAllDataAuction();
       });
     setAuctionObj(_auctionObj);
     await update();
