@@ -69,14 +69,14 @@ const ArtDetails = ({
                     <div className={UserThumbnail} key={creator.address}>
                       <Avatar
                         src={
-                          users[creator.address]
+                          users[creator.address]?.img_profile
                             ? users[creator.address].img_profile
                             : null
                         }
                         size={40}
                       />
                       <span>
-                        {users[creator.address]
+                        {users[creator.address]?.username
                           ? `@${users[creator.address].username}`
                           : shortenAddress(creator.address)}
                       </span>
@@ -98,11 +98,15 @@ const ArtDetails = ({
                 {(!ended || !highestBid) && (
                   <>
                     <Avatar
-                      src={users[owner] ? users[owner].img_profile : null}
+                      src={
+                        users[owner]?.img_profile
+                          ? users[owner].img_profile
+                          : null
+                      }
                       size={40}
                     />
                     <span>
-                      {users[owner]
+                      {users[owner]?.username
                         ? `@${users[owner].username}`
                         : shortenAddress(owner)}
                     </span>
