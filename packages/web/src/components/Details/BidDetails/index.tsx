@@ -24,6 +24,8 @@ import {
   supabaseUpdateStatusInstantSale,
   supabaseUpdateIsRedeem,
   supabaseUpdateIsRedeemAuctionStatus,
+  supabaseUpdateNFTHolder,
+  supabaseUpdateWinnerAuction,
 } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
@@ -234,6 +236,7 @@ const BidDetails = ({
               publicKey?.toBase58(),
             );
             setShowCongratulations(true);
+            supabaseUpdateNFTHolder(auctionView.thumbnail.metadata.pubkey, wallet.publicKey?.toBase58());
           }
         });
       } else {
@@ -363,6 +366,7 @@ const BidDetails = ({
         pullAuctionPage(auction?.auction.pubkey || '');
         await update();
         setShowCongratulations(true);
+        supabaseUpdateNFTHolder(auctionView.thumbnail.metadata.pubkey, wallet.publicKey?.toBase58());
       });
     } catch (e) {
       console.error(e);
@@ -601,6 +605,9 @@ const BidDetails = ({
             </BidDetailsContent>
           );
         }
+
+
+        // supabaseUpdateWinnerAuction(auction?.auction.pubkey, walletContext.publicKey?.toBase58());
 
         return (
           <BidDetailsContent>
