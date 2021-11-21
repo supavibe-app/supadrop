@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Row, Col, Layout, Spin, Button, Table } from 'antd';
+import { Avatar, Row, Col, Layout, Spin, Button, Table, Image } from 'antd';
 import {
   useArt,
   useAuction,
   AuctionView,
   useBidsForAuction,
   useUserBalance,
+  useExtendedArt,
 } from '../../hooks';
 import { ArtContent } from '../../components/ArtContent';
 import {
@@ -38,6 +39,11 @@ import {
 import { Connection } from '@solana/web3.js';
 import { settle } from '../../actions/settle';
 import { MintInfo } from '@solana/spl-token';
+import { ArtContainer, ArtContentStyle, ArtDetailsColumn, ArtDetailsHeader, ArtTitle, BillingLabel, BillingValue, ColumnBox, Container, GroupValue, OverflowYAuto, PaddingBox, StatusBillingLabel, StatusContainer, TotalAuctionGroupValue, TotalAuctionLabel, TotalAuctionValue } from './style';
+import { ThreeDots } from '../../components/MyLoader';
+import { BillingHistory } from '../../components/Details/TransactionHistory';
+import ActionButton from '../../components/ActionButton';
+import { uFlex } from '../../styles';
 const { Content } = Layout;
 
 export const BillingView = () => {
@@ -158,8 +164,8 @@ function usePayoutTickets(
         const creators = item.metadata?.info?.data?.creators || [];
         const recipientAddresses = creators
           ? creators
-              .map(c => c.address)
-              .concat([auctionView.auctionManager.authority])
+            .map(c => c.address)
+            .concat([auctionView.auctionManager.authority])
           : [auctionView.auctionManager.authority];
 
         for (let k = 0; k < recipientAddresses.length; k++) {
@@ -342,12 +348,12 @@ export function useBillingInfo({ auctionView }: { auctionView: AuctionView }) {
     metadata: ParsedAccount<BidderMetadata>;
     pot: ParsedAccount<BidderPot>;
   }[] = [
-    ...winnersThatCanBeEmptied.map(pot => ({
-      metadata:
-        bidderMetadataByAuctionAndBidder[`${auctionKey}-${pot.info.bidderAct}`],
-      pot,
-    })),
-  ];
+      ...winnersThatCanBeEmptied.map(pot => ({
+        metadata:
+          bidderMetadataByAuctionAndBidder[`${auctionKey}-${pot.info.bidderAct}`],
+        pot,
+      })),
+    ];
 
   return {
     bidsToClaim,
@@ -375,12 +381,14 @@ export const InnerBillingView = ({
   const art = useArt(id);
   const balance = useUserBalance(auctionView.auction.info.tokenMint);
   const [escrowBalance, setEscrowBalance] = useState<number | undefined>();
+  const [escrowBalanceRefreshCounter, setEscrowBalanceRefreshCounter] = useState(0);
   const { whitelistedCreatorsByCreator, pullBillingPage } = useMeta();
+
+  const { ref, data } = useExtendedArt(id);
+
   useEffect(() => {
     pullBillingPage(id);
   }, []);
-  const [escrowBalanceRefreshCounter, setEscrowBalanceRefreshCounter] =
-    useState(0);
 
   useEffect(() => {
     connection
@@ -407,140 +415,144 @@ export const InnerBillingView = ({
   } = useBillingInfo({
     auctionView,
   });
+
   return (
-    <Content>
-      <Col>
-        <Row
-          style={{ margin: '0 30px', textAlign: 'left', fontSize: '1.4rem' }}
-        >
-          <Col span={12}>
-            <ArtContent
-              pubkey={id}
-              className="artwork-image"
-              allowMeshRender={true}
+    <Row className={Container} ref={ref}>
+      {/* Art Column */}
+      <Col className={ColumnBox} span={24} md={13}>
+        <div className={ArtContainer}>
+          {data && (
+            <Image
+              src={data.image}
+              wrapperClassName={ArtContentStyle}
+              loading="lazy"
+              placeholder={<ThreeDots />}
             />
-          </Col>
-          <Col span={12}>
-            <div style={{ fontWeight: 700 }}>{art.title}</div>
-            <br />
-            <div className="info-header">TOTAL AUCTION VALUE</div>
-            <div className="escrow">
-              ◎
-              {fromLamports(
-                totalWinnerPayments + participationPossibleTotal,
-                mint,
-              )}
+          )}
+
+          {!data && <ThreeDots />}
+        </div>
+      </Col>
+
+      {/* Art Details and Bid Details Column */}
+      <Col className={ColumnBox} span={24} md={7}>
+        <div className={ArtDetailsColumn}>
+          <div className={`${OverflowYAuto} ${PaddingBox} `}>
+            <div className={ArtTitle}>{art.title}</div>
+
+            <div className={TotalAuctionGroupValue}>
+              <div className={TotalAuctionLabel}>TOTAL AUCTION VALUE</div>
+              <div className={TotalAuctionValue}>
+                {fromLamports(
+                  totalWinnerPayments + participationPossibleTotal,
+                  mint,
+                )} SOL
+              </div>
             </div>
-            <br />
-            <div className="info-header">TOTAL AUCTION REDEEMED VALUE</div>
-            <div className="escrow">
-              ◎
-              {fromLamports(
-                totalWinnerPayments +
-                  participationPossibleTotal -
-                  participationUnredeemedTotal,
-                mint,
-              )}
+
+            <div className={GroupValue}>
+              <div className={BillingLabel}>
+                TOTAL COLLECTED BY ARTISTS AND AUCTIONEER
+              </div>
+              <div className={BillingValue}>
+                {fromLamports(
+                  Object.values(payoutTickets).reduce(
+                    (acc, el) => (acc += el.sum),
+                    0,
+                  ),
+                  mint,
+                )} SOL
+              </div>
             </div>
-            <br />
-            <div className="info-header">
-              TOTAL COLLECTED BY ARTISTS AND AUCTIONEER
+
+            <div className={GroupValue}>
+              <div className={BillingLabel}>TOTAL UNSETTLED</div>
+              <div className={BillingValue}>
+                {fromLamports(
+                  bidsToClaim.reduce(
+                    (acc, el) => (acc += el.metadata.info.lastBid.toNumber()),
+                    0,
+                  ),
+                  mint,
+                )} SOL
+              </div>
             </div>
-            <div className="escrow">
-              ◎
-              {fromLamports(
-                Object.values(payoutTickets).reduce(
-                  (acc, el) => (acc += el.sum),
-                  0,
-                ),
-                mint,
-              )}
+
+            <div className={GroupValue}>
+              <div className={BillingLabel}>TOTAL IN ESCROW</div>
+              <div className={BillingValue}>
+                {escrowBalance !== undefined ? `${escrowBalance} SOL` : <Spin />}
+              </div>
             </div>
-            <br />
-            <div className="info-header">TOTAL UNSETTLED</div>
-            <div className="escrow">
-              ◎
-              {fromLamports(
-                bidsToClaim.reduce(
-                  (acc, el) => (acc += el.metadata.info.lastBid.toNumber()),
-                  0,
-                ),
-                mint,
-              )}
-            </div>
-            <br />
-            <div className="info-header">TOTAL IN ESCROW</div>
-            <div className="escrow">
-              {escrowBalance !== undefined ? `◎${escrowBalance}` : <Spin />}
-            </div>
-            <br />
+
             {hasParticipation && (
-              <>
-                <div className="info-header">
+              <div className={GroupValue}>
+                <div className={BillingLabel}>
                   TOTAL UNREDEEMED PARTICIPATION FEES OUTSTANDING
                 </div>
-                <div className="outstanding-open-editions">
-                  ◎{fromLamports(participationUnredeemedTotal, mint)}
+                <div className={BillingValue}>
+                  {fromLamports(participationUnredeemedTotal, mint)} SOL
                 </div>
-                <br />
-              </>
+              </div>
             )}
-            <br />
-            <Button
-              type="primary"
-              size="large"
-              className="action-btn"
-              onClick={async () => {
-                await settle(
-                  connection,
-                  wallet,
-                  auctionView,
-                  bidsToClaim.map(b => b.pot),
-                  myPayingAccount.pubkey,
-                  accountByMint,
-                );
-                supabaseUpdateIsRedeemAuctionStatus(
-                  auctionView?.auction.pubkey,
-                );
-                setEscrowBalanceRefreshCounter(ctr => ctr + 1);
-              }}
-            >
-              SETTLE OUTSTANDING
-            </Button>
-          </Col>
-        </Row>
-        <Row>
-          <Table
-            style={{ width: '100%' }}
-            columns={[
-              {
-                title: 'Name',
-                dataIndex: 'name',
-                key: 'name',
-              },
-              {
-                title: 'Address',
-                dataIndex: 'address',
-                key: 'address',
-              },
-              {
-                title: 'Amount Paid',
-                dataIndex: 'amountPaid',
-                render: (val: number) => (
-                  <span>◎{fromLamports(val, mint)}</span>
-                ),
-                key: 'amountPaid',
-              },
-            ]}
-            dataSource={Object.keys(payoutTickets).map(t => ({
-              key: t,
-              name: whitelistedCreatorsByCreator[t]?.info?.name || 'N/A',
-              address: t,
-              amountPaid: payoutTickets[t].sum,
-            }))}
-          />
-        </Row>
+          </div>
+
+          <div className={StatusContainer}>
+            <div className={PaddingBox}>
+              <div className={uFlex}>
+                <Avatar size={40} style={{ marginRight: 16 }} />
+
+                <div>
+                  <div className={StatusBillingLabel}>total auction redeemed value</div>
+
+                  <div className={BillingValue} style={{ fontSize: 18 }}>
+                    {fromLamports(
+                      totalWinnerPayments +
+                      participationPossibleTotal -
+                      participationUnredeemedTotal,
+                      mint,
+                    )} SOL
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ paddingRight: 8, marginTop: 32 }}>
+                <ActionButton
+                  width="100%"
+                  onClick={async () => {
+                    await settle(
+                      connection,
+                      wallet,
+                      auctionView,
+                      bidsToClaim.map(b => b.pot),
+                      myPayingAccount.pubkey,
+                      accountByMint,
+                    );
+                    supabaseUpdateIsRedeemAuctionStatus(
+                      auctionView?.auction.pubkey,
+                    );
+                    setEscrowBalanceRefreshCounter(ctr => ctr + 1);
+                  }}
+                >
+                  settle outstanding
+                </ActionButton>
+              </div>
+            </div>
+          </div>
+        </div>
       </Col>
-    </Content>
+
+      {/* Bids History Column */}
+      <Col className={`${ColumnBox} ${PaddingBox}`} span={24} md={4}>
+        <BillingHistory
+          auction={auctionView}
+          bids={Object.keys(payoutTickets).map(t => ({
+            key: t,
+            address: t,
+            amount: payoutTickets[t].sum,
+          }))}
+        />
+      </Col>
+    </Row>
   );
 };

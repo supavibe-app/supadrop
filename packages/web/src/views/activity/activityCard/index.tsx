@@ -519,7 +519,7 @@ export const ActivityCard3 = ({ auctionView }: { auctionView: any }) => {
           !eligibleForAnything &&
           isOwner &&
           haveWinner && (
-            <ActionButton to={`/auction/${auctionView.id}/billing`}>
+            <ActionButton to={`/auction/${auctionView.id}/settle`}>
               settle
             </ActionButton>
           )}

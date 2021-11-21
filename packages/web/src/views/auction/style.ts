@@ -108,3 +108,64 @@ export const Label = css`
 export const StatusContainer = css`
   border-top: 1px solid #2b2b2b;
 `;
+
+// Billing
+export const ArtTitle = css`
+  font-weight: bold;
+  font-size: 36px;
+  line-height: 45px;
+
+  color: #fafafb;
+  margin-bottom: 32px;
+`;
+
+export const TotalAuctionLabel = css`
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 22px;
+
+  color: #7e7c7c;
+  margin-bottom: 8px;
+`;
+
+export const TotalAuctionValue = css`
+  font-weight: bold;
+  font-size: 36px;
+  line-height: 45px;
+
+  color: #fafafb;
+`;
+
+export const GroupValue = css`
+  margin-bottom: 24px;
+`;
+
+export const TotalAuctionGroupValue = css`
+  margin-bottom: 32px;
+`;
+
+export const BillingLabel = css`
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 17px;
+
+  color: #7e7c7c;
+  margin-bottom: 8px;
+  width: 55%;
+`;
+
+export const BillingValue = css`
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 30px;
+
+  color: #fafafb;
+`;
+
+export const StatusBillingLabel = css`
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 17px;
+
+  color: #7e7c7c;
+`;
