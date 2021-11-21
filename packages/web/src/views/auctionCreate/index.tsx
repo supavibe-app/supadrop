@@ -37,7 +37,7 @@ import WaitingStep from '../../components/Listing/WaitingStep';
 import { BackButton } from './style';
 import CongratsStep from '../../components/Listing/CongratsStep';
 import { ArtCard } from '../../components/ArtCard';
-import { useExtendedArt, useUserSingleArt } from '../../hooks';
+import { useUserSingleArt, useExtendedArt } from '../../hooks';
 
 const { ZERO } = constants;
 
@@ -118,6 +118,8 @@ export const AuctionCreateView = () => {
     gapTimeType: 'minutes',
     winnersCount: 1,
   });
+
+  const { ref, data } = useExtendedArt(attributes.items[0].metadata.pubkey);
 
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
@@ -273,12 +275,10 @@ export const AuctionCreateView = () => {
       owner: wallet.publicKey?.toBase58(),
     };
 
-    const { ref, data } = await useExtendedArt(item.id_nft);
     // const isDataReady = Boolean(data);
 
     console.log('e item auction', item);
     console.log('e attributes', attributes);
-    // console.log('e xtendArt', data);
     
     supabase
       .from('auction_status')
@@ -286,6 +286,7 @@ export const AuctionCreateView = () => {
       .then((result) => {
 
         // TODO CHECK NFT DATA
+        console.log('e xtendArt', data);
 
         if (result.error) {
           console.log('res auction', result);
