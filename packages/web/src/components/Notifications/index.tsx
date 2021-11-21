@@ -167,7 +167,7 @@ export function useCollapseWrappedSol({
         if ((balance && balance.value.uiAmount) || 0 > 0) {
           setShowNotification(true);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     setTimeout(fn, 60000);
   };
@@ -308,7 +308,7 @@ export function useSettlementAuctions({
           <span>
             One of your auctions ended and it has monies that can be claimed.
             For more detail,{' '}
-            <Link to={`/auction/${auctionKey}/billing`}>click here.</Link>
+            <Link to={`/auction/${auctionKey}/settle`}>click here.</Link>
           </span>
         ),
         action: async () => {
@@ -320,7 +320,7 @@ export function useSettlementAuctions({
               safetyDepositBoxesByVaultAndIndex,
               metadataByMint,
               bidderMetadataByAuctionAndBidder:
-                updatedBidderMetadataByAuctionAndBidder,
+              updatedBidderMetadataByAuctionAndBidder,
               bidderPotsByAuctionAndBidder,
               bidRedemptionV2sByAuctionManagerAndWinningIndex,
               masterEditions,
@@ -365,11 +365,11 @@ export function useSettlementAuctions({
               if (
                 wallet.publicKey &&
                 auctionView.auction.info.tokenMint ==
-                  WRAPPED_SOL_MINT.toBase58()
+                WRAPPED_SOL_MINT.toBase58()
               ) {
                 const ata = await getPersonalEscrowAta(wallet);
                 if (ata) await closePersonalEscrow(connection, wallet, ata);
-                
+
               }
             }
           } catch (e) {

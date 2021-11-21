@@ -92,4 +92,77 @@ const TransactionHistory = ({
   );
 };
 
+interface ISettle {
+  key: string | number;
+  address: string;
+  amount: number;
+}
+
+export const BillingHistory = ({
+  auction,
+  bids,
+}: {
+  auction: AuctionView | undefined;
+  bids: ISettle[];
+}) => {
+  const { publicKey } = useWallet();
+  const { isLoadingDatabase } = useMeta();
+  const mint = useMint(auction?.auction.info.tokenMint);
+
+  const TransactionHistorySkeleton = (
+    <div>
+      {[...Array(3)].map(i => (
+        <Skeleton avatar paragraph={{ rows: 0 }} />
+      ))}
+    </div>
+  );
+
+  console.log(bids)
+
+  return (
+    <>
+      <div className={ActivityHeader}>
+        <div className={YellowGlowColor}>history</div>
+        {/* <div>activity</div> */}
+      </div>
+
+      {isLoadingDatabase && TransactionHistorySkeleton}
+
+      {!isLoadingDatabase && !Boolean(bids.length) && (
+        <div className={GreyColor}>
+          <div>no one settle the auction value yet</div>
+        </div>
+      )}
+
+      {bids.map((bid, idx) => (
+        <div key={idx}>
+          {publicKey?.toBase58() === bid.address && (
+            <div className={IsMyBid} />
+          )}
+          <Row className={Activity} justify="space-between" align="middle">
+            <Col className={uFlexAlignItemsCenter} span={12}>
+              <div>
+                <Avatar
+                  // src={
+                  //   users[bid.info.bidderPubkey]?.img_profile
+                  //     ? users[bid.info.bidderPubkey].img_profile
+                  //     : null
+                  // }
+                  size={24}
+                />
+              </div>
+
+              <div>{shortenAddress(bid.address)}</div>
+            </Col>
+
+            <Col className={uBoldFont} span={12}>
+              <span>{formatTokenAmount(bid.amount, mint)} SOL</span>
+            </Col>
+          </Row>
+        </div>
+      ))}
+    </>
+  );
+};
+
 export default TransactionHistory;

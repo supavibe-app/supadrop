@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Avatar, Button, Col, Row, Skeleton, Tabs, message } from 'antd';
+import { Avatar, Button, Col, Row, Skeleton, Tabs, message, Badge } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
 import { Link, useHistory } from 'react-router-dom';
 import { shortenAddress, useMeta } from '@oyster/common';
@@ -25,6 +25,7 @@ import { uFlexJustifyCenter, uTextAlignCenter, WhiteColor } from '../../styles';
 import {
   AddressSection,
   ArtsContent,
+  BadgeStyle,
   BioSection,
   EditProfileButton,
   EmptyRow,
@@ -450,41 +451,43 @@ const Profile = ({ userId }: { userId: string }) => {
             </Row>
           </TabPane>
 
-          <TabPane
-            tab={
-              <>
-                On Sale{' '}
-                <span>
-                  {onSale.length < 10 ? `0${onSale.length}` : onSale.length}
-                </span>
-              </>
-            }
-            key="4"
-          >
-            <Row
-              className={onSale.length === 0 ? EmptyRow : ``}
-              gutter={[36, 36]}
+          {onSale.length > 0 && (
+            <TabPane
+              tab={
+                <Badge className={BadgeStyle} dot offset={[10, 10]}>
+                  On Sale{' '}
+                  <span>
+                    {onSale.length < 10 ? `0${onSale.length}` : onSale.length}
+                  </span>
+                </Badge>
+              }
+              key="4"
             >
-              {onSale.length === 0 && <EmptyState />}
+              <Row
+                className={onSale.length === 0 ? EmptyRow : ``}
+                gutter={[36, 36]}
+              >
+                {onSale.length === 0 && <EmptyState />}
 
-              {onSale.map(art => (
-                <Col key={art.auction.pubkey} span={8}>
-                  {!art.auction.info.endAuctionAt && (
-                    <ArtCardOnSale auctionView={art} />
-                  )}
-                  {art.auction.info.endAuctionAt && (
-                    <Link to={`/auction/${art.auction.pubkey}`}>
-                      <ArtCard
-                        key={art.thumbnail.metadata.pubkey}
-                        pubkey={art.thumbnail.metadata.pubkey}
-                        preview={false}
-                      />
-                    </Link>
-                  )}
-                </Col>
-              ))}
-            </Row>
-          </TabPane>
+                {onSale.map(art => (
+                  <Col key={art.auction.pubkey} span={8}>
+                    {!art.auction.info.endAuctionAt && (
+                      <ArtCardOnSale auctionView={art} />
+                    )}
+                    {art.auction.info.endAuctionAt && (
+                      <Link to={`/auction/${art.auction.pubkey}`}>
+                        <ArtCard
+                          key={art.thumbnail.metadata.pubkey}
+                          pubkey={art.thumbnail.metadata.pubkey}
+                          preview={false}
+                        />
+                      </Link>
+                    )}
+                  </Col>
+                ))}
+              </Row>
+            </TabPane>
+          )}
         </Tabs>
       </Col>
     </Row>

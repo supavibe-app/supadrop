@@ -114,6 +114,26 @@ export const TabsStyle = css`
   }
 `;
 
+export const BadgeStyle = css`
+  text-transform: uppercase;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 22px;
+  color: #7e7c7c !important;
+  padding: unset;
+
+  span {
+    color: #444444 !important;
+  }
+
+  .ant-badge-dot {
+    background: #ff2d55;
+    width: 8px;
+    height: 8px;
+  }
+`;
+
 export const EmptyRow = css`
   align-content: center;
   text-align: center;
