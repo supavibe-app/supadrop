@@ -34,9 +34,9 @@ const MetaContext = React.createContext<MetaContextState>({
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
   // @ts-ignore
-  updateLiveDataAuction: function () {},
-  updateAllDataAuction: function () {},
-  updateDetailAuction: function () {},
+  updateLiveDataAuction: function () { },
+  updateAllDataAuction: function () { },
+  updateDetailAuction: function () { },
 });
 
 export function MetaProvider({ children = null as any }) {
@@ -391,7 +391,7 @@ export function MetaProvider({ children = null as any }) {
         }
 
         const auction = window.location.href.match(/auction\/(\w+)/);
-        const billing = window.location.href.match(/auction\/(\w+)\/billing/);
+        const billing = window.location.href.match(/auction\/(\w+)\/settle/);
 
         if (auction && page == 0) {
           console.log(

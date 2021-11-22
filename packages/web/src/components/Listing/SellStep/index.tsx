@@ -32,28 +32,28 @@ const SellStep = (props: {
   // states
   const [category, setCategory] = useState(AuctionCategory.InstantSale);
   const [time, setTime] = useState(1);
-  const [priceFloor, setPriceFloor] = useState<number>();
+  const [priceFloor, setPriceFloor] = useState<number>(0);
 
   const handleList = async () => {
     const attributeValue =
       category === AuctionCategory.InstantSale
         ? {
-            ...props.attributes,
-            startSaleTS: moment().unix(),
-            startListTS: moment().unix(),
-            priceFloor,
-            instantSalePrice: priceFloor,
-          }
+          ...props.attributes,
+          startSaleTS: moment().unix(),
+          startListTS: moment().unix(),
+          priceFloor,
+          instantSalePrice: priceFloor,
+        }
         : {
-            ...props.attributes,
-            startSaleTS: moment().unix(),
-            startListTS: moment().unix(),
-            priceFloor,
-            priceTick: 0.1,
-            auctionDuration: time,
-            gapTime: 15,
-            tickSizeEndingPhase: 10,
-          };
+          ...props.attributes,
+          startSaleTS: moment().unix(),
+          startListTS: moment().unix(),
+          priceFloor,
+          priceTick: 0.1,
+          auctionDuration: time,
+          gapTime: 15,
+          tickSizeEndingPhase: 10,
+        };
 
     props.setAttributes(attributeValue);
     props.confirm();
@@ -67,6 +67,7 @@ const SellStep = (props: {
           make sure you have enough SOL to perform the network fee (supadrop
           don’t charge listing fee)
         </div>
+
         <InputPrice
           placeholder="0"
           suffix="SOL"
@@ -128,7 +129,7 @@ const SellStep = (props: {
         </div>
       </div>
 
-      <ActionButton size="small" onClick={handleList}>
+      <ActionButton size="small" onClick={handleList} disabled={priceFloor <= 0 || !priceFloor}>
         list my NFT
       </ActionButton>
     </Col>
