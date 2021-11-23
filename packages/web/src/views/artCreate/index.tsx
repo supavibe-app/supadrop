@@ -1254,7 +1254,7 @@ const Congrats = (props: {
       <>
         <div className="waiting-title">Sorry, there was an error!</div>
         <p>{props.alert}</p>
-        <Button onClick={_ => history.push('/list/create')}>
+        <Button onClick={_ => history.push('/create')}>
           Back to Create NFT
         </Button>
       </>
