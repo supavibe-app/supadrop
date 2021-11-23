@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Attribute } from '.';
+import { Attribute, timestampPostgre } from '.';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -20,7 +20,7 @@ export const supabaseUpdateBid = (
       if (data.body?.length > 0) {
         supabase
           .from('action_bidding')
-          .update({ price_bid: bidAmount })
+          .update({ price_bid: bidAmount, updated_at: timestampPostgre() })
           .eq('id', `${idAuction}_${walletAddress}`)
           .then(() => {
             supabaseUpdateHighestBid(
@@ -103,8 +103,22 @@ export const supabaseUpdateNFTHolder = (
 ) => {
   supabase
     .from('nft_data')
-    .update({ holder: walletAddress })
+    .update({ holder: walletAddress, updated_at: timestampPostgre() })
     .eq('id', idNFT)
+    .then(result => {
+      console.log('res', result);
+    });
+};
+
+export const supabaseGetAllOwnedNFT = (
+  idNFT: string,
+  walletAddress?: string,
+) => {
+  supabase
+    .from('nft_data')
+    .select('*')
+    .eq('id', idNFT)
+    .eq('holder', walletAddress)
     .then(result => {
       console.log('res', result);
     });
@@ -113,7 +127,11 @@ export const supabaseUpdateNFTHolder = (
 export const supabaseUpdateStatusInstantSale = (idAuction?: string) => {
   supabase
     .from('auction_status')
-    .update({ isLiveMarket: false, is_redeem: true })
+    .update({
+      isLiveMarket: false,
+      is_redeem: true,
+      updated_at: timestampPostgre(),
+    })
     .eq('id', idAuction)
     .then();
 };
@@ -123,14 +141,14 @@ export const supabaseUpdateIsRedeem = (
 ) => {
   supabase
     .from('action_bidding')
-    .update({ is_redeem: true })
+    .update({ is_redeem: true, updated_at: timestampPostgre() })
     .eq('id', `${idAuction}_${walletAddress}`)
     .then();
 };
 export const supabaseUpdateIsRedeemAuctionStatus = (idAuction?: string) => {
   supabase
     .from('auction_status')
-    .update({ is_redeem: true })
+    .update({ is_redeem: true, updated_at: timestampPostgre() })
     .eq('id', idAuction)
     .then();
 };
@@ -149,7 +167,11 @@ export const supabaseUpdateHighestBid = (
       if (data.body && data.body.highest_bid < bid) {
         supabase
           .from('auction_status')
-          .update({ highest_bid: bid, winner: walletAddress })
+          .update({
+            highest_bid: bid,
+            winner: walletAddress,
+            updated_at: timestampPostgre(),
+          })
           .eq('id', idAuction)
           .then();
       }
@@ -162,7 +184,7 @@ export const supabaseUpdateWinnerAuction = (
 ) => {
   supabase
     .from('auction_status')
-    .update({ winner: walletAddress })
+    .update({ winner: walletAddress, updated_at: timestampPostgre() })
     .eq('id', idAuction)
     .then(result => {
       console.log('res', result);

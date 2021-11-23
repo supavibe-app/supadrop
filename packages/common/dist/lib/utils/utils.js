@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sleep = exports.convert = exports.formatPct = exports.formatNumber = exports.formatUSD = exports.formatTokenAmount = exports.formatAmount = exports.tryParseKey = exports.fromLamports = exports.wadToLamports = exports.toLamports = exports.chunks = exports.STABLE_COINS = exports.isKnownMint = exports.getTokenIcon = exports.getTokenByName = exports.getVerboseTokenName = exports.getTokenName = exports.shortenAddress = exports.findProgramAddress = exports.useLocalStorageState = exports.formatPriceNumber = void 0;
+exports.sleep = exports.convert = exports.formatPct = exports.formatNumber = exports.formatUSD = exports.formatTokenAmount = exports.formatAmount = exports.tryParseKey = exports.fromLamports = exports.wadToLamports = exports.toLamports = exports.chunks = exports.STABLE_COINS = exports.isKnownMint = exports.getTokenIcon = exports.getTokenByName = exports.getVerboseTokenName = exports.getTokenName = exports.timestampPostgre = exports.shortenAddress = exports.findProgramAddress = exports.useLocalStorageState = exports.formatPriceNumber = void 0;
 const react_1 = require("react");
 const web3_js_1 = require("@solana/web3.js");
 const bn_js_1 = __importDefault(require("bn.js"));
@@ -73,6 +73,10 @@ function shortenAddress(address, chars = 4) {
     return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 exports.shortenAddress = shortenAddress;
+function timestampPostgre() {
+    return new Date(Date.now()).toISOString().replace('T', ' ').replace('Z', '');
+}
+exports.timestampPostgre = timestampPostgre;
 function getTokenName(map, mint, shorten = true) {
     var _a;
     const mintAddress = typeof mint === 'string' ? mint : mint === null || mint === void 0 ? void 0 : mint.toBase58();

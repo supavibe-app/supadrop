@@ -46,7 +46,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 
   const participationFixedPrice = 0;
   const participationOnly = false;
-  const priceFloor = auctionView.price_floor * 1000000000;
+  const priceFloor = (auctionView.isInstantSale) ? auctionView.price_floor : (auctionView.price_floor * 1000000000);
   const isUpcoming = false;
   const now = Math.floor(new Date().getTime() / 1000);
   const endAt = auctionView.endAt;
