@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.supabaseUpdateHighestBid = exports.supabaseUpdateIsRedeemAuctionStatus = exports.supabaseUpdateIsRedeem = exports.supabaseUpdateStatusInstantSale = exports.supabaseAddNewNFT = exports.supabaseAddNewUser = exports.supabaseUpdateBid = exports.supabase = void 0;
+exports.supabaseUpdateWinnerAuction = exports.supabaseUpdateHighestBid = exports.supabaseUpdateIsRedeemAuctionStatus = exports.supabaseUpdateIsRedeem = exports.supabaseUpdateStatusInstantSale = exports.supabaseUpdateNFTHolder = exports.supabaseAddNewNFT = exports.supabaseAddNewUser = exports.supabaseUpdateBid = exports.supabase = void 0;
 const supabase_js_1 = require("@supabase/supabase-js");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -77,6 +77,16 @@ const supabaseAddNewNFT = (id, img_nft, name, description, attribute, royalty, a
         .then();
 };
 exports.supabaseAddNewNFT = supabaseAddNewNFT;
+const supabaseUpdateNFTHolder = (idNFT, walletAddress) => {
+    exports.supabase
+        .from('nft_data')
+        .update({ holder: walletAddress })
+        .eq('id', idNFT)
+        .then(result => {
+        console.log('res', result);
+    });
+};
+exports.supabaseUpdateNFTHolder = supabaseUpdateNFTHolder;
 const supabaseUpdateStatusInstantSale = (idAuction) => {
     exports.supabase
         .from('auction_status')
@@ -102,7 +112,6 @@ const supabaseUpdateIsRedeemAuctionStatus = (idAuction) => {
 };
 exports.supabaseUpdateIsRedeemAuctionStatus = supabaseUpdateIsRedeemAuctionStatus;
 const supabaseUpdateHighestBid = (idAuction, bid, walletAddress) => {
-    console.log('masuk sini');
     exports.supabase
         .from('auction_status')
         .select('highest_bid')
@@ -114,11 +123,19 @@ const supabaseUpdateHighestBid = (idAuction, bid, walletAddress) => {
                 .from('auction_status')
                 .update({ highest_bid: bid, winner: walletAddress })
                 .eq('id', idAuction)
-                .then(data => {
-                console.log('data ', data);
-            });
+                .then();
         }
     });
 };
 exports.supabaseUpdateHighestBid = supabaseUpdateHighestBid;
+const supabaseUpdateWinnerAuction = (idAuction, walletAddress) => {
+    exports.supabase
+        .from('auction_status')
+        .update({ winner: walletAddress })
+        .eq('id', idAuction)
+        .then(result => {
+        console.log('res', result);
+    });
+};
+exports.supabaseUpdateWinnerAuction = supabaseUpdateWinnerAuction;
 //# sourceMappingURL=supabaseClient.js.map

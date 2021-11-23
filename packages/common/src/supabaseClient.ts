@@ -68,14 +68,14 @@ export const supabaseAddNewUser = (walletAddress?: string) => {
 
 export const supabaseAddNewNFT = (
   id: string,
-  img_nft: string,
-  name: string,
-  description: string,
-  attribute: Attribute[],
-  royalty: number,
-  arweave_link: string,
-  mint_key: string,
-  creator: string,
+  img_nft?: string,
+  name?: string,
+  description?: string,
+  attribute?: Attribute[],
+  royalty?: number,
+  arweave_link?: string,
+  mint_key?: string,
+  creator?: string,
 ) => {
   supabase
     .from('nft_data')
@@ -95,6 +95,19 @@ export const supabaseAddNewNFT = (
       },
     ])
     .then();
+};
+
+export const supabaseUpdateNFTHolder = (
+  idNFT: string,
+  walletAddress?: string,
+) => {
+  supabase
+    .from('nft_data')
+    .update({ holder: walletAddress })
+    .eq('id', idNFT)
+    .then(result => {
+      console.log('res', result);
+    });
 };
 
 export const supabaseUpdateStatusInstantSale = (idAuction?: string) => {
@@ -140,5 +153,18 @@ export const supabaseUpdateHighestBid = (
           .eq('id', idAuction)
           .then();
       }
+    });
+};
+
+export const supabaseUpdateWinnerAuction = (
+  idAuction?: string,
+  walletAddress?: string,
+) => {
+  supabase
+    .from('auction_status')
+    .update({ winner: walletAddress })
+    .eq('id', idAuction)
+    .then(result => {
+      console.log('res', result);
     });
 };
