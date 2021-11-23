@@ -1,6 +1,5 @@
 import { sendPlaceBid } from '../../actions/sendPlaceBid';
 import {
-  supabase,
   supabaseUpdateStatusInstantSale,
   useConnection,
   useMeta,
@@ -9,7 +8,7 @@ import {
 import { useWallet } from '@solana/wallet-adapter-react';
 import { sendRedeemBid } from '../../actions/sendRedeemBid';
 import { AuctionView, useBidsForAuction, useUserBalance } from '../../hooks';
-import { Button } from 'antd';
+import { Button, Modal } from 'antd';
 import { ArtCard } from '../../components/ArtCard';
 import { Link } from 'react-router-dom';
 import { endSale } from '../AuctionCard/utils/endSale';
@@ -51,6 +50,16 @@ export const ArtCardOnSale = ({
     }
   };
 
+  const unlistConfirmation = () => {
+    Modal.confirm({
+      title: 'unlist confirmation',
+      content: 'Are you sure delisting your NFT?',
+      onOk: endInstantSale,
+      okText: 'yes',
+      cancelText: 'no',
+    })
+  };
+
   return (
     <>
       <Link to={`/auction/${auctionView.auction.pubkey}`}>
@@ -60,7 +69,7 @@ export const ArtCardOnSale = ({
           preview={false}
         />
       </Link>
-      <Button onClick={endInstantSale}>Unlisting</Button>
+      <Button onClick={unlistConfirmation}>Unlisting</Button>
     </>
   );
 };

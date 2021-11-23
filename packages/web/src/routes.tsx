@@ -20,7 +20,7 @@ import About from './views/about';
 
 const DirectPath = () => {
   const { path } = useParams<{ path: string }>();
-  const paths = ['auction', 'activity', 'market', 'about'];
+  const paths = ['auction', 'activity', 'market', 'about', 'create'];
   const visitedPath = paths.indexOf(path);
 
   switch (visitedPath) {
@@ -32,6 +32,8 @@ const DirectPath = () => {
       return <MarketComponent />;
     case 3:
       return <About />;
+    case 4:
+      return <ArtCreateView />;
     default:
       return <Profile userId={path} />;
   }
@@ -61,22 +63,12 @@ export function Routes() {
             <Route exact path="/artists" component={() => <ArtistsView />} />
             */}
           {/* Updated Path */}
-          <Route exact path="/art/create" component={() => <ArtCreateView />} />
-          {/* <Route exact path="/art/:id" component={() => <ArtView />} /> */}
-          <Route
-            exact
-            path="/auction/:id/billing"
-            component={() => <BillingView />}
-          />
           <Route exact path="/" component={() => <LandingPage />} />
           <Route exact path="/:path" component={DirectPath} />
           <Route exact path="/auction/:id" component={() => <AuctionView />} />
-
-          <Route
-            exact
-            path="/list/create"
-            component={() => <AuctionCreateView />}
-          />
+          <Route exact path="/auction/:id/settle" component={() => <BillingView />} />
+          <Route exact path="/list/create" component={() => <AuctionCreateView />} />
+          <Route exact path="/art/:id" component={() => <ArtView />} />
         </Providers>
       </Switch>
     </BrowserRouter>
