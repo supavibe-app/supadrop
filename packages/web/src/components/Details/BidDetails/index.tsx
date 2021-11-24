@@ -236,7 +236,10 @@ const BidDetails = ({
               publicKey?.toBase58(),
             );
             setShowCongratulations(true);
-            supabaseUpdateNFTHolder(auctionView.thumbnail.metadata.pubkey, wallet.publicKey?.toBase58());
+            supabaseUpdateNFTHolder(
+              auctionView.thumbnail.metadata.pubkey,
+              wallet.publicKey?.toBase58(),
+            );
           }
         });
       } else {
@@ -366,7 +369,14 @@ const BidDetails = ({
         pullAuctionPage(auction?.auction.pubkey || '');
         await update();
         setShowCongratulations(true);
-        supabaseUpdateNFTHolder(auctionView.thumbnail.metadata.pubkey, wallet.publicKey?.toBase58());
+        supabaseUpdateNFTHolder(
+          auctionView.thumbnail.metadata.pubkey,
+          wallet.publicKey?.toBase58(),
+        );
+        supabaseUpdateWinnerAuction(
+          auction?.auction.pubkey,
+          walletContext.publicKey?.toBase58(),
+        );
       });
     } catch (e) {
       console.error(e);
@@ -605,9 +615,6 @@ const BidDetails = ({
             </BidDetailsContent>
           );
         }
-
-
-        // supabaseUpdateWinnerAuction(auction?.auction.pubkey, walletContext.publicKey?.toBase58());
 
         return (
           <BidDetailsContent>
