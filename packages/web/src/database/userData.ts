@@ -16,7 +16,7 @@ interface IGetDataNFTByPublicKeys {
   created: any;
   onSale: any;
 }
-interface IGetDataActiveBids {
+interface IGetDataDB {
   loading: boolean;
   data: any;
 }
@@ -42,7 +42,61 @@ const getUserData = publicKey => {
 
   return { ...result, refetch };
 };
-export const getDataNFT = publicKey => {
+
+export const getCollectedNFT = walletAddress => {
+  const [result, setResult] = useState<IGetDataDB>({
+    loading: true,
+    data: [],
+  });
+
+  useEffect(() => {
+    if (walletAddress) {
+      supabase
+        .from('nft_data')
+        .select('*')
+        .eq('holder', walletAddress)
+        .not('creator', 'eq', walletAddress)
+        .order('updated_at', { ascending: false })
+        .then(res => {
+          if (!res.error) {
+            setResult({ loading: false, data: res.body });
+          }
+        });
+    }
+  }, [walletAddress]);
+
+  const refetch = () => setResult({ loading: true, data: [] });
+
+  return { ...result, refetch };
+};
+
+export const getCreatedDataNFT = walletAddress => {
+  const [result, setResult] = useState<IGetDataDB>({
+    loading: true,
+    data: [],
+  });
+
+  useEffect(() => {
+    if (walletAddress) {
+      supabase
+        .from('nft_data')
+        .select('*')
+        .eq('creator', walletAddress)
+        .order('created_at', { ascending: false })
+        .then(res => {
+          if (!res.error) {
+            setResult({ loading: false, data: res.body });
+          }
+        });
+    }
+  }, [walletAddress]);
+
+  const refetch = () => setResult({ loading: true, data: [] });
+
+  return { ...result, refetch };
+};
+
+export const getCreatedDataNFTOnSale = publicKey => {
   const [result, setResult] = useState<IGetDataNFTByPublicKeys>({
     loading: true,
     created: undefined,
@@ -82,8 +136,9 @@ export const getDataNFT = publicKey => {
 
   return { ...result, refetch };
 };
+
 export const getActiveBids = publicKey => {
-  const [result, setResult] = useState<IGetDataActiveBids>({
+  const [result, setResult] = useState<IGetDataDB>({
     loading: true,
     data: [],
   });
@@ -118,8 +173,9 @@ export const getActiveBids = publicKey => {
 
   return { ...result, refetch };
 };
+
 export const getInfoEndedBidding = publicKey => {
-  const [result, setResult] = useState<IGetDataActiveBids>({
+  const [result, setResult] = useState<IGetDataDB>({
     loading: true,
     data: [],
   });
@@ -159,7 +215,7 @@ export const getInfoEndedBidding = publicKey => {
 };
 
 export const getOnSale = publicKey => {
-  const [result, setResult] = useState<IGetDataActiveBids>({
+  const [result, setResult] = useState<IGetDataDB>({
     loading: true,
     data: [],
   });
@@ -190,7 +246,7 @@ export const getOnSale = publicKey => {
 };
 
 export const getEndedOnSale = publicKey => {
-  const [result, setResult] = useState<IGetDataActiveBids>({
+  const [result, setResult] = useState<IGetDataDB>({
     loading: true,
     data: [],
   });

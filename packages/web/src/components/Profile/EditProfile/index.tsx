@@ -175,21 +175,21 @@ const EditProfile = ({
             <Upload {...props} className={UploadStyle}>
               {userData?.img_profile && avatarUrl && (
                 <Avatar
-                  size={86}
+                  size={90}
                   src={avatarUrl}
                   style={{ cursor: 'pointer' }}
                 />
               )}
               {userData?.img_profile && !avatarUrl && (
                 <Avatar
-                  size={86}
+                  size={90}
                   src={userData.img_profile}
                   style={{ cursor: 'pointer' }}
                 />
               )}
               {!userData?.img_profile && !avatarUrl && (
                 <Avatar
-                  size={86}
+                  size={90}
                   icon={<FeatherIcon icon="image" size="32" />}
                   style={{ cursor: 'pointer' }}
                 />
