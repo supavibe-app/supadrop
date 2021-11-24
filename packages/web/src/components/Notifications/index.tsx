@@ -167,7 +167,7 @@ export function useCollapseWrappedSol({
         if ((balance && balance.value.uiAmount) || 0 > 0) {
           setShowNotification(true);
         }
-      } catch (e) { }
+      } catch (e) {}
     }
     setTimeout(fn, 60000);
   };
@@ -320,7 +320,7 @@ export function useSettlementAuctions({
               safetyDepositBoxesByVaultAndIndex,
               metadataByMint,
               bidderMetadataByAuctionAndBidder:
-              updatedBidderMetadataByAuctionAndBidder,
+                updatedBidderMetadataByAuctionAndBidder,
               bidderPotsByAuctionAndBidder,
               bidRedemptionV2sByAuctionManagerAndWinningIndex,
               masterEditions,
@@ -365,11 +365,10 @@ export function useSettlementAuctions({
               if (
                 wallet.publicKey &&
                 auctionView.auction.info.tokenMint ==
-                WRAPPED_SOL_MINT.toBase58()
+                  WRAPPED_SOL_MINT.toBase58()
               ) {
                 const ata = await getPersonalEscrowAta(wallet);
                 if (ata) await closePersonalEscrow(connection, wallet, ata);
-
               }
             }
           } catch (e) {
@@ -412,7 +411,7 @@ export function Notifications() {
 
   useSettlementAuctions({ connection, wallet, notifications });
   const notifBidding = getInfoEndedBidding(walletPubkey).data;
-  const notifAuction = getEndedOnSale(walletPubkey).data;
+  // const notifAuction = getEndedOnSale(walletPubkey).data;
 
   notifBidding.forEach(bidding => {
     let isWinner = bidding?.id_auction?.winner === walletPubkey;
@@ -585,26 +584,26 @@ export function Notifications() {
     });
   });
 
-  upcomingAuctions
-    .filter(v => v.auctionManager.authority === walletPubkey)
-    .forEach(v => {
-      notifications.push({
-        id: v.auctionManager.pubkey,
-        title: 'You have an auction which is not started yet!',
-        textButton: 'activate',
-        notifiedAt: moment().unix(),
-        description: <span>You can activate it now if you wish.</span>,
-        action: async () => {
-          try {
-            await startAuctionManually(connection, wallet, v);
-          } catch (e) {
-            console.error(e);
-            return false;
-          }
-          return true;
-        },
-      });
-    });
+  // upcomingAuctions
+  //   .filter(v => v.auctionManager.authority === walletPubkey)
+  //   .forEach(v => {
+  //     notifications.push({
+  //       id: v.auctionManager.pubkey,
+  //       title: 'You have an auction which is not started yet!',
+  //       textButton: 'activate',
+  //       notifiedAt: moment().unix(),
+  //       description: <span>You can activate it now if you wish.</span>,
+  //       action: async () => {
+  //         try {
+  //           await startAuctionManually(connection, wallet, v);
+  //         } catch (e) {
+  //           console.error(e);
+  //           return false;
+  //         }
+  //         return true;
+  //       },
+  //     });
+  //   });
 
   const content = notifications.length ? (
     <div>

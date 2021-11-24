@@ -143,7 +143,10 @@ export const getInfoEndedBidding = publicKey => {
         .then(action => {
           if (action.body != null) {
             if (action.body.length) {
-              setResult({ loading: false, data: action.body });
+              const data = action.body.filter(
+                val => val.id_auction.end_auction < moment().unix(),
+              );
+              setResult({ loading: false, data });
             }
           }
         });
