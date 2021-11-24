@@ -109,12 +109,12 @@ export const AuctionView = () => {
       <Col
         className={ColumnBox}
         span={24}
-        md={auctionDatabase.isInstantSale ? 17 : 13}
+        md={auctionDatabase?.isInstantSale ? 17 : 13}
       >
         <div className={ArtContainer}>
           {isDataReady && (
             <Image
-              src={auctionDatabase.img_nft}
+              src={auctionDatabase?.img_nft}
               wrapperClassName={ArtContentStyle}
               loading="lazy"
               placeholder={<ThreeDots />}
@@ -198,7 +198,7 @@ export const AuctionView = () => {
 
       {/* Bids History Column */}
 
-      {!auctionDatabase.isInstantSale && (
+      {!auctionDatabase?.isInstantSale && (
         <Col className={`${ColumnBox} ${PaddingBox} `} span={24} md={4}>
           <TransactionHistory
             auction={auctionDatabase}

@@ -248,3 +248,81 @@ export const useExtendedArt = (id?: StringPublicKey) => {
 
   return { ref, data };
 };
+
+export const useArweaveData = (id?: StringPublicKey) => {
+  const { metadata } = useMeta();
+
+  const [data, setData] = useState<IMetadataExtension>();
+  const localStorage = useLocalStorage();
+
+  const key = pubkeyToString(id);
+
+  const account = useMemo(
+    () => metadata.find(a => a.pubkey === key),
+    [key, metadata],
+  );
+
+  useEffect(() => {
+    const USE_CDN = false;
+    const routeCDN = (uri: string) => {
+      let result = uri;
+      if (USE_CDN) {
+        result = uri.replace(
+          'https://arweave.net/',
+          'https://coldcdn.com/api/cdn/bronil/',
+        );
+      }
+
+      return result;
+    };
+
+    if (account && account.info.data.uri) {
+      const uri = routeCDN(account.info.data.uri);
+
+      const processJson = (extended: any) => {
+        if (!extended || extended?.properties?.files?.length === 0) {
+          return;
+        }
+
+        if (extended?.image) {
+          const file = extended.image.startsWith('http')
+            ? extended.image
+            : `${account.info.data.uri}/${extended.image}`;
+          extended.image = routeCDN(file);
+        }
+
+        return extended;
+      };
+
+      try {
+        const cached = localStorage.getItem(uri);
+        if (cached) {
+          setData(processJson(JSON.parse(cached)));
+        } else {
+          // TODO: BL handle concurrent calls to avoid double query
+          fetch(uri)
+            .then(async _ => {
+              try {
+                const data = await _.json();
+                try {
+                  localStorage.setItem(uri, JSON.stringify(data));
+                } catch {
+                  // ignore
+                }
+                setData(processJson(data));
+              } catch {
+                return undefined;
+              }
+            })
+            .catch(() => {
+              return undefined;
+            });
+        }
+      } catch (ex) {
+        console.error(ex);
+      }
+    }
+  }, [id]);
+
+  return { data };
+};

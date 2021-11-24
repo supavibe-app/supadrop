@@ -37,7 +37,7 @@ import WaitingStep from '../../components/Listing/WaitingStep';
 import { BackButton } from './style';
 import CongratsStep from '../../components/Listing/CongratsStep';
 import { ArtCard } from '../../components/ArtCard';
-import { useUserSingleArt, useExtendedArt } from '../../hooks';
+import { useUserSingleArt, useExtendedArt, useArweaveData } from '../../hooks';
 
 const { ZERO } = constants;
 
@@ -104,10 +104,10 @@ export const AuctionCreateView = () => {
   const [auctionObj, setAuctionObj] =
     useState<
       | {
-        vault: StringPublicKey;
-        auction: StringPublicKey;
-        auctionManager: StringPublicKey;
-      }
+          vault: StringPublicKey;
+          auction: StringPublicKey;
+          auctionManager: StringPublicKey;
+        }
       | undefined
     >(undefined);
   const [attributes, setAttributes] = useState<AuctionState>({
@@ -119,7 +119,7 @@ export const AuctionCreateView = () => {
     winnersCount: 1,
   });
 
-  const { ref, data } = useExtendedArt(attributes.items[0].metadata.pubkey);
+  const { data } = useArweaveData(attributes.items[0].metadata.pubkey);
 
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
@@ -149,7 +149,7 @@ export const AuctionCreateView = () => {
         if (!editions) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-              (wallet?.publicKey || SystemProgram.programId).toBase58()
+            (wallet?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -173,7 +173,7 @@ export const AuctionCreateView = () => {
         ) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-              (wallet?.publicKey || SystemProgram.programId).toBase58()
+            (wallet?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -213,23 +213,23 @@ export const AuctionCreateView = () => {
       endAuctionAt: isInstantSale
         ? null
         : new BN(
-          (attributes.auctionDuration || 0) *
-          (attributes.auctionDurationType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.auctionDurationType == 'hours'
-              ? 60 * 60 // 1 hour in seconds
-              : 60), // 1 minute in seconds
-        ), // endAuctionAt is actually auction duration, poorly named, in seconds
+            (attributes.auctionDuration || 0) *
+              (attributes.auctionDurationType == 'days'
+                ? 60 * 60 * 24 // 1 day in seconds
+                : attributes.auctionDurationType == 'hours'
+                ? 60 * 60 // 1 hour in seconds
+                : 60), // 1 minute in seconds
+          ), // endAuctionAt is actually auction duration, poorly named, in seconds
       auctionGap: isInstantSale
         ? null
         : new BN(
-          (attributes.gapTime || 0) *
-          (attributes.gapTimeType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.gapTimeType == 'hours'
-              ? 60 * 60 // 1 hour in seconds
-              : 60), // 1 minute in seconds
-        ),
+            (attributes.gapTime || 0) *
+              (attributes.gapTimeType == 'days'
+                ? 60 * 60 * 24 // 1 day in seconds
+                : attributes.gapTimeType == 'hours'
+                ? 60 * 60 // 1 hour in seconds
+                : 60), // 1 minute in seconds
+          ),
       priceFloor: new PriceFloor({
         type: attributes.priceFloor
           ? PriceFloorType.Minimum
@@ -277,25 +277,43 @@ export const AuctionCreateView = () => {
 
     // const isDataReady = Boolean(data);
 
-    console.log('e item auction', item);
-    console.log('e attributes', attributes);
-    
     supabase
       .from('auction_status')
       .insert([item])
-      .then((result) => {
-
+      .then(result => {
         // TODO CHECK NFT DATA
-        console.log('e xtendArt', data);
 
         if (result.error) {
-          console.log('res auction', result);
-          supabaseAddNewNFT(item.id_nft, data?.image, data?.name, data?.description, data?.attributes, data?.seller_fee_basis_points, 
-            attributes.items[0].metadata.info.data.uri, attributes.items[0].metadata.info.mint, item.owner);
+          supabase
+            .from('nft_data')
+            .insert([
+              {
+                id: item.id_nft,
+                img_nft: data?.image,
+                name: data?.name,
+                description: data?.description,
+                attribute: data?.attributes,
+                royalty: data?.seller_fee_basis_points,
+                arweave_link: attributes.items[0].metadata.info.data.uri,
+                mint_key: attributes?.items[0].metadata.info.mint,
+                creator: data?.properties.creators?.[0].address,
+                holder: item.owner,
+                max_supply: 1,
+              },
+            ])
+            .then(() => {
+              supabase
+                .from('auction_status')
+                .insert([item])
+                .then(result => {
+                  updateLiveDataAuction();
+                  updateAllDataAuction();
+                });
+            });
+        } else {
+          updateLiveDataAuction();
+          updateAllDataAuction();
         }
-
-        updateLiveDataAuction();
-        updateAllDataAuction();
       });
     setAuctionObj(_auctionObj);
     await update();
