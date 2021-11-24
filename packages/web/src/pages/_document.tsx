@@ -32,7 +32,7 @@ export default class MetaplexDocument extends Document {
           <meta property="og:url" content="https://supadrop.com/" />
           <meta property="og:title" content="SUPADROP – Invest in Culture" />
           <meta property="og:description" content="a curated NFT art & collectibles marketplace on Solana • connecting authentic artists and collectors." />
-          <meta property="og:image" content="https://supadrop.com/img/metatag.png" />
+          <meta property="og:image" content="https://www.upadrop.com/img/metatag.png" />
 
           {/* <!-- Twitter --> */}
           <meta name="twitter:creator" content="@supadropnft" />
