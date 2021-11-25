@@ -78,10 +78,10 @@ const supabaseAddNewNFT = (id, img_nft, name, description, attribute, royalty, a
         .then();
 };
 exports.supabaseAddNewNFT = supabaseAddNewNFT;
-const supabaseUpdateNFTHolder = (idNFT, walletAddress) => {
+const supabaseUpdateNFTHolder = (idNFT, walletAddress, soldFor) => {
     exports.supabase
         .from('nft_data')
-        .update({ holder: walletAddress, updated_at: _1.timestampPostgre() })
+        .update({ holder: walletAddress, sold: soldFor, updated_at: _1.timestampPostgre() })
         .eq('id', idNFT)
         .then(result => {
         console.log('res', result);
@@ -102,7 +102,11 @@ exports.supabaseGetAllOwnedNFT = supabaseGetAllOwnedNFT;
 const supabaseUpdateStatusInstantSale = (idAuction) => {
     exports.supabase
         .from('auction_status')
-        .update({ isLiveMarket: false, is_redeem: true, updated_at: _1.timestampPostgre() })
+        .update({
+        isLiveMarket: false,
+        is_redeem: true,
+        updated_at: _1.timestampPostgre(),
+    })
         .eq('id', idAuction)
         .then();
 };
@@ -133,7 +137,11 @@ const supabaseUpdateHighestBid = (idAuction, bid, walletAddress) => {
         if (data.body && data.body.highest_bid < bid) {
             exports.supabase
                 .from('auction_status')
-                .update({ highest_bid: bid, winner: walletAddress, updated_at: _1.timestampPostgre() })
+                .update({
+                highest_bid: bid,
+                winner: walletAddress,
+                updated_at: _1.timestampPostgre(),
+            })
                 .eq('id', idAuction)
                 .then();
         }
