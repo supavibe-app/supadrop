@@ -411,7 +411,7 @@ export function Notifications() {
 
   useSettlementAuctions({ connection, wallet, notifications });
   const notifBidding = getInfoEndedBidding(walletPubkey).data;
-  // const notifAuction = getEndedOnSale(walletPubkey).data;
+  const notifAuction = getEndedOnSale(walletPubkey).data;
 
   notifBidding.forEach(bidding => {
     let isWinner = bidding?.id_auction?.winner === walletPubkey;
@@ -442,34 +442,31 @@ export function Notifications() {
     });
   });
 
-  // notifAuction.forEach(auction => {
-  //   let title = 'you have ended auction that needs to be reclaim';
-  //   let textButton = 'reclaim';
-  //   const highestBid = auction?.highest_bid;
-  //   const haveWinner = highestBid > 0;
-  //   // claim, refund bid
-  //   if (haveWinner) {
-  //     title = 'you have ended auction that needs to be settling';
-  //     textButton = 'settle';
-  //   }
-
-  //   notifications.push({
-  //     title,
-  //     textButton,
-  //     id: auction.id,
-  //     notifiedAt: Number(auction.end_auction),
-  //     description: '',
-  //     action: async () => {
-  //       try {
-  //         history.push(`/auction/${auction.id}`);
-  //       } catch (e) {
-  //         console.error(e);
-  //         return false;
-  //       }
-  //       return true;
-  //     },
-  //   });
-  // });
+  notifAuction.forEach(auction => {
+    let title = 'you have ended auction that needs to be reclaim';
+    let textButton = 'reclaim';
+    const highestBid = auction?.highest_bid;
+    const haveWinner = highestBid > 0;
+    // reclaim nft
+    if (!haveWinner && !auction.type_auction) {
+      notifications.push({
+        title,
+        textButton,
+        id: auction.id,
+        notifiedAt: Number(auction.end_auction),
+        description: '',
+        action: async () => {
+          try {
+            history.push(`/auction/${auction.id}`);
+          } catch (e) {
+            console.error(e);
+            return false;
+          }
+          return true;
+        },
+      });
+    }
+  });
 
   const vaultsNeedUnwinding = useMemo(
     () =>
