@@ -104,9 +104,12 @@ export const AppBar = () => {
           <CurrentUserBadge userData={userData} />
 
           <Link
-            to={`/${
-              userData?.username ? userData.username : publicKey?.toBase58()
-            }`}
+            to={{
+              pathname: `/${
+                userData?.username ? userData.username : publicKey?.toBase58()
+              }`,
+              state: 'refresh',
+            }}
           >
             <Button className={RoundButton} type="default" shape="round">
               SELL
