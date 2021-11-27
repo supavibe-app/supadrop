@@ -228,7 +228,7 @@ const Profile = ({ userId }: { userId: string }) => {
                 return (
                   <Col key={art.id} span={8}>
                     <Link to={`/art/${art.id}`}>
-                      <ArtCard key={art.id} pubkey={art.id} isCollected={art.holder === publicKey} preview />
+                      <ArtCard key={art.id} pubkey={art.id} isCollected={art.holder === publicKey?.toBase58()} soldFor={art.sold} preview />
                     </Link>
                   </Col>
                 );

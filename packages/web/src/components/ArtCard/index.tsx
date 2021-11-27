@@ -23,6 +23,7 @@ export interface ArtCardProps extends CardProps {
   image?: string;
   animationURL?: string;
   isCollected?: boolean;
+  soldFor?: number;
   category?: MetadataCategory;
 
   name?: string;
@@ -48,6 +49,7 @@ export const ArtCard = (props: ArtCardProps) => {
     pubkey,
     artItem,
     isCollected,
+    soldFor,
   } = props;
   const art = useArt(pubkey);
   creators = art?.creators || creators || [];
@@ -114,12 +116,21 @@ export const ArtCard = (props: ArtCardProps) => {
             </div>
 
             <Row>
-              <Col span={12}>
-                <div>sold for</div>
-                <div>... SOL</div>
-              </Col>
+              {soldFor && (
+                <Col span={12}>
+                  <div>sold for</div>
+                  <div>{soldFor} SOL</div>
+                </Col>
+              )}
 
-              {isCollected && (
+              {!soldFor && (
+                <Col span={12}>
+                  <div>sold for</div>
+                  <div>... SOL</div>
+                </Col>
+              )}
+
+              {isCollected && pubkey && (
                 <Col className={uTextAlignEnd} span={12}>
                   <Link
                     to={{

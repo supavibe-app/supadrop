@@ -80,7 +80,7 @@ export const getCreatedDataNFT = walletAddress => {
     if (walletAddress) {
       supabase
         .from('nft_data')
-        .select('*')
+        .select()
         .eq('creator', walletAddress)
         .order('created_at', { ascending: false })
         .then(res => {

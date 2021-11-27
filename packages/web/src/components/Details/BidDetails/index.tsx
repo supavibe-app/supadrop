@@ -239,7 +239,7 @@ const BidDetails = ({
             supabaseUpdateNFTHolder(
               auctionView.thumbnail.metadata.pubkey,
               wallet.publicKey?.toBase58(),
-              parseFloat(`${minimumBid}`),
+              parseFloat(`${minimumBid}`) / Math.pow(10, 9),
             );
           }
         });
@@ -373,7 +373,7 @@ const BidDetails = ({
         supabaseUpdateNFTHolder(
           auctionView.thumbnail.metadata.pubkey,
           wallet.publicKey?.toBase58(),
-          instantSalePrice!!.toNumber(),
+          instantSalePrice!!.toNumber() / Math.pow(10, 9),
         );
         supabaseUpdateWinnerAuction(
           auction?.auction.pubkey,
