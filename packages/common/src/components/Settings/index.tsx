@@ -8,6 +8,7 @@ import { shortenAddress } from '../../utils';
 import { useNativeAccount, formatNumber, UserData } from '../..';
 import { AddressInfo, BalanceInfo, ItemIcon, ListStyle } from './style';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Identicon } from '..';
 
 export const Settings = ({
   userData,
@@ -33,8 +34,19 @@ export const Settings = ({
             }`,
             state: 'refresh',
           }}
+          onClick={() => setShowPopover(false)}
         >
-          <Avatar src={userData?.img_profile} className={ItemIcon} />
+          <Avatar
+            src={
+              userData?.img_profile || (
+                <Identicon
+                  address={userData?.wallet_address}
+                  style={{ width: 32 }}
+                />
+              )
+            }
+            className={ItemIcon}
+          />
           view profile
         </Link>
       </List.Item>

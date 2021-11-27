@@ -2,6 +2,7 @@ import React from 'react';
 import { Avatar, Button, Col, Row } from 'antd';
 import {
   BidderMetadata,
+  Identicon,
   IMetadataExtension,
   ItemAuction,
   ParsedAccount,
@@ -70,11 +71,11 @@ const ArtDetails = ({
                       <Avatar
                         src={
                           users[creator.address]?.img_profile
-                            ? users[creator.address].img_profile
-                            : null
+                          || <Identicon address={creator.address} style={{ width: 40 }} />
                         }
                         size={40}
                       />
+
                       <span>
                         {users[creator.address]?.username
                           ? `@${users[creator.address].username}`
@@ -98,11 +99,7 @@ const ArtDetails = ({
                 {(!ended || !highestBid) && (
                   <>
                     <Avatar
-                      src={
-                        users[owner]?.img_profile
-                          ? users[owner].img_profile
-                          : null
-                      }
+                      src={users[owner]?.img_profile || <Identicon address={owner} style={{ width: 40 }} />}
                       size={40}
                     />
                     <span>
@@ -117,10 +114,12 @@ const ArtDetails = ({
                 {ended && highestBid && (
                   <>
                     <Avatar
-                      src={users[owner] ? users[owner].img_profile : null}
+                      src={users[highestBid?.info.bidderPubkey]?.img_profile || <Identicon address={highestBid?.info.bidderPubkey} style={{ width: 40 }} />}
                       size={40}
                     />
-                    <span>{shortenAddress(highestBid.info.bidderPubkey)}</span>
+                    <span>{users[highestBid?.info.bidderPubkey]
+                      ? `@${users[highestBid?.info.bidderPubkey].username}`
+                      : shortenAddress(highestBid?.info.bidderPubkey)}</span>
                   </>
                 )}
               </div>

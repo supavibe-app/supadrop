@@ -100,10 +100,15 @@ export const supabaseAddNewNFT = (
 export const supabaseUpdateNFTHolder = (
   idNFT: string,
   walletAddress?: string,
+  soldFor?: number,
 ) => {
   supabase
     .from('nft_data')
-    .update({ holder: walletAddress, updated_at: timestampPostgre() })
+    .update({
+      holder: walletAddress,
+      sold: soldFor,
+      updated_at: timestampPostgre(),
+    })
     .eq('id', idNFT)
     .then(result => {
       console.log('res', result);

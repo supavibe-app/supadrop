@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import { useParams } from 'react-router';
+import { Router, useParams } from 'react-router';
 import { createBrowserHistory } from 'history';
 import ReactGA from 'react-ga';
 
@@ -39,9 +39,9 @@ const DirectPath = () => {
   }
 };
 
-export function Routes() {
-  const history = createBrowserHistory();
+const history = createBrowserHistory();
 
+export function Routes() {
   // ReactGA.initialize('UA-212819386-1', {
   //   debug: false,
   //   standardImplementation: true,
@@ -53,7 +53,7 @@ export function Routes() {
   });
 
   return (
-    <BrowserRouter basename={'/'}>
+    <Router history={history}>
       <Switch>
         <Providers>
           {/* <Route exact path="/admin" component={() => <AdminView />} />
@@ -71,6 +71,6 @@ export function Routes() {
           <Route exact path="/art/:id" component={() => <ArtView />} />
         </Providers>
       </Switch>
-    </BrowserRouter>
+    </Router>
   );
 }

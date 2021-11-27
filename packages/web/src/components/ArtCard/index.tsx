@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Avatar, Card, CardProps, Button, Badge, Row, Col } from 'antd';
 import {
+  Identicon,
   MetadataCategory,
   shortenAddress,
   StringPublicKey,
@@ -99,9 +100,7 @@ export const ArtCard = (props: ArtCardProps) => {
             <div className={UserWrapper}>
               <Avatar
                 src={
-                  data[creatorsAddress]
-                    ? data[creatorsAddress].img_profile
-                    : null
+                  data[creatorsAddress]?.img_profile || <Identicon address={creatorsAddress} style={{ width: 32 }} />
                 }
                 size={32}
                 className={AvatarStyle}

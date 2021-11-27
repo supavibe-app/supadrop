@@ -53,7 +53,7 @@ export const ArtView = () => {
   const { ref, data } = useExtendedArt(id);
   const isDataReady = Boolean(art) && Boolean(data);
 
-  const creators = data?.creators || '';
+  const creators = data?.creators || [];
 
   const { data: users = {} } = getUsernameByPublicKeys([...creators])
 
