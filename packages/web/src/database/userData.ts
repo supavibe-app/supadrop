@@ -55,6 +55,7 @@ export const getCollectedNFT = walletAddress => {
         .from('nft_data')
         .select('*')
         .eq('holder', walletAddress)
+        .eq('on_sale', false)
         .not('creator', 'eq', walletAddress)
         .order('updated_at', { ascending: false })
         .then(res => {
@@ -227,7 +228,9 @@ export const getOnSale = publicKey => {
         .select(
           `
         *,
-        nft_data(*)
+        nft_data(*),
+        winner(*),
+        owner(*)
         `,
         )
         .eq('owner', publicKey)

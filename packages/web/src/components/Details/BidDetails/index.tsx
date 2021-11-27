@@ -26,8 +26,9 @@ import {
   supabaseUpdateIsRedeemAuctionStatus,
   supabaseUpdateNFTHolder,
   supabaseUpdateWinnerAuction,
+  supabaseUpdateOnSaleNFT,
 } from '@oyster/common';
-import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
+import { Avatar, Col, Row, Skeleton, Spin, message, Modal } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -144,6 +145,7 @@ const BidDetails = ({
   const balance = parseFloat(
     formatNumber.format((account?.lamports || 0) / LAMPORTS_PER_SOL),
   );
+
   const [currentBid, setCurrentBid] = useState(
     bid ? parseFloat(formatTokenAmount(bid?.info.lastBid)) : priceFloor,
   );
@@ -240,6 +242,10 @@ const BidDetails = ({
               auctionView.thumbnail.metadata.pubkey,
               wallet.publicKey?.toBase58(),
             );
+            supabaseUpdateOnSaleNFT(
+              auctionView.thumbnail.metadata.pubkey,
+              false,
+            );
           }
         });
       } else {
@@ -268,7 +274,6 @@ const BidDetails = ({
     } catch (e) {
       console.error(e);
     }
-    // await update(auction?.auction.pubkey, publicKey?.toBase58());
     setConfirmTrigger(false);
   };
 
@@ -288,7 +293,9 @@ const BidDetails = ({
       }).then();
       supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
+      supabaseUpdateOnSaleNFT(auctionView.thumbnail.metadata.pubkey, false);
       setConfirmTrigger(false);
+      setShowCongratulations(true);
     } catch (e) {
       setConfirmTrigger(false);
       console.error('endAuction', e);
@@ -333,7 +340,7 @@ const BidDetails = ({
         supabaseUpdateBid(
           auction?.auction.pubkey,
           wallet.publicKey?.toBase58(),
-          instantSalePrice.toNumber(),
+          instantSalePrice.toNumber() / Math.pow(10, 9),
         );
         supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       } catch (e) {
@@ -377,11 +384,21 @@ const BidDetails = ({
           auction?.auction.pubkey,
           walletContext.publicKey?.toBase58(),
         );
+        supabaseUpdateOnSaleNFT(auctionView.thumbnail.metadata.pubkey, false);
       });
     } catch (e) {
       console.error(e);
     }
     setConfirmTrigger(false);
+  };
+  const unlistConfirmation = () => {
+    Modal.confirm({
+      title: 'unlist confirmation',
+      content: 'Are you sure delisting your NFT?',
+      onOk: endInstantSale,
+      okText: 'yes',
+      cancelText: 'no',
+    });
   };
   const BidDetailsContent = ({ children }) => {
     const isAuctionNotStarted =
@@ -628,7 +645,6 @@ const BidDetails = ({
       }
 
       // case 2: auction ended but not winning
-
       if (isParticipated) {
         return (
           <BidDetailsContent>
@@ -689,7 +705,7 @@ const BidDetails = ({
       return (
         <BidDetailsContent>
           <a className={ButtonWrapper}>
-            <ActionButton width="100%" onClick={endInstantSale}>
+            <ActionButton width="100%" onClick={unlistConfirmation}>
               UNLIST
             </ActionButton>
           </a>

@@ -107,6 +107,7 @@ export const supabaseUpdateNFTHolder = (
     .eq('id', idNFT)
     .then(result => {
       console.log('res', result);
+      supabaseUpdateOnSaleNFT(idNFT, false);
     });
 };
 
@@ -189,4 +190,16 @@ export const supabaseUpdateWinnerAuction = (
     .then(result => {
       console.log('res', result);
     });
+};
+
+export const supabaseUpdateOnSaleNFT = (idNFT?: string, onSale?: boolean) => {
+  supabase
+    .from('nft_data')
+    .update({ on_sale: onSale, updated_at: timestampPostgre() })
+    .eq('id', idNFT)
+    .then();
+};
+
+export const supabaseUpdateLastSoldNFT = (idNFT?: string, bid?: number) => {
+  supabase.from('nft_data').update({ last_sold: bid }).eq('id', idNFT).then();
 };
