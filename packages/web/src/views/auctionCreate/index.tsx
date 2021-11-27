@@ -17,6 +17,7 @@ import {
   pubkeyToString,
   supabase,
   supabaseAddNewNFT,
+  supabaseUpdateOnSaleNFT,
 } from '@oyster/common';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -315,6 +316,8 @@ export const AuctionCreateView = () => {
           updateAllDataAuction();
         }
       });
+    supabaseUpdateOnSaleNFT(idNFT, true);
+
     setAuctionObj(_auctionObj);
     await update();
   };

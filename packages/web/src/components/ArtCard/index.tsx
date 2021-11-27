@@ -124,7 +124,7 @@ export const ArtCard = (props: ArtCardProps) => {
                   <Link
                     to={{
                       pathname: `/list/create`,
-                      state: { idNFT: pubkey, item: artItem },
+                      state: { idNFT: pubkey},
                     }}
                   >
                     <Button shape="round">LIST</Button>
