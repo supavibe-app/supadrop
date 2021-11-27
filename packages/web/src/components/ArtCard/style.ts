@@ -68,3 +68,13 @@ export const UserWrapper = css`
   color: #fafafb;
   align-items: center;
 `;
+
+export const ConfirmModal = css`
+  .ant-modal-body {
+    border: 2px solid #ccff00;
+    border-radius: 2px;
+    background-color: #000000 !important;
+    font-weight: 600;
+    font-size: 24px;
+  }
+`;

@@ -131,6 +131,13 @@ export const BadgeStyle = css`
     background: #ff2d55;
     width: 8px;
     height: 8px;
+    animation: blinker 2s linear infinite;
+  }
+
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
   }
 `;
 
