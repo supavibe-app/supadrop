@@ -9,6 +9,7 @@ import {
   ItemAuction,
   shortenAddress,
   UserData,
+  Identicon,
 } from '@oyster/common';
 import { ArtContent, ArtContent2 } from '../ArtContent';
 import { AuctionView, AuctionViewState, useArt } from '../../hooks';
@@ -106,7 +107,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
           <>
             <div className={UserWrapper}>
               <Avatar
-                src={owner.img_profile}
+                src={owner.img_profile || <Identicon address={owner.wallet_address} style={{ width: 32 }} />}
                 size={32}
                 className={AvatarStyle}
               />

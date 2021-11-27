@@ -26,6 +26,7 @@ import {
   supabaseUpdateIsRedeemAuctionStatus,
   supabaseUpdateNFTHolder,
   supabaseUpdateWinnerAuction,
+  Identicon,
 } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
@@ -438,9 +439,7 @@ const BidDetails = ({
               <div>
                 <Avatar
                   src={
-                    users[bid.info.bidderPubkey]?.img_profile
-                      ? users[bid.info.bidderPubkey].img_profile
-                      : null
+                    users[bid.info.bidderPubkey]?.img_profile || <Identicon address={bid.info.bidderPubkey} style={{ width: 40 }} />
                   }
                   size={40}
                 />
@@ -490,7 +489,7 @@ const BidDetails = ({
           {art.title && highestBid && (
             <>
               <div>
-                <Avatar src={users[highestBid.info.bidderPubkey]} size={40} />
+                <Avatar src={users[highestBid.info.bidderPubkey].img_profile || <Identicon address={bid.info.bidderPubkey} style={{ width: 40 }} />} size={40} />
               </div>
 
               <div>

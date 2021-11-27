@@ -8,6 +8,7 @@ import { shortenAddress } from '../../utils';
 import { useNativeAccount, formatNumber, UserData } from '../..';
 import { AddressInfo, BalanceInfo, ItemIcon, ListStyle } from './style';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Identicon } from '..';
 
 export const Settings = ({ userData, setShowPopover = () => { } }: {
   userData?: UserData;
@@ -25,7 +26,7 @@ export const Settings = ({ userData, setShowPopover = () => { } }: {
           setShowPopover(false);
           push(`/${userData?.username ? userData.username : publicKey}`);
         }}>
-          <Avatar src={userData?.img_profile} className={ItemIcon} />
+          <Avatar src={userData?.img_profile || <Identicon address={userData?.wallet_address} style={{ width: 32 }} />} className={ItemIcon} />
           view profile
         </div>
       </List.Item>

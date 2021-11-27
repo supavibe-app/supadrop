@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Avatar, Button, Col, Row, Skeleton, Tabs, message, Badge } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
 import { Link, useHistory } from 'react-router-dom';
-import { shortenAddress, supabase, useMeta } from '@oyster/common';
+import { Identicon, shortenAddress, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import FeatherIcon from 'feather-icons-react';
 
@@ -65,6 +65,8 @@ const Profile = ({ userId }: { userId: string }) => {
     // if username is available, show username in the url instead of their wallet address
     if (userData && userData.username) replace(`/${userData.username}`);
   }, [loading, userData]);
+
+  useEffect(() => refetch(), [userId]);
 
   const EmptyState = () => (
     <Col className={EmptyStyle} span={24}>
@@ -131,12 +133,7 @@ const Profile = ({ userId }: { userId: string }) => {
         {!onEdit && userData && (
           <div className={uTextAlignCenter} style={{ width: '100%' }}>
             <div className={uFlexJustifyCenter}>
-              {userData.img_profile && (
-                <Avatar size={128} src={userData.img_profile} />
-              )}
-              {!userData.img_profile && (
-                <DefaultAvatar size={128} iconSize="48" />
-              )}
+              <Avatar size={128} src={userData.img_profile || <Identicon address={userData.wallet_address} style={{ width: 128 }} />} />
             </div>
 
             <div className={NameStyle}>{userData.name}</div>
@@ -206,7 +203,7 @@ const Profile = ({ userId }: { userId: string }) => {
         xl={18}
         xxl={18}
       >
-         <Tabs className={TabsStyle} defaultActiveKey="2">
+        <Tabs className={TabsStyle} defaultActiveKey="2">
           <TabPane
             tab={
               <>

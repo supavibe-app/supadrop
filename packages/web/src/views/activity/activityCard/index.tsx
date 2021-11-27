@@ -26,17 +26,8 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import {
   AuctionViewItem,
   CountdownState,
-  formatTokenAmount,
-  fromLamports,
-  PriceFloorType,
+  Identicon,
   shortenAddress,
-  supabaseUpdateIsRedeem,
-  supabaseUpdateStatusInstantSale,
-  useConnection,
-  useMeta,
-  useMint,
-  useUserAccounts,
-  WinningConfigType,
 } from '@oyster/common';
 import {
   eligibleForParticipationPrizeGivenWinningIndex,
@@ -103,7 +94,7 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
                 {auctionView.auction_status.nft_data.name}
               </div>
               <div className={UserContainer}>
-                <Avatar src={owner.img_profile} size={32} />
+                <Avatar src={owner.img_profile || <Identicon address={owner.wallet_address} style={{ width: 32 }} />} size={32} />
                 <div>
                   {owner.username
                     ? owner.username
@@ -163,7 +154,7 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>winning bid</div>
                         <div className={UserContainer}>
-                          <Avatar src={winner.img_profile} size={32} />
+                          <Avatar src={winner.img_profile || <Identicon address={winner.wallet_address} style={{ width: 32 }} />} size={32} />
                           <span>
                             {winner.username
                               ? winner.username
@@ -210,7 +201,7 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <Avatar src={winner.img_profile} size={32} />
+                          <Avatar src={winner.img_profile || <Identicon address={winner.wallet_address} style={{ width: 32 }} />} size={32} />
                           <span>
                             {winner.username
                               ? winner.username
@@ -225,7 +216,7 @@ export const ActivityCard2 = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <Avatar src={winner.img_profile} size={32} />
+                          <Avatar src={winner.img_profile || <Identicon address={winner.wallet_address} style={{ width: 32 }} />} size={32} />
                           <span>
                             {winner.username
                               ? winner.username

@@ -17,7 +17,7 @@ import {
   UploadImageContainer,
   UploadStyle,
 } from './style';
-import { supabase, UserData } from '@oyster/common';
+import { Identicon, supabase, UserData } from '@oyster/common';
 import { useHistory } from 'react-router';
 // import { replace } from 'lodash';
 
@@ -49,8 +49,7 @@ const EditProfile = ({
       await supabase.storage
         .from('profile')
         .remove([
-          `avatars/${userData?.wallet_address}_${
-            exProfpic[exProfpic.length - 1]
+          `avatars/${userData?.wallet_address}_${exProfpic[exProfpic.length - 1]
           }`,
         ]);
     }
@@ -180,17 +179,10 @@ const EditProfile = ({
                   style={{ cursor: 'pointer' }}
                 />
               )}
-              {userData?.img_profile && !avatarUrl && (
+              {!avatarUrl && (
                 <Avatar
-                  size={90}
-                  src={userData.img_profile}
-                  style={{ cursor: 'pointer' }}
-                />
-              )}
-              {!userData?.img_profile && !avatarUrl && (
-                <Avatar
-                  size={90}
-                  icon={<FeatherIcon icon="image" size="32" />}
+                  size={86}
+                  src={userData?.img_profile || <Identicon address={userData?.wallet_address} style={{ width: 86 }} />}
                   style={{ cursor: 'pointer' }}
                 />
               )}

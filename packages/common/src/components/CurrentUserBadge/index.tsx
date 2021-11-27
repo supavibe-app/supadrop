@@ -5,6 +5,7 @@ import { Avatar, Popover } from 'antd';
 import { Settings } from '../Settings';
 import { ProfilePopover, WalletWrapper } from './style';
 import { UserData } from '../..';
+import { Identicon } from '..';
 
 export const CurrentUserBadge = ({ userData }: { userData?: UserData; }) => {
   const { wallet, publicKey } = useWallet();
@@ -25,7 +26,12 @@ export const CurrentUserBadge = ({ userData }: { userData?: UserData; }) => {
         onVisibleChange={visible => setShowPopover(visible)}
         visible={showPopover}
       >
-        <Avatar src={userData?.img_profile} size={42} style={{ cursor: 'pointer' }} />
+        <Avatar src={
+          userData?.img_profile ||
+          <Identicon address={userData?.wallet_address} style={{ width: 42 }} />}
+          size={42}
+          style={{ cursor: 'pointer' }}
+        />
       </Popover>
     </div>
   );

@@ -3,6 +3,7 @@ import { Avatar, Col, Row, Skeleton } from 'antd';
 import {
   BidderMetadata,
   formatTokenAmount,
+  Identicon,
   ItemAuction,
   ParsedAccount,
   shortenAddress,
@@ -11,7 +12,7 @@ import {
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 
-import { AuctionView, useArt, useBidsForAuction } from '../../../hooks';
+import { AuctionView } from '../../../hooks';
 import {
   GreyColor,
   uBoldFont,
@@ -68,8 +69,7 @@ const TransactionHistory = ({
                 <Avatar
                   src={
                     users[bid.info.bidderPubkey]?.img_profile
-                      ? users[bid.info.bidderPubkey].img_profile
-                      : null
+                    || <Identicon address={bid.info.bidderPubkey} style={{ width: 24 }} />
                   }
                   size={24}
                 />
@@ -112,7 +112,7 @@ export const BillingHistory = ({
   const TransactionHistorySkeleton = (
     <div>
       {[...Array(3)].map(i => (
-        <Skeleton avatar paragraph={{ rows: 0 }} />
+        <Skeleton key={i} avatar paragraph={{ rows: 0 }} />
       ))}
     </div>
   );
