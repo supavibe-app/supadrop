@@ -279,7 +279,7 @@ function MetaProvider({ children = null }) {
                     nextState = await loadAccounts_1.pullYourMetadata(connection, userTokenAccounts, nextState);
                 }
                 const auction = window.location.href.match(/auction\/(\w+)/);
-                const billing = window.location.href.match(/auction\/(\w+)\/billing/);
+                const billing = window.location.href.match(/auction\/(\w+)\/settle/);
                 if (auction && page == 0) {
                     console.log('---------->Loading auction page on initial load, pulling sub accounts');
                     nextState = await _1.pullAuctionSubaccounts(connection, auction[1], nextState);

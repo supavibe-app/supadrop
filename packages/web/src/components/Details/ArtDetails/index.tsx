@@ -2,6 +2,7 @@ import React from 'react';
 import { Avatar, Button, Col, Row } from 'antd';
 import {
   BidderMetadata,
+  Identicon,
   IMetadataExtension,
   ItemAuction,
   ParsedAccount,
@@ -69,14 +70,14 @@ const ArtDetails = ({
                     <div className={UserThumbnail} key={creator.address}>
                       <Avatar
                         src={
-                          users[creator.address]
-                            ? users[creator.address].img_profile
-                            : null
+                          users[creator.address]?.img_profile
+                          || <Identicon address={creator.address} style={{ width: 40 }} />
                         }
                         size={40}
                       />
+
                       <span>
-                        {users[creator.address]
+                        {users[creator.address]?.username
                           ? `@${users[creator.address].username}`
                           : shortenAddress(creator.address)}
                       </span>
@@ -98,11 +99,11 @@ const ArtDetails = ({
                 {(!ended || !highestBid) && (
                   <>
                     <Avatar
-                      src={users[owner] ? users[owner].img_profile : null}
+                      src={users[owner]?.img_profile || <Identicon address={owner} style={{ width: 40 }} />}
                       size={40}
                     />
                     <span>
-                      {users[owner]
+                      {users[owner]?.username
                         ? `@${users[owner].username}`
                         : shortenAddress(owner)}
                     </span>
@@ -113,10 +114,12 @@ const ArtDetails = ({
                 {ended && highestBid && (
                   <>
                     <Avatar
-                      src={users[owner] ? users[owner].img_profile : null}
+                      src={users[highestBid?.info.bidderPubkey]?.img_profile || <Identicon address={highestBid?.info.bidderPubkey} style={{ width: 40 }} />}
                       size={40}
                     />
-                    <span>{shortenAddress(highestBid.info.bidderPubkey)}</span>
+                    <span>{users[highestBid?.info.bidderPubkey]
+                      ? `@${users[highestBid?.info.bidderPubkey].username}`
+                      : shortenAddress(highestBid?.info.bidderPubkey)}</span>
                   </>
                 )}
               </div>

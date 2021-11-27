@@ -106,11 +106,15 @@ export const AuctionView = () => {
   return (
     <Row className={Container} ref={ref}>
       {/* Art Column */}
-      <Col className={ColumnBox} span={24} md={13}>
+      <Col
+        className={ColumnBox}
+        span={24}
+        md={auctionDatabase?.isInstantSale ? 17 : 13}
+      >
         <div className={ArtContainer}>
           {isDataReady && (
             <Image
-              src={auctionDatabase.img_nft}
+              src={auctionDatabase?.img_nft}
               wrapperClassName={ArtContentStyle}
               loading="lazy"
               placeholder={<ThreeDots />}
@@ -193,13 +197,16 @@ export const AuctionView = () => {
       </Col>
 
       {/* Bids History Column */}
-      <Col className={`${ColumnBox} ${PaddingBox} `} span={24} md={4}>
-        <TransactionHistory
-          auction={auctionDatabase}
-          bids={bids}
-          users={users}
-        />
-      </Col>
+
+      {!auctionDatabase?.isInstantSale && (
+        <Col className={`${ColumnBox} ${PaddingBox} `} span={24} md={4}>
+          <TransactionHistory
+            auction={auctionDatabase}
+            bids={bids}
+            users={users}
+          />
+        </Col>
+      )}
     </Row>
   );
 };

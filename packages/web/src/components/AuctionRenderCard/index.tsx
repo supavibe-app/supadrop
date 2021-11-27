@@ -9,6 +9,7 @@ import {
   ItemAuction,
   shortenAddress,
   UserData,
+  Identicon,
 } from '@oyster/common';
 import { ArtContent, ArtContent2 } from '../ArtContent';
 import { AuctionView, AuctionViewState, useArt } from '../../hooks';
@@ -46,7 +47,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 
   const participationFixedPrice = 0;
   const participationOnly = false;
-  const priceFloor = auctionView.price_floor * 1000000000;
+  const priceFloor = (auctionView.isInstantSale) ? auctionView.price_floor : (auctionView.price_floor * 1000000000);
   const isUpcoming = false;
   const now = Math.floor(new Date().getTime() / 1000);
   const endAt = auctionView.endAt;
@@ -106,7 +107,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
           <>
             <div className={UserWrapper}>
               <Avatar
-                src={owner.img_profile}
+                src={owner.img_profile || <Identicon address={owner.wallet_address} style={{ width: 32 }} />}
                 size={32}
                 className={AvatarStyle}
               />

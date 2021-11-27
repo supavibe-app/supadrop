@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Avatar, Button, Col, Row, Skeleton, Tabs, message, Badge } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
 import { Link, useHistory } from 'react-router-dom';
-import { shortenAddress, useMeta } from '@oyster/common';
+import { Identicon, shortenAddress, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import FeatherIcon from 'feather-icons-react';
 
@@ -36,7 +36,7 @@ import {
   TabsStyle,
   UsernameSection,
 } from './style';
-import getUserData from '../../database/userData';
+import getUserData, { getCollectedNFT, getCreatedDataNFT } from '../../database/userData';
 
 const { TabPane } = Tabs;
 
@@ -55,49 +55,18 @@ const Profile = ({ userId }: { userId: string }) => {
   }, [isLoadingMetaplex]);
 
   const walletAddress = userData?.wallet_address;
-
-  const artwork = useCreatorArts(walletAddress);
-
-  const ownedMetadata = useUserArts();
-  const collected = useCollectedArts(walletAddress);
+  const collected = getCollectedNFT(walletAddress).data;
+  const artwork = getCreatedDataNFT(walletAddress).data;
   const onSale = useAuctions(AuctionViewState.Live).filter(
     m => m.auctionManager.authority === walletAddress,
   );
-
-  const allData: any = {};
-  const allDataArray = [...collected, ...artwork, ...onSale];
-  // const ownedMetadata: any = {};
 
   useEffect(() => {
     // if username is available, show username in the url instead of their wallet address
     if (userData && userData.username) replace(`/${userData.username}`);
   }, [loading, userData]);
 
-  ownedMetadata.forEach(data => {
-    if (!allData[data.metadata.pubkey]) {
-      allData[data.metadata.pubkey] = {
-        type: 'owned',
-        item: data,
-      };
-    }
-  });
-  onSale.forEach(data => {
-    if (!allData[data.auction.pubkey]) {
-      allData[data.auction.pubkey] = {
-        type: 'onSale',
-        item: data,
-      };
-    }
-  });
-
-  artwork.forEach(data => {
-    if (!allData[data.pubkey]) {
-      allData[data.pubkey] = {
-        type: 'created',
-        item: data,
-      };
-    }
-  });
+  useEffect(() => refetch(), [userId]);
 
   const EmptyState = () => (
     <Col className={EmptyStyle} span={24}>
@@ -164,12 +133,7 @@ const Profile = ({ userId }: { userId: string }) => {
         {!onEdit && userData && (
           <div className={uTextAlignCenter} style={{ width: '100%' }}>
             <div className={uFlexJustifyCenter}>
-              {userData.img_profile && (
-                <Avatar size={128} src={userData.img_profile} />
-              )}
-              {!userData.img_profile && (
-                <DefaultAvatar size={128} iconSize="48" />
-              )}
+              <Avatar size={128} src={userData.img_profile || <Identicon address={userData.wallet_address} style={{ width: 128 }} />} />
             </div>
 
             <div className={NameStyle}>{userData.name}</div>
@@ -239,160 +203,7 @@ const Profile = ({ userId }: { userId: string }) => {
         xl={18}
         xxl={18}
       >
-        <Tabs className={TabsStyle} defaultActiveKey="1">
-          {walletAddress !== publicKey?.toBase58() && (
-            <TabPane
-              tab={
-                <>
-                  All{' '}
-                  <span>
-                    {allDataArray.length < 10
-                      ? `0${allDataArray.length}`
-                      : allDataArray.length}
-                  </span>
-                </>
-              }
-              key="1"
-            >
-              <Row
-                className={allDataArray.length === 0 ? EmptyRow : ``}
-                gutter={[36, 36]}
-              >
-                {allDataArray.length === 0 && <EmptyState />}
-
-                {artwork.map(art => (
-                  <Col key={art.pubkey} span={8}>
-                    <Link to={`/art/${art.pubkey}`}>
-                      <ArtCard key={art.pubkey} pubkey={art.pubkey} preview />
-                    </Link>
-                  </Col>
-                ))}
-                {collected.map(art => (
-                  <Col key={art.pubkey} span={8}>
-                    <Link to={`/art/${art.pubkey}`}>
-                      <ArtCard key={art.pubkey} pubkey={art.pubkey} preview />
-                    </Link>
-                  </Col>
-                ))}
-
-                {onSale.map(art => (
-                  <Col key={art.auction.pubkey} span={8}>
-                    {!art.auction.info.endAuctionAt && (
-                      <ArtCardOnSale auctionView={art} />
-                    )}
-                    {art.auction.info.endAuctionAt && (
-                      <Link to={`/auction/${art.auction.pubkey}`}>
-                        <ArtCard
-                          key={art.thumbnail.metadata.pubkey}
-                          pubkey={art.thumbnail.metadata.pubkey}
-                          preview={false}
-                        />
-                      </Link>
-                    )}
-                  </Col>
-                ))}
-              </Row>
-            </TabPane>
-          )}
-          {walletAddress === publicKey?.toBase58() && (
-            <TabPane
-              tab={
-                <>
-                  All{' '}
-                  <span>
-                    {Object.entries(allData).length < 10
-                      ? `0${Object.entries(allData).length}`
-                      : Object.entries(allData).length}
-                  </span>
-                </>
-              }
-              key="1"
-            >
-              <Row
-                className={Object.entries(allData).length === 0 ? EmptyRow : ``}
-                gutter={[36, 36]}
-              >
-                {Object.entries(allData).length === 0 && <EmptyState />}
-
-                {Object.entries(allData).map(([key, auction]: any) => {
-                  const item = auction.item;
-                  if (auction.type === 'onSale') {
-                    return (
-                      <Col
-                        key={item.auction.pubkey}
-                        span={8}
-                        xs={24}
-                        sm={24}
-                        md={24}
-                        lg={12}
-                        xl={8}
-                        xxl={8}
-                      >
-                        {!item.auction.info.endAuctionAt && (
-                          <ArtCardOnSale auctionView={item} />
-                        )}
-
-                        {item.auction.info.endAuctionAt && (
-                          <Link to={`/auction/${item.auction.pubkey}`}>
-                            <ArtCard
-                              key={item.auction.pubkey}
-                              pubkey={item.auction.pubkey}
-                              preview={false}
-                            />
-                          </Link>
-                        )}
-                      </Col>
-                    );
-                  } else if (auction.type === 'owned') {
-                    return (
-                      <Col
-                        key={item.metadata.pubkey}
-                        span={8}
-                        xs={24}
-                        sm={24}
-                        md={24}
-                        lg={12}
-                        xl={8}
-                        xxl={8}
-                      >
-                        <Link to={`/art/${item.metadata.pubkey}`}>
-                          <ArtCard
-                            key={item.metadata.pubkey}
-                            pubkey={item.metadata.pubkey}
-                            preview={false}
-                            artItem={[item]}
-                            isCollected={true}
-                          />
-                        </Link>
-                      </Col>
-                    );
-                  } else {
-                    return (
-                      <Col
-                        key={item.pubkey}
-                        span={8}
-                        xs={24}
-                        sm={24}
-                        md={24}
-                        lg={12}
-                        xl={8}
-                        xxl={8}
-                      >
-                        <Link to={`/art/${item.pubkey}`}>
-                          <ArtCard
-                            key={item.pubkey}
-                            pubkey={item.pubkey}
-                            preview={false}
-                          />
-                        </Link>
-                      </Col>
-                    );
-                  }
-                })}
-              </Row>
-            </TabPane>
-          )}
-
+        <Tabs className={TabsStyle} defaultActiveKey="2">
           <TabPane
             tab={
               <>
@@ -412,9 +223,9 @@ const Profile = ({ userId }: { userId: string }) => {
 
               {artwork.map(art => {
                 return (
-                  <Col key={art.pubkey} span={8}>
-                    <Link to={`/art/${art.pubkey}`}>
-                      <ArtCard key={art.pubkey} pubkey={art.pubkey} preview />
+                  <Col key={art.id} span={8}>
+                    <Link to={`/art/${art.id}`}>
+                      <ArtCard key={art.id} pubkey={art.id} isCollected={art.holder === publicKey} preview />
                     </Link>
                   </Col>
                 );
@@ -442,9 +253,9 @@ const Profile = ({ userId }: { userId: string }) => {
               {collected.length === 0 && <EmptyState />}
 
               {collected.map(art => (
-                <Col key={art.pubkey} span={8}>
-                  <Link to={`/art/${art.pubkey}`}>
-                    <ArtCard key={art.pubkey} pubkey={art.pubkey} preview />
+                <Col key={art.id} span={8}>
+                  <Link to={`/art/${art.id}`}>
+                    <ArtCard key={art.id} pubkey={art.id} isCollected={true} preview />
                   </Link>
                 </Col>
               ))}

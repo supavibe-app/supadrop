@@ -24,6 +24,9 @@ import {
   supabaseUpdateStatusInstantSale,
   supabaseUpdateIsRedeem,
   supabaseUpdateIsRedeemAuctionStatus,
+  supabaseUpdateNFTHolder,
+  supabaseUpdateWinnerAuction,
+  Identicon,
 } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
@@ -234,6 +237,11 @@ const BidDetails = ({
               publicKey?.toBase58(),
             );
             setShowCongratulations(true);
+            supabaseUpdateNFTHolder(
+              auctionView.thumbnail.metadata.pubkey,
+              wallet.publicKey?.toBase58(),
+              parseFloat(`${minimumBid}`),
+            );
           }
         });
       } else {
@@ -363,6 +371,15 @@ const BidDetails = ({
         pullAuctionPage(auction?.auction.pubkey || '');
         await update();
         setShowCongratulations(true);
+        supabaseUpdateNFTHolder(
+          auctionView.thumbnail.metadata.pubkey,
+          wallet.publicKey?.toBase58(),
+          instantSalePrice!!.toNumber(),
+        );
+        supabaseUpdateWinnerAuction(
+          auction?.auction.pubkey,
+          walletContext.publicKey?.toBase58(),
+        );
       });
     } catch (e) {
       console.error(e);
@@ -422,9 +439,7 @@ const BidDetails = ({
               <div>
                 <Avatar
                   src={
-                    users[bid.info.bidderPubkey]?.img_profile
-                      ? users[bid.info.bidderPubkey].img_profile
-                      : null
+                    users[bid.info.bidderPubkey]?.img_profile || <Identicon address={bid.info.bidderPubkey} style={{ width: 40 }} />
                   }
                   size={40}
                 />
@@ -474,7 +489,7 @@ const BidDetails = ({
           {art.title && highestBid && (
             <>
               <div>
-                <Avatar src={users[highestBid.info.bidderPubkey]} size={40} />
+                <Avatar src={users[highestBid.info.bidderPubkey].img_profile || <Identicon address={bid.info.bidderPubkey} style={{ width: 40 }} />} size={40} />
               </div>
 
               <div>

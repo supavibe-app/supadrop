@@ -16,6 +16,7 @@ import {
   ItemAuction,
   pubkeyToString,
   supabase,
+  supabaseAddNewNFT,
 } from '@oyster/common';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -36,7 +37,7 @@ import WaitingStep from '../../components/Listing/WaitingStep';
 import { BackButton } from './style';
 import CongratsStep from '../../components/Listing/CongratsStep';
 import { ArtCard } from '../../components/ArtCard';
-import { useUserSingleArt } from '../../hooks';
+import { useUserSingleArt, useExtendedArt, useArweaveData } from '../../hooks';
 
 const { ZERO } = constants;
 
@@ -117,6 +118,8 @@ export const AuctionCreateView = () => {
     gapTimeType: 'minutes',
     winnersCount: 1,
   });
+
+  const { data } = useArweaveData(attributes.items[0].metadata.pubkey);
 
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
@@ -271,12 +274,46 @@ export const AuctionCreateView = () => {
       type_auction: isInstantSale || false,
       owner: wallet.publicKey?.toBase58(),
     };
+
+    // const isDataReady = Boolean(data);
+
     supabase
       .from('auction_status')
       .insert([item])
-      .then(() => {
-        updateLiveDataAuction();
-        updateAllDataAuction();
+      .then(result => {
+        // TODO CHECK NFT DATA
+
+        if (result.error) {
+          supabase
+            .from('nft_data')
+            .insert([
+              {
+                id: item.id_nft,
+                img_nft: data?.image,
+                name: data?.name,
+                description: data?.description,
+                attribute: data?.attributes,
+                royalty: data?.seller_fee_basis_points,
+                arweave_link: attributes.items[0].metadata.info.data.uri,
+                mint_key: attributes?.items[0].metadata.info.mint,
+                creator: data?.properties.creators?.[0].address,
+                holder: item.owner,
+                max_supply: 1,
+              },
+            ])
+            .then(() => {
+              supabase
+                .from('auction_status')
+                .insert([item])
+                .then(result => {
+                  updateLiveDataAuction();
+                  updateAllDataAuction();
+                });
+            });
+        } else {
+          updateLiveDataAuction();
+          updateAllDataAuction();
+        }
       });
     setAuctionObj(_auctionObj);
     await update();
