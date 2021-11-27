@@ -242,7 +242,7 @@ const BidDetails = ({
             supabaseUpdateNFTHolder(
               auctionView.thumbnail.metadata.pubkey,
               wallet.publicKey?.toBase58(),
-              parseFloat(`${minimumBid}`),
+              parseFloat(`${minimumBid}`) / Math.pow(10, 9),
             );
             supabaseUpdateOnSaleNFT(
               auctionView.thumbnail.metadata.pubkey,

@@ -291,15 +291,7 @@ const Profile = ({ userId }: { userId: string }) => {
                 {collected.map(art => (
                   <Col key={art.id} span={8}>
                     <Link to={`/art/${art.id}`}>
-                      <ArtCard
-                        key={art.id}
-                        pubkey={art.id}
-                        isCollected={
-                          !art.on_sale &&
-                          publicKey?.toBase58().toString() === walletAddress
-                        }
-                        preview
-                      />
+                      <ArtCard key={art.id} pubkey={art.id} isCollected={art.holder === publicKey?.toBase58()} soldFor={art.sold} preview />
                     </Link>
                   </Col>
                 ))}
