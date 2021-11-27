@@ -381,7 +381,7 @@ const BidDetails = ({
         supabaseUpdateNFTHolder(
           auctionView.thumbnail.metadata.pubkey,
           wallet.publicKey?.toBase58(),
-          instantSalePrice!!.toNumber(),
+          instantSalePrice!!.toNumber() / Math.pow(10, 9),
         );
         supabaseUpdateWinnerAuction(
           auction?.auction.pubkey,
@@ -456,7 +456,12 @@ const BidDetails = ({
               <div>
                 <Avatar
                   src={
-                    users[bid.info.bidderPubkey]?.img_profile || <Identicon address={bid.info.bidderPubkey} style={{ width: 40 }} />
+                    users[bid.info.bidderPubkey]?.img_profile || (
+                      <Identicon
+                        address={bid.info.bidderPubkey}
+                        style={{ width: 40 }}
+                      />
+                    )
                   }
                   size={40}
                 />
@@ -506,7 +511,17 @@ const BidDetails = ({
           {art.title && highestBid && (
             <>
               <div>
-                <Avatar src={users[highestBid.info.bidderPubkey].img_profile || <Identicon address={bid.info.bidderPubkey} style={{ width: 40 }} />} size={40} />
+                <Avatar
+                  src={
+                    users[highestBid.info.bidderPubkey]?.img_profile || (
+                      <Identicon
+                        address={bid.info.bidderPubkey}
+                        style={{ width: 40 }}
+                      />
+                    )
+                  }
+                  size={40}
+                />
               </div>
 
               <div>
