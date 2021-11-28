@@ -243,9 +243,11 @@ export const mintNFT = async (
   const metadataFile = result.messages?.find(
     m => m.filename === RESERVED_TXN_MANIFEST,
   );
-  const imgFile = result.messages?.find(m =>
-    m.filename.includes('.png') || m.filename.includes('.jpg') ||
-    m.filename.includes('.gif'));
+  const accFile = result.messages?.find(m =>
+    m.filename.includes('.png') || m.filename.includes('.jpg') || m.filename.includes('.gif') || // image
+    m.filename.includes('.mp3') || m.filename.includes('.flac') || m.filename.includes('.wav') || // audio
+    m.filename.includes('.mp4') || m.filename.includes('.mov') || m.filename.includes('.webm') // video
+  );
 
   if (metadataFile?.transactionId && wallet.publicKey) {
     const updateInstructions: TransactionInstruction[] = [];
@@ -253,7 +255,7 @@ export const mintNFT = async (
 
     // TODO: connect to testnet arweave
     const arweaveLink = `https://arweave.net/${metadataFile.transactionId}`;
-    const imgLink = `https://arweave.net/${imgFile?.transactionId}`;
+    const mediaLink = `https://arweave.net/${accFile?.transactionId}`;
     const idNFT = await updateMetadata(
       new Data({
         name: metadata.name,
@@ -316,7 +318,7 @@ export const mintNFT = async (
     progressCallback(8);
     supabaseAddNewNFT(
       idNFT,
-      imgLink,
+      mediaLink, // table
       metadata.name,
       metadata.description,
       metadata.attributes || [],
