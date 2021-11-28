@@ -40,7 +40,7 @@ export const Settings = ({
             src={
               userData?.img_profile || (
                 <Identicon
-                  address={userData?.wallet_address}
+                  address={publicKey?.toBase58()}
                   style={{ width: 32 }}
                 />
               )
