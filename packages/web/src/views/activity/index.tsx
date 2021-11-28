@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useMeta, VaultState } from '@oyster/common';
+import { useMeta } from '@oyster/common';
 
 import ActionButton from '../../components/ActionButton';
-import {
-  AuctionViewState,
-  useAuctions,
-  useHighestBidForAuction,
-} from '../../hooks';
 import { PageTitle, TabStyle, SubTitle, Content } from './style';
 import Congratulations from '../../components/Congratulations';
-import { getActiveBids, getOnSale } from '../../database/activityData';
+
 import { ActivityCardMyBid } from './activityCard/ActivityCardMyBid';
 import { ActivityCardOnSale } from './activityCard/ActivityCardOnSale';
+import { getActiveBids, getOnSale } from '../../database/activityData';
 
 const { TabPane } = Tabs;
 
