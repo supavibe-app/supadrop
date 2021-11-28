@@ -304,6 +304,10 @@ export const AuctionCreateView = () => {
             ])
             .then(() => {
               supabase
+                .from('nft_data')
+                .update({ id_auction: item.id })
+                .eq('id', item.id_nft);
+              supabase
                 .from('auction_status')
                 .insert([item])
                 .then(result => {
@@ -314,6 +318,10 @@ export const AuctionCreateView = () => {
         } else {
           updateLiveDataAuction();
           updateAllDataAuction();
+          supabase
+            .from('nft_data')
+            .update({ id_auction: item.id })
+            .eq('id', item.id_nft);
         }
       });
     supabaseUpdateOnSaleNFT(idNFT, true);
