@@ -45,7 +45,6 @@ export const AuctionView = () => {
   const queryParams = new URLSearchParams(location.search);
   const action = queryParams.get('action');
   const [showCongratulations, setCongratulations] = useState(false);
-
   const { id } = useParams<{ id: string }>();
   const { connected } = useWallet();
   const auction = useAuction(id);
@@ -99,7 +98,7 @@ export const AuctionView = () => {
 
   useEffect(() => {
     pullAuctionPage(id);
-  }, []);
+  }, [location.key]);
 
   if (showCongratulations) return <Congratulations id={id} />;
 

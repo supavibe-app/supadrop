@@ -36,17 +36,26 @@ import {
   TabsStyle,
   UsernameSection,
 } from './style';
-import getUserData, { getCollectedNFT, getCreatedDataNFT } from '../../database/userData';
+import getUserData from '../../database/userData';
+import { getCollectedNFT, getCreatedDataNFT } from '../../database/nftData';
+
 
 const { TabPane } = Tabs;
 
 const Profile = ({ userId }: { userId: string }) => {
-  const { replace } = useHistory();
+  const { replace, location } = useHistory();
+
   const { publicKey } = useWallet();
   const { isLoadingMetaplex, pullAllMetadata } = useMeta();
   const [onEdit, setOnEdit] = useState(false);
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
+
+  useEffect(() => {
+    if (location.state === 'refresh') {
+      refetch();
+    }
+  }, [location.key]);
 
   useEffect(() => {
     if (!isLoadingMetaplex) {
@@ -57,6 +66,8 @@ const Profile = ({ userId }: { userId: string }) => {
   const walletAddress = userData?.wallet_address;
   const collected = getCollectedNFT(walletAddress).data;
   const artwork = getCreatedDataNFT(walletAddress).data;
+  const collected2 = useCollectedArts(walletAddress);
+
   const onSale = useAuctions(AuctionViewState.Live).filter(
     m => m.auctionManager.authority === walletAddress,
   );
@@ -133,7 +144,17 @@ const Profile = ({ userId }: { userId: string }) => {
         {!onEdit && userData && (
           <div className={uTextAlignCenter} style={{ width: '100%' }}>
             <div className={uFlexJustifyCenter}>
-              <Avatar size={128} src={userData.img_profile || <Identicon address={userData.wallet_address} style={{ width: 128 }} />} />
+              <Avatar
+                size={128}
+                src={
+                  userData.img_profile || (
+                    <Identicon
+                      address={userData.wallet_address}
+                      style={{ width: 128 }}
+                    />
+                  )
+                }
+              />
             </div>
 
             <div className={NameStyle}>{userData.name}</div>
@@ -204,63 +225,85 @@ const Profile = ({ userId }: { userId: string }) => {
         xxl={18}
       >
         <Tabs className={TabsStyle} defaultActiveKey="2">
-          <TabPane
-            tab={
-              <>
-                Created{' '}
-                <span>
-                  {artwork.length < 10 ? `0${artwork.length}` : artwork.length}
-                </span>
-              </>
-            }
-            key="2"
-          >
-            <Row
-              className={artwork.length === 0 ? EmptyRow : ``}
-              gutter={[36, 36]}
+          {artwork?.length > 0 && (
+            <TabPane
+              tab={
+                <>
+                  Created{' '}
+                  <span>
+                    {artwork.length < 10
+                      ? `0${artwork.length}`
+                      : artwork.length}
+                  </span>
+                </>
+              }
+              key="2"
             >
-              {artwork.length === 0 && <EmptyState />}
+              <Row
+                className={artwork.length === 0 ? EmptyRow : ``}
+                gutter={[36, 36]}
+              >
+                {artwork.length === 0 && <EmptyState />}
 
-              {artwork.map(art => {
-                return (
+                {artwork.map(art => {
+                  return (
+                    <Col key={art.id} span={8}>
+                      <Link to={`/art/${art.id}`}>
+                        <ArtCard
+                          key={art.id}
+                          pubkey={art.id}
+                          isCollected={
+                            art.holder === publicKey?.toBase58() &&
+                            !art.on_sale &&
+                            publicKey?.toBase58().toString() === walletAddress
+                          }
+                          soldFor={art.sold}
+                          preview
+                        />
+                      </Link>
+                    </Col>
+                  );
+                })}
+              </Row>
+            </TabPane>
+          )}
+
+          {collected?.length > 0 && (
+            <TabPane
+              tab={
+                <>
+                  Collected{' '}
+                  <span>
+                    {collected.length < 10
+                      ? `0${collected.length}`
+                      : collected.length}
+                  </span>
+                </>
+              }
+              key="3"
+            >
+              <Row
+                className={collected.length === 0 ? EmptyRow : ``}
+                gutter={[36, 36]}
+              >
+                {collected.length === 0 && <EmptyState />}
+
+                {collected.map(art => (
                   <Col key={art.id} span={8}>
                     <Link to={`/art/${art.id}`}>
-                      <ArtCard key={art.id} pubkey={art.id} isCollected={art.holder === publicKey} preview />
+                      <ArtCard
+                        key={art.id}
+                        pubkey={art.id}
+                        isCollected={art.holder === publicKey?.toBase58()}
+                        soldFor={art.sold}
+                        preview
+                      />
                     </Link>
                   </Col>
-                );
-              })}
-            </Row>
-          </TabPane>
-
-          <TabPane
-            tab={
-              <>
-                Collected{' '}
-                <span>
-                  {collected.length < 10
-                    ? `0${collected.length}`
-                    : collected.length}
-                </span>
-              </>
-            }
-            key="3"
-          >
-            <Row
-              className={collected.length === 0 ? EmptyRow : ``}
-              gutter={[36, 36]}
-            >
-              {collected.length === 0 && <EmptyState />}
-
-              {collected.map(art => (
-                <Col key={art.id} span={8}>
-                  <Link to={`/art/${art.id}`}>
-                    <ArtCard key={art.id} pubkey={art.id} isCollected={true} preview />
-                  </Link>
-                </Col>
-              ))}
-            </Row>
-          </TabPane>
+                ))}
+              </Row>
+            </TabPane>
+          )}
 
           {onSale.length > 0 && (
             <TabPane

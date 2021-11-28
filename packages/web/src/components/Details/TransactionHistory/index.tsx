@@ -117,8 +117,6 @@ export const BillingHistory = ({
     </div>
   );
 
-  console.log(bids)
-
   return (
     <>
       <div className={ActivityHeader}>
@@ -136,9 +134,7 @@ export const BillingHistory = ({
 
       {bids.map((bid, idx) => (
         <div key={idx}>
-          {publicKey?.toBase58() === bid.address && (
-            <div className={IsMyBid} />
-          )}
+          {publicKey?.toBase58() === bid.address && <div className={IsMyBid} />}
           <Row className={Activity} justify="space-between" align="middle">
             <Col className={uFlexAlignItemsCenter} span={12}>
               <div>
@@ -156,7 +152,9 @@ export const BillingHistory = ({
             </Col>
 
             <Col className={uBoldFont} span={12}>
-              <span>{formatTokenAmount(bid.amount, mint)} SOL</span>
+              <span>
+                {bid.amount > 0 ? formatTokenAmount(bid.amount, mint) : 0} SOL
+              </span>
             </Col>
           </Row>
         </div>

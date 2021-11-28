@@ -54,7 +54,9 @@ export const AppBar = () => {
         <div className={ButtonContainer}>
           <Link to={`/auction`}>
             <Button
-              className={`${LinkButton} ${pathname.includes('auction') ? WhiteColor : GreyColor}`}
+              className={`${LinkButton} ${
+                pathname.includes('auction') ? WhiteColor : GreyColor
+              }`}
               type="link"
             >
               AUCTION
@@ -63,7 +65,9 @@ export const AppBar = () => {
 
           <Link to={`/market`}>
             <Button
-              className={`${LinkButton} ${pathname.includes('market') ? WhiteColor : GreyColor}`}
+              className={`${LinkButton} ${
+                pathname.includes('market') ? WhiteColor : GreyColor
+              }`}
               type="link"
             >
               MARKET
@@ -85,7 +89,9 @@ export const AppBar = () => {
 
             {!isBidPlaced && (
               <Button
-                className={`${LinkButton} ${pathname.includes('activity') ? WhiteColor : GreyColor}`}
+                className={`${LinkButton} ${
+                  pathname.includes('activity') ? WhiteColor : GreyColor
+                }`}
                 type="link"
               >
                 ACTIVITY
@@ -98,7 +104,12 @@ export const AppBar = () => {
           <CurrentUserBadge userData={userData} />
 
           <Link
-            to={`/${userData?.username ? userData.username : publicKey?.toBase58()}`}
+            to={{
+              pathname: `/${
+                userData?.username ? userData.username : publicKey?.toBase58()
+              }`,
+              state: 'refresh',
+            }}
           >
             <Button className={RoundButton} type="default" shape="round">
               SELL

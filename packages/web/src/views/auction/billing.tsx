@@ -8,6 +8,7 @@ import {
   useBidsForAuction,
   useUserBalance,
   useExtendedArt,
+  processAccountsIntoAuctionView,
 } from '../../hooks';
 import { ArtContent } from '../../components/ArtContent';
 import {
@@ -26,6 +27,7 @@ import {
   toPublicKey,
   WalletSigner,
   supabaseUpdateIsRedeemAuctionStatus,
+  WRAPPED_SOL_MINT,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useMeta } from '../../contexts';
@@ -39,11 +41,32 @@ import {
 import { Connection } from '@solana/web3.js';
 import { settle } from '../../actions/settle';
 import { MintInfo } from '@solana/spl-token';
-import { ArtContainer, ArtContentStyle, ArtDetailsColumn, ArtDetailsHeader, ArtTitle, BillingLabel, BillingValue, ColumnBox, Container, GroupValue, OverflowYAuto, PaddingBox, StatusBillingLabel, StatusContainer, TotalAuctionGroupValue, TotalAuctionLabel, TotalAuctionValue } from './style';
+import {
+  ArtContainer,
+  ArtContentStyle,
+  ArtDetailsColumn,
+  ArtDetailsHeader,
+  ArtTitle,
+  BillingLabel,
+  BillingValue,
+  ColumnBox,
+  Container,
+  GroupValue,
+  OverflowYAuto,
+  PaddingBox,
+  StatusBillingLabel,
+  StatusContainer,
+  TotalAuctionGroupValue,
+  TotalAuctionLabel,
+  TotalAuctionValue,
+} from './style';
 import { ThreeDots } from '../../components/MyLoader';
 import { BillingHistory } from '../../components/Details/TransactionHistory';
 import ActionButton from '../../components/ActionButton';
 import { uFlex } from '../../styles';
+import { getPersonalEscrowAta } from '../../components/Notifications';
+import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
+import { SpinnerStyle } from '../../components/Details/BidDetails/style';
 const { Content } = Layout;
 
 export const BillingView = () => {
@@ -164,8 +187,8 @@ function usePayoutTickets(
         const creators = item.metadata?.info?.data?.creators || [];
         const recipientAddresses = creators
           ? creators
-            .map(c => c.address)
-            .concat([auctionView.auctionManager.authority])
+              .map(c => c.address)
+              .concat([auctionView.auctionManager.authority])
           : [auctionView.auctionManager.authority];
 
         for (let k = 0; k < recipientAddresses.length; k++) {
@@ -348,12 +371,12 @@ export function useBillingInfo({ auctionView }: { auctionView: AuctionView }) {
     metadata: ParsedAccount<BidderMetadata>;
     pot: ParsedAccount<BidderPot>;
   }[] = [
-      ...winnersThatCanBeEmptied.map(pot => ({
-        metadata:
-          bidderMetadataByAuctionAndBidder[`${auctionKey}-${pot.info.bidderAct}`],
-        pot,
-      })),
-    ];
+    ...winnersThatCanBeEmptied.map(pot => ({
+      metadata:
+        bidderMetadataByAuctionAndBidder[`${auctionKey}-${pot.info.bidderAct}`],
+      pot,
+    })),
+  ];
 
   return {
     bidsToClaim,
@@ -380,9 +403,12 @@ export const InnerBillingView = ({
   const id = auctionView.thumbnail.metadata.pubkey;
   const art = useArt(id);
   const balance = useUserBalance(auctionView.auction.info.tokenMint);
+  const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [escrowBalance, setEscrowBalance] = useState<number | undefined>();
-  const [escrowBalanceRefreshCounter, setEscrowBalanceRefreshCounter] = useState(0);
-  const { whitelistedCreatorsByCreator, pullBillingPage } = useMeta();
+  const [escrowBalanceRefreshCounter, setEscrowBalanceRefreshCounter] =
+    useState(0);
+  const { whitelistedCreatorsByCreator, pullBillingPage, pullAuctionPage } =
+    useMeta();
 
   const { ref, data } = useExtendedArt(id);
 
@@ -415,7 +441,6 @@ export const InnerBillingView = ({
   } = useBillingInfo({
     auctionView,
   });
-
   return (
     <Row className={Container} ref={ref}>
       {/* Art Column */}
@@ -446,7 +471,8 @@ export const InnerBillingView = ({
                 {fromLamports(
                   totalWinnerPayments + participationPossibleTotal,
                   mint,
-                )} SOL
+                )}{' '}
+                SOL
               </div>
             </div>
 
@@ -461,7 +487,8 @@ export const InnerBillingView = ({
                     0,
                   ),
                   mint,
-                )} SOL
+                )}{' '}
+                SOL
               </div>
             </div>
 
@@ -474,14 +501,19 @@ export const InnerBillingView = ({
                     0,
                   ),
                   mint,
-                )} SOL
+                )}{' '}
+                SOL
               </div>
             </div>
 
             <div className={GroupValue}>
               <div className={BillingLabel}>TOTAL IN ESCROW</div>
               <div className={BillingValue}>
-                {escrowBalance !== undefined ? `${escrowBalance} SOL` : <Spin />}
+                {escrowBalance !== undefined ? (
+                  `${escrowBalance} SOL`
+                ) : (
+                  <Spin />
+                )}
               </div>
             </div>
 
@@ -503,39 +535,120 @@ export const InnerBillingView = ({
                 <Avatar size={40} style={{ marginRight: 16 }} />
 
                 <div>
-                  <div className={StatusBillingLabel}>total auction redeemed value</div>
+                  <div className={StatusBillingLabel}>
+                    total auction redeemed value
+                  </div>
 
                   <div className={BillingValue} style={{ fontSize: 18 }}>
                     {fromLamports(
                       totalWinnerPayments +
-                      participationPossibleTotal -
-                      participationUnredeemedTotal,
+                        participationPossibleTotal -
+                        participationUnredeemedTotal,
                       mint,
-                    )} SOL
+                    )}{' '}
+                    SOL
                   </div>
                 </div>
               </div>
 
               <div style={{ paddingRight: 8, marginTop: 32 }}>
-                <ActionButton
-                  width="100%"
-                  onClick={async () => {
-                    await settle(
-                      connection,
-                      wallet,
-                      auctionView,
-                      bidsToClaim.map(b => b.pot),
-                      myPayingAccount.pubkey,
-                      accountByMint,
-                    );
-                    supabaseUpdateIsRedeemAuctionStatus(
-                      auctionView?.auction.pubkey,
-                    );
-                    setEscrowBalanceRefreshCounter(ctr => ctr + 1);
-                  }}
-                >
-                  settle outstanding
-                </ActionButton>
+                {confirmTrigger && (
+                  <ActionButton width="100%" disabled>
+                    <Spin className={SpinnerStyle} />
+                    please wait...
+                  </ActionButton>
+                )}
+                {!confirmTrigger && Object.keys(payoutTickets).length > 0 && (
+                  <ActionButton width="100%" disabled>
+                    {' '}
+                    settled
+                  </ActionButton>
+                )}
+                {!confirmTrigger && Object.keys(payoutTickets).length === 0 && (
+                  <ActionButton
+                    width="100%"
+                    onClick={async () => {
+                      setConfirmTrigger(true);
+                      try {
+                        // pull missing data and complete the auction view to settle.
+                        const {
+                          auctionDataExtended,
+                          auctionManagersByAuction,
+                          safetyDepositBoxesByVaultAndIndex,
+                          metadataByMint,
+                          bidderMetadataByAuctionAndBidder:
+                            updatedBidderMetadataByAuctionAndBidder,
+                          bidderPotsByAuctionAndBidder,
+                          bidRedemptionV2sByAuctionManagerAndWinningIndex,
+                          masterEditions,
+                          vaults,
+                          safetyDepositConfigsByAuctionManagerAndIndex,
+                          masterEditionsByPrintingMint,
+                          masterEditionsByOneTimeAuthMint,
+                          metadataByMasterEdition,
+                          metadataByAuction,
+                        } = await pullAuctionPage(auctionView.auction.pubkey);
+                        const completeAuctionView =
+                          processAccountsIntoAuctionView(
+                            auctionView.auction.pubkey,
+                            auctionView.auction,
+                            auctionDataExtended,
+                            auctionManagersByAuction,
+                            safetyDepositBoxesByVaultAndIndex,
+                            metadataByMint,
+                            updatedBidderMetadataByAuctionAndBidder,
+                            bidderPotsByAuctionAndBidder,
+                            bidRedemptionV2sByAuctionManagerAndWinningIndex,
+                            masterEditions,
+                            vaults,
+                            safetyDepositConfigsByAuctionManagerAndIndex,
+                            masterEditionsByPrintingMint,
+                            masterEditionsByOneTimeAuthMint,
+                            metadataByMasterEdition,
+                            {},
+                            metadataByAuction,
+                            undefined,
+                          );
+                        if (completeAuctionView) {
+                          await settle(
+                            connection,
+                            wallet,
+                            completeAuctionView,
+                            // Just claim all bidder pots
+                            bidsToClaim.map(b => b.pot),
+                            myPayingAccount?.pubkey,
+                            accountByMint,
+                          );
+                          // accept funds (open WSOL & close WSOL) only if Auction currency SOL
+                          if (
+                            wallet.publicKey &&
+                            auctionView.auction.info.tokenMint ==
+                              WRAPPED_SOL_MINT.toBase58()
+                          ) {
+                            const ata = await getPersonalEscrowAta(wallet);
+                            if (ata)
+                              await closePersonalEscrow(
+                                connection,
+                                wallet,
+                                ata,
+                              );
+                          }
+                          supabaseUpdateIsRedeemAuctionStatus(
+                            auctionView?.auction.pubkey,
+                          );
+                        }
+                      } catch (e) {
+                        console.error(e);
+                        return false;
+                      }
+                      setEscrowBalanceRefreshCounter(ctr => ctr + 1);
+                      await pullBillingPage(id);
+                      setConfirmTrigger(false);
+                    }}
+                  >
+                    settle outstanding
+                  </ActionButton>
+                )}
               </div>
             </div>
           </div>

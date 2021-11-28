@@ -24,6 +24,7 @@ export interface ArtCardProps extends CardProps {
   image?: string;
   animationURL?: string;
   isCollected?: boolean;
+  soldFor?: number;
   category?: MetadataCategory;
 
   name?: string;
@@ -49,6 +50,7 @@ export const ArtCard = (props: ArtCardProps) => {
     pubkey,
     artItem,
     isCollected,
+    soldFor,
   } = props;
   const art = useArt(pubkey);
   creators = art?.creators || creators || [];
@@ -100,7 +102,12 @@ export const ArtCard = (props: ArtCardProps) => {
             <div className={UserWrapper}>
               <Avatar
                 src={
-                  data[creatorsAddress]?.img_profile || <Identicon address={creatorsAddress} style={{ width: 32 }} />
+                  data[creatorsAddress]?.img_profile || (
+                    <Identicon
+                      address={creatorsAddress}
+                      style={{ width: 32 }}
+                    />
+                  )
                 }
                 size={32}
                 className={AvatarStyle}
@@ -113,17 +120,26 @@ export const ArtCard = (props: ArtCardProps) => {
             </div>
 
             <Row>
-              <Col span={12}>
-                <div>sold for</div>
-                <div>... SOL</div>
-              </Col>
+              {soldFor && (
+                <Col span={12}>
+                  <div>sold for</div>
+                  <div>{soldFor} SOL</div>
+                </Col>
+              )}
 
-              {isCollected && (
+              {!soldFor && (
+                <Col span={12}>
+                  <div>sold for</div>
+                  <div>... SOL</div>
+                </Col>
+              )}
+
+              {isCollected && pubkey && (
                 <Col className={uTextAlignEnd} span={12}>
                   <Link
                     to={{
                       pathname: `/list/create`,
-                      state: { idNFT: pubkey, item: artItem },
+                      state: { idNFT: pubkey },
                     }}
                   >
                     <Button shape="round">LIST</Button>

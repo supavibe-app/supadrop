@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.supabaseUpdateWinnerAuction = exports.supabaseUpdateHighestBid = exports.supabaseUpdateIsRedeemAuctionStatus = exports.supabaseUpdateIsRedeem = exports.supabaseUpdateStatusInstantSale = exports.supabaseGetAllOwnedNFT = exports.supabaseUpdateNFTHolder = exports.supabaseAddNewNFT = exports.supabaseAddNewUser = exports.supabaseUpdateBid = exports.supabase = void 0;
+exports.supabaseUpdateLastSoldNFT = exports.supabaseUpdateOnSaleNFT = exports.supabaseUpdateWinnerAuction = exports.supabaseUpdateHighestBid = exports.supabaseUpdateIsRedeemAuctionStatus = exports.supabaseUpdateIsRedeem = exports.supabaseUpdateStatusInstantSale = exports.supabaseGetAllOwnedNFT = exports.supabaseUpdateNFTHolder = exports.supabaseAddNewNFT = exports.supabaseAddNewUser = exports.supabaseUpdateBid = exports.supabase = void 0;
 const supabase_js_1 = require("@supabase/supabase-js");
 const _1 = require(".");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -57,7 +57,7 @@ const supabaseAddNewUser = (walletAddress) => {
     });
 };
 exports.supabaseAddNewUser = supabaseAddNewUser;
-const supabaseAddNewNFT = (id, img_nft, name, description, attribute, royalty, arweave_link, mint_key, creator) => {
+const supabaseAddNewNFT = (id, img_nft, name, description, attribute, royalty, arweave_link, mint_key, creator, mediaType) => {
     exports.supabase
         .from('nft_data')
         .insert([
@@ -72,19 +72,25 @@ const supabaseAddNewNFT = (id, img_nft, name, description, attribute, royalty, a
             mint_key,
             creator,
             holder: creator,
+            media_type: mediaType,
             max_supply: 1,
         },
     ])
-        .then();
+        .then(res => console.log('Result Add New NFT', res));
 };
 exports.supabaseAddNewNFT = supabaseAddNewNFT;
 const supabaseUpdateNFTHolder = (idNFT, walletAddress, soldFor) => {
     exports.supabase
         .from('nft_data')
-        .update({ holder: walletAddress, sold: soldFor, updated_at: _1.timestampPostgre() })
+        .update({
+        holder: walletAddress,
+        sold: soldFor,
+        updated_at: _1.timestampPostgre(),
+    })
         .eq('id', idNFT)
         .then(result => {
         console.log('res', result);
+        exports.supabaseUpdateOnSaleNFT(idNFT, false);
     });
 };
 exports.supabaseUpdateNFTHolder = supabaseUpdateNFTHolder;
@@ -158,4 +164,16 @@ const supabaseUpdateWinnerAuction = (idAuction, walletAddress) => {
     });
 };
 exports.supabaseUpdateWinnerAuction = supabaseUpdateWinnerAuction;
+const supabaseUpdateOnSaleNFT = (idNFT, onSale) => {
+    exports.supabase
+        .from('nft_data')
+        .update({ on_sale: onSale, updated_at: _1.timestampPostgre() })
+        .eq('id', idNFT)
+        .then();
+};
+exports.supabaseUpdateOnSaleNFT = supabaseUpdateOnSaleNFT;
+const supabaseUpdateLastSoldNFT = (idNFT, bid) => {
+    exports.supabase.from('nft_data').update({ last_sold: bid }).eq('id', idNFT).then();
+};
+exports.supabaseUpdateLastSoldNFT = supabaseUpdateLastSoldNFT;
 //# sourceMappingURL=supabaseClient.js.map

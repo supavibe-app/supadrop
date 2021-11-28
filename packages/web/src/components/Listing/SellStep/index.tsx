@@ -38,22 +38,23 @@ const SellStep = (props: {
     const attributeValue =
       category === AuctionCategory.InstantSale
         ? {
-          ...props.attributes,
-          startSaleTS: moment().unix(),
-          startListTS: moment().unix(),
-          priceFloor,
-          instantSalePrice: priceFloor,
-        }
+            ...props.attributes,
+            startSaleTS: moment().unix(),
+            startListTS: moment().unix(),
+            priceFloor,
+            instantSalePrice: priceFloor,
+          }
         : {
-          ...props.attributes,
-          startSaleTS: moment().unix(),
-          startListTS: moment().unix(),
-          priceFloor,
-          priceTick: 0.1,
-          auctionDuration: time,
-          gapTime: 15,
-          tickSizeEndingPhase: 10,
-        };
+            ...props.attributes,
+            startSaleTS: moment().unix(),
+            startListTS: moment().unix(),
+            priceFloor,
+            priceTick: 0.1,
+            auctionDuration: time,
+            // gapTime: 15,
+            gapTime: 1,
+            tickSizeEndingPhase: 10,
+          };
 
     props.setAttributes(attributeValue);
     props.confirm();
@@ -107,6 +108,12 @@ const SellStep = (props: {
 
               <div className={OptionsWrapper}>
                 <OptionButton
+                  className={OptionButtonStyle(time === 0.005)}
+                  text="Under 1 d"
+                  onClick={() => setTime(0.005)}
+                />
+
+                <OptionButton
                   className={OptionButtonStyle(time === 1)}
                   text="1 day"
                   onClick={() => setTime(1)}
@@ -129,7 +136,11 @@ const SellStep = (props: {
         </div>
       </div>
 
-      <ActionButton size="small" onClick={handleList} disabled={priceFloor <= 0 || !priceFloor}>
+      <ActionButton
+        size="small"
+        onClick={handleList}
+        disabled={priceFloor <= 0 || !priceFloor}
+      >
         list my NFT
       </ActionButton>
     </Col>

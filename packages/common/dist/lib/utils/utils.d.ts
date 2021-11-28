@@ -8,7 +8,7 @@ export declare type KnownTokenMap = Map<string, TokenInfo>;
 export declare const formatPriceNumber: Intl.NumberFormat;
 export declare function useLocalStorageState(key: string, defaultState?: string): any[];
 export declare const findProgramAddress: (seeds: (Buffer | Uint8Array)[], programId: PublicKey) => Promise<[string, number]>;
-export declare function shortenAddress(address: string, chars?: number): string;
+export declare function shortenAddress(address?: string, chars?: number): string;
 export declare function timestampPostgre(): string;
 export declare function getTokenName(map: KnownTokenMap, mint?: string | PublicKey, shorten?: boolean): string;
 export declare function getVerboseTokenName(map: KnownTokenMap, mint?: string | PublicKey, shorten?: boolean): string;

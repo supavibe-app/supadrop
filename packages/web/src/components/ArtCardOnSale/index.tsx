@@ -1,5 +1,6 @@
 import { sendPlaceBid } from '../../actions/sendPlaceBid';
 import {
+  supabaseUpdateOnSaleNFT,
   supabaseUpdateStatusInstantSale,
   useConnection,
   useMeta,
@@ -44,6 +45,7 @@ export const ArtCardOnSale = ({
         wallet,
       });
       supabaseUpdateStatusInstantSale(auctionView.auction.pubkey);
+      supabaseUpdateOnSaleNFT(auctionView.thumbnail.metadata.pubkey,false)
     } catch (e) {
       console.error('endAuction', e);
       return;
