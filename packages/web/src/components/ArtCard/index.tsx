@@ -1,24 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Avatar, Card, CardProps, Button, Badge, Row, Col } from 'antd';
+import { Avatar, Card, CardProps, Button, Badge, Row, Col, Modal } from 'antd';
 import {
+  supabaseUpdateOnSaleNFT,
+  supabaseUpdateStatusInstantSale,
+  useConnection,
   Identicon,
   MetadataCategory,
   shortenAddress,
   StringPublicKey,
+  useUserAccounts,
+  useMeta,
 } from '@oyster/common';
 import { ArtContent } from './../ArtContent';
-import { useArt } from '../../hooks';
+import { AuctionView, useBidsForAuction, useArt } from '../../hooks';
 import { Artist, ArtType } from '../../types';
 
-import { uTextAlignEnd } from '../../styles';
-import { AuctionImage, AvatarStyle, CardStyle, UserWrapper } from './style';
+import { uTextAlignEnd, WhiteColor } from '../../styles';
+import { AuctionImage, AvatarStyle, ButtonCard, CardStyle, ConfirmModal, UserWrapper } from './style';
 import { Link } from 'react-router-dom';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
 import { getUsernameByPublicKeys } from '../../database/userData';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { endSale } from '../AuctionCard/utils/endSale';
 
 const { Meta } = Card;
 
 export interface ArtCardProps extends CardProps {
+  auctionView?: AuctionView;
   pubkey?: StringPublicKey;
   artItem?: SafetyDepositDraft[];
   image?: string;
@@ -37,10 +45,14 @@ export interface ArtCardProps extends CardProps {
 
   height?: number;
   width?: number;
+
+  isOnSale?: boolean;
+  isNotForSale?: boolean;
 }
 
 export const ArtCard = (props: ArtCardProps) => {
   let {
+    auctionView,
     category,
     image,
     animationURL,
@@ -51,12 +63,21 @@ export const ArtCard = (props: ArtCardProps) => {
     artItem,
     isCollected,
     soldFor,
+    isOnSale,
+    isNotForSale,
   } = props;
   const art = useArt(pubkey);
   creators = art?.creators || creators || [];
   const [cardWidth, setCardWidth] = useState(0);
 
-  name = art?.title || name || ' ';
+  // onsale requirements
+  const walletContext = useWallet();
+  const connection = useConnection();
+  const { accountByMint } = useUserAccounts();
+  const bids = useBidsForAuction(auctionView?.auction.pubkey || '');
+  const { prizeTrackingTickets, bidRedemptions } = useMeta();
+
+  name = art?.title || name || '';
   const cardRef = useRef<HTMLDivElement>(null);
 
   const creatorsAddress = creators[0]?.address || '';
@@ -76,6 +97,45 @@ export const ArtCard = (props: ArtCardProps) => {
     if (cardRef.current?.offsetWidth)
       setCardWidth(cardRef.current?.offsetWidth);
   }, [cardRef.current?.offsetWidth, setCardWidth]);
+
+  const endInstantSale = async () => {
+    try {
+      const wallet = walletContext;
+      if (auctionView) {
+        const endStatus = await endSale({
+          auctionView,
+          connection,
+          accountByMint,
+          bids,
+          bidRedemptions,
+          prizeTrackingTickets,
+          wallet,
+        });
+        supabaseUpdateStatusInstantSale(auctionView.auction.pubkey);
+        supabaseUpdateOnSaleNFT(auctionView.thumbnail.metadata.pubkey, false)
+      }
+    } catch (e) {
+      console.error('endAuction', e);
+      return;
+    }
+  };
+
+  const unlistConfirmation = e => {
+    e.preventDefault();
+    Modal.confirm({
+      className: ConfirmModal,
+      title: 'unlist confirmation',
+      content: 'Are you sure delisting your NFT?',
+      onOk: endInstantSale,
+      okText: 'yes',
+      okType: 'text',
+      cancelText: 'no',
+      cancelButtonProps: { type: 'text' },
+      centered: true,
+      closable: true,
+      icon: null,
+    })
+  };
 
   const card = (
     <Card
@@ -120,22 +180,30 @@ export const ArtCard = (props: ArtCardProps) => {
             </div>
 
             <Row>
-              {soldFor && (
+              {/* Left Section */}
+              {Boolean(soldFor) && (
                 <Col span={12}>
                   <div>sold for</div>
-                  <div>{soldFor} SOL</div>
+                  <div className={WhiteColor}>{soldFor} SOL</div>
                 </Col>
               )}
 
-              {!soldFor && (
+              {isNotForSale && !soldFor && (
                 <Col span={12}>
-                  <div>sold for</div>
-                  <div>... SOL</div>
+                  <div>status</div>
+                  <div className={WhiteColor}>not for sale</div>
                 </Col>
               )}
 
+              {/* case on sale (instant or auction). current bid / reserve price for auction; price for instant sale */}
+              {/* <Col span={12}>
+                <div>{'current bid' || 'reserve price' || 'price'}</div>
+                <div className={WhiteColor}>... SOL</div>
+              </Col> */}
+
+              {/* Right Section */}
               {isCollected && pubkey && (
-                <Col className={uTextAlignEnd} span={12}>
+                <Col className={ButtonCard} span={12}>
                   <Link
                     to={{
                       pathname: `/list/create`,
@@ -146,6 +214,39 @@ export const ArtCard = (props: ArtCardProps) => {
                   </Link>
                 </Col>
               )}
+
+              {isOnSale && (
+                <Col className={ButtonCard} span={12}>
+                  <Button shape="round" onClick={unlistConfirmation}>UNLIST</Button>
+                </Col>
+              )}
+
+              {/* <Col span={12}>
+                <div>listed by</div>
+                <div className={WhiteColor}>{shortenAddress(art.holder)}</div>
+              </Col> */}
+
+              {/* <Col span={12}>
+                <div>owner</div>
+                <div className={WhiteColor}>{shortenAddress(art.holder)}</div>
+              </Col> */}
+
+              {/* <Col span={12}>
+                <div>ending in</div>
+                <div className={WhiteColor}>
+                  {state && state.hours < 10
+                    ? '0' + state?.hours
+                    : state?.hours}{' '}
+                  :{' '}
+                  {state && state.minutes < 10
+                    ? '0' + state?.minutes
+                    : state?.minutes}{' '}
+                  :{' '}
+                  {state && state.seconds < 10
+                    ? '0' + state?.seconds
+                    : state?.seconds}
+                </div>
+              </Col> */}
             </Row>
           </>
         }

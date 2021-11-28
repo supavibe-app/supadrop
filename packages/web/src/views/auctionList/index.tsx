@@ -166,9 +166,7 @@ const AuctionListView = () => {
             }
           >
             <Row gutter={[36, 36]}>{auctionList(liveAuctions)}</Row>
-            {!Boolean(liveAuctions.length) &&
-              !isLoadingMetaplex &&
-              emptyAuction}
+            {!Boolean(liveAuctions.length) && !isLoadingMetaplex && emptyAuction}
           </TabPane>
 
           <TabPane

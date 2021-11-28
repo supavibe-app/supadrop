@@ -16,9 +16,7 @@ import {
 } from '../../hooks';
 // components
 import { ArtCard } from '../../components/ArtCard';
-import DefaultAvatar from '../../components/DefaultAvatar';
 import EditProfile from '../../components/Profile/EditProfile';
-import { ArtCardOnSale } from '../../components/ArtCardOnSale';
 
 // styles
 import { uFlexJustifyCenter, uTextAlignCenter, WhiteColor } from '../../styles';
@@ -42,11 +40,40 @@ import { getCollectedNFT, getCreatedDataNFT } from '../../database/nftData';
 
 const { TabPane } = Tabs;
 
-const Profile = ({ userId }: { userId: string }) => {
-  const { replace, location } = useHistory();
+/*
+  Case Art Cards:
+  1. Created
+    a. just minted and not for sale (✅ done)
+    b. just minted and for sale (❌ blocked)
+      - instant sale
+      - auction
+        - have bidder
+        - don't have bidder
+    c. on sale listed by buyer (❌ blocked)
 
+  2. Collected
+    a. on sale (❌ blocked)
+      - instant sale
+      - auction
+        - have bidder
+        - dont have bidder
+    b. not for sale (❌ blocked, gatau dia ini lagi enggak di jual)
+
+  3. On Sale
+    a. instant sale (❌ blocked)
+    b. auction (❌ blocked)
+
+  blocker:
+  1. gabisa bedain mana yang lagi di on sale sama engga
+  2. kalau auction, gatau kapan selesainya
+  3. gabisa ke halaman auction detail karena gatau publickey auction/instant sale
+
+*/
+
+const Profile = ({ userId }: { userId: string }) => {
+  const { replace, push, location } = useHistory();
   const { publicKey } = useWallet();
-  const { isLoadingMetaplex, pullAllMetadata } = useMeta();
+  const { isLoadingMetaplex, pullAllMetadata, allDataAuctions } = useMeta();
   const [onEdit, setOnEdit] = useState(false);
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
@@ -71,6 +98,11 @@ const Profile = ({ userId }: { userId: string }) => {
   const onSale = useAuctions(AuctionViewState.Live).filter(
     m => m.auctionManager.authority === walletAddress,
   );
+
+  console.log('allDataAuctions: ', allDataAuctions);
+
+  const isProfileOwner = publicKey?.toBase58() === userData?.wallet_address;
+  const isEmpty = collected.length === 0 && artwork.length === 0;
 
   useEffect(() => {
     // if username is available, show username in the url instead of their wallet address
@@ -201,7 +233,7 @@ const Profile = ({ userId }: { userId: string }) => {
 
             <div className={BioSection}>{userData.bio}</div>
 
-            {publicKey?.toBase58() === userData.wallet_address && (
+            {isProfileOwner && (
               <Button
                 className={EditProfileButton}
                 shape="round"
@@ -224,27 +256,23 @@ const Profile = ({ userId }: { userId: string }) => {
         xl={18}
         xxl={18}
       >
-        <Tabs className={TabsStyle} defaultActiveKey="2">
-          {artwork?.length > 0 && (
+        <Tabs className={TabsStyle}>
+          {artwork.length > 0 && (
             <TabPane
+              key="1"
               tab={
                 <>
                   Created{' '}
                   <span>
-                    {artwork.length < 10
-                      ? `0${artwork.length}`
-                      : artwork.length}
+                    {artwork.length < 10 ? `0${artwork.length}` : artwork.length}
                   </span>
                 </>
               }
-              key="2"
             >
               <Row
                 className={artwork.length === 0 ? EmptyRow : ``}
                 gutter={[36, 36]}
               >
-                {artwork.length === 0 && <EmptyState />}
-
                 {artwork.map(art => {
                   return (
                     <Col key={art.id} span={8}>
@@ -252,13 +280,10 @@ const Profile = ({ userId }: { userId: string }) => {
                         <ArtCard
                           key={art.id}
                           pubkey={art.id}
-                          isCollected={
-                            art.holder === publicKey?.toBase58() &&
-                            !art.on_sale &&
-                            publicKey?.toBase58().toString() === walletAddress
-                          }
+                          preview={false}
+                          isCollected={art.holder === publicKey?.toBase58()}
+                          isNotForSale={art.creator === art.holder}
                           soldFor={art.sold}
-                          preview
                         />
                       </Link>
                     </Col>
@@ -268,8 +293,9 @@ const Profile = ({ userId }: { userId: string }) => {
             </TabPane>
           )}
 
-          {collected?.length > 0 && (
+          {(collected.length > 0 || isEmpty) && (
             <TabPane
+              key="2"
               tab={
                 <>
                   Collected{' '}
@@ -280,7 +306,6 @@ const Profile = ({ userId }: { userId: string }) => {
                   </span>
                 </>
               }
-              key="3"
             >
               <Row
                 className={collected.length === 0 ? EmptyRow : ``}
@@ -295,8 +320,9 @@ const Profile = ({ userId }: { userId: string }) => {
                         key={art.id}
                         pubkey={art.id}
                         isCollected={art.holder === publicKey?.toBase58()}
+                        // isNotForSale={art.holder === }
+                        preview={false}
                         soldFor={art.sold}
-                        preview
                       />
                     </Link>
                   </Col>
@@ -307,6 +333,7 @@ const Profile = ({ userId }: { userId: string }) => {
 
           {onSale.length > 0 && (
             <TabPane
+              key="3"
               tab={
                 <Badge className={BadgeStyle} dot offset={[10, 10]}>
                   On Sale{' '}
@@ -315,28 +342,22 @@ const Profile = ({ userId }: { userId: string }) => {
                   </span>
                 </Badge>
               }
-              key="4"
             >
               <Row
                 className={onSale.length === 0 ? EmptyRow : ``}
                 gutter={[36, 36]}
               >
-                {onSale.length === 0 && <EmptyState />}
-
                 {onSale.map(art => (
                   <Col key={art.auction.pubkey} span={8}>
-                    {!art.auction.info.endAuctionAt && (
-                      <ArtCardOnSale auctionView={art} />
-                    )}
-                    {art.auction.info.endAuctionAt && (
-                      <Link to={`/auction/${art.auction.pubkey}`}>
-                        <ArtCard
-                          key={art.thumbnail.metadata.pubkey}
-                          pubkey={art.thumbnail.metadata.pubkey}
-                          preview={false}
-                        />
-                      </Link>
-                    )}
+                    <Link to={`/auction/${art.auction.pubkey}`}>
+                      <ArtCard
+                        auctionView={art}
+                        key={art.thumbnail.metadata.pubkey}
+                        pubkey={art.thumbnail.metadata.pubkey}
+                        preview={false}
+                        isOnSale={!art.auction.info.endAuctionAt}
+                      />
+                    </Link>
                   </Col>
                 ))}
               </Row>
