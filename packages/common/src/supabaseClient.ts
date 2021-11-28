@@ -96,7 +96,7 @@ export const supabaseAddNewNFT = (
         max_supply: 1,
       },
     ])
-    .then(res => console.log('Result Add New NFT', res));
+    .then();
 };
 
 export const supabaseUpdateNFTHolder = (
