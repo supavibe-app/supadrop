@@ -78,3 +78,20 @@ export const ConfirmModal = css`
     font-size: 24px;
   }
 `;
+
+export const ButtonCard = css`
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  button {
+    border: 2px solid #7e7c7c;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 17px;
+
+    color: #fafafb;
+    height: 42px;
+    padding: 0 18px;
+  }
+`;

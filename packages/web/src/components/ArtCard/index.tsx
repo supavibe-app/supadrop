@@ -16,7 +16,7 @@ import { AuctionView, useBidsForAuction, useArt } from '../../hooks';
 import { Artist, ArtType } from '../../types';
 
 import { uTextAlignEnd, WhiteColor } from '../../styles';
-import { AuctionImage, AvatarStyle, CardStyle, ConfirmModal, UserWrapper } from './style';
+import { AuctionImage, AvatarStyle, ButtonCard, CardStyle, ConfirmModal, UserWrapper } from './style';
 import { Link } from 'react-router-dom';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
 import { getUsernameByPublicKeys } from '../../database/userData';
@@ -181,10 +181,10 @@ export const ArtCard = (props: ArtCardProps) => {
 
             <Row>
               {/* Left Section */}
-              {!isNotForSale && Boolean(soldFor) && (
+              {Boolean(soldFor) && (
                 <Col span={12}>
                   <div>sold for</div>
-                  <div>{soldFor} SOL</div>
+                  <div className={WhiteColor}>{soldFor} SOL</div>
                 </Col>
               )}
 
@@ -195,9 +195,15 @@ export const ArtCard = (props: ArtCardProps) => {
                 </Col>
               )}
 
+              {/* case on sale (instant or auction). current bid / reserve price for auction; price for instant sale */}
+              {/* <Col span={12}>
+                <div>{'current bid' || 'reserve price' || 'price'}</div>
+                <div className={WhiteColor}>... SOL</div>
+              </Col> */}
+
               {/* Right Section */}
               {isCollected && pubkey && (
-                <Col className={uTextAlignEnd} span={12}>
+                <Col className={ButtonCard} span={12}>
                   <Link
                     to={{
                       pathname: `/list/create`,
@@ -210,10 +216,37 @@ export const ArtCard = (props: ArtCardProps) => {
               )}
 
               {isOnSale && (
-                <Col className={uTextAlignEnd} span={12}>
+                <Col className={ButtonCard} span={12}>
                   <Button shape="round" onClick={unlistConfirmation}>UNLIST</Button>
                 </Col>
               )}
+
+              {/* <Col span={12}>
+                <div>listed by</div>
+                <div className={WhiteColor}>{shortenAddress(art.holder)}</div>
+              </Col> */}
+
+              {/* <Col span={12}>
+                <div>owner</div>
+                <div className={WhiteColor}>{shortenAddress(art.holder)}</div>
+              </Col> */}
+
+              {/* <Col span={12}>
+                <div>ending in</div>
+                <div className={WhiteColor}>
+                  {state && state.hours < 10
+                    ? '0' + state?.hours
+                    : state?.hours}{' '}
+                  :{' '}
+                  {state && state.minutes < 10
+                    ? '0' + state?.minutes
+                    : state?.minutes}{' '}
+                  :{' '}
+                  {state && state.seconds < 10
+                    ? '0' + state?.seconds
+                    : state?.seconds}
+                </div>
+              </Col> */}
             </Row>
           </>
         }
