@@ -102,7 +102,12 @@ export const ArtCard = (props: ArtCardProps) => {
             <div className={UserWrapper}>
               <Avatar
                 src={
-                  data[creatorsAddress]?.img_profile || <Identicon address={creatorsAddress} style={{ width: 32 }} />
+                  data[creatorsAddress]?.img_profile || (
+                    <Identicon
+                      address={creatorsAddress}
+                      style={{ width: 32 }}
+                    />
+                  )
                 }
                 size={32}
                 className={AvatarStyle}
@@ -134,7 +139,7 @@ export const ArtCard = (props: ArtCardProps) => {
                   <Link
                     to={{
                       pathname: `/list/create`,
-                      state: { idNFT: pubkey},
+                      state: { idNFT: pubkey },
                     }}
                   >
                     <Button shape="round">LIST</Button>
