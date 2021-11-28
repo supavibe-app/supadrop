@@ -11,12 +11,11 @@ import {
 } from '../../hooks';
 import { PageTitle, TabStyle, SubTitle, Content } from './style';
 import Congratulations from '../../components/Congratulations';
-import { ActivityCardMyBid, ActivityCardOnSale } from './activityCard';
 import { getActiveBids, getOnSale } from '../../database/activityData';
+import { ActivityCardMyBid } from './activityCard/ActivityCardMyBid';
+import { ActivityCardOnSale } from './activityCard/ActivityCardOnSale';
 
 const { TabPane } = Tabs;
-
-const uniq = a => [...new Set(a)];
 
 const ActivityView = () => {
   const wallet = useWallet();
@@ -44,7 +43,7 @@ const ActivityView = () => {
         <Tabs className={TabStyle} defaultActiveKey="1">
           <TabPane tab="all" key="1">
             {[...activeBids, ...onSale].map(auction => {
-              if (auction.auction_status) {
+              if (auction.id_auction) {
                 return <ActivityCardMyBid auctionView={auction} />;
               } else {
                 return <ActivityCardOnSale auctionView={auction} />;

@@ -209,7 +209,6 @@ function MetaProvider({ children = null }) {
     )
     `)
             .then(dataAuction => {
-            console.log('🚀 ~ file: meta.tsx ~ line 268 ~ updateAllDataAuction ~ dataAuction', dataAuction);
             let listData = {};
             if (dataAuction.body != null && dataAuction.body.length > 0) {
                 dataAuction.body.forEach(v => {
