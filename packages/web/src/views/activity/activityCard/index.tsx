@@ -63,7 +63,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
   const owner = auctionView.auction_status.owner;
   const winner = auctionView.auction_status.winner;
 
-  const isWinner = winner.wallet_address === wallet.publicKey?.toBase58();
+  const isWinner = winner?.wallet_address === wallet.publicKey?.toBase58();
 
   const highestBid = auctionView.auction_status.highest_bid;
   const haveWinner = highestBid > 0;
@@ -94,11 +94,11 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                 {auctionView.auction_status.nft_data.name}
               </div>
               <div className={UserContainer}>
-                <Avatar src={owner.img_profile || <Identicon address={owner.wallet_address} style={{ width: 32 }} />} size={32} />
+                <Avatar src={owner?.img_profile || <Identicon address={owner?.wallet_address} style={{ width: 32 }} />} size={32} />
                 <div>
-                  {owner.username
-                    ? owner.username
-                    : shortenAddress(owner.wallet_address)}
+                  {owner?.username
+                    ? owner?.username
+                    : shortenAddress(owner?.wallet_address)}
                 </div>
               </div>
 
@@ -154,11 +154,11 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>winning bid</div>
                         <div className={UserContainer}>
-                          <Avatar src={winner.img_profile || <Identicon address={winner.wallet_address} style={{ width: 32 }} />} size={32} />
+                          <Avatar src={winner?.img_profile || <Identicon address={winner?.wallet_address} style={{ width: 32 }} />} size={32} />
                           <span>
-                            {winner.username
-                              ? winner.username
-                              : shortenAddress(winner.wallet_address)}
+                            {winner?.username
+                              ? winner?.username
+                              : shortenAddress(winner?.wallet_address)}
                           </span>
                         </div>
                       </div>
@@ -236,11 +236,11 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
             <Col flex={3}>
               <div className={NFTName}>{auctionView.nft_data.name}</div>
               <div className={UserContainer}>
-                <Avatar src={owner.img_profile} size={32} />
+                <Avatar src={owner?.img_profile} size={32} />
                 <div>
-                  {owner.username
-                    ? owner.username
-                    : shortenAddress(owner.wallet_address)}
+                  {owner?.username
+                    ? owner?.username
+                    : shortenAddress(owner?.wallet_address)}
                 </div>
               </div>
 
@@ -280,11 +280,11 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <Avatar src={winner.img_profile} size={32} />
+                          <Avatar src={winner?.img_profile} size={32} />
                           <span>
-                            {winner.username
-                              ? winner.username
-                              : shortenAddress(winner.wallet_address)}
+                            {winner?.username
+                              ? winner?.username
+                              : shortenAddress(winner?.wallet_address)}
                           </span>{' '}
                         </div>
                       </div>
@@ -295,11 +295,11 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <Avatar src={winner.img_profile} size={32} />
+                          <Avatar src={winner?.img_profile} size={32} />
                           <span>
-                            {winner.username
-                              ? winner.username
-                              : shortenAddress(winner.wallet_address)}
+                            {winner?.username
+                              ? winner?.username
+                              : shortenAddress(winner?.wallet_address)}
                           </span>{' '}
                         </div>
                       </div>

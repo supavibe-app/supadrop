@@ -76,6 +76,7 @@ export const supabaseAddNewNFT = (
   arweave_link?: string,
   mint_key?: string,
   creator?: string,
+  mediaType?: string,
 ) => {
   supabase
     .from('nft_data')
@@ -91,10 +92,11 @@ export const supabaseAddNewNFT = (
         mint_key,
         creator,
         holder: creator,
+        media_type: mediaType,
         max_supply: 1,
       },
     ])
-    .then();
+    .then(res => console.log('Result Add New NFT', res));
 };
 
 export const supabaseUpdateNFTHolder = (

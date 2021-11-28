@@ -64,6 +64,8 @@ export const AuctionView = () => {
   const { allDataAuctions, isLoadingDatabase, pullAuctionPage } = useMeta();
   const auctionDatabase = allDataAuctions[id];
 
+  console.log('nigga', auction);
+
   const { ref, data } = useExtendedArt(auctionDatabase?.id_nft);
   const art = useArt(auctionDatabase?.id_nft);
   const bids = useBidsForAuction(auctionDatabase?.id);

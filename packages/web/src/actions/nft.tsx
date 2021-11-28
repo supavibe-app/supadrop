@@ -316,6 +316,7 @@ export const mintNFT = async (
     // );
 
     progressCallback(8);
+
     supabaseAddNewNFT(
       idNFT,
       mediaLink, // table
@@ -325,7 +326,8 @@ export const mintNFT = async (
       metadata.sellerFeeBasisPoints,
       arweaveLink,
       mintKey,
-      payerPublicKey
+      payerPublicKey,
+      metadata.properties?.category
     );
 
     const txid = await sendTransactionWithRetry(
