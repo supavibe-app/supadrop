@@ -151,9 +151,9 @@ export const getActiveBids = publicKey => {
         .select(
           `
         *,
-        auction_status (
+        id_auction (
           *,
-          nft_data(*)
+          id_nft(*)
           ,winner(*)
           ,owner(*)
         ),
@@ -186,17 +186,12 @@ export const getInfoEndedBidding = publicKey => {
       supabase
         .from('action_bidding')
         .select(
-          `
-      *,
-      id_auction (
-        *,
-        nft_data(name)
-      )
+          `*,
+          id_auction (*)
       `,
         )
         .eq('wallet_address', publicKey)
         .eq('is_redeem', false)
-        .lt('auction_status.end_auction', moment().unix())
         .then(action => {
           if (action.body != null) {
             if (action.body.length) {
@@ -228,7 +223,7 @@ export const getOnSale = publicKey => {
         .select(
           `
         *,
-        nft_data(*),
+        id_nft(*),
         winner(*),
         owner(*)
         `,
@@ -258,12 +253,7 @@ export const getEndedOnSale = publicKey => {
     if (publicKey) {
       supabase
         .from('auction_status')
-        .select(
-          `
-        *,
-        nft_data(*)
-        `,
-        )
+        .select()
         .eq('owner', publicKey)
         .eq('is_redeem', false)
         .lte('end_auction', moment().unix())

@@ -208,10 +208,7 @@ const BidDetails = ({
     else open();
   }, [wallet, connect, open]);
 
-  const baseInstantSalePrice = auctionDatabase?.price_floor;
-
-  const instantSalePrice =
-    (baseInstantSalePrice || minimumBid) / Math.pow(10, 9);
+  const baseInstantSalePrice = auctionDatabase?.price_floor || minimumBid;
   const isParticipated =
     bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length >
     0;
@@ -242,7 +239,7 @@ const BidDetails = ({
             supabaseUpdateNFTHolder(
               auctionView.thumbnail.metadata.pubkey,
               wallet.publicKey?.toBase58(),
-              parseFloat(`${minimumBid}`) / Math.pow(10, 9),
+              parseFloat(`${minimumBid}`),
             );
             supabaseUpdateOnSaleNFT(
               auctionView.thumbnail.metadata.pubkey,
@@ -748,7 +745,7 @@ const BidDetails = ({
     auction?.isInstantSale &&
     !(publicKey?.toBase58() === owner && !eligibleForAnything)
   ) {
-    if (balance > instantSalePrice) {
+    if (balance > baseInstantSalePrice) {
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
