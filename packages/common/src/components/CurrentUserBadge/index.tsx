@@ -7,7 +7,7 @@ import { ProfilePopover, WalletWrapper } from './style';
 import { UserData } from '../..';
 import { Identicon } from '..';
 
-export const CurrentUserBadge = ({ userData }: { userData?: UserData; }) => {
+export const CurrentUserBadge = ({ userData }: { userData?: UserData }) => {
   const { wallet, publicKey } = useWallet();
   const [showPopover, setShowPopover] = useState(false);
 
@@ -20,15 +20,20 @@ export const CurrentUserBadge = ({ userData }: { userData?: UserData; }) => {
       <Popover
         overlayClassName={ProfilePopover}
         color="#000000"
-        content={<Settings userData={userData} setShowPopover={setShowPopover} />}
+        content={
+          <Settings userData={userData} setShowPopover={setShowPopover} />
+        }
         trigger="click"
         placement="bottomRight"
         onVisibleChange={visible => setShowPopover(visible)}
         visible={showPopover}
       >
-        <Avatar src={
-          userData?.img_profile ||
-          <Identicon address={userData?.wallet_address} style={{ width: 42 }} />}
+        <Avatar
+          src={
+            userData?.img_profile || (
+              <Identicon address={publicKey.toBase58()} style={{ width: 42 }} />
+            )
+          }
           size={42}
           style={{ cursor: 'pointer' }}
         />
