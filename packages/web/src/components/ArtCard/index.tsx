@@ -180,29 +180,22 @@ export const ArtCard = (props: ArtCardProps) => {
             </div>
 
             <Row>
-              {soldFor && (
+              {/* Left Section */}
+              {!isNotForSale && Boolean(soldFor) && (
                 <Col span={12}>
                   <div>sold for</div>
                   <div>{soldFor} SOL</div>
                 </Col>
               )}
 
-              {!soldFor && (
+              {isNotForSale && !soldFor && (
                 <Col span={12}>
-                  <div>sold for</div>
-                  <div>... SOL</div>
+                  <div>status</div>
+                  <div className={WhiteColor}>not for sale</div>
                 </Col>
               )}
 
-              <Col span={12}>
-                {isNotForSale && (
-                  <>
-                    <div>status</div>
-                    <div className={WhiteColor}>not for sale</div>
-                  </>
-                )}
-              </Col>
-
+              {/* Right Section */}
               {isCollected && pubkey && (
                 <Col className={uTextAlignEnd} span={12}>
                   <Link

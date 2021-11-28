@@ -283,6 +283,7 @@ const Profile = ({ userId }: { userId: string }) => {
                           preview={false}
                           isCollected={art.holder === publicKey?.toBase58()}
                           isNotForSale={art.creator === art.holder}
+                          soldFor={art.sold}
                         />
                       </Link>
                     </Col>
@@ -321,6 +322,7 @@ const Profile = ({ userId }: { userId: string }) => {
                         isCollected={art.holder === publicKey?.toBase58()}
                         // isNotForSale={art.holder === }
                         preview={false}
+                        soldFor={art.sold}
                       />
                     </Link>
                   </Col>
