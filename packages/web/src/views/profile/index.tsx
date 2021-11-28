@@ -276,7 +276,7 @@ const Profile = ({ userId }: { userId: string }) => {
                 {artwork.map(art => {
                   return (
                     <Col key={art.id} span={8}>
-                      <div onClick={() => push(`/art/${art.id}`)}>
+                      <Link to={`/art/${art.id}`}>
                         <ArtCard
                           key={art.id}
                           pubkey={art.id}
@@ -284,7 +284,7 @@ const Profile = ({ userId }: { userId: string }) => {
                           isCollected={art.holder === publicKey?.toBase58()}
                           isNotForSale={art.creator === art.holder}
                         />
-                      </div>
+                      </Link>
                     </Col>
                   );
                 })}
@@ -314,7 +314,7 @@ const Profile = ({ userId }: { userId: string }) => {
 
                 {collected.map(art => (
                   <Col key={art.id} span={8}>
-                    <div onClick={() => push(`/art/${art.id}`)}>
+                    <Link to={`/art/${art.id}`}>
                       <ArtCard
                         key={art.id}
                         pubkey={art.id}
@@ -322,7 +322,7 @@ const Profile = ({ userId }: { userId: string }) => {
                         // isNotForSale={art.holder === }
                         preview={false}
                       />
-                    </div>
+                    </Link>
                   </Col>
                 ))}
               </Row>
@@ -347,7 +347,7 @@ const Profile = ({ userId }: { userId: string }) => {
               >
                 {onSale.map(art => (
                   <Col key={art.auction.pubkey} span={8}>
-                    <div onClick={() => push(`/auction/${art.auction.pubkey}`)}>
+                    <Link to={`/auction/${art.auction.pubkey}`}>
                       <ArtCard
                         auctionView={art}
                         key={art.thumbnail.metadata.pubkey}
@@ -355,7 +355,7 @@ const Profile = ({ userId }: { userId: string }) => {
                         preview={false}
                         isOnSale={!art.auction.info.endAuctionAt}
                       />
-                    </div>
+                    </Link>
                   </Col>
                 ))}
               </Row>

@@ -121,7 +121,7 @@ export const ArtCard = (props: ArtCardProps) => {
   };
 
   const unlistConfirmation = e => {
-    e.stopPropagation();
+    e.preventDefault();
     Modal.confirm({
       className: ConfirmModal,
       title: 'unlist confirmation',
