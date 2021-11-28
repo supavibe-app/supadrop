@@ -66,6 +66,7 @@ import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState
 import { sendCancelBid } from '../../../actions/cancelBid';
 import { Link } from 'react-router-dom';
 import isEnded from '../../Home/helpers/isEnded';
+import { getAuctionIsRedeemData } from '../../../database/activityData';
 
 const BidDetails = ({
   art,
@@ -102,13 +103,15 @@ const BidDetails = ({
     setBidPlaced,
     updateDetailAuction,
   } = useMeta();
-  const ownedMetadata = useUserArts();
 
+  const ownedMetadata = useUserArts();
   const walletContext = useWallet();
   const { wallet, connect, connected, publicKey } = walletContext;
+  const { data: redeemData, loading, refetch } = getAuctionIsRedeemData(publicKey?.toBase58(), auction?.auction.pubkey);
 
   const owner = auctionDatabase?.owner;
   const endAt = auctionDatabase?.endAt;
+
   useEffect(() => {
     if (
       auction?.auction.info.auctionGap &&
@@ -174,6 +177,16 @@ const BidDetails = ({
   const [eligibleForAnything, setEligibleForAnything] = useState(
     winnerIndex !== null || eligibleForOpenEdition,
   );
+
+  const [isRedeem, setIsRedeem] = useState(false);
+
+  //
+
+  useEffect(() => {
+    if (isRedeem === true) {
+      refetch();
+    }
+  }, [isRedeem]);
 
   useEffect(() => {
     if (!connected && showPlaceBid) setShowPlaceBid(false);
@@ -248,6 +261,7 @@ const BidDetails = ({
               auctionView.thumbnail.metadata.pubkey,
               false,
             );
+            // setIsRedeem(true);
           }
         });
       } else {
@@ -271,6 +285,7 @@ const BidDetails = ({
               publicKey?.toBase58(),
             );
           }
+          setIsRedeem(true);
         });
       }
     } catch (e) {
@@ -422,6 +437,9 @@ const BidDetails = ({
     const shouldHide =
       shouldHideInstantSale ||
       auction?.vault.info.state === VaultState.Deactivated;
+
+    // console.log('isRedeem', redeemData[0].is_redeem);
+    if (redeemData.length > 0) return <></>;
 
     if (shouldHideInstantSale && isAuctionNotStarted) {
       return (
@@ -622,7 +640,8 @@ const BidDetails = ({
       if (
         highestBid &&
         publicKey &&
-        publicKey?.toBase58() === highestBid?.info.bidderPubkey
+        publicKey?.toBase58() === highestBid?.info.bidderPubkey &&
+        auction?.auctionManager.authority === publicKey?.toBase58()
       ) {
         const filterMetadata = ownedMetadata.filter(
           metadata => metadata.metadata.info.mint === art.mint,

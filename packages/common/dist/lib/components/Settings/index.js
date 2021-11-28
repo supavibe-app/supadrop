@@ -25,7 +25,7 @@ const Settings = ({ userData, setShowPopover = () => { }, }) => {
                     pathname: `/${(userData === null || userData === void 0 ? void 0 : userData.username) ? userData.username : publicKey === null || publicKey === void 0 ? void 0 : publicKey.toBase58()}`,
                     state: 'refresh',
                 }, onClick: () => setShowPopover(false) },
-                react_1.default.createElement(antd_1.Avatar, { src: (userData === null || userData === void 0 ? void 0 : userData.img_profile) || (react_1.default.createElement(__2.Identicon, { address: userData === null || userData === void 0 ? void 0 : userData.wallet_address, style: { width: 32 } })), className: style_1.ItemIcon }),
+                react_1.default.createElement(antd_1.Avatar, { src: (userData === null || userData === void 0 ? void 0 : userData.img_profile) || (react_1.default.createElement(__2.Identicon, { address: publicKey === null || publicKey === void 0 ? void 0 : publicKey.toBase58(), style: { width: 32 } })), className: style_1.ItemIcon }),
                 "view profile")),
         react_1.default.createElement(antd_1.List.Item, null, publicKey && (react_1.default.createElement("a", { href: `https://explorer.solana.com/address/${publicKey.toBase58()}`, target: "_blank" },
             react_1.default.createElement("div", { className: style_1.BalanceInfo },

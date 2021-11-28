@@ -246,7 +246,8 @@ export const mintNFT = async (
   const accFile = result.messages?.find(m =>
     m.filename.includes('.png') || m.filename.includes('.jpg') || m.filename.includes('.gif') || // image
     m.filename.includes('.mp3') || m.filename.includes('.flac') || m.filename.includes('.wav') || // audio
-    m.filename.includes('.mp4') || m.filename.includes('.mov') || m.filename.includes('.webm') // video
+    m.filename.includes('.mp4') || m.filename.includes('.mov') || m.filename.includes('.webm') ||// video
+    m.filename.includes('.glb') || m.filename.includes('.html') // 3D & HTML
   );
 
   if (metadataFile?.transactionId && wallet.publicKey) {

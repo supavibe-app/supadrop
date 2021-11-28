@@ -36,10 +36,9 @@ import {
   TabsStyle,
   UsernameSection,
 } from './style';
-import getUserData, {
-  getCollectedNFT,
-  getCreatedDataNFT,
-} from '../../database/userData';
+import getUserData from '../../database/userData';
+import { getCollectedNFT, getCreatedDataNFT } from '../../database/nftData';
+
 
 const { TabPane } = Tabs;
 
