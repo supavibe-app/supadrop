@@ -161,7 +161,7 @@ function MetaProvider({ children = null }) {
             .from('auction_status')
             .select(`
     *,
-    nft_data (
+    id_nft (
       *
     )
     `)
@@ -171,7 +171,7 @@ function MetaProvider({ children = null }) {
             let listData = {};
             if (dataAuction.body != null && dataAuction.body.length > 0) {
                 dataAuction.body.forEach(v => {
-                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link, v.owner, v.winner, v.nft_data.mint_key, v.type_auction);
+                    listData[v.id] = new types_1.ItemAuction(v.id, v.id_nft.name, v.id_nft.id, v.token_mint, v.price_floor, v.id_nft.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.id_nft.arweave_link, v.owner, v.winner, v.id_nft.mint_key, v.type_auction);
                 });
                 setEndingTime(dataAuction.body[dataAuction.body.length - 1].end_auction);
                 setLiveDataAuction(listData);
@@ -183,7 +183,7 @@ function MetaProvider({ children = null }) {
             .from('auction_status')
             .select(`
     *,
-    nft_data (
+    id_nft (
       *
     )
     `)
@@ -191,7 +191,7 @@ function MetaProvider({ children = null }) {
             .single()
             .then(dataAuction => {
             if (dataAuction.body != null && dataAuction.body.length > 0) {
-                let detailAuction = new types_1.ItemAuction(dataAuction.body.id, dataAuction.body.nft_data.name, dataAuction.body.id_nft, dataAuction.body.token_mint, dataAuction.body.price_floor, dataAuction.body.nft_data.img_nft, dataAuction.body.start_auction, dataAuction.body.end_auction, dataAuction.body.highest_bid, dataAuction.body.price_tick, dataAuction.body.gap_time, dataAuction.body.tick_size_ending_phase, dataAuction.body.vault, dataAuction.body.nft_data.arweave_link, dataAuction.body.owner, dataAuction.body.winner, dataAuction.body.nft_data.mint_key, dataAuction.body.type_auction);
+                let detailAuction = new types_1.ItemAuction(dataAuction.body.id, dataAuction.body.id_nft.name, dataAuction.body.id_nft.id, dataAuction.body.token_mint, dataAuction.body.price_floor, dataAuction.body.id_nft.img_nft, dataAuction.body.start_auction, dataAuction.body.end_auction, dataAuction.body.highest_bid, dataAuction.body.price_tick, dataAuction.body.gap_time, dataAuction.body.tick_size_ending_phase, dataAuction.body.vault, dataAuction.body.id_nft.arweave_link, dataAuction.body.owner, dataAuction.body.winner, dataAuction.body.id_nft.mint_key, dataAuction.body.type_auction);
                 if (detailAuction.endAt > moment_1.default().unix()) {
                     setLiveDataAuction({ ...liveDataAuctions, detailAuction });
                 }
@@ -204,15 +204,16 @@ function MetaProvider({ children = null }) {
             .from('auction_status')
             .select(`
     *,
-    nft_data (
+    id_nft (
       *
     )
     `)
             .then(dataAuction => {
+            console.log('🚀 ~ file: meta.tsx ~ line 268 ~ updateAllDataAuction ~ dataAuction', dataAuction);
             let listData = {};
             if (dataAuction.body != null && dataAuction.body.length > 0) {
                 dataAuction.body.forEach(v => {
-                    listData[v.id] = new types_1.ItemAuction(v.id, v.nft_data.name, v.id_nft, v.token_mint, v.price_floor, v.nft_data.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.nft_data.arweave_link, v.owner, v.winner, v.nft_data.mint_key, v.type_auction);
+                    listData[v.id] = new types_1.ItemAuction(v.id, v.id_nft.name, v.id_nft.id, v.token_mint, v.price_floor, v.id_nft.img_nft, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.id_nft.arweave_link, v.owner, v.winner, v.id_nft.mint_key, v.type_auction);
                 });
                 setAllDataAuction(listData);
             }

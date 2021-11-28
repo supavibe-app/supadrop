@@ -11,13 +11,10 @@ import {
 } from '../../hooks';
 import { PageTitle, TabStyle, SubTitle, Content } from './style';
 import Congratulations from '../../components/Congratulations';
-import {
-  getActiveBids,
-  getOnSale,
-  getUsernameByPublicKeys,
-} from '../../database/userData';
+
 import { ActivityCardMyBid } from './activityCard/ActivityCardMyBid';
 import { ActivityCardOnSale } from './activityCard/ActivityCardOnSale';
+import { getActiveBids, getOnSale } from '../../database/activityData';
 
 const { TabPane } = Tabs;
 

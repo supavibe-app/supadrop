@@ -51,7 +51,7 @@ const SellStep = (props: {
           priceFloor,
           priceTick: 0.1,
           auctionDuration: time,
-          gapTime: 15,
+          gapTime: 1,
           tickSizeEndingPhase: 10,
         };
 
@@ -106,6 +106,12 @@ const SellStep = (props: {
               <div style={{ marginBottom: 12 }}>auction ended in</div>
 
               <div className={OptionsWrapper}>
+              <OptionButton
+                  className={OptionButtonStyle(time === 0.005)}
+                  text="Under 1 d"
+                  onClick={() => setTime(0.005)}
+                />
+
                 <OptionButton
                   className={OptionButtonStyle(time === 1)}
                   text="1 day"

@@ -176,7 +176,7 @@ const AuctionListView = () => {
             tab={<div className={TitleWrapper}>ended auctions</div>}
           >
             <Row gutter={[36, 36]}>{auctionList(endAuctions)}</Row>
-            {!Boolean(auctionsEnded.length) &&
+            {!Boolean(endAuctions.length) &&
               !isLoadingMetaplex &&
               emptyAuction}
           </TabPane>

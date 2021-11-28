@@ -52,11 +52,7 @@ import {
 } from '../../styles';
 import Coffee from '../../assets/icons/coffee';
 import FeatherIcon from 'feather-icons-react';
-import {
-  getEndedOnSale,
-  getInfoEndedBidding,
-  getOnSale,
-} from '../../database/userData';
+import { getEndedOnSale, getInfoEndedBidding } from '../../database/activityData';
 
 interface NotificationCard {
   id: string;
