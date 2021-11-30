@@ -70,8 +70,12 @@ const ArtDetails = ({
                     <div className={UserThumbnail} key={creator.address}>
                       <Avatar
                         src={
-                          users[creator.address]?.img_profile
-                          || <Identicon address={creator.address} style={{ width: 40 }} />
+                          users[creator.address]?.img_profile || (
+                            <Identicon
+                              address={creator.address}
+                              style={{ width: 40 }}
+                            />
+                          )
                         }
                         size={40}
                       />
@@ -99,7 +103,11 @@ const ArtDetails = ({
                 {(!ended || !highestBid) && (
                   <>
                     <Avatar
-                      src={users[owner]?.img_profile || <Identicon address={owner} style={{ width: 40 }} />}
+                      src={
+                        users[owner]?.img_profile || (
+                          <Identicon address={owner} style={{ width: 40 }} />
+                        )
+                      }
                       size={40}
                     />
                     <span>
@@ -114,12 +122,21 @@ const ArtDetails = ({
                 {ended && highestBid && (
                   <>
                     <Avatar
-                      src={users[highestBid?.info.bidderPubkey]?.img_profile || <Identicon address={highestBid?.info.bidderPubkey} style={{ width: 40 }} />}
+                      src={
+                        users[highestBid?.info.bidderPubkey]?.img_profile || (
+                          <Identicon
+                            address={highestBid?.info.bidderPubkey}
+                            style={{ width: 40 }}
+                          />
+                        )
+                      }
                       size={40}
                     />
-                    <span>{users[highestBid?.info.bidderPubkey]
-                      ? `@${users[highestBid?.info.bidderPubkey].username}`
-                      : shortenAddress(highestBid?.info.bidderPubkey)}</span>
+                    <span>
+                      {users[highestBid?.info.bidderPubkey]?.username
+                        ? `@${users[highestBid?.info.bidderPubkey].username}`
+                        : shortenAddress(highestBid?.info.bidderPubkey)}
+                    </span>
                   </>
                 )}
               </div>
