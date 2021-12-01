@@ -33,7 +33,8 @@ export const AppBar = () => {
   const { publicKey, connected } = useWallet();
   const { data: userData } = getUserData(publicKey?.toBase58());
   const { pathname } = useLocation();
-  const { isBidPlaced, setBidPlaced } = useMeta();
+  const { isBidPlaced, setBidPlaced, whitelistedCreatorsByCreator } = useMeta();
+
   const [showMenu, setShowMenu] = useState(false);
   const { push } = useHistory();
   const isLandingPage = pathname === '/' || pathname === '/about';
@@ -116,6 +117,14 @@ export const AppBar = () => {
             </Button>
           </Link>
 
+          {whitelistedCreatorsByCreator[publicKey?.toBase58() || ''] && (
+            <Link to={'/create'}>
+              <Button className={RoundButton} type="default" shape="round">
+                CREATE
+              </Button>
+            </Link>
+          )}
+
           {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
         </div>
       </>
@@ -168,7 +177,7 @@ export const AppBar = () => {
           </>
         )}
 
-        {<ConnectButton type="default" allowWalletChange />}
+        <ConnectButton type="default" allowWalletChange />
         {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
       </Col>
 
