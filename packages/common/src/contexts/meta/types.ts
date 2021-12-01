@@ -161,7 +161,7 @@ export class ItemAuction {
   id_nft: string;
   token_mint: string;
   price_floor: number;
-  img_nft: string;
+  original_file: string;
   startAt: number;
   endAt: number;
   highestBid: number;
@@ -181,7 +181,7 @@ export class ItemAuction {
     id_nft: string,
     token_mint: string,
     price_floor: number,
-    img_nft: string,
+    original_file: string,
     startAt: number,
     endAt: number,
     highestBid: number,
@@ -200,7 +200,7 @@ export class ItemAuction {
     this.id_nft = id_nft;
     this.token_mint = token_mint;
     this.price_floor = price_floor;
-    this.img_nft = img_nft;
+    this.original_file = original_file;
     this.startAt = startAt;
     this.endAt = endAt;
     this.highestBid = highestBid;
@@ -210,6 +210,49 @@ export class ItemAuction {
     this.vault = vault;
     this.arweave_link = arweave_link;
     this.owner = owner;
+    this.winner = winner;
+    this.mint_key = mint_key;
+    this.isInstantSale = isInstantSale;
+  }
+}
+
+export class NFTData {
+  id: string;
+  name: string;
+  description: string;
+  creator: string;
+  holder: string;
+  royalty: number;
+  imgNFT: string;
+  arweave_link: string;
+  mediaType: string;
+  winner: string;
+  mint_key: string;
+  isInstantSale: boolean;
+
+  constructor(
+    id: string,
+    name: string,
+    description: string,
+    creator: string,
+    holder: string,
+    royalty: number,
+    imgNFT: string,
+    arweave_link: string,
+    mediaType: string,
+    winner: string,
+    mint_key: string,
+    isInstantSale: boolean,
+  ) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+    this.creator = creator;
+    this.holder = holder;
+    this.royalty = royalty;
+    this.imgNFT = imgNFT;
+    this.arweave_link = arweave_link;
+    this.mediaType = mediaType;
     this.winner = winner;
     this.mint_key = mint_key;
     this.isInstantSale = isInstantSale;

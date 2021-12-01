@@ -49,7 +49,7 @@ const MarketComponent = () => {
               v.id_nft.id,
               v.token_mint,
               v.price_floor,
-              v.id_nft.img_nft,
+              v.id_nft.original_file,
               v.start_auction,
               v.end_auction,
               v.highest_bid,
@@ -121,7 +121,6 @@ const MarketComponent = () => {
     );
     setList(newData);
   }, [updatedData]);
-  // TODO: Filter sold NFT
 
   switch (sortBy) {
     case 1:

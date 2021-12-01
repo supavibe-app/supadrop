@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Avatar, Card, CardProps, Button, Badge, Row, Col, Modal } from 'antd';
 import {
-  supabaseUpdateOnSaleNFT,
   supabaseUpdateStatusInstantSale,
   useConnection,
   Identicon,
@@ -10,18 +9,34 @@ import {
   StringPublicKey,
   useUserAccounts,
   useMeta,
+  CountdownState,
+  supabaseUpdateIsRedeem,
 } from '@oyster/common';
 import { ArtContent } from './../ArtContent';
-import { AuctionView, useBidsForAuction, useArt } from '../../hooks';
+import {
+  AuctionView,
+  useBidsForAuction,
+  useArt,
+  useUserSingleArt,
+} from '../../hooks';
 import { Artist, ArtType } from '../../types';
 
 import { uTextAlignEnd, WhiteColor } from '../../styles';
-import { AuctionImage, AvatarStyle, ButtonCard, CardStyle, ConfirmModal, UserWrapper } from './style';
+import {
+  AuctionImage,
+  AvatarStyle,
+  ButtonCard,
+  CardStyle,
+  ConfirmModal,
+  UserWrapper,
+} from './style';
 import { Link } from 'react-router-dom';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
 import { getUsernameByPublicKeys } from '../../database/userData';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { endSale } from '../AuctionCard/utils/endSale';
+import moment from 'moment';
+import countDown from '../../helpers/countdown';
 
 const { Meta } = Card;
 
@@ -34,7 +49,8 @@ export interface ArtCardProps extends CardProps {
   isCollected?: boolean;
   soldFor?: number;
   category?: MetadataCategory;
-
+  nftData?: any;
+  auctionData?: any;
   name?: string;
   symbol?: string;
   description?: string;
@@ -42,12 +58,9 @@ export interface ArtCardProps extends CardProps {
   preview?: boolean;
   small?: boolean;
   close?: () => void;
-
   height?: number;
   width?: number;
-
-  isOnSale?: boolean;
-  isNotForSale?: boolean;
+  onListingPage?: boolean;
 }
 
 export const ArtCard = (props: ArtCardProps) => {
@@ -60,29 +73,56 @@ export const ArtCard = (props: ArtCardProps) => {
     preview,
     creators,
     pubkey,
+    nftData,
+    auctionData,
     artItem,
     isCollected,
     soldFor,
-    isOnSale,
-    isNotForSale,
+    onListingPage,
   } = props;
+
   const art = useArt(pubkey);
+
+  const singleUser = useUserSingleArt(pubkey || '');
+
   creators = art?.creators || creators || [];
   const [cardWidth, setCardWidth] = useState(0);
+  if (!auctionData) {
+    auctionData = nftData?.id_auction;
+  }
+
+  const haveLastAuction = !!auctionData;
+
+  const isLiveAuction = auctionData?.end_auction > moment().unix();
+  const isInstantSale = auctionData?.type_auction && auctionData?.isLiveMarket;
+  const isOnSale = isLiveAuction || isInstantSale;
+  const haveBidders = auctionData?.highest_bid > 0;
+  const holderNFT = auctionData?.winner
+    ? auctionData?.winner
+    : nftData?.holder
+    ? nftData?.holder
+    : auctionData?.owner;
 
   // onsale requirements
   const walletContext = useWallet();
-  const connection = useConnection();
-  const { accountByMint } = useUserAccounts();
-  const bids = useBidsForAuction(auctionView?.auction.pubkey || '');
-  const { prizeTrackingTickets, bidRedemptions } = useMeta();
-
+  if (haveLastAuction && auctionData?.winner) {
+    isCollected = auctionData?.winner === walletContext.publicKey?.toBase58();
+  }
   name = art?.title || name || '';
   const cardRef = useRef<HTMLDivElement>(null);
 
   const creatorsAddress = creators[0]?.address || '';
 
   const { data = {} } = getUsernameByPublicKeys([creatorsAddress]);
+  const [state, setState] = useState<CountdownState>();
+
+  useEffect(() => {
+    const calc = () => setState(countDown(auctionData?.end_auction));
+
+    const interval = setInterval(() => calc(), 1000);
+    calc();
+    return () => clearInterval(interval);
+  }, [nftData, setState]);
 
   let badge = '';
   if (art.type === ArtType.NFT) {
@@ -97,45 +137,6 @@ export const ArtCard = (props: ArtCardProps) => {
     if (cardRef.current?.offsetWidth)
       setCardWidth(cardRef.current?.offsetWidth);
   }, [cardRef.current?.offsetWidth, setCardWidth]);
-
-  const endInstantSale = async () => {
-    try {
-      const wallet = walletContext;
-      if (auctionView) {
-        const endStatus = await endSale({
-          auctionView,
-          connection,
-          accountByMint,
-          bids,
-          bidRedemptions,
-          prizeTrackingTickets,
-          wallet,
-        });
-        supabaseUpdateStatusInstantSale(auctionView.auction.pubkey);
-        supabaseUpdateOnSaleNFT(auctionView.thumbnail.metadata.pubkey, false)
-      }
-    } catch (e) {
-      console.error('endAuction', e);
-      return;
-    }
-  };
-
-  const unlistConfirmation = e => {
-    e.preventDefault();
-    Modal.confirm({
-      className: ConfirmModal,
-      title: 'unlist confirmation',
-      content: 'Are you sure delisting your NFT?',
-      onOk: endInstantSale,
-      okText: 'yes',
-      okType: 'text',
-      cancelText: 'no',
-      cancelButtonProps: { type: 'text' },
-      centered: true,
-      closable: true,
-      icon: null,
-    })
-  };
 
   const card = (
     <Card
@@ -181,14 +182,14 @@ export const ArtCard = (props: ArtCardProps) => {
 
             <Row>
               {/* Left Section */}
-              {Boolean(soldFor) && (
+              {!isOnSale && haveLastAuction && (
                 <Col span={12}>
                   <div>sold for</div>
-                  <div className={WhiteColor}>{soldFor} SOL</div>
+                  <div className={WhiteColor}>{nftData.sold} SOL</div>
                 </Col>
               )}
 
-              {isNotForSale && !soldFor && (
+              {!isOnSale && !haveLastAuction && (
                 <Col span={12}>
                   <div>status</div>
                   <div className={WhiteColor}>not for sale</div>
@@ -196,57 +197,88 @@ export const ArtCard = (props: ArtCardProps) => {
               )}
 
               {/* case on sale (instant or auction). current bid / reserve price for auction; price for instant sale */}
-              {/* <Col span={12}>
-                <div>{'current bid' || 'reserve price' || 'price'}</div>
-                <div className={WhiteColor}>... SOL</div>
-              </Col> */}
+              {isOnSale && (
+                <Col span={12}>
+                  <div>
+                    {isInstantSale
+                      ? 'price'
+                      : haveBidders
+                      ? 'current bid'
+                      : 'reserve price'}
+                  </div>
+                  <div className={WhiteColor}>
+                    {auctionData?.highest_bid
+                      ? auctionData?.highest_bid
+                      : auctionData?.price_floor}{' '}
+                    SOL
+                  </div>
+                </Col>
+              )}
 
               {/* Right Section */}
-              {isCollected && pubkey && (
+              {art.title &&
+                singleUser.length > 0 &&
+                !isOnSale &&
+                !onListingPage &&
+                isCollected &&
+                pubkey && (
+                  <Col className={ButtonCard} span={12}>
+                    <Link
+                      to={{
+                        pathname: `/list/create`,
+                        state: {
+                          idNFT: pubkey,
+                          auctionData,
+                          nftData,
+                          onListingPage: true,
+                        },
+                      }}
+                    >
+                      <Button shape="round">LIST</Button>
+                    </Link>
+                  </Col>
+                )}
+
+              {art.title && isCollected && !onListingPage && isInstantSale && (
                 <Col className={ButtonCard} span={12}>
-                  <Link
-                    to={{
-                      pathname: `/list/create`,
-                      state: { idNFT: pubkey },
-                    }}
-                  >
-                    <Button shape="round">LIST</Button>
+                  <Link to={`/auction/${auctionData?.id}`}>
+                    <Button shape="round">UNLIST</Button>
                   </Link>
                 </Col>
               )}
 
-              {isOnSale && (
-                <Col className={ButtonCard} span={12}>
-                  <Button shape="round" onClick={unlistConfirmation}>UNLIST</Button>
+              {!isCollected && isInstantSale && !onListingPage && (
+                <Col span={12}>
+                  <div>listed by</div>
+                  <div className={WhiteColor}>{shortenAddress(holderNFT)}</div>
                 </Col>
               )}
 
-              {/* <Col span={12}>
-                <div>listed by</div>
-                <div className={WhiteColor}>{shortenAddress(art.holder)}</div>
-              </Col> */}
+              {!isCollected && !isOnSale && (
+                <Col span={12}>
+                  <div>owner</div>
+                  <div className={WhiteColor}>{shortenAddress(holderNFT)}</div>
+                </Col>
+              )}
 
-              {/* <Col span={12}>
-                <div>owner</div>
-                <div className={WhiteColor}>{shortenAddress(art.holder)}</div>
-              </Col> */}
-
-              {/* <Col span={12}>
-                <div>ending in</div>
-                <div className={WhiteColor}>
-                  {state && state.hours < 10
-                    ? '0' + state?.hours
-                    : state?.hours}{' '}
-                  :{' '}
-                  {state && state.minutes < 10
-                    ? '0' + state?.minutes
-                    : state?.minutes}{' '}
-                  :{' '}
-                  {state && state.seconds < 10
-                    ? '0' + state?.seconds
-                    : state?.seconds}
-                </div>
-              </Col> */}
+              {isLiveAuction && (
+                <Col span={12}>
+                  <div>ending in</div>
+                  <div className={WhiteColor}>
+                    {state && state.hours < 10
+                      ? '0' + state?.hours
+                      : state?.hours}{' '}
+                    :{' '}
+                    {state && state.minutes < 10
+                      ? '0' + state?.minutes
+                      : state?.minutes}{' '}
+                    :{' '}
+                    {state && state.seconds < 10
+                      ? '0' + state?.seconds
+                      : state?.seconds}
+                  </div>
+                </Col>
+              )}
             </Row>
           </>
         }

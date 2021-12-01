@@ -68,7 +68,7 @@ export const supabaseAddNewUser = (walletAddress?: string) => {
 
 export const supabaseAddNewNFT = (
   id: string,
-  img_nft?: string,
+  original_file?: string,
   name?: string,
   description?: string,
   attribute?: Attribute[],
@@ -83,7 +83,7 @@ export const supabaseAddNewNFT = (
     .insert([
       {
         id,
-        img_nft,
+        original_file,
         name,
         description,
         attribute,
@@ -108,14 +108,11 @@ export const supabaseUpdateNFTHolder = (
     .from('nft_data')
     .update({
       holder: walletAddress,
-      sold: soldFor,
       updated_at: timestampPostgre(),
+      sold: soldFor,
     })
     .eq('id', idNFT)
-    .then(result => {
-      console.log('res', result);
-      supabaseUpdateOnSaleNFT(idNFT, false);
-    });
+    .then();
 };
 
 export const supabaseGetAllOwnedNFT = (
@@ -197,16 +194,4 @@ export const supabaseUpdateWinnerAuction = (
     .then(result => {
       console.log('res', result);
     });
-};
-
-export const supabaseUpdateOnSaleNFT = (idNFT?: string, onSale?: boolean) => {
-  supabase
-    .from('nft_data')
-    .update({ on_sale: onSale, updated_at: timestampPostgre() })
-    .eq('id', idNFT)
-    .then();
-};
-
-export const supabaseUpdateLastSoldNFT = (idNFT?: string, bid?: number) => {
-  supabase.from('nft_data').update({ last_sold: bid }).eq('id', idNFT).then();
 };

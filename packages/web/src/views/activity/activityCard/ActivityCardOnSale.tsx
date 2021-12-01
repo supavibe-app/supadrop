@@ -29,6 +29,7 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
   const winner = auctionView.winner;
 
   const haveWinner = highestBid > 0;
+
   useEffect(() => {
     const calc = () => setState(countDown(auctionView.end_auction));
 
@@ -100,7 +101,6 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
                       </div>
                       <div className={StatusValue}>{highestBid} SOL</div>
                     </div>
-
                     {/* case 4.1: on sale - auction ended */}
                     {!isEnded(state) && (
                       <div>
@@ -125,7 +125,6 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
                         </div>
                       </div>
                     )}
-
                     {/* case 4.2: on sale - auction still live */}
                     {isEnded(state) && (
                       <div>
@@ -169,6 +168,21 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
           <div>
             <div className={Label}>ending in</div>
             <div className={StatusValue}>auction ended</div>
+          </div>
+        )}
+        {!isEnded(state) && (
+          <div>
+            <div className={Label}>ending in</div>
+            <div className={StatusValue}>
+              {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+              {state && state.minutes < 10
+                ? '0' + state?.minutes
+                : state?.minutes}{' '}
+              :{' '}
+              {state && state.seconds < 10
+                ? '0' + state?.seconds
+                : state?.seconds}
+            </div>
           </div>
         )}
 

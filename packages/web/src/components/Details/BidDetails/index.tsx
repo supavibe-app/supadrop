@@ -26,7 +26,6 @@ import {
   supabaseUpdateIsRedeemAuctionStatus,
   supabaseUpdateNFTHolder,
   supabaseUpdateWinnerAuction,
-  supabaseUpdateOnSaleNFT,
   Identicon,
 } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message, Modal } from 'antd';
@@ -67,6 +66,7 @@ import { sendCancelBid } from '../../../actions/cancelBid';
 import { Link } from 'react-router-dom';
 import isEnded from '../../Home/helpers/isEnded';
 import { getAuctionIsRedeemData } from '../../../database/activityData';
+import { ConfirmModal } from '../../ArtCard/style';
 
 const BidDetails = ({
   art,
@@ -107,7 +107,11 @@ const BidDetails = ({
   const ownedMetadata = useUserArts();
   const walletContext = useWallet();
   const { wallet, connect, connected, publicKey } = walletContext;
-  const { data: redeemData, loading, refetch } = getAuctionIsRedeemData(publicKey?.toBase58(), auction?.auction.pubkey);
+  const {
+    data: redeemData,
+    loading,
+    refetch,
+  } = getAuctionIsRedeemData(publicKey?.toBase58(), auction?.auction.pubkey);
 
   const owner = auctionDatabase?.owner;
   const endAt = auctionDatabase?.endAt;
@@ -254,10 +258,6 @@ const BidDetails = ({
               wallet.publicKey?.toBase58(),
               parseFloat(`${minimumBid}`),
             );
-            supabaseUpdateOnSaleNFT(
-              auctionView.thumbnail.metadata.pubkey,
-              false,
-            );
             // setIsRedeem(true);
           }
         });
@@ -307,7 +307,6 @@ const BidDetails = ({
       }).then();
       supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
-      supabaseUpdateOnSaleNFT(auctionView.thumbnail.metadata.pubkey, false);
       setConfirmTrigger(false);
       setShowCongratulations(true);
     } catch (e) {
@@ -399,20 +398,26 @@ const BidDetails = ({
           auction?.auction.pubkey,
           walletContext.publicKey?.toBase58(),
         );
-        supabaseUpdateOnSaleNFT(auctionView.thumbnail.metadata.pubkey, false);
       });
     } catch (e) {
       console.error(e);
     }
     setConfirmTrigger(false);
   };
-  const unlistConfirmation = () => {
+  const unlistConfirmation = e => {
+    e.preventDefault();
     Modal.confirm({
+      className: ConfirmModal,
       title: 'unlist confirmation',
       content: 'Are you sure delisting your NFT?',
       onOk: endInstantSale,
       okText: 'yes',
+      okType: 'text',
       cancelText: 'no',
+      cancelButtonProps: { type: 'text' },
+      centered: true,
+      closable: true,
+      icon: null,
     });
   };
   const BidDetailsContent = ({ children }) => {
@@ -435,7 +440,6 @@ const BidDetails = ({
       shouldHideInstantSale ||
       auction?.vault.info.state === VaultState.Deactivated;
 
-    // console.log('isRedeem', redeemData[0].is_redeem);
     if (redeemData.length > 0) return <></>;
 
     if (shouldHideInstantSale && isAuctionNotStarted) {
@@ -637,8 +641,7 @@ const BidDetails = ({
       if (
         highestBid &&
         publicKey &&
-        publicKey?.toBase58() === highestBid?.info.bidderPubkey &&
-        auction?.auctionManager.authority === publicKey?.toBase58()
+        publicKey?.toBase58() === highestBid?.info.bidderPubkey
       ) {
         const filterMetadata = ownedMetadata.filter(
           metadata => metadata.metadata.info.mint === art.mint,

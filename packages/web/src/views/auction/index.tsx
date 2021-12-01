@@ -113,7 +113,7 @@ export const AuctionView = () => {
         <div className={ArtContainer}>
           {isDataReady && (
             <Image
-              src={auctionDatabase?.img_nft}
+              src={auctionDatabase?.original_file}
               wrapperClassName={ArtContentStyle}
               loading="lazy"
               placeholder={<ThreeDots />}

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
 import { supabase } from '@oyster/common';
-import { IGetDataDB, IGetDataNFTByPublicKeys } from './types';
+import { IGetDataDB } from './types';
+import moment from 'moment';
 
 export const getCollectedNFT = walletAddress => {
   const [result, setResult] = useState<IGetDataDB>({
@@ -13,9 +14,8 @@ export const getCollectedNFT = walletAddress => {
     if (walletAddress) {
       supabase
         .from('nft_data')
-        .select('*')
+        .select('*,id_auction(*)')
         .eq('holder', walletAddress)
-        .eq('on_sale', false)
         .not('creator', 'eq', walletAddress)
         .order('updated_at', { ascending: false })
         .then(res => {
@@ -41,7 +41,7 @@ export const getCreatedDataNFT = walletAddress => {
     if (walletAddress) {
       supabase
         .from('nft_data')
-        .select()
+        .select('*,id_auction(*)')
         .eq('creator', walletAddress)
         .order('created_at', { ascending: false })
         .then(res => {
@@ -56,44 +56,29 @@ export const getCreatedDataNFT = walletAddress => {
 
   return { ...result, refetch };
 };
-
-export const getCreatedDataNFTOnSale = publicKey => {
-  const [result, setResult] = useState<IGetDataNFTByPublicKeys>({
+export const getOnSaleDataNFT = walletAddress => {
+  const [result, setResult] = useState<IGetDataDB>({
     loading: true,
-    created: undefined,
-    onSale: undefined,
+    data: [],
   });
 
   useEffect(() => {
-    if (!result.created && publicKey) {
-      Promise.all([
-        supabase
-          .from('nft_data')
-          .select('*')
-          .like('creators', `%"${publicKey}"%`),
-        supabase
-          .from('user_data')
-          .select('*')
-          .or(`wallet_address.eq.${publicKey},username.eq.${publicKey}`)
-          .limit(1),
-      ])
-        .then(([created, onSale]) => {
-          console.log(created);
-
-          setResult({
-            loading: false,
-            created: created.data,
-            onSale: onSale.data,
-          });
-        })
-        .catch(err => {
-          console.log(err);
+    if (walletAddress) {
+      supabase
+        .from('auction_status')
+        .select('*')
+        .eq('owner', walletAddress)
+        .or(`isLiveMarket.eq.true,end_auction.gt.${moment().unix()}`)
+        .order('end_auction', { ascending: false })
+        .then(res => {
+          if (!res.error) {
+            setResult({ loading: false, data: res.body });
+          }
         });
     }
-  }, [result.created, publicKey, result.onSale]);
+  }, [walletAddress]);
 
-  const refetch = () =>
-    setResult({ loading: true, created: undefined, onSale: undefined });
+  const refetch = () => setResult({ loading: true, data: [] });
 
   return { ...result, refetch };
 };
