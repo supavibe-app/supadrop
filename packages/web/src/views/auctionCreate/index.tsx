@@ -78,8 +78,6 @@ export interface AuctionState {
 }
 
 export const AuctionCreateView = () => {
-  // const connection = useConnection();
-  // const wallet = useWallet();
   const {
     whitelistedCreatorsByCreator,
     storeIndexer,
@@ -87,8 +85,6 @@ export const AuctionCreateView = () => {
     updateLiveDataAuction,
   } = useMeta();
 
-  // const { step_param }: { step_param: string } = useParams();
-  // const history = useHistory();
   const history = useHistory();
   const wallet = useWallet();
   const { update } = useMeta();

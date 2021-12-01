@@ -16,7 +16,7 @@ import {
   UserContainer,
 } from './style';
 import { Link } from 'react-router-dom';
-import { ArtContent } from '../../../components/ArtContent';
+import { ArtContent, ArtContent2 } from '../../../components/ArtContent';
 import isEnded from '../../../components/Home/helpers/isEnded';
 import ActionButton from '../../../components/ActionButton';
 
@@ -47,10 +47,14 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
         <Link to={`/auction/${auctionView.id_auction.id}`}>
           <Row>
             <Col flex={1}>
-              <ArtContent
+              <ArtContent2
                 className={ImageCard}
-                pubkey={auctionView.id_auction.id}
-                allowMeshRender={true}
+                preview={false}
+                pubkey={auctionView.id_auction.id_nft.id}
+                originalFile={auctionView.id_auction.id_nft.original_file}
+                thumbnail={auctionView.id_auction.id_nft?.thumbnail}
+                allowMeshRender={false}
+                category={'activity'}
               />
             </Col>
             <Col flex={3}>

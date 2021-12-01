@@ -100,10 +100,10 @@ const Profile = ({ userId }: { userId: string }) => {
   const { data: artwork, loading: loadingArtwork } =
     getCreatedDataNFT(walletAddress);
   const collectedArt = useCollectedArts(walletAddress);
-  console.log(
-    '🚀 ~ file: index.tsx ~ line 103 ~ Profile ~ collectedArt',
-    collectedArt,
-  );
+  // console.log(
+  //   '🚀 ~ file: index.tsx ~ line 103 ~ Profile ~ collectedArt',
+  //   collectedArt,
+  // );
 
   const { data: onSale, loading: loadingOnSale } =
     getOnSaleDataNFT(walletAddress);
@@ -301,7 +301,10 @@ const Profile = ({ userId }: { userId: string }) => {
                         to={
                           isOnSale
                             ? `/auction/${art.id_auction.id}`
-                            : `/art/${art.id}`
+                            : {
+                                pathname: `/art/${art.id}`,
+                                state: { soldFor: art.sold, nftData: art },
+                              }
                         }
                       >
                         <ArtCard
@@ -352,7 +355,10 @@ const Profile = ({ userId }: { userId: string }) => {
                         to={
                           isOnSale
                             ? `/auction/${art.id_auction.id}`
-                            : `/art/${art.id}`
+                            : {
+                                pathname: `/art/${art.id}`,
+                                state: { soldFor: art.sold, nftData: art },
+                              }
                         }
                       >
                         <ArtCard

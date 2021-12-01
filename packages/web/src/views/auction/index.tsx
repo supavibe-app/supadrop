@@ -39,6 +39,7 @@ import {
 } from './style';
 import { getUsernameByPublicKeys } from '../../database/userData';
 import Congratulations from '../../components/Congratulations';
+import { DetailArtContent } from '../../components/Details/DetailArtContent';
 
 export const AuctionView = () => {
   const { location } = useHistory();
@@ -63,6 +64,7 @@ export const AuctionView = () => {
 
   const { allDataAuctions, isLoadingDatabase, pullAuctionPage } = useMeta();
   const auctionDatabase = allDataAuctions[id];
+  const { thumbnail, original_file, media_type } = auctionDatabase || {};
 
   const { ref, data } = useExtendedArt(auctionDatabase?.id_nft);
   const art = useArt(auctionDatabase?.id_nft);
@@ -112,11 +114,11 @@ export const AuctionView = () => {
       >
         <div className={ArtContainer}>
           {isDataReady && (
-            <Image
-              src={auctionDatabase?.original_file}
-              wrapperClassName={ArtContentStyle}
-              loading="lazy"
-              placeholder={<ThreeDots />}
+            <DetailArtContent
+              category={media_type}
+              className={ArtContentStyle}
+              thumbnail={thumbnail}
+              originalFile={original_file}
             />
           )}
 

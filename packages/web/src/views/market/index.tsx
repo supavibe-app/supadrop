@@ -50,6 +50,8 @@ const MarketComponent = () => {
               v.token_mint,
               v.price_floor,
               v.id_nft.original_file,
+              v.id_nft.thumbnail,
+              v.id_nft.media_type,
               v.start_auction,
               v.end_auction,
               v.highest_bid,

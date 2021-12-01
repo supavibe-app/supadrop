@@ -162,6 +162,8 @@ export class ItemAuction {
   token_mint: string;
   price_floor: number;
   original_file: string;
+  thumbnail: string;
+  media_type: string;
   startAt: number;
   endAt: number;
   highestBid: number;
@@ -182,6 +184,8 @@ export class ItemAuction {
     token_mint: string,
     price_floor: number,
     original_file: string,
+    thumbnail: string,
+    media_type: string,
     startAt: number,
     endAt: number,
     highestBid: number,
@@ -201,6 +205,8 @@ export class ItemAuction {
     this.token_mint = token_mint;
     this.price_floor = price_floor;
     this.original_file = original_file;
+    this.thumbnail = thumbnail;
+    this.media_type = media_type;
     this.startAt = startAt;
     this.endAt = endAt;
     this.highestBid = highestBid;

@@ -1,12 +1,9 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { Row, Col, Skeleton, Popover, Image } from 'antd';
 import FeatherIcon from 'feather-icons-react';
 
-import {
-  useArt,
-  useExtendedArt,
-} from '../../hooks';
+import { useArt, useExtendedArt } from '../../hooks';
 
 import { ArtType } from '../../types';
 import { ThreeDots } from '../../components/MyLoader';
@@ -31,31 +28,23 @@ import {
   StatusContainer,
 } from './style';
 import { getUsernameByPublicKeys } from '../../database/userData';
+import { DetailArtContent } from '../../components/Details/DetailArtContent';
 
 export const ArtView = () => {
   const { id } = useParams<{ id: string }>();
 
   const art = useArt(id);
-  // let badge = '';
-  // let maxSupply = '';
-  // if (art.type === ArtType.NFT) {
-  //   badge = 'Unique';
-  // } else if (art.type === ArtType.Master) {
-  //   badge = 'NFT 0';
-  //   if (art.maxSupply !== undefined) {
-  //     maxSupply = art.maxSupply.toString();
-  //   } else {
-  //     maxSupply = 'Unlimited';
-  //   }
-  // } else if (art.type === ArtType.Print) {
-  //   badge = `${art.edition} of ${art.supply}`;
-  // }
+  const {
+    location: { state },
+  } = useHistory();
   const { ref, data } = useExtendedArt(id);
   const isDataReady = Boolean(art) && Boolean(data);
-
+  const { soldFor, nftData }: any = state || {};
+  const { thumbnail, original_file, media_type } = nftData || {};
+  const everSold = soldFor > 0;
   const creators = data?.creators || [];
 
-  const { data: users = {} } = getUsernameByPublicKeys([...creators])
+  const { data: users = {} } = getUsernameByPublicKeys([...creators]);
 
   let edition = '';
   switch (art.type) {
@@ -76,11 +65,11 @@ export const ArtView = () => {
       <Col className={ColumnBox} span={24} md={16}>
         <div className={ArtContainer}>
           {isDataReady && (
-            <Image
-              src={data?.image}
-              wrapperClassName={ArtContentStyle}
-              loading="lazy"
-              placeholder={<ThreeDots />}
+            <DetailArtContent
+              category={media_type}
+              className={ArtContentStyle}
+              thumbnail={thumbnail}
+              originalFile={original_file}
             />
           )}
 
@@ -98,7 +87,12 @@ export const ArtView = () => {
               {/* Show edition if showing art details */}
               {isDataReady && <div>{edition}</div>}
 
-              <Popover overlayClassName={OptionsPopover} trigger="click" placement="bottomRight" content={<MoreOptions art={art} />}>
+              <Popover
+                overlayClassName={OptionsPopover}
+                trigger="click"
+                placement="bottomRight"
+                content={<MoreOptions art={art} />}
+              >
                 <div style={{ cursor: 'pointer', color: '#FAFAFB' }}>
                   <FeatherIcon icon="more-horizontal" size={20} />
                 </div>
@@ -108,18 +102,24 @@ export const ArtView = () => {
             {/* Show Skeleton when Loading */}
             {!isDataReady && <ArtDetailSkeleton />}
 
-            {isDataReady && <ArtDetails art={art} extendedArt={data} users={users} />}
+            {isDataReady && (
+              <ArtDetails art={art} extendedArt={data} users={users} />
+            )}
           </div>
 
           <div className={StatusContainer}>
             <div className={PaddingBox}>
-              <div className={PriceBox}>
-                <div className={LabelPrice}>last sold for</div>
-                {/* TODO: Get data last price */}
-                <div>100 SOL</div>
-              </div>
+              {everSold && (
+                <div className={PriceBox}>
+                  <div className={LabelPrice}>last sold for</div>
+                  {/* TODO: Get data last price */}
+                  <div>{soldFor} SOL</div>
+                </div>
+              )}
 
-              <ActionButton disabled width="100%">not for sale</ActionButton>
+              <ActionButton disabled width="100%">
+                not for sale
+              </ActionButton>
             </div>
           </div>
         </div>

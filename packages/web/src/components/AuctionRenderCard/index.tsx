@@ -97,8 +97,10 @@ export const AuctionRenderCard = (props: AuctionCard) => {
             className={AuctionImage(cardWidth)}
             preview={false}
             pubkey={id}
-            uri={auctionView.original_file}
+            originalFile={auctionView.original_file}
+            thumbnail={auctionView?.thumbnail}
             allowMeshRender={false}
+            category={auctionView.media_type}
           />
         </div>
       }
@@ -151,11 +153,17 @@ export const AuctionRenderCard = (props: AuctionCard) => {
                   {!winningBid && ended && <div>status</div>}
                   {/* case 4: ended and have bidder */}
                   {winningBid && ended && <div>owned by</div>}
+                  {auctionView.isInstantSale && <div>owner</div>}
                 </div>
 
                 {ended && (
                   <div className={OwnerContainer} style={{ fontSize: 20 }}>
                     {winningBid ? shortenAddress(winningBid) : 'ended'}
+                  </div>
+                )}
+                {auctionView.isInstantSale && (
+                  <div className={OwnerContainer} style={{ fontSize: 20 }}>
+                    {shortenAddress(auctionView?.owner)}
                   </div>
                 )}
 

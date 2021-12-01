@@ -19,6 +19,7 @@ const ActivityView = () => {
 
   // if not empty, show congratulations page
   const activeBids = getActiveBids(wallet.publicKey?.toBase58()).data;
+
   const onSale = getOnSale(wallet.publicKey?.toBase58()).data;
 
   const EmptyState = ({}) => (

@@ -97,6 +97,7 @@ export const ArtCard = (props: ArtCardProps) => {
   const isInstantSale = auctionData?.type_auction && auctionData?.isLiveMarket;
   const isOnSale = isLiveAuction || isInstantSale;
   const haveBidders = auctionData?.highest_bid > 0;
+  const everSold = nftData?.sold > 0;
   const holderNFT = auctionData?.winner
     ? auctionData?.winner
     : nftData?.holder
@@ -182,14 +183,14 @@ export const ArtCard = (props: ArtCardProps) => {
 
             <Row>
               {/* Left Section */}
-              {!isOnSale && haveLastAuction && (
+              {!isOnSale && everSold && (
                 <Col span={12}>
                   <div>sold for</div>
                   <div className={WhiteColor}>{nftData.sold} SOL</div>
                 </Col>
               )}
 
-              {!isOnSale && !haveLastAuction && (
+              {!isOnSale && !everSold && (
                 <Col span={12}>
                   <div>status</div>
                   <div className={WhiteColor}>not for sale</div>
