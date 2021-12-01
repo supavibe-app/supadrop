@@ -243,25 +243,35 @@ export const mintNFT = async (
   const metadataFile = result.messages?.find(
     m => m.filename === RESERVED_TXN_MANIFEST,
   );
-  console.log(
-    '🚀 ~ file: nft.tsx ~ line 247 ~ result.messages',
-    result.messages,
-  );
-  const originalFile = result.messages?.find(
-    m =>
-      m.filename.includes('.png') ||
-      m.filename.includes('.jpg') ||
-      m.filename.includes('.gif') || // image
-      m.filename.includes('.mp3') ||
-      m.filename.includes('.flac') ||
-      m.filename.includes('.wav') || // audio
-      m.filename.includes('.mp4') ||
-      m.filename.includes('.mov') ||
-      m.filename.includes('.webm') || // video
-      m.filename.includes('.glb') ||
-      m.filename.includes('.html'), // 3D & HTML
-  );
-  console.log('🚀 ~ file: nft.tsx ~ line 264 ~ originalFile', originalFile);
+  let originalFile;
+  let thumbnailFile;
+
+  if (metadata.properties?.category === 'image') {
+    originalFile = result.messages?.find(
+      m =>
+        m.filename.includes('.png') ||
+        m.filename.includes('.jpg') ||
+        m.filename.includes('.gif'),
+    );
+  } else {
+    originalFile = result.messages?.find(
+      m =>
+        m.filename.includes('.mp3') ||
+        m.filename.includes('.flac') ||
+        m.filename.includes('.wav') || // audio
+        m.filename.includes('.mp4') ||
+        m.filename.includes('.mov') ||
+        m.filename.includes('.webm') || // video
+        m.filename.includes('.glb') ||
+        m.filename.includes('.html'), // 3D & HTML
+    );
+    thumbnailFile = result.messages?.find(
+      m =>
+        m.filename.includes('.png') ||
+        m.filename.includes('.jpg') ||
+        m.filename.includes('.gif'),
+    );
+  }
 
   if (metadataFile?.transactionId && wallet.publicKey) {
     const updateInstructions: TransactionInstruction[] = [];
@@ -270,6 +280,9 @@ export const mintNFT = async (
     // TODO: connect to testnet arweave
     const arweaveLink = `https://arweave.net/${metadataFile.transactionId}`;
     const mediaLink = `https://arweave.net/${originalFile?.transactionId}`;
+    const thumbnailLink = thumbnailFile
+      ? `https://arweave.net/${thumbnailFile?.transactionId}`
+      : undefined;
     const idNFT = await updateMetadata(
       new Data({
         name: metadata.name,
@@ -342,6 +355,7 @@ export const mintNFT = async (
       mintKey,
       payerPublicKey,
       metadata.properties?.category,
+      thumbnailLink,
     );
 
     const txid = await sendTransactionWithRetry(

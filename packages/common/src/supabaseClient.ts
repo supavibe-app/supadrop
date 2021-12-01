@@ -77,6 +77,7 @@ export const supabaseAddNewNFT = (
   mint_key?: string,
   creator?: string,
   mediaType?: string,
+  thumbnail?: string,
 ) => {
   supabase
     .from('nft_data')
@@ -93,6 +94,7 @@ export const supabaseAddNewNFT = (
         creator,
         holder: creator,
         media_type: mediaType,
+        thumbnail: thumbnail,
         max_supply: 1,
       },
     ])
