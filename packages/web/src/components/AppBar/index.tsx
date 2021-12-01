@@ -168,7 +168,7 @@ export const AppBar = () => {
           </>
         )}
 
-        {!isLandingPage && <ConnectButton type="default" allowWalletChange />}
+        {<ConnectButton type="default" allowWalletChange />}
         {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
       </Col>
 
