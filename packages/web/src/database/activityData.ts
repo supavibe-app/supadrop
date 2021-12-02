@@ -36,7 +36,7 @@ export const getActiveBids = publicKey => {
     }
   }, [publicKey]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };
@@ -71,7 +71,7 @@ export const getInfoEndedBidding = publicKey => {
     }
   }, [publicKey]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };
@@ -89,6 +89,7 @@ export const getAuctionIsRedeemData = (publicKey, idAuction) => {
         .select()
         .eq('wallet_address', publicKey)
         .eq('id_auction', idAuction)
+        .eq('is_redeem', true)
         .limit(1)
         .then(result => {
           if (result.body != null) {
@@ -102,7 +103,7 @@ export const getAuctionIsRedeemData = (publicKey, idAuction) => {
     }
   }, [publicKey]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };
@@ -135,7 +136,7 @@ export const getOnSale = publicKey => {
     }
   }, [publicKey]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };
@@ -162,7 +163,7 @@ export const getEndedOnSale = publicKey => {
     }
   }, [publicKey]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };

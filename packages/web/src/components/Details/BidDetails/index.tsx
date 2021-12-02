@@ -63,7 +63,7 @@ import countDown from '../../../helpers/countdown';
 import { endSale } from '../../AuctionCard/utils/endSale';
 import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState';
 import { sendCancelBid } from '../../../actions/cancelBid';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import isEnded from '../../Home/helpers/isEnded';
 import { getAuctionIsRedeemData } from '../../../database/activityData';
 import { ConfirmModal } from '../../ArtCard/style';
@@ -103,7 +103,7 @@ const BidDetails = ({
     setBidPlaced,
     updateDetailAuction,
   } = useMeta();
-
+  const { id } = useParams<{ id: string }>();
   const ownedMetadata = useUserArts();
   const walletContext = useWallet();
   const { wallet, connect, connected, publicKey } = walletContext;
@@ -111,7 +111,7 @@ const BidDetails = ({
     data: redeemData,
     loading,
     refetch,
-  } = getAuctionIsRedeemData(publicKey?.toBase58(), auction?.auction.pubkey);
+  } = getAuctionIsRedeemData(publicKey?.toBase58(), id);
 
   const owner = auctionDatabase?.owner;
   const endAt = auctionDatabase?.endAt;
@@ -185,14 +185,6 @@ const BidDetails = ({
 
   const [isRedeem, setIsRedeem] = useState(false);
 
-  //
-
-  useEffect(() => {
-    if (isRedeem === true) {
-      refetch();
-    }
-  }, [isRedeem]);
-
   useEffect(() => {
     if (!connected && showPlaceBid) setShowPlaceBid(false);
     // if (connected) setShowPlaceBid(true);
@@ -228,14 +220,15 @@ const BidDetails = ({
 
   const baseInstantSalePrice = auctionDatabase?.price_floor || minimumBid;
   const isParticipated =
-    bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length >
-    0;
+    bids.filter(bid => bid?.info?.bidderPubkey === publicKey?.toBase58())
+      .length > 0;
   const actionEndedAuction = async () => {
     setConfirmTrigger(true);
     try {
       if (eligibleForAnything) {
         const wallet = walletContext;
         const auctionView = auction!!;
+
         await sendRedeemBid(
           connection,
           wallet,
@@ -259,12 +252,12 @@ const BidDetails = ({
               wallet.publicKey?.toBase58(),
               parseFloat(`${minimumBid}`),
             );
-            // setIsRedeem(true);
           }
         });
       } else {
         const wallet = walletContext;
         const auctionView = auction!!;
+
         await sendCancelBid(
           connection,
           wallet,
@@ -274,17 +267,16 @@ const BidDetails = ({
           bids,
           bidRedemptions,
           prizeTrackingTickets,
-        ).then(data => {
-          if (auction?.auctionManager.authority === publicKey?.toBase58()) {
-            supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
-          } else {
-            supabaseUpdateIsRedeem(
-              auctionView.auction.pubkey,
-              publicKey?.toBase58(),
-            );
-          }
-          setIsRedeem(true);
-        });
+        );
+        if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+          supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+        } else {
+          supabaseUpdateIsRedeem(
+            auctionView.auction.pubkey,
+            publicKey?.toBase58(),
+          );
+        }
+        setIsRedeem(true);
       }
     } catch (e) {
       console.error(e);
@@ -440,7 +432,7 @@ const BidDetails = ({
       shouldHideInstantSale ||
       auction?.vault.info.state === VaultState.Deactivated;
 
-    if (redeemData.length > 0) return <></>;
+    if (redeemData?.length > 0 || isRedeem) return <></>;
 
     if (shouldHideInstantSale && isAuctionNotStarted) {
       return (

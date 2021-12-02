@@ -26,7 +26,7 @@ export const getCollectedNFT = walletAddress => {
     }
   }, [walletAddress]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };
@@ -52,7 +52,7 @@ export const getCreatedDataNFT = walletAddress => {
     }
   }, [walletAddress]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };
@@ -78,7 +78,7 @@ export const getOnSaleDataNFT = walletAddress => {
     }
   }, [walletAddress]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };
