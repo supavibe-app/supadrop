@@ -624,14 +624,13 @@ export const InnerBillingView = ({
               </div>
 
               <div style={{ paddingRight: 8, marginTop: 32 }}>
-                {confirmTrigger ||
-                  isLoading ||
-                  (Object.keys(payoutTickets).length > 0 && (
+                {(confirmTrigger || isLoading) &&
+                  Object.keys(payoutTickets).length === 0 && (
                     <ActionButton width="100%" disabled>
                       <Spin className={SpinnerStyle} />
                       please wait...
                     </ActionButton>
-                  ))}
+                  )}
                 {!confirmTrigger && Object.keys(payoutTickets).length > 0 && (
                   <ActionButton width="100%" disabled>
                     {' '}
