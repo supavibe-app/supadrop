@@ -115,6 +115,7 @@ const BidDetails = ({
 
   const owner = auctionDatabase?.owner;
   const endAt = auctionDatabase?.endAt;
+  const isInstantSale = auction?.auction?.info?.endAuctionAt === undefined;
 
   useEffect(() => {
     if (
@@ -311,7 +312,6 @@ const BidDetails = ({
       setShowCongratulations(true);
     } catch (e) {
       setConfirmTrigger(false);
-      console.error('endAuction', e);
       return;
     }
   };
@@ -432,7 +432,7 @@ const BidDetails = ({
 
     const shouldHideInstantSale =
       !isOpenEditionSale &&
-      auction?.isInstantSale &&
+      isInstantSale &&
       !owner &&
       doesInstantSaleHasNoItems;
 
@@ -467,7 +467,7 @@ const BidDetails = ({
 
       return <></>;
     }
-    if (isEnded(state) && !auction?.isInstantSale) {
+    if (isEnded(state) && !isInstantSale) {
       return (
         <div className={art.title && highestBid ? PaddingBox : SmallPaddingBox}>
           {art.title && highestBid && (
@@ -544,7 +544,7 @@ const BidDetails = ({
               </div>
 
               <div>
-                {!auction?.isInstantSale && (
+                {!isInstantSale && (
                   <div>
                     current bid by{' '}
                     <span className={WhiteColor}>
@@ -563,7 +563,7 @@ const BidDetails = ({
 
                 <div className={CurrentBid}>
                   <span className={WhiteColor}>{currentBid} SOL</span> ending in{' '}
-                  {!auction?.isInstantSale && state && (
+                  {!isInstantSale && state && (
                     <span className={WhiteColor}>
                       {state.hours} :{' '}
                       {state.minutes > 9 ? state.minutes : `0${state.minutes}`}{' '}
@@ -586,8 +586,8 @@ const BidDetails = ({
               </Col>
 
               <Col className={uTextAlignEnd} span={12}>
-                {!auction?.isInstantSale && <div>ending in</div>}
-                {!auction?.isInstantSale && state && (
+                {!isInstantSale && <div>ending in</div>}
+                {!isInstantSale && state && (
                   <div className={`${WhiteColor} ${uFontSize24}`}>
                     {state.hours} :{' '}
                     {state.minutes > 9 ? state.minutes : `0${state.minutes}`} :{' '}
@@ -603,7 +603,6 @@ const BidDetails = ({
       </div>
     );
   };
-
   if (confirmTrigger) {
     return (
       <BidDetailsContent>
@@ -618,7 +617,7 @@ const BidDetails = ({
   }
 
   // case 0: loading
-  if (!art.title) {
+  if (!art.title || !auction) {
     return (
       <div className={PaddingBox}>
         <div className={BidStatus}>
@@ -635,9 +634,8 @@ const BidDetails = ({
 
   // if auction ended
   if (isEnded(state)) {
-    if (!auction?.isInstantSale) {
+    if (!isInstantSale) {
       // case 1: you win the bid
-
       if (
         highestBid &&
         publicKey &&
@@ -715,7 +713,7 @@ const BidDetails = ({
           </div>
         </BidDetailsContent>
       );
-    } else if (!auction.isInstantSale) {
+    } else if (!isInstantSale) {
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
@@ -736,7 +734,7 @@ const BidDetails = ({
     const twitterText = `gm%21%E2%80%A8i%20just%20list%20my%20NFT%20on%20supadrop%20marketplace%2C%20check%20this%20out%21%E2%80%A8%20${auctionURL}`;
     const twitterIntent = `https://twitter.com/intent/tweet?text=${twitterText}`;
 
-    if (auction?.isInstantSale && !eligibleForAnything) {
+    if (isInstantSale && !eligibleForAnything) {
       return (
         <BidDetailsContent>
           <a className={ButtonWrapper}>
@@ -764,7 +762,7 @@ const BidDetails = ({
 
   // case : instant sale
   if (
-    auction?.isInstantSale &&
+    isInstantSale &&
     !(publicKey?.toBase58() === owner && !eligibleForAnything)
   ) {
     if (balance > baseInstantSalePrice) {
@@ -889,7 +887,7 @@ const BidDetails = ({
   }
 
   // case : instant sale end
-  if (auction?.isInstantSale && isEnded(state) && eligibleForAnything) {
+  if (isInstantSale && isEnded(state) && eligibleForAnything) {
     return <></>;
   }
 

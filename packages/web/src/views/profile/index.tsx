@@ -400,6 +400,7 @@ const Profile = ({ userId }: { userId: string }) => {
                         pubkey={auction.id_nft}
                         auctionData={auction}
                         preview={false}
+                        isCollected={auction.owner === publicKey?.toBase58()}
                       />
                     </Link>
                   </Col>

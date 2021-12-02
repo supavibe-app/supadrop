@@ -239,6 +239,13 @@ export const ArtCard = (props: ArtCardProps) => {
                     </Link>
                   </Col>
                 )}
+              {!art.title && !onListingPage && isCollected && pubkey && (
+                <Col className={ButtonCard} span={12}>
+                  <Button shape="round" disabled>
+                    please wait...
+                  </Button>
+                </Col>
+              )}
 
               {art.title && isCollected && !onListingPage && isInstantSale && (
                 <Col className={ButtonCard} span={12}>
