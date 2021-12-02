@@ -441,6 +441,87 @@ export const InnerBillingView = ({
   } = useBillingInfo({
     auctionView,
   });
+  const totalUnsettled = fromLamports(
+    bidsToClaim.reduce(
+      (acc, el) => (acc += el.metadata.info.lastBid.toNumber()),
+      0,
+    ),
+    mint,
+  );
+
+  const isLoading = totalUnsettled === 0 && bidsToClaim.length === 0;
+  async function actionSettle() {
+    {
+      setConfirmTrigger(true);
+      try {
+        // pull missing data and complete the auction view to settle.
+        const {
+          auctionDataExtended,
+          auctionManagersByAuction,
+          safetyDepositBoxesByVaultAndIndex,
+          metadataByMint,
+          bidderMetadataByAuctionAndBidder:
+            updatedBidderMetadataByAuctionAndBidder,
+          bidderPotsByAuctionAndBidder,
+          bidRedemptionV2sByAuctionManagerAndWinningIndex,
+          masterEditions,
+          vaults,
+          safetyDepositConfigsByAuctionManagerAndIndex,
+          masterEditionsByPrintingMint,
+          masterEditionsByOneTimeAuthMint,
+          metadataByMasterEdition,
+          metadataByAuction,
+        } = await pullAuctionPage(auctionView.auction.pubkey);
+        const completeAuctionView = processAccountsIntoAuctionView(
+          auctionView.auction.pubkey,
+          auctionView.auction,
+          auctionDataExtended,
+          auctionManagersByAuction,
+          safetyDepositBoxesByVaultAndIndex,
+          metadataByMint,
+          updatedBidderMetadataByAuctionAndBidder,
+          bidderPotsByAuctionAndBidder,
+          bidRedemptionV2sByAuctionManagerAndWinningIndex,
+          masterEditions,
+          vaults,
+          safetyDepositConfigsByAuctionManagerAndIndex,
+          masterEditionsByPrintingMint,
+          masterEditionsByOneTimeAuthMint,
+          metadataByMasterEdition,
+          {},
+          metadataByAuction,
+          undefined,
+        );
+        if (completeAuctionView) {
+          await settle(
+            connection,
+            wallet,
+            completeAuctionView,
+            // Just claim all bidder pots
+            bidsToClaim.map(b => b.pot),
+            myPayingAccount?.pubkey,
+            accountByMint,
+          );
+          // accept funds (open WSOL & close WSOL) only if Auction currency SOL
+          if (
+            wallet.publicKey &&
+            auctionView.auction.info.tokenMint == WRAPPED_SOL_MINT.toBase58()
+          ) {
+            const ata = await getPersonalEscrowAta(wallet);
+            if (ata) await closePersonalEscrow(connection, wallet, ata);
+          }
+          supabaseUpdateIsRedeemAuctionStatus(auctionView?.auction.pubkey);
+        }
+      } catch (e) {
+        console.log('🚀 ~ file: billing.tsx ~ line 516 ~ actionSettle ~ e', e);
+        setConfirmTrigger(false);
+        return false;
+      }
+      setEscrowBalanceRefreshCounter(ctr => ctr + 1);
+      await pullBillingPage(id);
+      setConfirmTrigger(false);
+    }
+  }
   return (
     <Row className={Container} ref={ref}>
       {/* Art Column */}
@@ -494,16 +575,7 @@ export const InnerBillingView = ({
 
             <div className={GroupValue}>
               <div className={BillingLabel}>TOTAL UNSETTLED</div>
-              <div className={BillingValue}>
-                {fromLamports(
-                  bidsToClaim.reduce(
-                    (acc, el) => (acc += el.metadata.info.lastBid.toNumber()),
-                    0,
-                  ),
-                  mint,
-                )}{' '}
-                SOL
-              </div>
+              <div className={BillingValue}>{totalUnsettled} SOL</div>
             </div>
 
             <div className={GroupValue}>
@@ -552,103 +624,27 @@ export const InnerBillingView = ({
               </div>
 
               <div style={{ paddingRight: 8, marginTop: 32 }}>
-                {confirmTrigger && (
-                  <ActionButton width="100%" disabled>
-                    <Spin className={SpinnerStyle} />
-                    please wait...
-                  </ActionButton>
-                )}
+                {confirmTrigger ||
+                  isLoading ||
+                  (Object.keys(payoutTickets).length > 0 && (
+                    <ActionButton width="100%" disabled>
+                      <Spin className={SpinnerStyle} />
+                      please wait...
+                    </ActionButton>
+                  ))}
                 {!confirmTrigger && Object.keys(payoutTickets).length > 0 && (
                   <ActionButton width="100%" disabled>
                     {' '}
                     settled
                   </ActionButton>
                 )}
-                {!confirmTrigger && Object.keys(payoutTickets).length === 0 && (
-                  <ActionButton
-                    width="100%"
-                    onClick={async () => {
-                      setConfirmTrigger(true);
-                      try {
-                        // pull missing data and complete the auction view to settle.
-                        const {
-                          auctionDataExtended,
-                          auctionManagersByAuction,
-                          safetyDepositBoxesByVaultAndIndex,
-                          metadataByMint,
-                          bidderMetadataByAuctionAndBidder:
-                            updatedBidderMetadataByAuctionAndBidder,
-                          bidderPotsByAuctionAndBidder,
-                          bidRedemptionV2sByAuctionManagerAndWinningIndex,
-                          masterEditions,
-                          vaults,
-                          safetyDepositConfigsByAuctionManagerAndIndex,
-                          masterEditionsByPrintingMint,
-                          masterEditionsByOneTimeAuthMint,
-                          metadataByMasterEdition,
-                          metadataByAuction,
-                        } = await pullAuctionPage(auctionView.auction.pubkey);
-                        const completeAuctionView =
-                          processAccountsIntoAuctionView(
-                            auctionView.auction.pubkey,
-                            auctionView.auction,
-                            auctionDataExtended,
-                            auctionManagersByAuction,
-                            safetyDepositBoxesByVaultAndIndex,
-                            metadataByMint,
-                            updatedBidderMetadataByAuctionAndBidder,
-                            bidderPotsByAuctionAndBidder,
-                            bidRedemptionV2sByAuctionManagerAndWinningIndex,
-                            masterEditions,
-                            vaults,
-                            safetyDepositConfigsByAuctionManagerAndIndex,
-                            masterEditionsByPrintingMint,
-                            masterEditionsByOneTimeAuthMint,
-                            metadataByMasterEdition,
-                            {},
-                            metadataByAuction,
-                            undefined,
-                          );
-                        if (completeAuctionView) {
-                          await settle(
-                            connection,
-                            wallet,
-                            completeAuctionView,
-                            // Just claim all bidder pots
-                            bidsToClaim.map(b => b.pot),
-                            myPayingAccount?.pubkey,
-                            accountByMint,
-                          );
-                          // accept funds (open WSOL & close WSOL) only if Auction currency SOL
-                          if (
-                            wallet.publicKey &&
-                            auctionView.auction.info.tokenMint ==
-                              WRAPPED_SOL_MINT.toBase58()
-                          ) {
-                            const ata = await getPersonalEscrowAta(wallet);
-                            if (ata)
-                              await closePersonalEscrow(
-                                connection,
-                                wallet,
-                                ata,
-                              );
-                          }
-                          supabaseUpdateIsRedeemAuctionStatus(
-                            auctionView?.auction.pubkey,
-                          );
-                        }
-                      } catch (e) {
-                        console.error(e);
-                        return false;
-                      }
-                      setEscrowBalanceRefreshCounter(ctr => ctr + 1);
-                      await pullBillingPage(id);
-                      setConfirmTrigger(false);
-                    }}
-                  >
-                    settle outstanding
-                  </ActionButton>
-                )}
+                {!confirmTrigger &&
+                  !isLoading &&
+                  Object.keys(payoutTickets).length === 0 && (
+                    <ActionButton width="100%" onClick={actionSettle}>
+                      settle outstanding
+                    </ActionButton>
+                  )}
               </div>
             </div>
           </div>
