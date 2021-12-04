@@ -234,7 +234,7 @@ async function awaitTransactionSignatureConfirmation(
           status = signatureStatuses && signatureStatuses.value[0];
           if (!done) {
             if (!status) {
-              log.debug('REST null result for', txid, status);
+              log.debug('REST null FROM TRANSACTION result for', txid, status);
             } else if (status.err) {
               log.error('REST error for', txid, status);
               done = true;

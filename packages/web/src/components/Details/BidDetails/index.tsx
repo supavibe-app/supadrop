@@ -364,6 +364,7 @@ const BidDetails = ({
     try {
       const wallet = walletContext;
       const auctionView = auction!!;
+
       await sendRedeemBid(
         connection,
         wallet,
@@ -374,22 +375,29 @@ const BidDetails = ({
         bidRedemptions,
         bids,
       ).then(async () => {
-        supabaseUpdateIsRedeem(
-          auction?.auction.pubkey,
-          wallet.publicKey?.toBase58(),
-        );
         pullAuctionPage(auction?.auction.pubkey || '');
         await update();
-        setShowCongratulations(true);
-        supabaseUpdateNFTHolder(
-          auctionView.thumbnail.metadata.pubkey,
-          wallet.publicKey?.toBase58(),
-          instantSalePrice!!.toNumber() / Math.pow(10, 9),
-        );
-        supabaseUpdateWinnerAuction(
-          auction?.auction.pubkey,
-          walletContext.publicKey?.toBase58(),
-        );
+        const { canEndInstantSale, isAlreadyBought } =
+            useInstantSaleState(auctionView);
+
+        console.log('RESULT HERE REDEEM 0', canEndInstantSale)
+        console.log('RESULT HERE REDEEM 1', isAlreadyBought)
+        if (isAlreadyBought) {
+          setShowCongratulations(true);
+          supabaseUpdateIsRedeem(
+              auction?.auction.pubkey,
+              wallet.publicKey?.toBase58(),
+          );
+          supabaseUpdateNFTHolder(
+              auctionView.thumbnail.metadata.pubkey,
+              wallet.publicKey?.toBase58(),
+              instantSalePrice!!.toNumber() / Math.pow(10, 9),
+          );
+          supabaseUpdateWinnerAuction(
+              auction?.auction.pubkey,
+              walletContext.publicKey?.toBase58(),
+          );
+        }
       });
     } catch (e) {
       console.error(e);

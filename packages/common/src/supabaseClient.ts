@@ -136,7 +136,6 @@ export const supabaseUpdateStatusInstantSale = (idAuction?: string) => {
     .from('auction_status')
     .update({
       isLiveMarket: false,
-      is_redeem: true,
       updated_at: timestampPostgre(),
     })
     .eq('id', idAuction)
@@ -191,7 +190,11 @@ export const supabaseUpdateWinnerAuction = (
 ) => {
   supabase
     .from('auction_status')
-    .update({ winner: walletAddress, updated_at: timestampPostgre() })
+    .update({
+      winner: walletAddress,
+      is_redeem: true,
+      updated_at: timestampPostgre(),
+    })
     .eq('id', idAuction)
     .then(result => {
       console.log('res', result);
