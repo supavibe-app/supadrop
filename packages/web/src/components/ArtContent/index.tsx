@@ -201,7 +201,7 @@ export const ArtContent2 = ({
       />
     ) : (
       <CachedImageContent
-        uri={category === 'image' ? originalFile : thumbnail}
+        uri={thumbnail}
         className={className}
         preview={preview}
         style={style}

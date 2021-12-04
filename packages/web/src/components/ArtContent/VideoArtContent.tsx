@@ -8,6 +8,7 @@ export const VideoArtContent = ({
   files,
   uri,
   animationURL,
+  showControls = false,
   active,
 }: {
   className?: string;
@@ -15,6 +16,7 @@ export const VideoArtContent = ({
   files?: (MetadataFile | string)[];
   uri?: string;
   animationURL?: string;
+  showControls?: boolean;
   active?: boolean;
 }) => {
   const [playerApi, setPlayerApi] = useState<StreamPlayerApi>();
@@ -66,7 +68,7 @@ export const VideoArtContent = ({
         playsInline={true}
         autoPlay={true}
         muted={true}
-        controls={true}
+        controls={showControls}
         controlsList="nodownload"
         style={style}
         loop={true}

@@ -355,7 +355,7 @@ export const mintNFT = async (
       mintKey,
       payerPublicKey,
       metadata.properties?.category,
-      thumbnailLink,
+      thumbnailLink || mediaLink,
     );
 
     const txid = await sendTransactionWithRetry(

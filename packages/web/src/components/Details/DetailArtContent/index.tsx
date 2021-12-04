@@ -38,6 +38,7 @@ export const DetailArtContent = ({
         className={className}
         style={style}
         uri={thumbnail}
+        showControls={true}
         animationURL={originalFile}
         active={active}
       />
@@ -58,7 +59,7 @@ export const DetailArtContent = ({
       />
     ) : (
       <CachedImageContent
-        uri={category === 'image' ? originalFile : thumbnail}
+        uri={thumbnail}
         className={className}
         preview={preview}
         style={style}

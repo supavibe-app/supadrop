@@ -103,7 +103,7 @@ export const AppBar = () => {
           <Notifications />
 
           <CurrentUserBadge userData={userData} />
-
+          {/* 
           <Link
             to={{
               pathname: `/${
@@ -115,7 +115,7 @@ export const AppBar = () => {
             <Button className={RoundButton} type="default" shape="round">
               SELL
             </Button>
-          </Link>
+          </Link> */}
 
           {whitelistedCreatorsByCreator[publicKey?.toBase58() || ''] && (
             <Link to={'/create'}>

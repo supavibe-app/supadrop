@@ -100,10 +100,6 @@ const Profile = ({ userId }: { userId: string }) => {
   const { data: artwork, loading: loadingArtwork } =
     getCreatedDataNFT(walletAddress);
   const collectedArt = useCollectedArts(walletAddress);
-  // console.log(
-  //   '🚀 ~ file: index.tsx ~ line 103 ~ Profile ~ collectedArt',
-  //   collectedArt,
-  // );
 
   const { data: onSale, loading: loadingOnSale } =
     getOnSaleDataNFT(walletAddress);
@@ -295,6 +291,7 @@ const Profile = ({ userId }: { userId: string }) => {
                     art?.id_auction?.type_auction &&
                     art?.id_auction?.isLiveMarket;
                   const isOnSale = isLiveAuction || isInstantSale;
+
                   return (
                     <Col key={art.id} span={8}>
                       <Link
@@ -309,6 +306,8 @@ const Profile = ({ userId }: { userId: string }) => {
                       >
                         <ArtCard
                           key={art.id}
+                          name={art.name}
+                          category={art.media_type}
                           nftData={art}
                           pubkey={art.id}
                           preview={false}
@@ -364,6 +363,8 @@ const Profile = ({ userId }: { userId: string }) => {
                         <ArtCard
                           key={art.id}
                           pubkey={art.id}
+                          name={art.name}
+                          category={art.media_type}
                           isCollected={art.holder === publicKey?.toBase58()}
                           nftData={art}
                           preview={false}
@@ -397,8 +398,11 @@ const Profile = ({ userId }: { userId: string }) => {
                     <Link to={`/auction/${auction.id}`}>
                       <ArtCard
                         key={auction.id}
-                        pubkey={auction.id_nft}
+                        pubkey={auction.id_nft.id}
+                        name={auction.id_nft.name}
+                        category={auction.id_nft.category}
                         auctionData={auction}
+                        nftData={auction.id_nft}
                         preview={false}
                         isCollected={auction.owner === publicKey?.toBase58()}
                       />

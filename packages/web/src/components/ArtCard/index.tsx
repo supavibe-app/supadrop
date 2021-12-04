@@ -112,9 +112,6 @@ export const ArtCard = (props: ArtCardProps) => {
   name = art?.title || name || '';
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const creatorsAddress = creators[0]?.address || '';
-
-  const { data = {} } = getUsernameByPublicKeys([creatorsAddress]);
   const [state, setState] = useState<CountdownState>();
 
   useEffect(() => {
@@ -149,8 +146,8 @@ export const ArtCard = (props: ArtCardProps) => {
             className={AuctionImage(cardWidth)}
             preview={preview}
             pubkey={pubkey}
-            uri={image}
-            animationURL={animationURL}
+            uri={nftData?.thumbnail}
+            animationURL={nftData?.original_file}
             category={category}
             allowMeshRender={false}
           />
@@ -164,9 +161,9 @@ export const ArtCard = (props: ArtCardProps) => {
             <div className={UserWrapper}>
               <Avatar
                 src={
-                  data[creatorsAddress]?.img_profile || (
+                  nftData?.creator?.img_profile || (
                     <Identicon
-                      address={creatorsAddress}
+                      address={nftData?.creator?.wallet_address}
                       style={{ width: 32 }}
                     />
                   )
@@ -175,9 +172,8 @@ export const ArtCard = (props: ArtCardProps) => {
                 className={AvatarStyle}
               />
               <span>
-                {data[creatorsAddress]
-                  ? data[creatorsAddress].username
-                  : shortenAddress(creatorsAddress)}
+                {nftData?.creator?.username ||
+                  shortenAddress(nftData?.creator?.wallet_address)}
               </span>
             </div>
 
@@ -239,13 +235,17 @@ export const ArtCard = (props: ArtCardProps) => {
                     </Link>
                   </Col>
                 )}
-              {!art.title && !onListingPage && isCollected && pubkey && (
-                <Col className={ButtonCard} span={12}>
-                  <Button shape="round" disabled>
-                    please wait...
-                  </Button>
-                </Col>
-              )}
+              {!art.title &&
+                !onListingPage &&
+                isCollected &&
+                pubkey &&
+                !isLiveAuction && (
+                  <Col className={ButtonCard} span={12}>
+                    <Button shape="round" disabled>
+                      please wait...
+                    </Button>
+                  </Col>
+                )}
 
               {art.title && isCollected && !onListingPage && isInstantSale && (
                 <Col className={ButtonCard} span={12}>

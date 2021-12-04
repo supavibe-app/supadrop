@@ -14,7 +14,7 @@ export const getCollectedNFT = walletAddress => {
     if (walletAddress) {
       supabase
         .from('nft_data')
-        .select('*,id_auction(*)')
+        .select('*,id_auction(*),creator(username,wallet_address,img_profile)')
         .eq('holder', walletAddress)
         .not('creator', 'eq', walletAddress)
         .order('updated_at', { ascending: false })
@@ -41,7 +41,7 @@ export const getCreatedDataNFT = walletAddress => {
     if (walletAddress) {
       supabase
         .from('nft_data')
-        .select('*,id_auction(*)')
+        .select('*,id_auction(*),creator(username,wallet_address,img_profile)')
         .eq('creator', walletAddress)
         .order('created_at', { ascending: false })
         .then(res => {
@@ -66,7 +66,7 @@ export const getOnSaleDataNFT = walletAddress => {
     if (walletAddress) {
       supabase
         .from('auction_status')
-        .select('*')
+        .select('*,id_nft(*,creator(username,wallet_address,img_profile))')
         .eq('owner', walletAddress)
         .or(`isLiveMarket.eq.true,end_auction.gt.${moment().unix()}`)
         .order('end_auction', { ascending: false })
