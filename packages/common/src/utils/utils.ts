@@ -8,6 +8,10 @@ import { WAD, ZERO } from '../constants';
 import { TokenInfo } from '@solana/spl-token-registry';
 import { useLocalStorage } from './useLocalStorage';
 
+export function timestampPostgre(): string {
+  return new Date(Date.now()).toISOString().replace('T', ' ').replace('Z', '');
+}
+
 export type KnownTokenMap = Map<string, TokenInfo>;
 
 export const formatPriceNumber = new Intl.NumberFormat('en-US', {
@@ -16,11 +20,15 @@ export const formatPriceNumber = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 8,
 });
 
-export function useLocalStorageState(key: string, defaultState?: string) {
+export function useLocalStorageState<T>(
+  key: string,
+  defaultState?: T,
+): [T, (key: string) => void] {
   const localStorage = useLocalStorage();
   const [state, setState] = useState(() => {
-    // NOTE: Not sure if this is ok
+    console.debug('Querying local storage', key);
     const storedState = localStorage.getItem(key);
+    console.debug('Retrieved local storage', storedState);
     if (storedState) {
       return JSON.parse(storedState);
     }
@@ -84,12 +92,8 @@ export const findProgramAddress = async (
 };
 
 // shorten the checksummed version of the input address to have 4 characters at start and end
-export function shortenAddress(address = '', chars = 4): string {
+export function shortenAddress(address: string = '', chars = 4): string {
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
-}
-
-export function timestampPostgre(): string {
-  return new Date(Date.now()).toISOString().replace('T', ' ').replace('Z', '');
 }
 
 export function getTokenName(
@@ -224,6 +228,10 @@ const abbreviateNumber = (number: number, precision: number) => {
     const scale = Math.pow(10, tier * 3);
     scaled = number / scale;
   }
+  // Added this to remove unneeded decimals when abbreviating number
+  precision = Number.isInteger(scaled) ? 0 : precision;
+
+  //console.log("Number", scaled, precision)
 
   return scaled.toFixed(precision) + suffix;
 };
@@ -240,7 +248,7 @@ export function formatTokenAmount(
   rate: number = 1.0,
   prefix = '',
   suffix = '',
-  precision = 2,
+  precision = 3,
   abbr = false,
 ): string {
   if (!account) {
@@ -301,4 +309,52 @@ export function convert(
 
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// -----------------
+// Benchmarking/Performance
+// -----------------
+const tracePerf = false;
+let timerId = 0;
+/**
+ * Starts a timer for the [label] via
+ * {@link https://developer.mozilla.org/en-US/docs/Web/API/console/time | console.time}
+ * and returns a function that invokes
+ *
+ * {@link https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd | console.timeEnd}
+ * with the same label.
+ *
+ * ### Example
+ *
+ * ```js
+ * const done = timeStart('getting stuff')
+ * await getStuff()
+ * done()
+ * ```
+ *
+ * <br>
+ * This will print something similar to the below to the browser console:
+ *
+ * ```
+ * 🎬[0015] getting stuff
+ * ⏱️ [0015] getting stuff: 0.8322265625 ms
+ * ```
+ */
+export function timeStart(label: string) {
+  timerId++;
+  const id = timerId.toString().padStart(4, '0');
+
+  if (tracePerf) {
+    console.trace(`🎬[${id}] ${label}`);
+  } else {
+    console.log(`🎬[${id}] ${label}`);
+  }
+
+  const key = `⏱️[${id}] ${label}`;
+  console.time(key);
+  return () => timeEnd(key);
+}
+
+function timeEnd(key: string) {
+  console.timeLog(key);
 }

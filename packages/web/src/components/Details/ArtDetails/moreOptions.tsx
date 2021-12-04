@@ -4,7 +4,7 @@ import { useConnectionConfig } from '@oyster/common';
 import { List, Button } from 'antd';
 
 const MoreOptions = ({ art }) => {
-  const { env } = useConnectionConfig();
+  const { endpoint } = useConnectionConfig();
 
   return (
     <List>
@@ -18,7 +18,7 @@ const MoreOptions = ({ art }) => {
           type="link"
           onClick={() =>
             window.open(
-              `https://explorer.solana.com/account/${art?.mint || ''}${env.indexOf('main') >= 0 ? '' : `?cluster=${env}`
+              `https://explorer.solana.com/account/${art?.mint || ''}${endpoint.name.indexOf('main') >= 0 ? '' : `?cluster=${endpoint.name}`
               }`,
               '_blank',
             )

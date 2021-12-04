@@ -310,7 +310,7 @@ function awaitTransactionSignatureConfirmation(txid, timeout, connection, commit
                                                                 reject(status.err);
                                                             }
                                                             else if (!status.confirmations) {
-                                                                loglevel_1.default.error('REST no confirmations for', txid, status);
+                                                                loglevel_1.default.debug('REST no confirmations for', txid, status);
                                                             }
                                                             else {
                                                                 loglevel_1.default.debug('REST confirmation for', txid, status);

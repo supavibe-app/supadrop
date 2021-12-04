@@ -51,7 +51,7 @@ export async function sendPlaceBid(
     signers,
   );
 
-  const transactions = await sendTransactionWithRetry(
+  await sendTransactionWithRetry(
     connection,
     wallet,
     instructions[0],
@@ -59,7 +59,7 @@ export async function sendPlaceBid(
     'single',
   );
 
-  console.log('result tr', transactions);
+  console.log('result tr', '');
 
   return {
     amount: bid,

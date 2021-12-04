@@ -4,7 +4,7 @@ import { useArt } from '../../hooks';
 import { useConnectionConfig } from '@oyster/common';
 
 export const ViewOn = ({ id }: { id: string }) => {
-  const { env } = useConnectionConfig();
+  const { endpoint } = useConnectionConfig();
   const art = useArt(id);
 
   return (
@@ -23,7 +23,7 @@ export const ViewOn = ({ id }: { id: string }) => {
             onClick={() =>
               window.open(
                 `https://explorer.solana.com/account/${art?.mint || ''}${
-                  env.indexOf('main') >= 0 ? '' : `?cluster=${env}`
+                  endpoint.name.indexOf('main') >= 0 ? '' : `?cluster=${endpoint.name}`
                 }`,
                 '_blank',
               )

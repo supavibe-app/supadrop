@@ -15,8 +15,8 @@ const TokenIcon = (props) => {
         icon = utils_1.getTokenIcon(props.tokenMap, props.mintAddress);
     }
     else {
-        const { tokenMap } = connection_1.useConnectionConfig();
-        icon = utils_1.getTokenIcon(tokenMap, props.mintAddress);
+        const { tokens } = connection_1.useConnectionConfig();
+        icon = utils_1.getTokenIcon(tokens, props.mintAddress);
     }
     const size = props.size || 20;
     if (icon) {

@@ -3,12 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sleep = exports.convert = exports.formatPct = exports.formatNumber = exports.formatUSD = exports.formatTokenAmount = exports.formatAmount = exports.tryParseKey = exports.fromLamports = exports.wadToLamports = exports.toLamports = exports.chunks = exports.STABLE_COINS = exports.isKnownMint = exports.getTokenIcon = exports.getTokenByName = exports.getVerboseTokenName = exports.getTokenName = exports.timestampPostgre = exports.shortenAddress = exports.findProgramAddress = exports.useLocalStorageState = exports.formatPriceNumber = void 0;
+exports.timeStart = exports.sleep = exports.convert = exports.formatPct = exports.formatNumber = exports.formatUSD = exports.formatTokenAmount = exports.formatAmount = exports.tryParseKey = exports.fromLamports = exports.wadToLamports = exports.toLamports = exports.chunks = exports.STABLE_COINS = exports.isKnownMint = exports.getTokenIcon = exports.getTokenByName = exports.getVerboseTokenName = exports.getTokenName = exports.shortenAddress = exports.findProgramAddress = exports.useLocalStorageState = exports.formatPriceNumber = exports.timestampPostgre = void 0;
 const react_1 = require("react");
 const web3_js_1 = require("@solana/web3.js");
 const bn_js_1 = __importDefault(require("bn.js"));
 const constants_1 = require("../constants");
 const useLocalStorage_1 = require("./useLocalStorage");
+function timestampPostgre() {
+    return new Date(Date.now()).toISOString().replace('T', ' ').replace('Z', '');
+}
+exports.timestampPostgre = timestampPostgre;
 exports.formatPriceNumber = new Intl.NumberFormat('en-US', {
     style: 'decimal',
     minimumFractionDigits: 2,
@@ -17,8 +21,9 @@ exports.formatPriceNumber = new Intl.NumberFormat('en-US', {
 function useLocalStorageState(key, defaultState) {
     const localStorage = useLocalStorage_1.useLocalStorage();
     const [state, setState] = react_1.useState(() => {
-        // NOTE: Not sure if this is ok
+        console.debug('Querying local storage', key);
         const storedState = localStorage.getItem(key);
+        console.debug('Retrieved local storage', storedState);
         if (storedState) {
             return JSON.parse(storedState);
         }
@@ -73,10 +78,6 @@ function shortenAddress(address = '', chars = 4) {
     return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 exports.shortenAddress = shortenAddress;
-function timestampPostgre() {
-    return new Date(Date.now()).toISOString().replace('T', ' ').replace('Z', '');
-}
-exports.timestampPostgre = timestampPostgre;
 function getTokenName(map, mint, shorten = true) {
     var _a;
     const mintAddress = typeof mint === 'string' ? mint : mint === null || mint === void 0 ? void 0 : mint.toBase58();
@@ -177,11 +178,14 @@ const abbreviateNumber = (number, precision) => {
         const scale = Math.pow(10, tier * 3);
         scaled = number / scale;
     }
+    // Added this to remove unneeded decimals when abbreviating number
+    precision = Number.isInteger(scaled) ? 0 : precision;
+    //console.log("Number", scaled, precision)
     return scaled.toFixed(precision) + suffix;
 };
 const formatAmount = (val, precision = 2, abbr = true) => (abbr ? abbreviateNumber(val, precision) : val.toFixed(precision));
 exports.formatAmount = formatAmount;
-function formatTokenAmount(account, mint, rate = 1.0, prefix = '', suffix = '', precision = 2, abbr = false) {
+function formatTokenAmount(account, mint, rate = 1.0, prefix = '', suffix = '', precision = 3, abbr = false) {
     if (!account) {
         return '';
     }
@@ -225,4 +229,50 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 exports.sleep = sleep;
+// -----------------
+// Benchmarking/Performance
+// -----------------
+const tracePerf = false;
+let timerId = 0;
+/**
+ * Starts a timer for the [label] via
+ * {@link https://developer.mozilla.org/en-US/docs/Web/API/console/time | console.time}
+ * and returns a function that invokes
+ *
+ * {@link https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd | console.timeEnd}
+ * with the same label.
+ *
+ * ### Example
+ *
+ * ```js
+ * const done = timeStart('getting stuff')
+ * await getStuff()
+ * done()
+ * ```
+ *
+ * <br>
+ * This will print something similar to the below to the browser console:
+ *
+ * ```
+ * 🎬[0015] getting stuff
+ * ⏱️ [0015] getting stuff: 0.8322265625 ms
+ * ```
+ */
+function timeStart(label) {
+    timerId++;
+    const id = timerId.toString().padStart(4, '0');
+    if (tracePerf) {
+        console.trace(`🎬[${id}] ${label}`);
+    }
+    else {
+        console.log(`🎬[${id}] ${label}`);
+    }
+    const key = `⏱️[${id}] ${label}`;
+    console.time(key);
+    return () => timeEnd(key);
+}
+exports.timeStart = timeStart;
+function timeEnd(key) {
+    console.timeLog(key);
+}
 //# sourceMappingURL=utils.js.map
