@@ -20,116 +20,138 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendSignedTransaction = exports.getUnixTs = exports.sendTransactionWithRetry = exports.sendTransaction = exports.sendTransactions = exports.sendTransactionsWithManualRetry = exports.SequenceType = exports.getErrorForTransaction = exports.useConnectionConfig = exports.useConnection = exports.ConnectionProvider = exports.ENDPOINTS = void 0;
-const utils_1 = require("../utils/utils");
-const web3_js_1 = require("@solana/web3.js");
 const react_1 = __importStar(require("react"));
+const spl_token_registry_1 = require("@solana/spl-token-registry");
+const wallet_adapter_base_1 = require("@solana/wallet-adapter-base");
+const web3_js_1 = require("@solana/web3.js");
+const utils_1 = require("../utils/utils");
 const notifications_1 = require("../utils/notifications");
 const ExplorerLink_1 = require("../components/ExplorerLink");
 const hooks_1 = require("../hooks");
-const spl_token_registry_1 = require("@solana/spl-token-registry");
-const wallet_adapter_base_1 = require("@solana/wallet-adapter-base");
+const LOCALHOST = 'localhost';
 exports.ENDPOINTS = [
     {
         name: 'mainnet-beta',
-        endpoint: 'https://api.metaplex.solana.com',
-        ChainId: spl_token_registry_1.ENV.MainnetBeta,
+        label: 'mainnet-beta',
+        url: 'https://api.metaplex.solana.com/',
+        chainId: spl_token_registry_1.ENV.MainnetBeta,
     },
     {
-        name: 'mainnet-beta (Solana)',
-        endpoint: 'https://api.mainnet-beta.solana.com',
-        ChainId: spl_token_registry_1.ENV.MainnetBeta,
+        name: 'mainnet-beta-solana',
+        label: 'mainnet-beta (Solana)',
+        url: 'https://api.mainnet-beta.solana.com',
+        chainId: spl_token_registry_1.ENV.MainnetBeta,
     },
     {
-        name: 'mainnet-beta (Serum)',
-        endpoint: 'https://solana-api.projectserum.com/',
-        ChainId: spl_token_registry_1.ENV.MainnetBeta,
+        name: 'mainnet-beta-serum',
+        label: 'mainnet-beta (Serum)',
+        url: 'https://solana-api.projectserum.com/',
+        chainId: spl_token_registry_1.ENV.MainnetBeta,
     },
     {
         name: 'testnet',
-        endpoint: web3_js_1.clusterApiUrl('testnet'),
-        ChainId: spl_token_registry_1.ENV.Testnet,
+        label: 'testnet',
+        url: web3_js_1.clusterApiUrl('testnet'),
+        chainId: spl_token_registry_1.ENV.Testnet,
     },
     {
         name: 'devnet',
-        endpoint: web3_js_1.clusterApiUrl('devnet'),
-        ChainId: spl_token_registry_1.ENV.Devnet,
+        label: 'devnet',
+        url: web3_js_1.clusterApiUrl('devnet'),
+        chainId: spl_token_registry_1.ENV.Devnet,
     },
 ];
-const defaultEndpoint = exports.ENDPOINTS[Number(process.env.NEXT_PUBLIC_ENDPOINT)];
-const DEFAULT = defaultEndpoint.endpoint;
+// SERVER
+const DEFAULT_ENDPOINT = exports.ENDPOINTS[4];
 const ConnectionContext = react_1.default.createContext({
-    endpoint: DEFAULT,
-    setEndpoint: () => { },
-    connection: new web3_js_1.Connection(DEFAULT, 'recent'),
-    env: defaultEndpoint.name,
-    tokens: [],
-    tokenMap: new Map(),
+    connection: new web3_js_1.Connection(DEFAULT_ENDPOINT.url, 'recent'),
+    endpoint: DEFAULT_ENDPOINT,
+    tokens: new Map(),
 });
-function ConnectionProvider({ children = undefined }) {
-    var _a, _b;
+function ConnectionProvider({ children }) {
     const searchParams = hooks_1.useQuerySearch();
-    const network = searchParams.get('network');
-    const queryEndpoint = network && ((_a = exports.ENDPOINTS.find(({ name }) => name.startsWith(network))) === null || _a === void 0 ? void 0 : _a.endpoint);
-    const [savedEndpoint, setEndpoint] = utils_1.useLocalStorageState('connectionEndpoint', defaultEndpoint.endpoint);
-    const endpoint = queryEndpoint || savedEndpoint;
-    const connection = react_1.useMemo(() => new web3_js_1.Connection(endpoint, 'recent'), [endpoint]);
-    const env = ((_b = exports.ENDPOINTS.find(end => end.endpoint === endpoint)) === null || _b === void 0 ? void 0 : _b.name) || defaultEndpoint.name;
-    const [tokens, setTokens] = react_1.useState([]);
-    const [tokenMap, setTokenMap] = react_1.useState(new Map());
+    const [networkStorage, setNetworkStorage] = utils_1.useLocalStorageState('network', DEFAULT_ENDPOINT.name);
+    const networkParam = searchParams.get('network');
+    let maybeEndpoint = undefined;
+    if (networkParam != null) {
+        maybeEndpoint = exports.ENDPOINTS.find(({ name }) => name === networkParam);
+        if (maybeEndpoint == null && networkParam === LOCALHOST) {
+            // solana-test-validator running on localhost is only used for testing and
+            // not exposed as an endpoint selector option
+            maybeEndpoint = {
+                name: LOCALHOST,
+                label: LOCALHOST,
+                url: 'http://127.0.0.1:8899/',
+                chainId: spl_token_registry_1.ENV.Devnet,
+            };
+        }
+    }
+    if (networkStorage == null && maybeEndpoint == null) {
+        let endpointStorage = exports.ENDPOINTS.find(({ name }) => name === networkStorage);
+        if (endpointStorage) {
+            maybeEndpoint = endpointStorage;
+        }
+    }
+    const endpoint = maybeEndpoint || DEFAULT_ENDPOINT;
+    const { current: connection } = react_1.useRef(new web3_js_1.Connection(endpoint.url));
+    const [tokens, setTokens] = react_1.useState(new Map());
     react_1.useEffect(() => {
-        // fetch token files
-        new spl_token_registry_1.TokenListProvider().resolve().then(container => {
-            var _a;
-            const list = container
-                .excludeByTag('nft')
-                .filterByChainId(((_a = exports.ENDPOINTS.find(end => end.endpoint === endpoint)) === null || _a === void 0 ? void 0 : _a.ChainId) ||
-                spl_token_registry_1.ENV.MainnetBeta)
-                .getList();
-            const knownMints = [...list].reduce((map, item) => {
-                map.set(item.address, item);
-                return map;
-            }, new Map());
-            setTokenMap(knownMints);
-            setTokens(list);
-        });
-    }, [env]);
-    // The websocket library solana/web3.js uses closes its websocket connection when the subscription list
-    // is empty after opening its first time, preventing subsequent subscriptions from receiving responses.
-    // This is a hack to prevent the list from every getting empty
+        function fetchTokens() {
+            return new spl_token_registry_1.TokenListProvider().resolve().then(container => {
+                const list = container
+                    .excludeByTag('nft')
+                    .filterByChainId(endpoint.chainId)
+                    .getList();
+                const map = new Map(list.map(item => [item.address, item]));
+                setTokens(map);
+            });
+        }
+        fetchTokens();
+    }, []);
+    react_1.useEffect(() => {
+        function updateNetworkInLocalStorageIfNeeded() {
+            if (networkStorage !== endpoint.name) {
+                setNetworkStorage(endpoint.name);
+            }
+        }
+        updateNetworkInLocalStorageIfNeeded();
+    }, []);
+    // solana/web3.js closes its websocket connection when the subscription list
+    // is empty after opening for the first time, preventing subsequent
+    // subscriptions from receiving responses.
+    // This is a hack to prevent the list from ever being empty.
     react_1.useEffect(() => {
         const id = connection.onAccountChange(web3_js_1.Keypair.generate().publicKey, () => { });
         return () => {
             connection.removeAccountChangeListener(id);
         };
-    }, [connection]);
+    }, []);
     react_1.useEffect(() => {
         const id = connection.onSlotChange(() => null);
         return () => {
             connection.removeSlotChangeListener(id);
         };
-    }, [connection]);
-    return (react_1.default.createElement(ConnectionContext.Provider, { value: {
+    }, []);
+    const contextValue = react_1.default.useMemo(() => {
+        return {
             endpoint,
-            setEndpoint,
             connection,
             tokens,
-            tokenMap,
-            env,
-        } }, children));
+        };
+    }, [tokens]);
+    return (react_1.default.createElement(ConnectionContext.Provider, { value: contextValue }, children));
 }
 exports.ConnectionProvider = ConnectionProvider;
 function useConnection() {
-    return react_1.useContext(ConnectionContext).connection;
+    const { connection } = react_1.useContext(ConnectionContext);
+    return connection;
 }
 exports.useConnection = useConnection;
 function useConnectionConfig() {
-    const context = react_1.useContext(ConnectionContext);
+    const { endpoint, tokens } = react_1.useContext(ConnectionContext);
     return {
-        endpoint: context.endpoint,
-        setEndpoint: context.setEndpoint,
-        env: context.env,
-        tokens: context.tokens,
-        tokenMap: context.tokenMap,
+        endpoint,
+        tokens,
     };
 }
 exports.useConnectionConfig = useConnectionConfig;
@@ -375,6 +397,7 @@ async function sendSignedTransaction({ signedTransaction, connection, timeout = 
             console.error(confirmation.err);
             throw new Error('Transaction failed: Custom instruction error');
         }
+        console.log('confirm', confirmation);
         slot = (confirmation === null || confirmation === void 0 ? void 0 : confirmation.slot) || 0;
     }
     catch (err) {

@@ -142,6 +142,7 @@ export const supabaseUpdateStatusInstantSale = (idAuction?: string) => {
     .eq('id', idAuction)
     .then();
 };
+
 export const supabaseUpdateIsRedeem = (
   idAuction?: string,
   walletAddress?: string,

@@ -82,7 +82,9 @@ export declare class ItemAuction {
     id_nft: string;
     token_mint: string;
     price_floor: number;
-    img_nft: string;
+    original_file: string;
+    thumbnail: string;
+    media_type: string;
     startAt: number;
     endAt: number;
     highestBid: number;
@@ -95,7 +97,22 @@ export declare class ItemAuction {
     winner: string;
     mint_key: string;
     isInstantSale: boolean;
-    constructor(id: string, name: string, id_nft: string, token_mint: string, price_floor: number, img_nft: string, startAt: number, endAt: number, highestBid: number, price_tick: number, gapTime: number, tickExtend: number, vault: string, arweave_link: string, owner: string, winner: string, mint_key: string, isInstantSale: boolean);
+    constructor(id: string, name: string, id_nft: string, token_mint: string, price_floor: number, original_file: string, thumbnail: string, media_type: string, startAt: number, endAt: number, highestBid: number, price_tick: number, gapTime: number, tickExtend: number, vault: string, arweave_link: string, owner: string, winner: string, mint_key: string, isInstantSale: boolean);
+}
+export declare class NFTData {
+    id: string;
+    name: string;
+    description: string;
+    creator: string;
+    holder: string;
+    royalty: number;
+    imgNFT: string;
+    arweave_link: string;
+    mediaType: string;
+    winner: string;
+    mint_key: string;
+    isInstantSale: boolean;
+    constructor(id: string, name: string, description: string, creator: string, holder: string, royalty: number, imgNFT: string, arweave_link: string, mediaType: string, winner: string, mint_key: string, isInstantSale: boolean);
 }
 export declare type UnPromise<T extends Promise<any>> = T extends Promise<infer U> ? U : never;
 //# sourceMappingURL=types.d.ts.map

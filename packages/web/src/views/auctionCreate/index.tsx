@@ -85,6 +85,8 @@ export const AuctionCreateView = () => {
     updateLiveDataAuction,
   } = useMeta();
 
+  const connection = useConnection();
+  const mint = useMint(QUOTE_MINT);
   const history = useHistory();
   const wallet = useWallet();
   const { update } = useMeta();
@@ -92,9 +94,6 @@ export const AuctionCreateView = () => {
   const { idNFT, auctionData, nftData }: any = state || {};
 
   const singleUser = useUserSingleArt(idNFT);
-
-  const connection = useConnection();
-  const mint = useMint(QUOTE_MINT);
 
   const [step, setStep] = useState<number>(0);
   const [auctionObj, setAuctionObj] =
@@ -149,6 +148,7 @@ export const AuctionCreateView = () => {
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
+
         item.amountRanges = [
           new AmountRange({
             amount: new BN(1),
@@ -156,6 +156,7 @@ export const AuctionCreateView = () => {
           }),
         ];
       }
+
       winnerLimit = new WinnerLimit({
         type: WinnerLimitType.Capped,
         usize: new BN(editions || 1),
@@ -200,6 +201,7 @@ export const AuctionCreateView = () => {
         );
       }
     }
+    
     const isInstantSale =
       attributes.instantSalePrice &&
       attributes.priceFloor === attributes.instantSalePrice;
@@ -271,8 +273,6 @@ export const AuctionCreateView = () => {
       isLiveMarket: isInstantSale || false,
       owner: wallet.publicKey?.toBase58(),
     };
-
-    // const isDataReady = Boolean(data);
 
     supabase
       .from('auction_status')

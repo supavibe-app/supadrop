@@ -1,27 +1,26 @@
 /// <reference types="react" />
-import { Keypair, Commitment, Connection, Transaction, TransactionInstruction, Blockhash, FeeCalculator } from '@solana/web3.js';
 import { TokenInfo, ENV as ChainId } from '@solana/spl-token-registry';
+import { Keypair, Commitment, Connection, Transaction, TransactionInstruction, Blockhash, FeeCalculator } from '@solana/web3.js';
 import { WalletSigner } from './wallet';
 interface BlockhashAndFeeCalculator {
     blockhash: Blockhash;
     feeCalculator: FeeCalculator;
 }
-export declare type ENV = 'mainnet-beta' | 'mainnet-beta (Solana)' | 'mainnet-beta (Serum)' | 'testnet' | 'devnet' | 'localnet' | 'lending';
-export declare const ENDPOINTS: {
-    name: ENV;
-    endpoint: string;
-    ChainId: ChainId;
-}[];
+export declare type ENDPOINT_NAME = 'mainnet-beta' | 'mainnet-beta-solana' | 'mainnet-beta-serum' | 'testnet' | 'devnet' | 'localnet' | 'lending';
+declare type Endpoint = {
+    name: ENDPOINT_NAME;
+    label: string;
+    url: string;
+    chainId: ChainId;
+};
+export declare const ENDPOINTS: Array<Endpoint>;
 export declare function ConnectionProvider({ children }: {
-    children?: any;
+    children: any;
 }): JSX.Element;
 export declare function useConnection(): Connection;
 export declare function useConnectionConfig(): {
-    endpoint: string;
-    setEndpoint: (val: string) => void;
-    env: ENV;
-    tokens: TokenInfo[];
-    tokenMap: Map<string, TokenInfo>;
+    endpoint: Endpoint;
+    tokens: Map<string, TokenInfo>;
 };
 export declare const getErrorForTransaction: (connection: Connection, txid: string) => Promise<string[]>;
 export declare enum SequenceType {
