@@ -101,6 +101,10 @@ export const supabaseAddNewNFT = (
     .then();
 };
 
+export const supabaseDeleteNFT = (id: string) => {
+  supabase.from('nft_data').delete().eq('id', id).match({ id: id }).then();
+};
+
 export const supabaseUpdateNFTHolder = (
   idNFT: string,
   walletAddress?: string,

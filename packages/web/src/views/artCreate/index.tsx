@@ -34,6 +34,7 @@ import {
   StringPublicKey,
   getAssetCostToStore,
   LAMPORT_MULTIPLIER,
+  supabaseDeleteNFT,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -1250,6 +1251,10 @@ const Congrats = (props: {
 
   if (props.alert) {
     // TODO  - properly reset this components state on error
+    if (props.nft?.metadataAccount) 
+      supabaseDeleteNFT(props.nft?.metadataAccount.toString());  // Delete Data NFT FROM DB IF THERE'S AN ERROR
+    
+    
     return (
       <>
         <div className="waiting-title">Sorry, there was an error!</div>

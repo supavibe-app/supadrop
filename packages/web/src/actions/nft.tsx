@@ -69,6 +69,45 @@ const uploadToArweave = async (data: FormData): Promise<IArweaveResult> => {
   return result;
 };
 
+export class NFTDataUpload {
+  idNft: string;
+  mediaLink: string;
+  name: string;
+  description: string;
+  attribute: Attribute[] | undefined;
+  sellerFeeBase: number;
+  arweaveLink: string;
+  mintKey: string;
+  payerPublicKey: string;
+  category: any;
+  thumbnailLink: string;
+  constructor(
+    idNft: string,
+  mediaLink: string,
+  name: string,
+  description: string,
+  attribute: Attribute[] | undefined,
+  sellerFeeBase: number,
+  arweaveLink: string,
+  mintKey: string,
+  payerPublicKey: string,
+  category: any,
+  thumbnailLink: string,
+  ) {
+    this.idNft = idNft;
+    this.mediaLink = mediaLink;
+    this.name = name;
+    this.description = description;
+    this.attribute = attribute;
+    this.sellerFeeBase = sellerFeeBase;
+    this.arweaveLink = arweaveLink;
+    this.mintKey = mintKey;
+    this.payerPublicKey = payerPublicKey;
+    this.category = category;
+    this.thumbnailLink = thumbnailLink;
+  }
+}
+
 export const mintNFT = async (
   connection: Connection,
   wallet: WalletSigner | undefined,
@@ -90,6 +129,7 @@ export const mintNFT = async (
   maxSupply?: number,
 ): Promise<{
   metadataAccount: StringPublicKey;
+  // uploadedNFT: NFTDataUpload;
 } | void> => {
   if (!wallet?.publicKey) return;
 
@@ -344,6 +384,20 @@ export const mintNFT = async (
 
     progressCallback(8);
 
+    // const uploadedNFT = new NFTDataUpload(
+    //   idNFT,
+    //   mediaLink, // table
+    //   metadata.name,
+    //   metadata.description,
+    //   metadata.attributes || [],
+    //   metadata.sellerFeeBasisPoints,
+    //   arweaveLink,
+    //   mintKey,
+    //   payerPublicKey,
+    //   metadata.properties?.category,
+    //   thumbnailLink || mediaLink,
+    // )
+
     supabaseAddNewNFT(
       idNFT,
       mediaLink, // table
@@ -358,12 +412,12 @@ export const mintNFT = async (
       thumbnailLink || mediaLink,
     );
 
-    const txid = await sendTransactionWithRetry(
-      connection,
-      wallet,
-      updateInstructions,
-      updateSigners,
-    );
+    // const txid = await sendTransactionWithRetry(
+    //   connection,
+    //   wallet,
+    //   updateInstructions,
+    //   updateSigners,
+    // );
 
     notify({
       message: 'Art created on Solana',

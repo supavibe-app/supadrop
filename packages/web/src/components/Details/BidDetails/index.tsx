@@ -377,25 +377,48 @@ const BidDetails = ({
       ).then(async () => {
         pullAuctionPage(auction?.auction.pubkey || '');
         await update();
-        const { canEndInstantSale, isAlreadyBought } =
-            useInstantSaleState(auctionView);
 
-        console.log('RESULT HERE REDEEM 0', canEndInstantSale)
-        console.log('RESULT HERE REDEEM 1', isAlreadyBought)
+        const items = auctionView.items;
+        let isAlreadyBought: boolean = false;
+        const isBidCanceled = !!auctionView.myBidderMetadata?.info.cancelled;
+        let canClaimPurchasedItem: boolean = false;
+        if (auctionView.auction.info.bidState.type == BidStateType.EnglishAuction) {
+          console.log('RESULT HERE TRUE', auctionView.auction.info.bidState.type);
+          for (const item of items) {
+            for (const subItem of item) {
+              const bidRedeemed = auctionView.myBidRedemption?.info.getBidRedeemed(
+                subItem.safetyDeposit.info.order,
+              );
+              console.log('RESULT HERE ITEM', bidRedeemed); // TODO disini masih null
+              isAlreadyBought = bidRedeemed ? bidRedeemed : false;
+              if (isAlreadyBought) break;
+            }
+          }
+          canClaimPurchasedItem =
+            !!(auctionView.myBidderPot && !isBidCanceled) && !isAlreadyBought;
+        } else {
+          console.log('RESULT HERE ELSE', auctionView.auction.info.bidState.type);
+          isAlreadyBought = !!(auctionView.myBidderPot && isBidCanceled);
+          canClaimPurchasedItem = !!(auctionView.myBidderPot && !isBidCanceled);
+        }
+
+        console.log('RESULT HERE REDEEM 0', isAlreadyBought);
+        console.log('RESULT HERE REDEEM 1', canClaimPurchasedItem);
+
         if (isAlreadyBought) {
           setShowCongratulations(true);
           supabaseUpdateIsRedeem(
-              auction?.auction.pubkey,
-              wallet.publicKey?.toBase58(),
+            auction?.auction.pubkey,
+            wallet.publicKey?.toBase58(),
           );
           supabaseUpdateNFTHolder(
-              auctionView.thumbnail.metadata.pubkey,
-              wallet.publicKey?.toBase58(),
-              instantSalePrice!!.toNumber() / Math.pow(10, 9),
+            auctionView.thumbnail.metadata.pubkey,
+            wallet.publicKey?.toBase58(),
+            instantSalePrice!!.toNumber() / Math.pow(10, 9),
           );
           supabaseUpdateWinnerAuction(
-              auction?.auction.pubkey,
-              walletContext.publicKey?.toBase58(),
+            auction?.auction.pubkey,
+            walletContext.publicKey?.toBase58(),
           );
         }
       });
