@@ -30,7 +30,7 @@ const SellStep = (props: {
   };
 }) => {
   // states
-  const [category, setCategory] = useState(AuctionCategory.InstantSale);
+  const [category, setCategory] = useState(AuctionCategory.Single);
   const [time, setTime] = useState(1);
   const [priceFloor, setPriceFloor] = useState<number>(0);
 
@@ -86,19 +86,18 @@ const SellStep = (props: {
         <div className={OptionsContainer}>
           <div className={OptionsWrapper}>
             <OptionBox
+              className={OptionBoxStyle(category === AuctionCategory.Single)}
+              icon="clock"
+              text="timed auction"
+              onClick={() => setCategory(AuctionCategory.Single)}
+            />
+            <OptionBox
               className={OptionBoxStyle(
                 category === AuctionCategory.InstantSale,
               )}
               icon="tag"
               text="instant sale"
               onClick={() => setCategory(AuctionCategory.InstantSale)}
-            />
-
-            <OptionBox
-              className={OptionBoxStyle(category === AuctionCategory.Single)}
-              icon="clock"
-              text="timed auction"
-              onClick={() => setCategory(AuctionCategory.Single)}
             />
           </div>
 

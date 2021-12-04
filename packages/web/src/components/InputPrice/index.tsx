@@ -9,13 +9,19 @@ interface IInputPrice {
   suffix?: string;
 }
 
-const InputPrice = ({ defaultValue, onChange, placeholder, suffix }: IInputPrice) => {
+const InputPrice = ({
+  defaultValue,
+  onChange,
+  placeholder,
+  suffix,
+}: IInputPrice) => {
   return (
     <Input
       className={InputPriceStyle}
       defaultValue={defaultValue}
       placeholder={placeholder}
       suffix={suffix}
+      onWheel={event => event.currentTarget.blur()}
       type="number"
       onChange={onChange}
     />
