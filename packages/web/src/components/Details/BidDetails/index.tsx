@@ -588,7 +588,9 @@ const BidDetails = ({
                   <span className={WhiteColor}>{currentBid} SOL</span> ending in{' '}
                   {!isInstantSale && state && (
                     <span className={WhiteColor}>
-                      {state.hours} :{' '}
+                      {state.days != 0 ? state?.days : ''}
+                      {state.days == 0 ? '' : ' : '}
+                      {state.hours > 9 ? state?.hours : `0${state.hours}`}{' '} :{' '}
                       {state.minutes > 9 ? state.minutes : `0${state.minutes}`}{' '}
                       :{' '}
                       {state.seconds > 9 ? state.seconds : `0${state.seconds}`}
@@ -612,7 +614,9 @@ const BidDetails = ({
                 {!isInstantSale && <div>ending in</div>}
                 {!isInstantSale && state && (
                   <div className={`${WhiteColor} ${uFontSize24}`}>
-                    {state.hours} :{' '}
+                    {state.days != 0 ? state?.days : ''}
+                    {state.days == 0 ? '' : ' : '}
+                    {state.hours > 9 ? state?.hours : `0${state.hours}`}{' '} :{' '}
                     {state.minutes > 9 ? state.minutes : `0${state.minutes}`} :{' '}
                     {state.seconds > 9 ? state.seconds : `0${state.seconds}`}
                   </div>

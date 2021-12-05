@@ -92,7 +92,8 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                       <div className={Label}>ending in</div>
                       {state && (
                         <div className={StatusValue}>
-                          {state.hours} :{' '}
+                          {state.days > 9 ? state?.days : `0${state.days}`}{' '} :{' '}
+                          {state.hours > 9 ? state?.hours : `0${state.hours}`}{' '} :{' '}
                           {state.minutes > 9
                             ? state.minutes
                             : `0${state.minutes}`}{' '}

@@ -52,7 +52,7 @@ const SellStep = (props: {
             priceTick: 0.1,
             auctionDuration: time,
             // gapTime: 15,
-            gapTime: 1,
+            gapTime: 3,
             tickSizeEndingPhase: 10,
           };
 

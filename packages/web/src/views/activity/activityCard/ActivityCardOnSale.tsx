@@ -174,16 +174,18 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
             <div className={StatusValue}>auction ended</div>
           </div>
         )}
-        {!isEnded(state) && (
+        {!isEnded(state) && state && (
           <div>
             <div className={Label}>ending in</div>
             <div className={StatusValue}>
-              {state && state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-              {state && state.minutes < 10
+              {state.days != 0 ? state?.days : ''}
+              {state.days == 0 ? '' : ' : '}
+              {state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+              {state.minutes < 10
                 ? '0' + state?.minutes
                 : state?.minutes}{' '}
               :{' '}
-              {state && state.seconds < 10
+              {state.seconds < 10
                 ? '0' + state?.seconds
                 : state?.seconds}
             </div>
