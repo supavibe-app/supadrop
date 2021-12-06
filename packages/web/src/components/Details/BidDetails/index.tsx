@@ -382,13 +382,19 @@ const BidDetails = ({
         let isAlreadyBought: boolean = false;
         const isBidCanceled = !!auctionView.myBidderMetadata?.info.cancelled;
         let canClaimPurchasedItem: boolean = false;
-        if (auctionView.auction.info.bidState.type == BidStateType.EnglishAuction) {
-          console.log('RESULT HERE TRUE', auctionView.auction.info.bidState.type);
+        if (
+          auctionView.auction.info.bidState.type == BidStateType.EnglishAuction
+        ) {
+          console.log(
+            'RESULT HERE TRUE',
+            auctionView.auction.info.bidState.type,
+          );
           for (const item of items) {
             for (const subItem of item) {
-              const bidRedeemed = auctionView.myBidRedemption?.info.getBidRedeemed(
-                subItem.safetyDeposit.info.order,
-              );
+              const bidRedeemed =
+                auctionView.myBidRedemption?.info.getBidRedeemed(
+                  subItem.safetyDeposit.info.order,
+                );
               console.log('RESULT HERE ITEM', bidRedeemed); // TODO disini masih null
               isAlreadyBought = bidRedeemed ? bidRedeemed : false;
               if (isAlreadyBought) break;
@@ -397,7 +403,10 @@ const BidDetails = ({
           canClaimPurchasedItem =
             !!(auctionView.myBidderPot && !isBidCanceled) && !isAlreadyBought;
         } else {
-          console.log('RESULT HERE ELSE', auctionView.auction.info.bidState.type);
+          console.log(
+            'RESULT HERE ELSE',
+            auctionView.auction.info.bidState.type,
+          );
           isAlreadyBought = !!(auctionView.myBidderPot && isBidCanceled);
           canClaimPurchasedItem = !!(auctionView.myBidderPot && !isBidCanceled);
         }
@@ -588,9 +597,7 @@ const BidDetails = ({
                   <span className={WhiteColor}>{currentBid} SOL</span> ending in{' '}
                   {!isInstantSale && state && (
                     <span className={WhiteColor}>
-                      {state.days != 0 ? state?.days : ''}
-                      {state.days == 0 ? '' : ' : '}
-                      {state.hours > 9 ? state?.hours : `0${state.hours}`}{' '} :{' '}
+                      {state.hours > 9 ? state?.hours : `0${state.hours}`} :{' '}
                       {state.minutes > 9 ? state.minutes : `0${state.minutes}`}{' '}
                       :{' '}
                       {state.seconds > 9 ? state.seconds : `0${state.seconds}`}
@@ -614,9 +621,7 @@ const BidDetails = ({
                 {!isInstantSale && <div>ending in</div>}
                 {!isInstantSale && state && (
                   <div className={`${WhiteColor} ${uFontSize24}`}>
-                    {state.days != 0 ? state?.days : ''}
-                    {state.days == 0 ? '' : ' : '}
-                    {state.hours > 9 ? state?.hours : `0${state.hours}`}{' '} :{' '}
+                    {state.hours > 9 ? state?.hours : `0${state.hours}`} :{' '}
                     {state.minutes > 9 ? state.minutes : `0${state.minutes}`} :{' '}
                     {state.seconds > 9 ? state.seconds : `0${state.seconds}`}
                   </div>

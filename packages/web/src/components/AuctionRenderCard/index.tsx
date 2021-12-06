@@ -169,19 +169,10 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 
                 {!ended && !auctionView.isInstantSale && state && (
                   <div className={NumberStyle}>
-                    {state.days != 0 ? state?.days : ''}
-                    {state.days == 0 ? '' : ' : '}
-                    {state.hours < 10
-                      ? '0' + state?.hours
-                      : state?.hours}{' '}
+                    {state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+                    {state.minutes < 10 ? '0' + state?.minutes : state?.minutes}{' '}
                     :{' '}
-                    {state.minutes < 10
-                      ? '0' + state?.minutes
-                      : state?.minutes}{' '}
-                    :{' '}
-                    {state.seconds < 10
-                      ? '0' + state?.seconds
-                      : state?.seconds}
+                    {state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
                   </div>
                 )}
               </Col>

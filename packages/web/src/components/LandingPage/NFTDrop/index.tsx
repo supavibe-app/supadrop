@@ -37,7 +37,7 @@ const NFTDrop = () => {
   useEffect(() => {
     const calc = () =>
       setState(
-        countDown(endingTime ? endingTime : dataCollection.start_publish),
+        countDown(endingTime ? endingTime : dataCollection.start_publish, true),
       );
     const interval = setInterval(() => calc(), 1000);
     calc();
@@ -163,7 +163,7 @@ export const MobileNFTDrop = () => {
   useEffect(() => {
     const calc = () =>
       setState(
-        countDown(endingTime ? endingTime : dataCollection.start_publish),
+        countDown(endingTime ? endingTime : dataCollection.start_publish, true),
       );
     const interval = setInterval(() => calc(), 1000);
     calc();

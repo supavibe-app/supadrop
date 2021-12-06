@@ -42,7 +42,7 @@ const AuctionListView = () => {
   useEffect(() => {
     const calc = () =>
       setState(
-        countDown(endingTime ? endingTime : dataCollection.start_publish),
+        countDown(endingTime ? endingTime : dataCollection.start_publish, true),
       );
     const interval = setInterval(() => calc(), 1000);
     calc();
@@ -166,7 +166,9 @@ const AuctionListView = () => {
             }
           >
             <Row gutter={[36, 36]}>{auctionList(liveAuctions)}</Row>
-            {!Boolean(liveAuctions.length) && !isLoadingMetaplex && emptyAuction}
+            {!Boolean(liveAuctions.length) &&
+              !isLoadingMetaplex &&
+              emptyAuction}
           </TabPane>
 
           <TabPane
@@ -174,9 +176,7 @@ const AuctionListView = () => {
             tab={<div className={TitleWrapper}>ended auctions</div>}
           >
             <Row gutter={[36, 36]}>{auctionList(endAuctions)}</Row>
-            {!Boolean(endAuctions.length) &&
-              !isLoadingMetaplex &&
-              emptyAuction}
+            {!Boolean(endAuctions.length) && !isLoadingMetaplex && emptyAuction}
           </TabPane>
         </Tabs>
       </Col>

@@ -178,8 +178,6 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
           <div>
             <div className={Label}>ending in</div>
             <div className={StatusValue}>
-              {state.days != 0 ? state?.days : ''}
-              {state.days == 0 ? '' : ' : '}
               {state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
               {state.minutes < 10
                 ? '0' + state?.minutes

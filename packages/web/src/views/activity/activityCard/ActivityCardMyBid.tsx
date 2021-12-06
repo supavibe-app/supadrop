@@ -28,10 +28,9 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
   const owner = auctionView.id_auction.owner;
   const winner = auctionView.id_auction.winner;
 
-  const isWinner = winner.wallet_address === wallet.publicKey?.toBase58();
+  const isWinner = winner?.wallet_address === wallet.publicKey?.toBase58();
 
   const highestBid = auctionView.id_auction.highest_bid;
-  const haveWinner = highestBid > 0;
 
   useEffect(() => {
     const calc = () => setState(countDown(auctionView.id_auction.end_auction));
@@ -92,8 +91,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                       <div className={Label}>ending in</div>
                       {state && (
                         <div className={StatusValue}>
-                          {state.days > 9 ? state?.days : `0${state.days}`}{' '} :{' '}
-                          {state.hours > 9 ? state?.hours : `0${state.hours}`}{' '} :{' '}
+                          {state.hours > 9 ? state?.hours : `0${state.hours}`} :{' '}
                           {state.minutes > 9
                             ? state.minutes
                             : `0${state.minutes}`}{' '}
@@ -137,7 +135,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                             src={
                               winner.img_profile || (
                                 <Identicon
-                                  address={winner.wallet_address}
+                                  address={winner?.wallet_address}
                                   style={{ width: 32 }}
                                 />
                               )
@@ -147,7 +145,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                           <span>
                             {winner.username
                               ? winner.username
-                              : shortenAddress(winner.wallet_address)}
+                              : shortenAddress(winner?.wallet_address)}
                           </span>
                         </div>
                       </div>
