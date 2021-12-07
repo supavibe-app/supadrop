@@ -88,6 +88,8 @@ export interface MetaContextState extends MetaState {
   endingTime: number;
   liveDataAuctions: ItemAuction[];
   endedAuctions: ItemAuction[];
+  notifBidding: any[];
+  notifAuction: any[];
   allDataAuctions: { [key: string]: ItemAuction };
   update: (
     auctionAddress?: any,
@@ -102,6 +104,8 @@ export interface MetaContextState extends MetaState {
   updateLiveDataAuction: () => void;
   updateAllDataAuction: () => void;
   updateDetailAuction: (idAuction: string) => void;
+  updateNotifBidding: (publicKey: string) => void;
+  updateNotifAuction: (publicKey: string) => void;
   pullAllSiteData: () => void;
   pullAllMetadata: () => void;
   isBidPlaced: boolean;

@@ -401,14 +401,19 @@ export const InnerBillingView = ({
   mint: MintInfo;
 }) => {
   const id = auctionView.thumbnail.metadata.pubkey;
+
   const art = useArt(id);
   const balance = useUserBalance(auctionView.auction.info.tokenMint);
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [escrowBalance, setEscrowBalance] = useState<number | undefined>();
   const [escrowBalanceRefreshCounter, setEscrowBalanceRefreshCounter] =
     useState(0);
-  const { whitelistedCreatorsByCreator, pullBillingPage, pullAuctionPage } =
-    useMeta();
+  const {
+    whitelistedCreatorsByCreator,
+    pullBillingPage,
+    pullAuctionPage,
+    updateNotifAuction,
+  } = useMeta();
 
   const { ref, data } = useExtendedArt(id);
 
@@ -441,6 +446,7 @@ export const InnerBillingView = ({
   } = useBillingInfo({
     auctionView,
   });
+
   const totalUnsettled = fromLamports(
     bidsToClaim.reduce(
       (acc, el) => (acc += el.metadata.info.lastBid.toNumber()),
@@ -450,8 +456,10 @@ export const InnerBillingView = ({
   );
 
   const isLoading =
-    (totalUnsettled === 0 || escrowBalance === undefined) &&
+    totalUnsettled === 0 &&
+    escrowBalance === undefined &&
     bidsToClaim.length === 0;
+
   async function actionSettle() {
     {
       setConfirmTrigger(true);
@@ -515,10 +523,10 @@ export const InnerBillingView = ({
           supabaseUpdateIsRedeemAuctionStatus(auctionView?.auction.pubkey);
         }
       } catch (e) {
-        console.log('🚀 ~ file: billing.tsx ~ line 516 ~ actionSettle ~ e', e);
         setConfirmTrigger(false);
         return false;
       }
+      updateNotifAuction(auctionView.auction.pubkey || '');
       setEscrowBalanceRefreshCounter(ctr => ctr + 1);
       await pullBillingPage(id);
       setConfirmTrigger(false);

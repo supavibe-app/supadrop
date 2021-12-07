@@ -77,12 +77,12 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
                     </div>
 
                     {/* case 3.1: on sale - auction ended and no bid */}
-                    {isEnded(state) && (
+                    {/* {isEnded(state) && (
                       <div>
                         <div className={Label}>ending in</div>
                         <div className={StatusValue}>ended</div>
                       </div>
-                    )}
+                    )} */}
                   </>
                 )}
 

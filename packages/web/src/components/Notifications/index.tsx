@@ -16,6 +16,7 @@ import {
   WalletSigner,
   WRAPPED_SOL_MINT,
   supabase,
+  supabaseUpdateIsRedeemAuctionStatus,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -52,7 +53,6 @@ import {
 } from '../../styles';
 import Coffee from '../../assets/icons/coffee';
 import FeatherIcon from 'feather-icons-react';
-import { getEndedOnSale, getInfoEndedBidding } from '../../database/activityData';
 
 interface NotificationCard {
   id: string;
@@ -209,7 +209,9 @@ export function useSettlementAuctions({
 }) {
   const { accountByMint } = useUserAccounts();
   const walletPubkey = wallet?.publicKey?.toBase58();
-  const { bidderPotsByAuctionAndBidder, pullAuctionPage } = useMeta();
+  const history = useHistory();
+  const { bidderPotsByAuctionAndBidder, pullAuctionPage, updateNotifAuction } =
+    useMeta();
   const auctionsNeedingSettling = [
     ...useAuctions(AuctionViewState.Ended),
     ...useAuctions(AuctionViewState.BuyNow),
@@ -300,73 +302,10 @@ export function useSettlementAuctions({
         title: 'You have an ended auction that needs settling!',
         textButton: 'settle',
         notifiedAt: auctionView.auction.info.endedAt?.toNumber(),
-        description: (
-          <span>
-            One of your auctions ended and it has monies that can be claimed.
-            For more detail,{' '}
-            <Link to={`/auction/${auctionKey}/settle`}>click here.</Link>
-          </span>
-        ),
+        description: '',
         action: async () => {
           try {
-            // pull missing data and complete the auction view to settle.
-            const {
-              auctionDataExtended,
-              auctionManagersByAuction,
-              safetyDepositBoxesByVaultAndIndex,
-              metadataByMint,
-              bidderMetadataByAuctionAndBidder:
-                updatedBidderMetadataByAuctionAndBidder,
-              bidderPotsByAuctionAndBidder,
-              bidRedemptionV2sByAuctionManagerAndWinningIndex,
-              masterEditions,
-              vaults,
-              safetyDepositConfigsByAuctionManagerAndIndex,
-              masterEditionsByPrintingMint,
-              masterEditionsByOneTimeAuthMint,
-              metadataByMasterEdition,
-              metadataByAuction,
-            } = await pullAuctionPage(auctionView.auction.pubkey);
-            const completeAuctionView = processAccountsIntoAuctionView(
-              auctionView.auction.pubkey,
-              auctionView.auction,
-              auctionDataExtended,
-              auctionManagersByAuction,
-              safetyDepositBoxesByVaultAndIndex,
-              metadataByMint,
-              updatedBidderMetadataByAuctionAndBidder,
-              bidderPotsByAuctionAndBidder,
-              bidRedemptionV2sByAuctionManagerAndWinningIndex,
-              masterEditions,
-              vaults,
-              safetyDepositConfigsByAuctionManagerAndIndex,
-              masterEditionsByPrintingMint,
-              masterEditionsByOneTimeAuthMint,
-              metadataByMasterEdition,
-              {},
-              metadataByAuction,
-              undefined,
-            );
-            if (completeAuctionView) {
-              await settle(
-                connection,
-                wallet,
-                completeAuctionView,
-                // Just claim all bidder pots
-                bidsToClaim,
-                myPayingAccount?.pubkey,
-                accountByMint,
-              );
-              // accept funds (open WSOL & close WSOL) only if Auction currency SOL
-              if (
-                wallet.publicKey &&
-                auctionView.auction.info.tokenMint ==
-                  WRAPPED_SOL_MINT.toBase58()
-              ) {
-                const ata = await getPersonalEscrowAta(wallet);
-                if (ata) await closePersonalEscrow(connection, wallet, ata);
-              }
-            }
+            history.push(`/auction/${auctionView.auction.pubkey}/settle`);
           } catch (e) {
             console.error(e);
             return false;
@@ -393,6 +332,8 @@ export function Notifications() {
   // const liveAuctions = useAuctions(
   //   AuctionViewState.Live,
   // );
+  const { notifAuction, notifBidding } = useMeta();
+
   const history = useHistory();
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
@@ -405,9 +346,7 @@ export function Notifications() {
 
   useCollapseWrappedSol({ connection, wallet, notifications });
 
-  useSettlementAuctions({ connection, wallet, notifications });
-  const notifBidding = getInfoEndedBidding(walletPubkey).data;
-  const notifAuction = getEndedOnSale(walletPubkey).data;
+  // useSettlementAuctions({ connection, wallet, notifications });
 
   notifBidding.forEach(bidding => {
     let isWinner = bidding?.id_auction?.winner === walletPubkey;
@@ -439,21 +378,36 @@ export function Notifications() {
   });
 
   notifAuction.forEach(auction => {
-    let title = 'you have ended auction that needs to be reclaim';
-    let textButton = 'reclaim';
     const highestBid = auction?.highest_bid;
     const haveWinner = highestBid > 0;
     // reclaim nft
     if (!haveWinner && !auction.type_auction) {
       notifications.push({
-        title,
-        textButton,
+        title: 'you have ended auction that needs to be reclaim',
+        textButton: 'reclaim',
         id: auction.id,
         notifiedAt: Number(auction.end_auction),
         description: '',
         action: async () => {
           try {
             history.push(`/auction/${auction.id}`);
+          } catch (e) {
+            console.error(e);
+            return false;
+          }
+          return true;
+        },
+      });
+    } else {
+      notifications.push({
+        title: 'you have ended auction that needs to be settled',
+        textButton: 'settle',
+        id: auction.id,
+        notifiedAt: Number(auction.end_auction),
+        description: '',
+        action: async () => {
+          try {
+            history.push(`/auction/${auction.id}/settle`);
           } catch (e) {
             console.error(e);
             return false;

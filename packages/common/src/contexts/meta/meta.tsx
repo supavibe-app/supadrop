@@ -21,6 +21,7 @@ import {
 import { StringPublicKey, TokenAccount, useUserAccounts } from '../..';
 import { supabase } from '../../supabaseClient';
 import moment from 'moment';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
@@ -30,6 +31,8 @@ const MetaContext = React.createContext<MetaContextState>({
   isBidPlaced: false,
   liveDataAuctions: [],
   endedAuctions: [],
+  notifBidding: [],
+  notifAuction: [],
   allDataAuctions: {},
   dataCollection: new Collection('', '', '', 0, 0, 0, 0, []),
   // @ts-ignore
@@ -38,11 +41,14 @@ const MetaContext = React.createContext<MetaContextState>({
   updateLiveDataAuction: function () {},
   updateAllDataAuction: function () {},
   updateDetailAuction: function () {},
+  updateNotifBidding: function () {},
+  updateNotifAuction: function () {},
 });
 
 export function MetaProvider({ children = null as any }) {
   const connection = useConnection();
   const { isReady, storeAddress } = useStore();
+  const { publicKey } = useWallet();
   const [dataCollection, setDataCollection] = useState<Collection>(
     new Collection('', '', '', 0, 0, 0, 0, []),
   );
@@ -50,6 +56,8 @@ export function MetaProvider({ children = null as any }) {
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
   const [liveDataAuctions, setLiveDataAuction] = useState<ItemAuction[]>([]);
   const [endedAuctions, setEndedAuctions] = useState<ItemAuction[]>([]);
+  const [notifBidding, setNotifBidding] = useState<any[]>([]);
+  const [notifAuction, setNotifAuction] = useState<any[]>([]);
   const [allDataAuctions, setAllDataAuction] = useState<{
     [key: string]: ItemAuction;
   }>({});
@@ -226,7 +234,8 @@ export function MetaProvider({ children = null as any }) {
     `,
       )
       .lt('end_auction', moment().unix())
-      .order('end_auction', { ascending: true })
+      .order('end_auction', { ascending: false })
+      .limit(10)
       .then(dataAuction => {
         let listData: ItemAuction[] = [];
         if (dataAuction.body != null && dataAuction.body.length > 0) {
@@ -260,6 +269,58 @@ export function MetaProvider({ children = null as any }) {
           setEndedAuctions(listData);
         }
       });
+  }
+  async function getNotifBidding(publicKey: string) {
+    supabase
+      .from('action_bidding')
+      .select(
+        `*,
+      id_auction (*)
+  `,
+      )
+      .eq('wallet_address', publicKey)
+      .eq('is_redeem', false)
+      .then(action => {
+        if (action.body != null) {
+          if (action.body.length) {
+            const data = action.body.filter(
+              val => val.id_auction.end_auction < moment().unix(),
+            );
+            setNotifBidding(data);
+          }
+        }
+      });
+  }
+  async function getNotifAuction(publicKey: string) {
+    supabase
+      .from('auction_status')
+      .select()
+      .eq('owner', publicKey)
+      .eq('is_redeem', false)
+      .lte('end_auction', moment().unix())
+      .then(data => {
+        if (data.body) {
+          setNotifAuction(data.body);
+        }
+      });
+  }
+  async function updateNotifBidding(id: string) {
+    const data: any[] = [];
+    notifBidding.forEach(v => {
+      if (v.id !== id) {
+        data.push(v);
+      }
+    });
+    setNotifBidding(data);
+  }
+  async function updateNotifAuction(id: string) {
+    const data: any[] = [];
+    notifAuction.forEach(v => {
+      if (v.id !== id) {
+        data.push(v);
+      }
+    });
+    setNotifAuction(data);
   }
   async function updateDetailAuction(idAuction: string) {
     supabase
@@ -412,6 +473,7 @@ export function MetaProvider({ children = null as any }) {
       updateLiveDataAuction(),
       updateAllDataAuction(),
       updateEndedAuction(),
+
       getDataCollection(),
     ]).finally(() => {
       setIsLoadingDatabase(false);
@@ -555,6 +617,13 @@ export function MetaProvider({ children = null as any }) {
     return subscribeAccountsChange(connection, () => state, setState);
   }, [connection, setState, isLoadingMetaplex, state]);
 
+  useEffect(() => {
+    if (publicKey?.toBase58()) {
+      getNotifAuction(publicKey?.toBase58());
+      getNotifBidding(publicKey?.toBase58());
+    }
+  }, [publicKey?.toBase58()]);
+
   // TODO: fetch names dynamically
   // TODO: get names for creators
   // useEffect(() => {
@@ -598,10 +667,14 @@ export function MetaProvider({ children = null as any }) {
         endingTime,
         liveDataAuctions,
         endedAuctions,
+        notifBidding,
+        notifAuction,
         allDataAuctions,
         updateLiveDataAuction,
         updateAllDataAuction,
         updateDetailAuction,
+        updateNotifAuction,
+        updateNotifBidding,
         isBidPlaced,
         setBidPlaced,
       }}

@@ -76,7 +76,16 @@ const AuctionListView = () => {
       };
 
       return (
-        <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
+        <Col
+          key={auction.id}
+          span={24}
+          xxl={8}
+          xl={8}
+          lg={8}
+          md={12}
+          sm={24}
+          xs={24}
+        >
           <Link to={`/auction/${auction.id}`}>
             <AuctionRenderCard
               auctionView={auction}

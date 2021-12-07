@@ -102,6 +102,8 @@ const BidDetails = ({
     pullAuctionPage,
     setBidPlaced,
     updateDetailAuction,
+    updateNotifAuction,
+    updateNotifBidding,
   } = useMeta();
   const { id } = useParams<{ id: string }>();
   const ownedMetadata = useUserArts();
@@ -241,11 +243,15 @@ const BidDetails = ({
         );
 
         if (auction?.auctionManager.authority === publicKey?.toBase58()) {
-          supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+          await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+          updateNotifAuction(auction?.auction.pubkey || '');
         } else {
-          supabaseUpdateIsRedeem(
+          await supabaseUpdateIsRedeem(
             auctionView.auction.pubkey,
             publicKey?.toBase58(),
+          );
+          updateNotifBidding(
+            `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
           );
           setShowCongratulations(true);
           supabaseUpdateNFTHolder(
@@ -270,11 +276,15 @@ const BidDetails = ({
           prizeTrackingTickets,
         );
         if (auction?.auctionManager.authority === publicKey?.toBase58()) {
-          supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+          await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+          updateNotifAuction(auction?.auction.pubkey || '');
         } else {
-          supabaseUpdateIsRedeem(
+          await supabaseUpdateIsRedeem(
             auctionView.auction.pubkey,
             publicKey?.toBase58(),
+          );
+          updateNotifBidding(
+            `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
           );
         }
         setIsRedeem(true);
@@ -282,6 +292,7 @@ const BidDetails = ({
     } catch (e) {
       console.error(e);
     }
+
     setConfirmTrigger(false);
   };
 
@@ -301,6 +312,7 @@ const BidDetails = ({
       }).then();
       supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
+      updateNotifBidding(`${auction?.auction.pubkey}_${publicKey?.toBase58()}`);
       await update();
       setConfirmTrigger(false);
       setShowCongratulations(true);
@@ -416,6 +428,9 @@ const BidDetails = ({
           auction?.auction.pubkey,
           wallet.publicKey?.toBase58(),
         );
+        updateNotifBidding(
+          `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
+        );
         supabaseUpdateNFTHolder(
           auctionView.thumbnail.metadata.pubkey,
           wallet.publicKey?.toBase58(),
@@ -429,6 +444,7 @@ const BidDetails = ({
     } catch (e) {
       console.error(e);
     }
+
     setConfirmTrigger(false);
   };
   const unlistConfirmation = e => {
