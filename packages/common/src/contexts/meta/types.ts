@@ -86,7 +86,8 @@ export interface MetaContextState extends MetaState {
   isLoadingDatabase: boolean;
   dataCollection: Collection;
   endingTime: number;
-  liveDataAuctions: { [key: string]: ItemAuction };
+  liveDataAuctions: ItemAuction[];
+  endedAuctions: ItemAuction[];
   allDataAuctions: { [key: string]: ItemAuction };
   update: (
     auctionAddress?: any,

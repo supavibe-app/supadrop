@@ -83,16 +83,16 @@ export class NFTDataUpload {
   thumbnailLink: string;
   constructor(
     idNft: string,
-  mediaLink: string,
-  name: string,
-  description: string,
-  attribute: Attribute[] | undefined,
-  sellerFeeBase: number,
-  arweaveLink: string,
-  mintKey: string,
-  payerPublicKey: string,
-  category: any,
-  thumbnailLink: string,
+    mediaLink: string,
+    name: string,
+    description: string,
+    attribute: Attribute[] | undefined,
+    sellerFeeBase: number,
+    arweaveLink: string,
+    mintKey: string,
+    payerPublicKey: string,
+    category: any,
+    thumbnailLink: string,
   ) {
     this.idNft = idNft;
     this.mediaLink = mediaLink;

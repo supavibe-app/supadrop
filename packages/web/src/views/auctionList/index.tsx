@@ -18,7 +18,7 @@ import {
 import { TwitterURL } from '../../constants';
 import { getUsernameByPublicKeys } from '../../database/userData';
 import countDown from '../../helpers/countdown';
-import { CountdownState } from '@oyster/common';
+import { CountdownState, ItemAuction } from '@oyster/common';
 
 const { TabPane } = Tabs;
 
@@ -29,10 +29,12 @@ const AuctionListView = () => {
     isLoadingMetaplex,
     isLoadingDatabase,
     liveDataAuctions,
+    endedAuctions,
     allDataAuctions,
     endingTime,
     dataCollection,
   } = useMeta();
+
   const now = moment().unix();
 
   const [activeKey, setActiveKey] = useState(
@@ -55,34 +57,30 @@ const AuctionListView = () => {
     else setActiveKey('2');
   }, [liveDataAuctions]);
 
-  const liveAuctions = Object.entries(liveDataAuctions).filter(
-    ([key, data]) => data.endAt > now,
-  );
-
-  const endAuctions = Object.entries(allDataAuctions)
-    .filter(([key, data]) => data.endAt < now && !data.isInstantSale)
-    .reverse();
-
-  const auctionList = list => {
-    if (isLoadingMetaplex && isLoadingDatabase)
+  const auctionList = (list: ItemAuction[]) => {
+    if (isLoadingDatabase)
       return [...Array(8)].map((_, idx) => (
         <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
           <CardLoader key={idx} />
         </Col>
       ));
 
-    const ownerAddress = list.map(([id, m]) => m.owner);
+    const ownerAddress = list.map((auction: ItemAuction) => auction.owner);
+
     const { data = {} } = getUsernameByPublicKeys(ownerAddress);
 
-    return list.map(([id, m], idx) => {
-      const defaultOwnerData = { wallet_address: m.owner, img_profile: null };
+    return list.map((auction: ItemAuction, idx) => {
+      const defaultOwnerData = {
+        wallet_address: auction.owner,
+        img_profile: null,
+      };
 
       return (
         <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
-          <Link to={`/auction/${m.id}`}>
+          <Link to={`/auction/${auction.id}`}>
             <AuctionRenderCard
-              auctionView={m}
-              owner={data[m.owner] || defaultOwnerData}
+              auctionView={auction}
+              owner={data[auction.owner] || defaultOwnerData}
             />
           </Link>
         </Col>
@@ -165,8 +163,8 @@ const AuctionListView = () => {
               </div>
             }
           >
-            <Row gutter={[36, 36]}>{auctionList(liveAuctions)}</Row>
-            {!Boolean(liveAuctions.length) &&
+            <Row gutter={[36, 36]}>{auctionList(liveDataAuctions)}</Row>
+            {!Boolean(liveDataAuctions.length) &&
               !isLoadingMetaplex &&
               emptyAuction}
           </TabPane>
@@ -175,8 +173,10 @@ const AuctionListView = () => {
             key="2"
             tab={<div className={TitleWrapper}>ended auctions</div>}
           >
-            <Row gutter={[36, 36]}>{auctionList(endAuctions)}</Row>
-            {!Boolean(endAuctions.length) && !isLoadingMetaplex && emptyAuction}
+            <Row gutter={[36, 36]}>{auctionList(endedAuctions)}</Row>
+            {!Boolean(endedAuctions.length) &&
+              !isLoadingMetaplex &&
+              emptyAuction}
           </TabPane>
         </Tabs>
       </Col>
