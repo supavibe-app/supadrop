@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar, Button, Col, Row } from 'antd';
+import { Button, Col, Row } from 'antd';
 import {
   BidderMetadata,
   Identicon,
@@ -20,6 +20,7 @@ import {
 import countDown from '../../../helpers/countdown';
 
 import { Art } from '../../../types';
+import ProfileAvatar from '../../ProfileAvatar';
 
 const ArtDetails = ({
   auction,
@@ -68,23 +69,13 @@ const ArtDetails = ({
                 if (creator.address) {
                   return (
                     <div className={UserThumbnail} key={creator.address}>
-                      <Avatar
-                        src={
-                          users[creator.address]?.img_profile || (
-                            <Identicon
-                              address={creator.address}
-                              style={{ width: 40 }}
-                            />
-                          )
-                        }
+                      <ProfileAvatar
+                        imgProfile={users[creator.address]?.profile}
+                        key={creator.address}
+                        walletAddress={creator.address}
+                        username={users[creator.address]?.username}
                         size={40}
                       />
-
-                      <span>
-                        {users[creator.address]?.username
-                          ? `@${users[creator.address].username}`
-                          : shortenAddress(creator.address)}
-                      </span>
                     </div>
                   );
                 }
@@ -101,43 +92,24 @@ const ArtDetails = ({
               <div className={UserThumbnail}>
                 {/* auction still live */}
                 {(!ended || !highestBid) && (
-                  <>
-                    <Avatar
-                      src={
-                        users[owner]?.img_profile || (
-                          <Identicon address={owner} style={{ width: 40 }} />
-                        )
-                      }
-                      size={40}
-                    />
-                    <span>
-                      {users[owner]?.username
-                        ? `@${users[owner].username}`
-                        : shortenAddress(owner)}
-                    </span>
-                  </>
+                  <ProfileAvatar
+                    imgProfile={users[owner]?.img_profile}
+                    walletAddress={owner}
+                    username={users[owner]?.username}
+                    size={40}
+                  />
                 )}
 
                 {/* auction ended and have winner */}
                 {ended && highestBid && (
-                  <>
-                    <Avatar
-                      src={
-                        users[highestBid?.info.bidderPubkey]?.img_profile || (
-                          <Identicon
-                            address={highestBid?.info.bidderPubkey}
-                            style={{ width: 40 }}
-                          />
-                        )
-                      }
-                      size={40}
-                    />
-                    <span>
-                      {users[highestBid?.info.bidderPubkey]?.username
-                        ? `@${users[highestBid?.info.bidderPubkey].username}`
-                        : shortenAddress(highestBid?.info.bidderPubkey)}
-                    </span>
-                  </>
+                  <ProfileAvatar
+                    imgProfile={
+                      users[highestBid?.info.bidderPubkey]?.img_profile
+                    }
+                    walletAddress={highestBid?.info.bidderPubkey}
+                    username={users[highestBid?.info.bidderPubkey]?.username}
+                    size={40}
+                  />
                 )}
               </div>
             </div>

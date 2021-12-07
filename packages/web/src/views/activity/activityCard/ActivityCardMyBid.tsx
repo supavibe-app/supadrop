@@ -2,7 +2,7 @@ import { CountdownState, Identicon, shortenAddress } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useEffect, useState } from 'react';
 import countDown from '../../../helpers/countdown';
-import { Avatar, Col, Row } from 'antd';
+import { Col, Row } from 'antd';
 import {
   ActivityCardStyle,
   ButtonWrapper,
@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import { ArtContent, ArtContent2 } from '../../../components/ArtContent';
 import isEnded from '../../../components/Home/helpers/isEnded';
 import ActionButton from '../../../components/ActionButton';
+import ProfileAvatar from '../../../components/ProfileAvatar';
 
 export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
   const [state, setState] = useState<CountdownState>();
@@ -61,22 +62,11 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                 {auctionView.id_auction.id_nft.name}
               </div>
               <div className={UserContainer}>
-                <Avatar
-                  src={
-                    owner.img_profile || (
-                      <Identicon
-                        address={owner.wallet_address}
-                        style={{ width: 32 }}
-                      />
-                    )
-                  }
-                  size={32}
+                <ProfileAvatar
+                  imgProfile={owner.img_profile}
+                  username={owner.username}
+                  walletAddress={owner.wallet_address}
                 />
-                <div>
-                  {owner.username
-                    ? owner.username
-                    : shortenAddress(owner.wallet_address)}
-                </div>
               </div>
 
               <div className={NFTStatus}>
@@ -131,22 +121,11 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>winning bid</div>
                         <div className={UserContainer}>
-                          <Avatar
-                            src={
-                              winner.img_profile || (
-                                <Identicon
-                                  address={winner?.wallet_address}
-                                  style={{ width: 32 }}
-                                />
-                              )
-                            }
-                            size={32}
+                          <ProfileAvatar
+                            imgProfile={winner.img_profile}
+                            username={winner.username}
+                            walletAddress={winner.wallet_address}
                           />
-                          <span>
-                            {winner.username
-                              ? winner.username
-                              : shortenAddress(winner?.wallet_address)}
-                          </span>
                         </div>
                       </div>
                     )}

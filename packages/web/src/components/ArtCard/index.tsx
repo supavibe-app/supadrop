@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Avatar, Card, CardProps, Button, Badge, Row, Col, Modal } from 'antd';
+import { Card, CardProps, Button, Badge, Row, Col, Modal } from 'antd';
 import {
   supabaseUpdateStatusInstantSale,
   useConnection,
@@ -37,6 +37,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { endSale } from '../AuctionCard/utils/endSale';
 import moment from 'moment';
 import countDown from '../../helpers/countdown';
+import ProfileAvatar from '../ProfileAvatar';
 
 const { Meta } = Card;
 
@@ -84,6 +85,13 @@ export const ArtCard = (props: ArtCardProps) => {
   const art = useArt(pubkey);
 
   const singleUser = useUserSingleArt(pubkey || '');
+  console.log(
+    '🚀 ~ file: index.tsx ~ line 87 ~ ArtCard ~ singleUser',
+    name,
+    singleUser,
+    art.title,
+    pubkey,
+  );
 
   creators = art?.creators || creators || [];
   const [cardWidth, setCardWidth] = useState(0);
@@ -159,24 +167,12 @@ export const ArtCard = (props: ArtCardProps) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar
-                src={
-                  nftData?.creator?.img_profile || (
-                    <Identicon
-                      address={nftData?.creator?.wallet_address}
-                      style={{ width: 32 }}
-                    />
-                  )
-                }
-                size={32}
-                className={AvatarStyle}
+              <ProfileAvatar
+                imgProfile={nftData?.creator?.img_profile}
+                username={nftData?.creator?.username}
+                walletAddress={nftData?.creator?.wallet_address}
               />
-              <span>
-                {nftData?.creator?.username ||
-                  shortenAddress(nftData?.creator?.wallet_address)}
-              </span>
             </div>
-
             <Row>
               {/* Left Section */}
               {!isOnSale && everSold && (

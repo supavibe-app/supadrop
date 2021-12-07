@@ -20,6 +20,7 @@ import {
   YellowGlowColor,
 } from '../../../styles';
 import { Activity, ActivityHeader, IsMyBid } from './style';
+import ProfileAvatar from '../../ProfileAvatar';
 
 const TransactionHistory = ({
   auction,
@@ -65,21 +66,12 @@ const TransactionHistory = ({
           )}
           <Row className={Activity} justify="space-between" align="middle">
             <Col className={uFlexAlignItemsCenter} span={12}>
-              <div>
-                <Avatar
-                  src={
-                    users[bid.info.bidderPubkey]?.img_profile
-                    || <Identicon address={bid.info.bidderPubkey} style={{ width: 24 }} />
-                  }
-                  size={24}
-                />
-              </div>
-
-              <div>
-                {users[bid.info.bidderPubkey]?.username
-                  ? users[bid.info.bidderPubkey].username
-                  : shortenAddress(bid.info.bidderPubkey)}
-              </div>
+              <ProfileAvatar
+                imgProfile={users[bid.info.bidderPubkey]?.img_profile}
+                username={users[bid.info.bidderPubkey]?.username}
+                walletAddress={bid.info.bidderPubkey}
+                size={24}
+              />
             </Col>
 
             <Col className={uBoldFont} span={12}>

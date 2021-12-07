@@ -2,7 +2,7 @@ import { CountdownState, Identicon, shortenAddress } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useEffect, useState } from 'react';
 import countDown from '../../../helpers/countdown';
-import { Avatar, Col, Row } from 'antd';
+import { Col, Row } from 'antd';
 import {
   ActivityCardStyle,
   ButtonWrapper,
@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import { ArtContent, ArtContent2 } from '../../../components/ArtContent';
 import isEnded from '../../../components/Home/helpers/isEnded';
 import ActionButton from '../../../components/ActionButton';
+import ProfileAvatar from '../../../components/ProfileAvatar';
 export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
   const [state, setState] = useState<CountdownState>();
 
@@ -57,22 +58,11 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
             <Col flex={3}>
               <div className={NFTName}>{auctionView.id_nft.name}</div>
               <div className={UserContainer}>
-                <Avatar
-                  src={
-                    owner.img_profile || (
-                      <Identicon
-                        address={owner.wallet_address}
-                        style={{ width: 32 }}
-                      />
-                    )
-                  }
-                  size={32}
+                <ProfileAvatar
+                  imgProfile={owner.img_profile}
+                  walletAddress={owner.wallet_address}
+                  username={owner.username}
                 />
-                <div>
-                  {owner.username
-                    ? owner.username
-                    : shortenAddress(owner.wallet_address)}
-                </div>
               </div>
 
               <div className={NFTStatus}>
@@ -110,22 +100,11 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <Avatar
-                            src={
-                              winner.img_profile || (
-                                <Identicon
-                                  address={owner.wallet_address}
-                                  style={{ width: 32 }}
-                                />
-                              )
-                            }
-                            size={32}
-                          />
-                          <span>
-                            {winner.username
-                              ? winner.username
-                              : shortenAddress(winner.wallet_address)}
-                          </span>{' '}
+                          <ProfileAvatar
+                            imgProfile={winner.img_profile}
+                            walletAddress={winner.wallet_address}
+                            username={winner.username}
+                          />{' '}
                         </div>
                       </div>
                     )}
@@ -134,22 +113,11 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <Avatar
-                            src={
-                              winner.img_profile || (
-                                <Identicon
-                                  address={owner.wallet_address}
-                                  style={{ width: 32 }}
-                                />
-                              )
-                            }
-                            size={32}
-                          />
-                          <span>
-                            {winner.username
-                              ? winner.username
-                              : shortenAddress(winner.wallet_address)}
-                          </span>{' '}
+                          <ProfileAvatar
+                            imgProfile={winner.img_profile}
+                            walletAddress={winner.wallet_address}
+                            username={winner.username}
+                          />{' '}
                         </div>
                       </div>
                     )}
@@ -179,13 +147,8 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
             <div className={Label}>ending in</div>
             <div className={StatusValue}>
               {state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
-              {state.minutes < 10
-                ? '0' + state?.minutes
-                : state?.minutes}{' '}
-              :{' '}
-              {state.seconds < 10
-                ? '0' + state?.seconds
-                : state?.seconds}
+              {state.minutes < 10 ? '0' + state?.minutes : state?.minutes} :{' '}
+              {state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
             </div>
           </div>
         )}

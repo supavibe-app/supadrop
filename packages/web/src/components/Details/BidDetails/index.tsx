@@ -229,7 +229,7 @@ const BidDetails = ({
         const wallet = walletContext;
         const auctionView = auction!!;
 
-        await sendRedeemBid(
+        const redeemBid = await sendRedeemBid(
           connection,
           wallet,
           myPayingAccount.pubkey,
@@ -238,22 +238,23 @@ const BidDetails = ({
           prizeTrackingTickets,
           bidRedemptions,
           bids,
-        ).then(data => {
-          if (auction?.auctionManager.authority === publicKey?.toBase58()) {
-            supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
-          } else {
-            supabaseUpdateIsRedeem(
-              auctionView.auction.pubkey,
-              publicKey?.toBase58(),
-            );
-            setShowCongratulations(true);
-            supabaseUpdateNFTHolder(
-              auctionView.thumbnail.metadata.pubkey,
-              wallet.publicKey?.toBase58(),
-              parseFloat(`${minimumBid}`),
-            );
-          }
-        });
+        );
+
+        if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+          supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+        } else {
+          supabaseUpdateIsRedeem(
+            auctionView.auction.pubkey,
+            publicKey?.toBase58(),
+          );
+          setShowCongratulations(true);
+          supabaseUpdateNFTHolder(
+            auctionView.thumbnail.metadata.pubkey,
+            wallet.publicKey?.toBase58(),
+            parseFloat(`${minimumBid}`),
+          );
+        }
+        await update();
       } else {
         const wallet = walletContext;
         const auctionView = auction!!;
@@ -300,6 +301,7 @@ const BidDetails = ({
       }).then();
       supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
+      await update();
       setConfirmTrigger(false);
       setShowCongratulations(true);
     } catch (e) {
@@ -374,63 +376,56 @@ const BidDetails = ({
         prizeTrackingTickets,
         bidRedemptions,
         bids,
-      ).then(async () => {
-        pullAuctionPage(auction?.auction.pubkey || '');
-        await update();
+      );
+      pullAuctionPage(auction?.auction.pubkey || '');
+      await update();
 
-        const items = auctionView.items;
-        let isAlreadyBought: boolean = false;
-        const isBidCanceled = !!auctionView.myBidderMetadata?.info.cancelled;
-        let canClaimPurchasedItem: boolean = false;
-        if (
-          auctionView.auction.info.bidState.type == BidStateType.EnglishAuction
-        ) {
-          console.log(
-            'RESULT HERE TRUE',
-            auctionView.auction.info.bidState.type,
-          );
-          for (const item of items) {
-            for (const subItem of item) {
-              const bidRedeemed =
-                auctionView.myBidRedemption?.info.getBidRedeemed(
-                  subItem.safetyDeposit.info.order,
-                );
-              console.log('RESULT HERE ITEM', bidRedeemed); // TODO disini masih null
-              isAlreadyBought = bidRedeemed ? bidRedeemed : false;
-              if (isAlreadyBought) break;
-            }
+      const items = auctionView.items;
+      let isAlreadyBought: boolean = false;
+      const isBidCanceled = !!auctionView.myBidderMetadata?.info.cancelled;
+      let canClaimPurchasedItem: boolean = false;
+      if (
+        auctionView.auction.info.bidState.type == BidStateType.EnglishAuction
+      ) {
+        console.log('RESULT HERE TRUE', auctionView.auction.info.bidState.type);
+        for (const item of items) {
+          for (const subItem of item) {
+            const bidRedeemed =
+              auctionView.myBidRedemption?.info.getBidRedeemed(
+                subItem.safetyDeposit.info.order,
+              );
+            console.log('RESULT HERE ITEM', bidRedeemed); // TODO disini masih null
+            isAlreadyBought = bidRedeemed ? bidRedeemed : false;
+            if (isAlreadyBought) break;
           }
-          canClaimPurchasedItem =
-            !!(auctionView.myBidderPot && !isBidCanceled) && !isAlreadyBought;
-        } else {
-          console.log(
-            'RESULT HERE ELSE',
-            auctionView.auction.info.bidState.type,
-          );
-          isAlreadyBought = !!(auctionView.myBidderPot && isBidCanceled);
-          canClaimPurchasedItem = !!(auctionView.myBidderPot && !isBidCanceled);
         }
+        canClaimPurchasedItem =
+          !!(auctionView.myBidderPot && !isBidCanceled) && !isAlreadyBought;
+      } else {
+        console.log('RESULT HERE ELSE', auctionView.auction.info.bidState.type);
+        isAlreadyBought = !!(auctionView.myBidderPot && isBidCanceled);
+        canClaimPurchasedItem = !!(auctionView.myBidderPot && !isBidCanceled);
+      }
 
-        console.log('RESULT HERE REDEEM 0', isAlreadyBought);
-        console.log('RESULT HERE REDEEM 1', canClaimPurchasedItem);
+      console.log('RESULT HERE REDEEM 0', isAlreadyBought);
+      console.log('RESULT HERE REDEEM 1', canClaimPurchasedItem);
 
-        if (isAlreadyBought) {
-          setShowCongratulations(true);
-          supabaseUpdateIsRedeem(
-            auction?.auction.pubkey,
-            wallet.publicKey?.toBase58(),
-          );
-          supabaseUpdateNFTHolder(
-            auctionView.thumbnail.metadata.pubkey,
-            wallet.publicKey?.toBase58(),
-            instantSalePrice!!.toNumber() / Math.pow(10, 9),
-          );
-          supabaseUpdateWinnerAuction(
-            auction?.auction.pubkey,
-            walletContext.publicKey?.toBase58(),
-          );
-        }
-      });
+      if (isAlreadyBought) {
+        setShowCongratulations(true);
+        supabaseUpdateIsRedeem(
+          auction?.auction.pubkey,
+          wallet.publicKey?.toBase58(),
+        );
+        supabaseUpdateNFTHolder(
+          auctionView.thumbnail.metadata.pubkey,
+          wallet.publicKey?.toBase58(),
+          instantSalePrice!!.toNumber() / Math.pow(10, 9),
+        );
+        supabaseUpdateWinnerAuction(
+          auction?.auction.pubkey,
+          walletContext.publicKey?.toBase58(),
+        );
+      }
     } catch (e) {
       console.error(e);
     }
@@ -504,7 +499,12 @@ const BidDetails = ({
         <div className={art.title && highestBid ? PaddingBox : SmallPaddingBox}>
           {art.title && highestBid && (
             <div className={BidStatus}>
-              <div>
+              <Link
+                to={`/${
+                  users[bid.info.bidderPubkey]?.username ||
+                  bid.info.bidderPubkey
+                }`}
+              >
                 <Avatar
                   src={
                     users[bid.info.bidderPubkey]?.img_profile || (
@@ -516,7 +516,7 @@ const BidDetails = ({
                   }
                   size={40}
                 />
-              </div>
+              </Link>
 
               <div>
                 <div>
@@ -561,7 +561,12 @@ const BidDetails = ({
         <div className={BidStatus}>
           {art.title && highestBid && (
             <>
-              <div>
+              <Link
+                to={`/${
+                  users[highestBid.info.bidderPubkey]?.username ||
+                  bid.info.bidderPubkey
+                }`}
+              >
                 <Avatar
                   src={
                     users[highestBid.info.bidderPubkey]?.img_profile || (
@@ -573,17 +578,24 @@ const BidDetails = ({
                   }
                   size={40}
                 />
-              </div>
+              </Link>
 
               <div>
                 {!isInstantSale && (
                   <div>
                     current bid by{' '}
-                    <span className={WhiteColor}>
-                      {users[highestBid.info.bidderPubkey]
-                        ? users[highestBid.info.bidderPubkey].username
-                        : shortenAddress(highestBid.info.bidderPubkey)}
-                    </span>
+                    <Link
+                      to={`/${
+                        users[highestBid.info.bidderPubkey]?.username ||
+                        bid.info.bidderPubkey
+                      }`}
+                    >
+                      <span className={WhiteColor}>
+                        {users[highestBid.info.bidderPubkey]
+                          ? users[highestBid.info.bidderPubkey].username
+                          : shortenAddress(highestBid.info.bidderPubkey)}
+                      </span>
+                    </Link>
                     <span className={NormalFont}>
                       ・
                       {moment

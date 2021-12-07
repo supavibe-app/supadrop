@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Avatar, Card, Col, CardProps, Row, Statistic } from 'antd';
+import { Card, Col, CardProps, Row, Statistic } from 'antd';
 import {
   formatTokenAmount,
   CountdownState,
@@ -28,6 +28,7 @@ import {
   UserWrapper,
 } from './style';
 import countDown from '../../helpers/countdown';
+import ProfileAvatar from '../ProfileAvatar';
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
@@ -110,23 +111,11 @@ export const AuctionRenderCard = (props: AuctionCard) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar
-                src={
-                  owner.img_profile || (
-                    <Identicon
-                      address={owner.wallet_address}
-                      style={{ width: 32 }}
-                    />
-                  )
-                }
-                size={32}
-                className={AvatarStyle}
+              <ProfileAvatar
+                imgProfile={owner.img_profile}
+                username={owner.username}
+                walletAddress={owner.wallet_address}
               />
-              <span>
-                {owner.username
-                  ? owner.username
-                  : shortenAddress(auctionView?.owner)}
-              </span>
             </div>
 
             <Row>
