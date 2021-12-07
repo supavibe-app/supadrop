@@ -35,6 +35,7 @@ import {
   getAssetCostToStore,
   LAMPORT_MULTIPLIER,
   supabaseDeleteNFT,
+  useMeta,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -56,6 +57,7 @@ const { Text } = Typography;
 export const ArtCreateView = () => {
   const connection = useConnection();
   const { env } = useConnectionConfig();
+  const { update } = useMeta();
   const wallet = useWallet();
   const [alertMessage, setAlertMessage] = useState<string>();
   const { width } = useWindowDimensions();
@@ -113,7 +115,7 @@ export const ArtCreateView = () => {
         setNFTcreateProgress,
         attributes.properties?.maxSupply,
       );
-
+      await update();
       if (_nft) setNft(_nft);
     } catch (e: any) {
       setAlertMessage(e.message);
@@ -392,7 +394,8 @@ const UploadStep = (props: {
 
             if (sizeKB < 25) {
               setCoverArtError(
-                `The file ${file.name} is too small. It is ${Math.round(10 * sizeKB) / 10
+                `The file ${file.name} is too small. It is ${
+                  Math.round(10 * sizeKB) / 10
                 }KB but should be at least 25KB.`,
               );
               return;
@@ -1239,8 +1242,9 @@ const Congrats = (props: {
   const newTweetURL = () => {
     const params = {
       text: "I've created a new NFT artwork on Metaplex Supadrop, check it out!",
-      url: `${window.location.origin
-        }/#/art/${props.nft?.metadataAccount.toString()}`,
+      url: `${
+        window.location.origin
+      }/#/art/${props.nft?.metadataAccount.toString()}`,
       hashtags: 'NFT,Crypto,Metaplex,Supadrop',
       // via: "Metaplex",
       related: 'Metaplex,Solana,Supadrop',
@@ -1251,15 +1255,14 @@ const Congrats = (props: {
 
   if (props.alert) {
     // TODO  - properly reset this components state on error
-    if (props.nft?.metadataAccount) 
-      supabaseDeleteNFT(props.nft?.metadataAccount.toString());  // Delete Data NFT FROM DB IF THERE'S AN ERROR
-    
-    
+    if (props.nft?.metadataAccount)
+      supabaseDeleteNFT(props.nft?.metadataAccount.toString()); // Delete Data NFT FROM DB IF THERE'S AN ERROR
+
     return (
       <>
         <div className="waiting-title">Sorry, there was an error!</div>
         <p>{props.alert}</p>
-        <Button onClick={_ => history.push('/create')}>
+        <Button onClick={() => window.location.reload()}>
           Back to Create NFT
         </Button>
       </>

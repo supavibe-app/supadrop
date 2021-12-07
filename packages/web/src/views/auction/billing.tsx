@@ -449,7 +449,9 @@ export const InnerBillingView = ({
     mint,
   );
 
-  const isLoading = totalUnsettled === 0 && bidsToClaim.length === 0;
+  const isLoading =
+    (totalUnsettled === 0 || escrowBalance === undefined) &&
+    bidsToClaim.length === 0;
   async function actionSettle() {
     {
       setConfirmTrigger(true);
