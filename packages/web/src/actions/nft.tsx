@@ -412,12 +412,12 @@ export const mintNFT = async (
       thumbnailLink || mediaLink,
     );
 
-    // const txid = await sendTransactionWithRetry(
-    //   connection,
-    //   wallet,
-    //   updateInstructions,
-    //   updateSigners,
-    // );
+    const txid = await sendTransactionWithRetry(
+      connection,
+      wallet,
+      updateInstructions,
+      updateSigners,
+    );
 
     notify({
       message: 'Art created on Solana',
