@@ -1,4 +1,9 @@
-import { CountdownState, Identicon, shortenAddress } from '@oyster/common';
+import {
+  CountdownState,
+  Identicon,
+  shortenAddress,
+  supabase,
+} from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useEffect, useState } from 'react';
 import countDown from '../../../helpers/countdown';
@@ -63,9 +68,9 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
               </div>
               <div className={UserContainer}>
                 <ProfileAvatar
-                  imgProfile={owner.img_profile}
-                  username={owner.username}
-                  walletAddress={owner.wallet_address}
+                  imgProfile={owner?.img_profile}
+                  username={owner?.username}
+                  walletAddress={owner?.wallet_address}
                 />
               </div>
 

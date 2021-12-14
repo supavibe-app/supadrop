@@ -81,10 +81,14 @@ const Profile = ({ userId }: { userId: string }) => {
   const [onEdit, setOnEdit] = useState(false);
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
+  const ownedMetadata = useUserArts();
 
   useEffect(() => {
     if (location.state === 'refresh') {
       refetch();
+    } else if (localStorage.getItem('reload') === 'true') {
+      localStorage.setItem('reload', 'false');
+      window.location.reload();
     }
   }, [location.key]);
 

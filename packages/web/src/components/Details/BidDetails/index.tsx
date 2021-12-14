@@ -68,6 +68,18 @@ import isEnded from '../../Home/helpers/isEnded';
 import { getAuctionIsRedeemData } from '../../../database/activityData';
 import { ConfirmModal } from '../../ArtCard/style';
 
+const DetailStatus = ({ status, username, time }) => {
+  return (
+    <div>
+      {`${status} `}
+      <Link to={`/${username}`}>
+        <span className={WhiteColor}>{username}</span>
+      </Link>
+      <span className={NormalFont}>・{time}</span>
+    </div>
+  );
+};
+
 const BidDetails = ({
   art,
   auctionDatabase,
@@ -104,6 +116,7 @@ const BidDetails = ({
     updateDetailAuction,
     updateNotifAuction,
     updateNotifBidding,
+    pullAllSiteData,
   } = useMeta();
   const { id } = useParams<{ id: string }>();
   const ownedMetadata = useUserArts();
@@ -122,13 +135,13 @@ const BidDetails = ({
   useEffect(() => {
     if (
       auction?.auction.info.auctionGap &&
-      highestBid?.info.lastBidTimestamp.toNumber() &&
+      highestBid?.info.lastBidTimestamp?.toNumber() &&
       endAt &&
       auctionDatabase?.id
     ) {
       let latestTime =
         auction?.auction.info.auctionGap?.toNumber() +
-        highestBid?.info.lastBidTimestamp.toNumber();
+        highestBid?.info.lastBidTimestamp?.toNumber();
       if (latestTime > endAt) {
         supabase
           .from('auction_status')
@@ -227,6 +240,7 @@ const BidDetails = ({
   const actionEndedAuction = async () => {
     setConfirmTrigger(true);
     try {
+
       if (eligibleForAnything) {
         const wallet = walletContext;
         const auctionView = auction!!;
@@ -241,6 +255,7 @@ const BidDetails = ({
           bidRedemptions,
           bids,
         );
+        localStorage.setItem('reload', 'true');
 
         if (auction?.auctionManager.authority === publicKey?.toBase58()) {
           await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
@@ -260,12 +275,11 @@ const BidDetails = ({
             parseFloat(`${minimumBid}`),
           );
         }
-        await update();
       } else {
         const wallet = walletContext;
         const auctionView = auction!!;
 
-        await sendCancelBid(
+        const cancelBid = await sendCancelBid(
           connection,
           wallet,
           myPayingAccount.pubkey,
@@ -289,7 +303,9 @@ const BidDetails = ({
         }
         setIsRedeem(true);
       }
+
     } catch (e) {
+
       console.error(e);
     }
 
@@ -311,14 +327,41 @@ const BidDetails = ({
         wallet,
       }).then();
       supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
-      supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
+      supabaseUpdateIsRedeemAuctionStatus(auctionView.auction.pubkey);
       updateNotifBidding(`${auction?.auction.pubkey}_${publicKey?.toBase58()}`);
-      await update();
       setConfirmTrigger(false);
       setShowCongratulations(true);
     } catch (e) {
       setConfirmTrigger(false);
       return;
+    }
+  };
+
+  const placeBid = async currentBidAmount => {
+    try {
+      setConfirmTrigger(true);
+      await sendPlaceBid(
+        connection,
+        walletContext,
+        publicKey?.toBase58(),
+        auction!!,
+        accountByMint,
+        currentBidAmount,
+      );
+      // user click approve
+      setShowPlaceBid(false);
+      setConfirmTrigger(false);
+      pullAuctionPage(auctionDatabase?.id || '');
+      setBidPlaced(true);
+      supabaseUpdateBid(
+        auction?.auction.pubkey,
+        publicKey?.toBase58(),
+        currentBidAmount,
+      );
+      // user click cancel
+    } catch (error) {
+      console.error(error);
+      setConfirmTrigger(false);
     }
   };
 
@@ -328,7 +371,7 @@ const BidDetails = ({
       auction?.auctionDataExtended?.info.instantSalePrice;
     const winningConfigType =
       auction?.participationItem?.winningConfigType ||
-      auction?.items[0][0].winningConfigType;
+      auction?.items[0][0]?.winningConfigType;
     const isAuctionItemMaster = [
       WinningConfigType.FullRightsTransfer,
       WinningConfigType.TokenOnlyTransfer,
@@ -359,7 +402,7 @@ const BidDetails = ({
         supabaseUpdateBid(
           auction?.auction.pubkey,
           wallet.publicKey?.toBase58(),
-          instantSalePrice.toNumber() / Math.pow(10, 9),
+          instantSalePrice?.toNumber() / Math.pow(10, 9),
         );
         supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       } catch (e) {
@@ -391,56 +434,57 @@ const BidDetails = ({
       );
       pullAuctionPage(auction?.auction.pubkey || '');
       await update();
+      localStorage.setItem('reload', 'true');
 
-      const items = auctionView.items;
-      let isAlreadyBought: boolean = false;
-      const isBidCanceled = !!auctionView.myBidderMetadata?.info.cancelled;
-      let canClaimPurchasedItem: boolean = false;
-      if (
-        auctionView.auction.info.bidState.type == BidStateType.EnglishAuction
-      ) {
-        console.log('RESULT HERE TRUE', auctionView.auction.info.bidState.type);
-        for (const item of items) {
-          for (const subItem of item) {
-            const bidRedeemed =
-              auctionView.myBidRedemption?.info.getBidRedeemed(
-                subItem.safetyDeposit.info.order,
-              );
-            console.log('RESULT HERE ITEM', bidRedeemed); // TODO disini masih null
-            isAlreadyBought = bidRedeemed ? bidRedeemed : false;
-            if (isAlreadyBought) break;
-          }
-        }
-        canClaimPurchasedItem =
-          !!(auctionView.myBidderPot && !isBidCanceled) && !isAlreadyBought;
-      } else {
-        console.log('RESULT HERE ELSE', auctionView.auction.info.bidState.type);
-        isAlreadyBought = !!(auctionView.myBidderPot && isBidCanceled);
-        canClaimPurchasedItem = !!(auctionView.myBidderPot && !isBidCanceled);
-      }
+      // const items = auctionView.items;
+      // let isAlreadyBought: boolean = false;
+      // const isBidCanceled = !!auctionView.myBidderMetadata?.info.cancelled;
+      // let canClaimPurchasedItem: boolean = false;
+      // if (
+      //   auctionView.auction.info.bidState.type == BidStateType.EnglishAuction
+      // ) {
+      //   console.log('RESULT HERE TRUE', auctionView.auction.info.bidState.type);
+      //   for (const item of items) {
+      //     for (const subItem of item) {
+      //       const bidRedeemed =
+      //         auctionView.myBidRedemption?.info.getBidRedeemed(
+      //           subItem.safetyDeposit.info.order,
+      //         );
+      //       console.log('RESULT HERE ITEM', bidRedeemed); // TODO disini masih null
+      //       isAlreadyBought = bidRedeemed ? bidRedeemed : false;
+      //       if (isAlreadyBought) break;
+      //     }
+      //   }
+      //   canClaimPurchasedItem =
+      //     !!(auctionView.myBidderPot && !isBidCanceled) && !isAlreadyBought;
+      // } else {
+      //   console.log('RESULT HERE ELSE', auctionView.auction.info.bidState.type);
+      //   isAlreadyBought = !!(auctionView.myBidderPot && isBidCanceled);
+      //   canClaimPurchasedItem = !!(auctionView.myBidderPot && !isBidCanceled);
+      // }
 
-      console.log('RESULT HERE REDEEM 0', isAlreadyBought);
-      console.log('RESULT HERE REDEEM 1', canClaimPurchasedItem);
+      // console.log('RESULT HERE REDEEM 0', isAlreadyBought);
+      // console.log('RESULT HERE REDEEM 1', canClaimPurchasedItem);
 
-      if (isAlreadyBought) {
-        setShowCongratulations(true);
-        supabaseUpdateIsRedeem(
-          auction?.auction.pubkey,
-          wallet.publicKey?.toBase58(),
-        );
-        updateNotifBidding(
-          `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
-        );
-        supabaseUpdateNFTHolder(
-          auctionView.thumbnail.metadata.pubkey,
-          wallet.publicKey?.toBase58(),
-          instantSalePrice!!.toNumber() / Math.pow(10, 9),
-        );
-        supabaseUpdateWinnerAuction(
-          auction?.auction.pubkey,
-          walletContext.publicKey?.toBase58(),
-        );
-      }
+      // if (isAlreadyBought) {
+      setShowCongratulations(true);
+      supabaseUpdateIsRedeem(
+        auction?.auction.pubkey,
+        wallet.publicKey?.toBase58(),
+      );
+      updateNotifBidding(`${auction?.auction.pubkey}_${publicKey?.toBase58()}`);
+      supabaseUpdateNFTHolder(
+        auctionView.thumbnail.metadata.pubkey,
+        wallet.publicKey?.toBase58(),
+        instantSalePrice?.toNumber()
+          ? instantSalePrice?.toNumber() / Math.pow(10, 9)
+          : 0,
+      );
+      supabaseUpdateWinnerAuction(
+        auction?.auction.pubkey,
+        walletContext.publicKey?.toBase58(),
+      );
+      // }
     } catch (e) {
       console.error(e);
     }
@@ -471,7 +515,7 @@ const BidDetails = ({
       auction?.auction.info.bidState.type === BidStateType.OpenEdition;
     const doesInstantSaleHasNoItems =
       Number(auction?.myBidderPot?.info.emptied) !== 0 &&
-      auction?.auction.info.bidState.max.toNumber() === bids.length;
+      auction?.auction.info.bidState.max?.toNumber() === bids.length;
 
     const shouldHideInstantSale =
       !isOpenEditionSale &&
@@ -483,7 +527,7 @@ const BidDetails = ({
       shouldHideInstantSale ||
       auction?.vault.info.state === VaultState.Deactivated;
 
-    if (redeemData?.length > 0 || isRedeem) return <></>;
+    // if (redeemData?.length > 0 || isRedeem) return <></>;
 
     if (shouldHideInstantSale && isAuctionNotStarted) {
       return (
@@ -535,6 +579,15 @@ const BidDetails = ({
               </Link>
 
               <div>
+                {/* <DetailStatus
+                  status={'winning bid by'}
+                  username={
+                    users[bid.info.bidderPubkey]?.username
+                      ? users[bid.info.bidderPubkey].username
+                      : shortenAddress(bid.info.bidderPubkey)
+                  }
+                  time={}
+                /> */}
                 <div>
                   winning bid by{' '}
                   <span className={WhiteColor}>
@@ -615,7 +668,7 @@ const BidDetails = ({
                     <span className={NormalFont}>
                       ・
                       {moment
-                        .unix(highestBid.info.lastBidTimestamp.toNumber())
+                        .unix(highestBid.info.lastBidTimestamp?.toNumber())
                         .fromNow()}
                     </span>
                   </div>
@@ -739,15 +792,27 @@ const BidDetails = ({
 
       // case 2: auction ended but not winning
       if (isParticipated) {
-        return (
-          <BidDetailsContent>
-            <div className={ButtonWrapper}>
-              <ActionButton onClick={actionEndedAuction} width="100%">
-                refund bid
-              </ActionButton>
-            </div>
-          </BidDetailsContent>
-        );
+        if (redeemData.length > 0 || isRedeem) {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton disabled width="100%">
+                  refunded
+                </ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        } else {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton onClick={actionEndedAuction} width="100%">
+                  refund bid
+                </ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        }
       }
       if (
         auction?.auctionManager.authority === publicKey?.toBase58() &&
@@ -899,33 +964,7 @@ const BidDetails = ({
           <div className={ButtonWrapper}>
             <ActionButton
               width="100%"
-              onClick={async () => {
-                setConfirmTrigger(true);
-                await sendPlaceBid(
-                  connection,
-                  walletContext,
-                  publicKey?.toBase58(),
-                  auction!!,
-                  accountByMint,
-                  currentBidAmount,
-                )
-                  .then(() => {
-                    // user click approve
-                    setShowPlaceBid(false);
-                    setConfirmTrigger(false);
-                    pullAuctionPage(auctionDatabase?.id || '');
-                    setBidPlaced(true);
-                    supabaseUpdateBid(
-                      auction?.auction.pubkey,
-                      publicKey?.toBase58(),
-                      currentBidAmount,
-                    );
-                  })
-                  .catch(() => {
-                    // user click cancel
-                    setConfirmTrigger(false);
-                  });
-              }}
+              onClick={() => placeBid(currentBidAmount)}
             >
               CONFIRM
             </ActionButton>

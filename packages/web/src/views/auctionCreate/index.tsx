@@ -83,11 +83,12 @@ export const AuctionCreateView = () => {
     storeIndexer,
     updateAllDataAuction,
     updateLiveDataAuction,
+    update,
   } = useMeta();
 
   const history = useHistory();
   const wallet = useWallet();
-  const { update } = useMeta();
+
   const { state } = history.location;
   const { idNFT, auctionData, nftData }: any = state || {};
 
@@ -100,18 +101,18 @@ export const AuctionCreateView = () => {
   const [auctionObj, setAuctionObj] =
     useState<
       | {
-        vault: StringPublicKey;
-        auction: StringPublicKey;
-        auctionManager: StringPublicKey;
-      }
+          vault: StringPublicKey;
+          auction: StringPublicKey;
+          auctionManager: StringPublicKey;
+        }
       | undefined
     >(undefined);
   const [attributes, setAttributes] = useState<AuctionState>({
     reservationPrice: 0,
     items: singleUser,
     category: AuctionCategory.InstantSale,
-    auctionDurationType: "days",
-    gapTimeType: "minutes",
+    auctionDurationType: 'days',
+    gapTimeType: 'minutes',
     winnersCount: 1,
   });
 
@@ -145,7 +146,7 @@ export const AuctionCreateView = () => {
         if (!editions) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-              (wallet?.publicKey || SystemProgram.programId).toBase58()
+            (wallet?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -169,7 +170,7 @@ export const AuctionCreateView = () => {
         ) {
           item.winningConfigType =
             item.metadata.info.updateAuthority ===
-              (wallet?.publicKey || SystemProgram.programId).toBase58()
+            (wallet?.publicKey || SystemProgram.programId).toBase58()
               ? WinningConfigType.FullRightsTransfer
               : WinningConfigType.TokenOnlyTransfer;
         }
@@ -209,23 +210,23 @@ export const AuctionCreateView = () => {
       endAuctionAt: isInstantSale
         ? null
         : new BN(
-          (attributes.auctionDuration || 0) *
-          (attributes.auctionDurationType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.auctionDurationType == 'hours'
-              ? 60 * 60 // 1 hour in seconds
-              : 60), // 1 minute in seconds
-        ), // endAuctionAt is actually auction duration, poorly named, in seconds
+            (attributes.auctionDuration || 0) *
+              (attributes.auctionDurationType == 'days'
+                ? 60 * 60 * 24 // 1 day in seconds
+                : attributes.auctionDurationType == 'hours'
+                ? 60 * 60 // 1 hour in seconds
+                : 60), // 1 minute in seconds
+          ), // endAuctionAt is actually auction duration, poorly named, in seconds
       auctionGap: isInstantSale
         ? null
         : new BN(
-          (attributes.gapTime || 0) *
-          (attributes.gapTimeType == 'days'
-            ? 60 * 60 * 24 // 1 day in seconds
-            : attributes.gapTimeType == 'hours'
-              ? 60 * 60 // 1 hour in seconds
-              : 60), // 1 minute in seconds
-        ),
+            (attributes.gapTime || 0) *
+              (attributes.gapTimeType == 'days'
+                ? 60 * 60 * 24 // 1 day in seconds
+                : attributes.gapTimeType == 'hours'
+                ? 60 * 60 // 1 hour in seconds
+                : 60), // 1 minute in seconds
+          ),
       priceFloor: new PriceFloor({
         type: attributes.priceFloor
           ? PriceFloorType.Minimum

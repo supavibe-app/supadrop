@@ -11,7 +11,7 @@ export const getActiveBids = publicKey => {
   });
 
   useEffect(() => {
-    if (publicKey) {
+    if (publicKey && result.loading) {
       supabase
         .from('action_bidding')
         .select(
@@ -34,11 +34,43 @@ export const getActiveBids = publicKey => {
           }
         });
     }
-  }, [publicKey]);
+  }, [publicKey, result.loading]);
 
-  const refetch = () => setResult({ loading: true, data: undefined });
+  const refetch = () => setResult({ loading: true, data: result.data });
 
-  return { ...result, refetch };
+  return { ...result, refetch, setResult };
+};
+export const getOnSale = publicKey => {
+  const [result, setResult] = useState<IGetDataDB>({
+    loading: true,
+    data: [],
+  });
+
+  useEffect(() => {
+    if (publicKey && result.loading) {
+      supabase
+        .from('auction_status')
+        .select(
+          `
+        *,
+        id_nft(*),
+        winner(*),
+        owner(*)
+        `,
+        )
+        .eq('owner', publicKey)
+        .eq('is_redeem', false)
+        .then(data => {
+          if (data.body) {
+            setResult({ loading: false, data: data.body });
+          }
+        });
+    }
+  }, [publicKey, result.loading]);
+
+  const refetch = () => setResult({ loading: true, data: result.data });
+
+  return { ...result, refetch, setResult };
 };
 
 export const getInfoEndedBidding = publicKey => {
@@ -98,39 +130,6 @@ export const getAuctionIsRedeemData = (publicKey, idAuction) => {
               const data = result.body;
               setResult({ loading: false, data });
             }
-          }
-        });
-    }
-  }, [publicKey]);
-
-  const refetch = () => setResult({ loading: true, data: undefined });
-
-  return { ...result, refetch };
-};
-
-export const getOnSale = publicKey => {
-  const [result, setResult] = useState<IGetDataDB>({
-    loading: true,
-    data: [],
-  });
-
-  useEffect(() => {
-    if (publicKey) {
-      supabase
-        .from('auction_status')
-        .select(
-          `
-        *,
-        id_nft(*),
-        winner(*),
-        owner(*)
-        `,
-        )
-        .eq('owner', publicKey)
-        .eq('is_redeem', false)
-        .then(data => {
-          if (data.body) {
-            setResult({ loading: false, data: data.body });
           }
         });
     }

@@ -115,8 +115,10 @@ export const ArtCreateView = () => {
         setNFTcreateProgress,
         attributes.properties?.maxSupply,
       );
-      await update();
-      if (_nft) setNft(_nft);
+      if (_nft) {
+        setNft(_nft);
+      }
+      localStorage.setItem('reload', 'true');
     } catch (e: any) {
       setAlertMessage(e.message);
     } finally {
@@ -1283,15 +1285,10 @@ const Congrats = (props: {
         <Button
           className="metaplex-button"
           onClick={_ =>
-            history.push(`/art/${props.nft?.metadataAccount.toString()}`)
+            history.push({
+              pathname: `/${publicKey?.toBase58()}`,
+            })
           }
-        >
-          <span>See it in your collection</span>
-          <span>&gt;</span>
-        </Button>
-        <Button
-          className="metaplex-button"
-          onClick={_ => history.push(`/${publicKey?.toBase58()}`)}
         >
           <span>Sell it via auction</span>
           <span>&gt;</span>

@@ -17,7 +17,7 @@ import {
   UploadImageContainer,
   UploadStyle,
 } from './style';
-import { Identicon, supabase, UserData } from '@oyster/common';
+import { Identicon, supabase, useMeta, UserData } from '@oyster/common';
 import { useHistory } from 'react-router';
 // import { replace } from 'lodash';
 
@@ -37,6 +37,7 @@ const EditProfile = ({
 }) => {
   const { replace } = useHistory();
   const { publicKey } = useWallet();
+  const { updateUserData } = useMeta();
   const [form] = Form.useForm();
   const [bio, setBio] = useState(userData?.bio || ''); // to get the length of bio
   const [file, setFile] = useState<File>();
@@ -49,7 +50,8 @@ const EditProfile = ({
       await supabase.storage
         .from('profile')
         .remove([
-          `avatars/${userData?.wallet_address}_${exProfpic[exProfpic.length - 1]
+          `avatars/${userData?.wallet_address}_${
+            exProfpic[exProfpic.length - 1]
           }`,
         ]);
     }
@@ -112,6 +114,20 @@ const EditProfile = ({
       if (values.username) {
         replace(`/${values.username}`);
       }
+      const { bio, name, twitter, username, website } = values;
+      updateUserData(
+        new UserData(
+          bio,
+          '',
+          imageProfile,
+          name,
+          twitter,
+          '',
+          username,
+          website,
+          publicKey?.toBase58() || '',
+        ),
+      );
       refetch();
       closeEdit();
     }
@@ -182,7 +198,14 @@ const EditProfile = ({
               {!avatarUrl && (
                 <Avatar
                   size={86}
-                  src={userData?.img_profile || <Identicon address={userData?.wallet_address} style={{ width: 86 }} />}
+                  src={
+                    userData?.img_profile || (
+                      <Identicon
+                        address={userData?.wallet_address}
+                        style={{ width: 86 }}
+                      />
+                    )
+                  }
                   style={{ cursor: 'pointer' }}
                 />
               )}

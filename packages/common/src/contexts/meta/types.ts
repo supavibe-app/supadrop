@@ -26,7 +26,7 @@ import {
   WhitelistedCreator,
 } from '../../models/metaplex';
 import { PublicKeyStringAndAccount, StringPublicKey } from '../../utils';
-import { ParsedAccount } from '../accounts/types';
+import { ParsedAccount, UserData } from '../accounts/types';
 
 export interface MetaState {
   metadata: ParsedAccount<Metadata>[];
@@ -85,6 +85,7 @@ export interface MetaContextState extends MetaState {
   isLoadingMetaplex: boolean;
   isLoadingDatabase: boolean;
   dataCollection: Collection;
+  userData: UserData;
   endingTime: number;
   liveDataAuctions: ItemAuction[];
   endedAuctions: ItemAuction[];
@@ -103,6 +104,7 @@ export interface MetaContextState extends MetaState {
   pullBillingPage: (auctionAddress: StringPublicKey) => void;
   updateLiveDataAuction: () => void;
   updateAllDataAuction: () => void;
+  updateUserData: (data: UserData) => void;
   updateDetailAuction: (idAuction: string) => void;
   updateNotifBidding: (publicKey: string) => void;
   updateNotifAuction: (publicKey: string) => void;

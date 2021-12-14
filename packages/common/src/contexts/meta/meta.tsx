@@ -22,6 +22,7 @@ import { StringPublicKey, TokenAccount, useUserAccounts } from '../..';
 import { supabase } from '../../supabaseClient';
 import moment from 'moment';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { UserData } from '..';
 
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
@@ -35,10 +36,12 @@ const MetaContext = React.createContext<MetaContextState>({
   notifAuction: [],
   allDataAuctions: {},
   dataCollection: new Collection('', '', '', 0, 0, 0, 0, []),
+  userData: new UserData('', '', '', '', '', '', '', '', ''),
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
   // @ts-ignore
   updateLiveDataAuction: function () {},
+  updateUserData: function () {},
   updateAllDataAuction: function () {},
   updateDetailAuction: function () {},
   updateNotifBidding: function () {},
@@ -51,6 +54,9 @@ export function MetaProvider({ children = null as any }) {
   const { publicKey } = useWallet();
   const [dataCollection, setDataCollection] = useState<Collection>(
     new Collection('', '', '', 0, 0, 0, 0, []),
+  );
+  const [userData, setUserData] = useState<UserData>(
+    new UserData('', '', '', '', '', '', '', '', ''),
   );
   const [endingTime, setEndingTime] = useState(0);
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
@@ -93,12 +99,10 @@ export function MetaProvider({ children = null as any }) {
     if (!storeAddress) {
       if (isReady) {
         setIsLoadingMetaplex(false);
-        setIsLoadingDatabase(false);
       }
       return;
     } else if (!state.store) {
       setIsLoadingMetaplex(true);
-      setIsLoadingDatabase(true);
     }
     setIsLoadingMetaplex(true);
     const nextState = await pullStoreMetadata(connection, state);
@@ -222,6 +226,45 @@ export function MetaProvider({ children = null as any }) {
         }
       });
   }
+  async function getUserData(publicKey: string) {
+    supabase
+      .from('user_data')
+      .select('*')
+      .eq(`wallet_address`, publicKey)
+      .limit(1)
+      .single()
+      .then(res => {
+        if (res.body) {
+          const {
+            bio,
+            created_at,
+            img_profile,
+            name,
+            twitter,
+            updated_at,
+            username,
+            wallet_address,
+            website,
+          } = res.body;
+          let data = new UserData(
+            bio,
+            created_at,
+            img_profile,
+            name,
+            twitter,
+            updated_at,
+            username,
+            website,
+            wallet_address,
+          );
+
+          setUserData(data);
+        }
+      });
+  }
+  async function updateUserData(data: UserData) {
+    setUserData(data);
+  }
   async function updateEndedAuction() {
     supabase
       .from('auction_status')
@@ -234,8 +277,8 @@ export function MetaProvider({ children = null as any }) {
     `,
       )
       .lt('end_auction', moment().unix())
+      .eq('type_auction', false)
       .order('end_auction', { ascending: false })
-      .limit(10)
       .then(dataAuction => {
         let listData: ItemAuction[] = [];
         if (dataAuction.body != null && dataAuction.body.length > 0) {
@@ -291,13 +334,16 @@ export function MetaProvider({ children = null as any }) {
         }
       });
   }
+  // if type_auction is true, it's an instant sale -> isLiveMarket
+  // if type_auction is false, it's an auction -> end auction less than current time
   async function getNotifAuction(publicKey: string) {
     supabase
       .from('auction_status')
       .select()
       .eq('owner', publicKey)
       .eq('is_redeem', false)
-      .lte('end_auction', moment().unix())
+      .eq('isLiveMarket', false)
+      .lt(`end_auction`, moment().unix())
       .then(data => {
         if (data.body) {
           setNotifAuction(data.body);
@@ -371,11 +417,13 @@ export function MetaProvider({ children = null as any }) {
             setLiveDataAuction(dataUpdate);
           }
           setAllDataAuction({ ...allDataAuctions, detailAuction });
+          setIsLoadingDatabase(false);
         }
       });
   }
 
   async function updateAllDataAuction() {
+    setIsLoadingDatabase(true);
     supabase
       .from('auction_status')
       .select(
@@ -415,6 +463,7 @@ export function MetaProvider({ children = null as any }) {
           });
 
           setAllDataAuction(listData);
+          setIsLoadingDatabase(false);
         }
       });
   }
@@ -475,9 +524,7 @@ export function MetaProvider({ children = null as any }) {
       updateEndedAuction(),
 
       getDataCollection(),
-    ]).finally(() => {
-      setIsLoadingDatabase(false);
-    });
+    ]);
 
     let nextState = await pullPage(connection, page, state);
 
@@ -621,6 +668,7 @@ export function MetaProvider({ children = null as any }) {
     if (publicKey?.toBase58()) {
       getNotifAuction(publicKey?.toBase58());
       getNotifBidding(publicKey?.toBase58());
+      getUserData(publicKey?.toBase58());
     }
   }, [publicKey?.toBase58()]);
 
@@ -663,12 +711,15 @@ export function MetaProvider({ children = null as any }) {
         pullBillingPage,
         pullAllSiteData,
         isLoadingMetaplex,
+        isLoadingDatabase,
         dataCollection,
         endingTime,
         liveDataAuctions,
         endedAuctions,
         notifBidding,
         notifAuction,
+        updateUserData,
+        userData,
         allDataAuctions,
         updateLiveDataAuction,
         updateAllDataAuction,

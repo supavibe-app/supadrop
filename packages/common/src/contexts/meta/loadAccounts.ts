@@ -15,7 +15,6 @@ import {
   MAX_NAME_LENGTH,
   MAX_SYMBOL_LENGTH,
   MAX_URI_LENGTH,
-  METADATA_PREFIX,
   decodeMetadata,
   getAuctionExtended,
   getMetadata,
@@ -108,7 +107,7 @@ export const pullYourMetadata = async (
         const edition = await getEdition(
           userTokenAccounts[i].info.mint.toBase58(),
         );
-        let newAdd = [
+        const newAdd = [
           await getMetadata(userTokenAccounts[i].info.mint.toBase58()),
           edition,
         ];
@@ -254,6 +253,7 @@ export const pullAuctionSubaccounts = async (
   const cache = tempCache.auctionCaches[cacheKey]?.info;
   if (!cache) {
     console.log('-----> No auction cache exists for', auction, 'returning');
+    window.location.reload();
     return tempCache;
   }
   const forEach =
@@ -318,7 +318,7 @@ export const pullAuctionSubaccounts = async (
     }).then(forEach(processVaultData)),
 
     // bid redemptions
-    ...WHITELISTED_AUCTION_MANAGER.map(a =>
+    ...WHITELISTED_AUCTION_MANAGER.map(() =>
       getProgramAccounts(connection, METAPLEX_ID, {
         filters: [
           {
@@ -450,7 +450,7 @@ export const pullPage = async (
           batches.push(currBatch);
           currBatch = [];
         } else {
-          let newAdd = [
+          const newAdd = [
             ...cache.info.metadata,
             cache.info.auction,
             cache.info.auctionManager,
@@ -862,10 +862,9 @@ const pullEditions = async (
   };
 
   for (const metadata of metadataArr) {
-    let editionKey: StringPublicKey;
     // TODO the nonce builder isnt working here, figure out why
     //if (metadata.info.editionNonce === null) {
-    editionKey = await getEdition(metadata.info.mint);
+    const editionKey: StringPublicKey = await getEdition(metadata.info.mint);
     /*} else {
       editionKey = (
         await PublicKey.createProgramAddress(
@@ -953,39 +952,39 @@ const pullMetadataByCreators = (
 
 export const makeSetter =
   (state: MetaState): UpdateStateValueFunc<MetaState> =>
-    (prop, key, value) => {
-      if (prop === 'store') {
-        state[prop] = value;
-      } else if (prop === 'metadata') {
-        state.metadata.push(value);
-      } else if (prop === 'storeIndexer') {
-        state.storeIndexer = state.storeIndexer.filter(
-          p => p.info.page.toNumber() != value.info.page.toNumber(),
-        );
-        state.storeIndexer.push(value);
-        state.storeIndexer = state.storeIndexer.sort((a, b) =>
-          a.info.page.sub(b.info.page).toNumber(),
-        );
-      } else {
-        state[prop][key] = value;
-      }
-      return state;
-    };
+  (prop, key, value) => {
+    if (prop === 'store') {
+      state[prop] = value;
+    } else if (prop === 'metadata') {
+      state.metadata.push(value);
+    } else if (prop === 'storeIndexer') {
+      state.storeIndexer = state.storeIndexer.filter(
+        p => p.info.page.toNumber() != value.info.page.toNumber(),
+      );
+      state.storeIndexer.push(value);
+      state.storeIndexer = state.storeIndexer.sort((a, b) =>
+        a.info.page.sub(b.info.page).toNumber(),
+      );
+    } else {
+      state[prop][key] = value;
+    }
+    return state;
+  };
 
 export const processingAccounts =
   (updater: UpdateStateValueFunc) =>
-    (fn: ProcessAccountsFunc) =>
-      async (accounts: AccountAndPubkey[]) => {
-        await createPipelineExecutor(
-          accounts.values(),
-          account => fn(account, updater),
-          {
-            sequence: 10,
-            delay: 1,
-            jobsCount: 3,
-          },
-        );
-      };
+  (fn: ProcessAccountsFunc) =>
+  async (accounts: AccountAndPubkey[]) => {
+    await createPipelineExecutor(
+      accounts.values(),
+      account => fn(account, updater),
+      {
+        sequence: 10,
+        delay: 1,
+        jobsCount: 3,
+      },
+    );
+  };
 
 const postProcessMetadata = async (state: MetaState) => {
   const values = Object.values(state.metadataByMint);

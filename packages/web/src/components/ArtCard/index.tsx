@@ -30,7 +30,7 @@ import {
   ConfirmModal,
   UserWrapper,
 } from './style';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
 import { getUsernameByPublicKeys } from '../../database/userData';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -61,7 +61,6 @@ export interface ArtCardProps extends CardProps {
   close?: () => void;
   height?: number;
   width?: number;
-  onListingPage?: boolean;
 }
 
 export const ArtCard = (props: ArtCardProps) => {
@@ -79,19 +78,15 @@ export const ArtCard = (props: ArtCardProps) => {
     artItem,
     isCollected,
     soldFor,
-    onListingPage,
   } = props;
 
   const art = useArt(pubkey);
-
+  const { userData } = useMeta();
   const singleUser = useUserSingleArt(pubkey || '');
-  console.log(
-    '🚀 ~ file: index.tsx ~ line 87 ~ ArtCard ~ singleUser',
-    name,
-    singleUser,
-    art.title,
-    pubkey,
-  );
+
+  const { location } = useHistory();
+  const { state: dataState } = location;
+  const { idNFT, onListingPage }: any = dataState || {};
 
   creators = art?.creators || creators || [];
   const [cardWidth, setCardWidth] = useState(0);
@@ -258,10 +253,19 @@ export const ArtCard = (props: ArtCardProps) => {
                 </Col>
               )}
 
-              {!isCollected && !isOnSale && (
+              {!isCollected && !isOnSale && !onListingPage && (
                 <Col span={12}>
                   <div>owner</div>
                   <div className={WhiteColor}>{shortenAddress(holderNFT)}</div>
+                </Col>
+              )}
+              {onListingPage && (
+                <Col span={12}>
+                  <div>owner</div>
+                  <div className={WhiteColor}>
+                    {userData?.username ||
+                      shortenAddress(walletContext.publicKey?.toBase58())}
+                  </div>
                 </Col>
               )}
 

@@ -31,7 +31,7 @@ import { GreyColor, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
   const { publicKey, connected } = useWallet();
-  const { data: userData } = getUserData(publicKey?.toBase58());
+  const { userData } = useMeta();
   const { pathname } = useLocation();
   const { isBidPlaced, setBidPlaced, whitelistedCreatorsByCreator } = useMeta();
 

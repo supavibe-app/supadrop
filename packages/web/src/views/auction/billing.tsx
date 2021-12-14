@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { Avatar, Row, Col, Layout, Spin, Button, Table, Image } from 'antd';
 import {
   useArt,
@@ -71,9 +71,13 @@ const { Content } = Layout;
 
 export const BillingView = () => {
   const { id } = useParams<{ id: string }>();
+  const { isLoadingMetaplex } = useMeta();
   const auctionView = useAuction(id);
+
   const connection = useConnection();
+
   const wallet = useWallet();
+
   const mint = useMint(auctionView?.auction.info.tokenMint);
 
   return auctionView && wallet && connection && mint ? (
@@ -400,9 +404,10 @@ export const InnerBillingView = ({
   connection: Connection;
   mint: MintInfo;
 }) => {
-  const id = auctionView.thumbnail.metadata.pubkey;
-
-  const art = useArt(id);
+  const { id } = useParams<{ id: string }>();
+  const idNFT = auctionView.thumbnail.metadata.pubkey;
+  const { location } = useHistory();
+  const art = useArt(idNFT);
   const balance = useUserBalance(auctionView.auction.info.tokenMint);
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [escrowBalance, setEscrowBalance] = useState<number | undefined>();
@@ -415,12 +420,16 @@ export const InnerBillingView = ({
     updateNotifAuction,
   } = useMeta();
 
-  const { ref, data } = useExtendedArt(id);
+  const { ref, data } = useExtendedArt(idNFT);
 
   useEffect(() => {
     pullBillingPage(id);
   }, []);
-
+  useEffect(() => {
+    if (location.state === 'refresh') {
+      pullBillingPage(id);
+    }
+  }, [location.key]);
   useEffect(() => {
     connection
       .getTokenAccountBalance(
@@ -454,6 +463,11 @@ export const InnerBillingView = ({
     ),
     mint,
   );
+  const totalCollected = fromLamports(
+    Object.values(payoutTickets).reduce((acc, el) => (acc += el.sum), 0),
+    mint,
+  );
+
 
   const isLoading =
     totalUnsettled === 0 &&
@@ -502,6 +516,7 @@ export const InnerBillingView = ({
           metadataByAuction,
           undefined,
         );
+
         if (completeAuctionView) {
           await settle(
             connection,
@@ -524,12 +539,17 @@ export const InnerBillingView = ({
         }
       } catch (e) {
         setConfirmTrigger(false);
+        window.location.reload();
         return false;
       }
       updateNotifAuction(auctionView.auction.pubkey || '');
       setEscrowBalanceRefreshCounter(ctr => ctr + 1);
       await pullBillingPage(id);
       setConfirmTrigger(false);
+
+      if (Object.keys(payoutTickets).length > 0) {
+        window.location.reload();
+      }
     }
   }
   return (
@@ -571,16 +591,7 @@ export const InnerBillingView = ({
               <div className={BillingLabel}>
                 TOTAL COLLECTED BY ARTISTS AND AUCTIONEER
               </div>
-              <div className={BillingValue}>
-                {fromLamports(
-                  Object.values(payoutTickets).reduce(
-                    (acc, el) => (acc += el.sum),
-                    0,
-                  ),
-                  mint,
-                )}{' '}
-                SOL
-              </div>
+              <div className={BillingValue}>{totalCollected} SOL</div>
             </div>
 
             <div className={GroupValue}>

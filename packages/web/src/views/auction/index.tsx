@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import { Row, Col, Skeleton, Popover, Image } from 'antd';
 import FeatherIcon from 'feather-icons-react';
-import { useMeta } from '@oyster/common';
+import { supabase, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import {
@@ -44,6 +44,13 @@ import { DetailArtContent } from '../../components/Details/DetailArtContent';
 export const AuctionView = () => {
   const { location } = useHistory();
   const queryParams = new URLSearchParams(location.search);
+  const {
+    allDataAuctions,
+    isLoadingDatabase,
+    isLoadingMetaplex,
+    pullAuctionPage,
+  } = useMeta();
+
   const action = queryParams.get('action');
   const [showCongratulations, setCongratulations] = useState(false);
   const { id } = useParams<{ id: string }>();
@@ -62,8 +69,21 @@ export const AuctionView = () => {
     [setShowPlaceBid],
   );
 
-  const { allDataAuctions, isLoadingDatabase, pullAuctionPage } = useMeta();
   const auctionDatabase = allDataAuctions[id];
+  useEffect(() => {
+    if (!auctionDatabase && !isLoadingDatabase) {
+      supabase
+        .from('auction_status')
+        .select('id')
+        .eq('id', id)
+        .single()
+        .then(data => {
+          if (data.body) {
+            window.location.reload();
+          }
+        });
+    }
+  }, [auctionDatabase, isLoadingDatabase]);
   const { thumbnail, original_file, media_type } = auctionDatabase || {};
 
   const { ref, data } = useExtendedArt(auctionDatabase?.id_nft);

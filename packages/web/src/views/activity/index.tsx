@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Col, Row, Tabs } from 'antd';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useMeta } from '@oyster/common';
+import { supabase, useMeta } from '@oyster/common';
 
 import ActionButton from '../../components/ActionButton';
 import { PageTitle, TabStyle, SubTitle, Content } from './style';
@@ -16,11 +16,16 @@ const { TabPane } = Tabs;
 const ActivityView = () => {
   const wallet = useWallet();
   const { isLoadingMetaplex } = useMeta();
+  const [updatedData, setUpdatedData] = useState('');
 
   // if not empty, show congratulations page
-  const activeBids = getActiveBids(wallet.publicKey?.toBase58()).data;
+  const { data: activeBids, refetch: refetchActiveBid } = getActiveBids(
+    wallet.publicKey?.toBase58(),
+  );
 
-  const onSale = getOnSale(wallet.publicKey?.toBase58()).data;
+  const { data: onSale, refetch: refetchOnSale } = getOnSale(
+    wallet.publicKey?.toBase58(),
+  );
 
   const EmptyState = ({}) => (
     <div>
@@ -39,30 +44,34 @@ const ActivityView = () => {
         <div className={PageTitle}>ACTIVITY</div>
         <Tabs className={TabStyle} defaultActiveKey="1">
           <TabPane tab="all" key="1">
-            {[...activeBids, ...onSale].map(auction => {
-              if (auction.id_auction) {
-                return <ActivityCardMyBid auctionView={auction} />;
-              } else {
-                return <ActivityCardOnSale auctionView={auction} />;
-              }
-            })}
+            {activeBids &&
+              onSale &&
+              [...activeBids, ...onSale].map(auction => {
+                if (auction.id_auction) {
+                  return <ActivityCardMyBid auctionView={auction} />;
+                } else {
+                  return <ActivityCardOnSale auctionView={auction} />;
+                }
+              })}
             {!Boolean([...activeBids, ...onSale].length) &&
               !isLoadingMetaplex && <EmptyState />}
           </TabPane>
 
           <TabPane tab="my bids" key="2">
-            {activeBids.map(auction => {
-              return <ActivityCardMyBid auctionView={auction} />;
-            })}
+            {activeBids &&
+              activeBids.map(auction => {
+                return <ActivityCardMyBid auctionView={auction} />;
+              })}
 
             {!Boolean(activeBids.length) && !isLoadingMetaplex && (
               <EmptyState />
             )}
           </TabPane>
           <TabPane tab="on sale" key="3">
-            {onSale.map(auction => {
-              return <ActivityCardOnSale auctionView={auction} />;
-            })}
+            {onSale &&
+              onSale.map(auction => {
+                return <ActivityCardOnSale auctionView={auction} />;
+              })}
 
             {!Boolean(onSale.length) && !isLoadingMetaplex && <EmptyState />}
           </TabPane>
