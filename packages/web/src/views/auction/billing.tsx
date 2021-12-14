@@ -426,8 +426,8 @@ export const InnerBillingView = ({
     pullBillingPage(id);
   }, []);
   useEffect(() => {
-    if (location.state === 'refresh') {
-      pullBillingPage(id);
+    if (location.state) {
+      window.location.reload();
     }
   }, [location.key]);
   useEffect(() => {
@@ -467,7 +467,6 @@ export const InnerBillingView = ({
     Object.values(payoutTickets).reduce((acc, el) => (acc += el.sum), 0),
     mint,
   );
-
 
   const isLoading =
     totalUnsettled === 0 &&

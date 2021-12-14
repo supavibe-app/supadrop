@@ -304,8 +304,13 @@ export function useSettlementAuctions({
         notifiedAt: auctionView.auction.info.endedAt?.toNumber(),
         description: '',
         action: async () => {
+          const fromSettlePage =
+            window.location.href.split('/').pop() === 'settle';
           try {
-            history.push(`/auction/${auctionView.auction.pubkey}/settle`);
+            history.push({
+              pathname: `/auction/${auctionView.auction.pubkey}/settle`,
+              state: fromSettlePage,
+            });
           } catch (e) {
             console.error(e);
             return false;
@@ -406,8 +411,13 @@ export function Notifications() {
         notifiedAt: Number(auction.end_auction),
         description: '',
         action: async () => {
+          const fromSettlePage =
+            window.location.href.split('/').pop() === 'settle';
           try {
-            history.push(`/auction/${auction.id}/settle`);
+            history.push({
+              pathname: `/auction/${auction.id}/settle`,
+              state: fromSettlePage,
+            });
           } catch (e) {
             console.error(e);
             return false;
@@ -443,12 +453,15 @@ export function Notifications() {
       ),
       action: async () => {
         try {
+          console.log('masuk');
+
           await unwindVault(
             connection,
             wallet,
             v,
             safetyDepositBoxesByVaultAndIndex,
           );
+          console.log('selesai');
         } catch (e) {
           console.error(e);
           return false;
@@ -463,7 +476,7 @@ export function Notifications() {
     .forEach(v => {
       notifications.push({
         id: v.auctionManager.pubkey,
-        textButton: 'refund',
+        textButton: 'reclaim',
         title: 'You have items locked in a defective auction!',
         notifiedAt: moment().unix(),
         description: (
