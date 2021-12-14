@@ -196,7 +196,6 @@ export const supabaseUpdateWinnerAuction = (
     .from('auction_status')
     .update({
       winner: walletAddress,
-      is_redeem: true,
       updated_at: timestampPostgre(),
     })
     .eq('id', idAuction)

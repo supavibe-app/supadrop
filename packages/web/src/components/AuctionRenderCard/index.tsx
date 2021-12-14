@@ -119,20 +119,33 @@ export const AuctionRenderCard = (props: AuctionCard) => {
             </div>
 
             <Row>
-              <Col span={12}>
-                {/* case 1 & 3: live/ended and no bidder */}
-                {!winningBid && <div>reserve price</div>}
-                {/* case 2: live and have bidder */}
-                {winningBid && !ended && <div>current bid</div>}
-                {/* case 4: ended and have bidder */}
-                {winningBid && ended && <div>sold for</div>}
+              {!auctionView.isInstantSale && (
+                <Col span={12}>
+                  {/* case 1 & 3: live/ended and no bidder */}
+                  {!winningBid && <div>reserve price</div>}
+                  {/* case 2: live and have bidder */}
+                  {winningBid && !ended && <div>current bid</div>}
+                  {/* case 4: ended and have bidder */}
+                  {winningBid && ended && <div>sold for</div>}
 
-                <Statistic
-                  className={BidPrice}
-                  value={currentBid}
-                  suffix="SOL"
-                />
-              </Col>
+                  <Statistic
+                    className={BidPrice}
+                    value={currentBid}
+                    suffix="SOL"
+                  />
+                </Col>
+              )}
+              {auctionView.isInstantSale && (
+                <Col span={12}>
+                  <div>reserve price</div>
+
+                  <Statistic
+                    className={BidPrice}
+                    value={auctionView.price_floor}
+                    suffix="SOL"
+                  />
+                </Col>
+              )}
 
               <Col className={uTextAlignEnd} span={12}>
                 <div>
