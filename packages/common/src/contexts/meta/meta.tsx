@@ -183,6 +183,7 @@ export function MetaProvider({ children = null as any }) {
       .select(
         `
     *,
+    owner(img_profile,wallet_address,username),
     id_nft (
       *
     )
@@ -212,10 +213,12 @@ export function MetaProvider({ children = null as any }) {
                 v.tick_size_ending_phase,
                 v.vault,
                 v.id_nft.arweave_link,
-                v.owner,
+                v.owner.wallet_address,
                 v.winner,
                 v.id_nft.mint_key,
                 v.type_auction,
+                v.owner.img_profile,
+                v.owner.username,
               ),
             );
           });
@@ -271,6 +274,7 @@ export function MetaProvider({ children = null as any }) {
       .select(
         `
     *,
+    owner(img_profile,wallet_address,username),
     id_nft (
       *
     )
@@ -301,10 +305,12 @@ export function MetaProvider({ children = null as any }) {
                 v.tick_size_ending_phase,
                 v.vault,
                 v.id_nft.arweave_link,
-                v.owner,
+                v.owner.wallet_address,
                 v.winner,
                 v.id_nft.mint_key,
                 v.type_auction,
+                v.owner.img_profile,
+                v.owner.username,
               ),
             );
           });

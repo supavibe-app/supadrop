@@ -18,7 +18,7 @@ import {
 import { TwitterURL } from '../../constants';
 import { getUsernameByPublicKeys } from '../../database/userData';
 import countDown from '../../helpers/countdown';
-import { CountdownState, ItemAuction } from '@oyster/common';
+import { CountdownState, ItemAuction, UserData } from '@oyster/common';
 
 const { TabPane } = Tabs;
 
@@ -65,15 +65,18 @@ const AuctionListView = () => {
         </Col>
       ));
 
-    const ownerAddress = list.map((auction: ItemAuction) => auction.owner);
-
-    const { data = {} } = getUsernameByPublicKeys(ownerAddress);
-
     return list.map((auction: ItemAuction, idx) => {
-      const defaultOwnerData = {
-        wallet_address: auction.owner,
-        img_profile: null,
-      };
+      const userData = new UserData(
+        '',
+        '',
+        auction.ownerImg || '',
+        '',
+        '',
+        '',
+        auction.ownerUsername || '',
+        '',
+        auction.owner,
+      );
 
       return (
         <Col
@@ -87,10 +90,7 @@ const AuctionListView = () => {
           xs={24}
         >
           <Link to={`/auction/${auction.id}`}>
-            <AuctionRenderCard
-              auctionView={auction}
-              owner={data[auction.owner] || defaultOwnerData}
-            />
+            <AuctionRenderCard auctionView={auction} owner={userData} />
           </Link>
         </Col>
       );

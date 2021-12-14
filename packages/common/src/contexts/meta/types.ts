@@ -183,6 +183,8 @@ export class ItemAuction {
   winner: string;
   mint_key: string;
   isInstantSale: boolean;
+  ownerImg?: string;
+  ownerUsername?: string;
 
   constructor(
     id: string,
@@ -205,6 +207,8 @@ export class ItemAuction {
     winner: string,
     mint_key: string,
     isInstantSale: boolean,
+    ownerImg?: string,
+    ownerUsername?: string,
   ) {
     this.id = id;
     this.name = name;
@@ -226,6 +230,8 @@ export class ItemAuction {
     this.winner = winner;
     this.mint_key = mint_key;
     this.isInstantSale = isInstantSale;
+    this.ownerImg = ownerImg;
+    this.ownerUsername = ownerUsername;
   }
 }
 
