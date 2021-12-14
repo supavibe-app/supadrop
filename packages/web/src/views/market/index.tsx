@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Col, Divider, Dropdown, Menu, Row, Select } from 'antd';
 import { Link } from 'react-router-dom';
 import FeatherIcon from 'feather-icons-react';
-import { ItemAuction, supabase, useMeta } from '@oyster/common';
+import { ItemAuction, supabase, useMeta, UserData } from '@oyster/common';
 import { AuctionRenderCard } from '../../components/AuctionRenderCard';
 import {
   ActiveSortBy,
@@ -32,6 +32,7 @@ const MarketComponent = () => {
       .select(
         `
     *,
+    owner(wallet_address,img_profile,username),
     id_nft (
       *
     )
@@ -60,10 +61,12 @@ const MarketComponent = () => {
               v.tick_size_ending_phase,
               v.vault,
               v.id_nft.arweave_link,
-              v.owner,
+              v.owner.wallet_address,
               v.winner,
               v.id_nft.mint_key,
               v.type_auction,
+              v.owner.img_profile,
+              v.owner.username,
             );
 
             data.push(itemAuction);
@@ -157,9 +160,6 @@ const MarketComponent = () => {
     </Menu>
   );
 
-  const ownerAddress = list.map(auction => auction.owner);
-  const { data = {} } = getUsernameByPublicKeys(ownerAddress);
-
   return (
     <Row justify="center">
       <Col
@@ -219,10 +219,17 @@ const MarketComponent = () => {
 
         <Row gutter={[36, 36]}>
           {list.map((m, idx) => {
-            const defaultOwnerData = {
-              wallet_address: m.owner,
-              img_profile: null,
-            };
+            const userData = new UserData(
+              '',
+              '',
+              m.ownerImg || '',
+              '',
+              '',
+              '',
+              m.ownerUsername || '',
+              '',
+              m.owner,
+            );
 
             return (
               <Col
@@ -236,10 +243,7 @@ const MarketComponent = () => {
                 xs={24}
               >
                 <Link to={`/auction/${m.id}`}>
-                  <AuctionRenderCard
-                    auctionView={m}
-                    owner={data[m.owner] || defaultOwnerData}
-                  />
+                  <AuctionRenderCard auctionView={m} owner={userData} />
                 </Link>
               </Col>
             );
