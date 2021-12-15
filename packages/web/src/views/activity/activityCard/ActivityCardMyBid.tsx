@@ -37,6 +37,36 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
   const isWinner = winner?.wallet_address === wallet.publicKey?.toBase58();
 
   const highestBid = auctionView.id_auction.highest_bid;
+  const [updatedData, setUpdatedData] = useState<any>();
+  const getChangeActiveBid = () => {
+    const mySubscription = supabase
+      .from(`auction_status:id=eq.${auctionView?.id_auction?.id}`)
+      .on('UPDATE', payload => {
+        setUpdatedData(payload);
+      })
+      .subscribe();
+    return mySubscription;
+  };
+
+  useEffect(() => {
+    if (auctionView?.id) {
+      const subscriptionActiveBid = getChangeActiveBid();
+
+      return () => {
+        supabase.removeSubscription(subscriptionActiveBid);
+      };
+    }
+  }, [auctionView?.id]);
+  useEffect(() => {
+    if (updatedData) {
+      auctionView.id_auction.highest_bid = updatedData.new.highest_bid;
+      auctionView.id_auction.winner = {
+        wallet_address: updatedData.new.winner,
+      };
+
+      setUpdatedData('');
+    }
+  }, [updatedData]);
 
   useEffect(() => {
     const calc = () => setState(countDown(auctionView.id_auction.end_auction));

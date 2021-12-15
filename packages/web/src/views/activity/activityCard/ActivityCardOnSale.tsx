@@ -1,4 +1,9 @@
-import { CountdownState, Identicon, shortenAddress } from '@oyster/common';
+import {
+  CountdownState,
+  Identicon,
+  shortenAddress,
+  supabase,
+} from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useEffect, useState } from 'react';
 import countDown from '../../../helpers/countdown';
@@ -29,7 +34,37 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
   const highestBid = auctionView.highest_bid;
   const winner = auctionView.winner;
 
-  const haveWinner = highestBid > 0;
+  const haveWinner = Boolean(winner);
+
+  const [updatedData, setUpdatedData] = useState<any>();
+  const getChangeOnSale = () => {
+    const mySubscription = supabase
+      .from(`auction_status:id=eq.${auctionView?.id}`)
+      .on('UPDATE', payload => {
+        setUpdatedData(payload);
+      })
+      .subscribe();
+    return mySubscription;
+  };
+
+  useEffect(() => {
+    if (auctionView?.id) {
+      const subscriptionOnSale = getChangeOnSale();
+      return () => {
+        supabase.removeSubscription(subscriptionOnSale);
+      };
+    }
+  }, [auctionView?.id]);
+  useEffect(() => {
+    if (updatedData) {
+      auctionView.highest_bid = updatedData.new.highest_bid;
+      auctionView.winner = {
+        wallet_address: updatedData.new.winner,
+      };
+
+      setUpdatedData('');
+    }
+  }, [updatedData]);
 
   useEffect(() => {
     const calc = () => setState(countDown(auctionView.end_auction));
@@ -154,7 +189,7 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
         )}
 
         {/* case 0: is owner and instant sell */}
-        {isInstantSale && (
+        {isInstantSale && !haveWinner && (
           <ActionButton to={`/auction/${auctionView.id}`}>UNLIST</ActionButton>
         )}
 
@@ -167,7 +202,7 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
             reclaim NFT
           </ActionButton>
         )}
-        {isEnded(state) && !isInstantSale && haveWinner && (
+        {isEnded(state) && haveWinner && (
           <ActionButton to={`/auction/${auctionView.id}/settle`}>
             settle
           </ActionButton>
