@@ -218,6 +218,33 @@ const BidDetails = ({
     setMinimumBid(bid ? getMinimumBid(currentBid) : priceFloor);
   }, [auctionDatabase, bid, auction]);
 
+  const [updatedData, setUpdatedData] = useState<any>();
+  const getChangeOnSale = () => {
+    const mySubscription = supabase
+      .from(`auction_status:id=eq.${id}`)
+      .on('UPDATE', payload => {
+        setUpdatedData('update auction page');
+      })
+      .subscribe();
+    return mySubscription;
+  };
+
+  useEffect(() => {
+    if (id) {
+      const subscriptionOnSale = getChangeOnSale();
+      return () => {
+        supabase.removeSubscription(subscriptionOnSale);
+      };
+    }
+  }, [id]);
+  useEffect(() => {
+    if (updatedData) {
+      pullAuctionPage(id);
+
+      setUpdatedData('');
+    }
+  }, [updatedData]);
+
   // countdown
   useEffect(() => {
     if (endAt) {
@@ -237,75 +264,131 @@ const BidDetails = ({
   const isParticipated =
     bids.filter(bid => bid?.info?.bidderPubkey === publicKey?.toBase58())
       .length > 0;
-  const actionEndedAuction = async () => {
+  const actionEndedAuctionClaim = async () => {
+    if (!eligibleForAnything) {
+      window.location.reload();
+    }
     setConfirmTrigger(true);
     try {
+      const wallet = walletContext;
+      const auctionView = auction!!;
 
-      if (eligibleForAnything) {
-        const wallet = walletContext;
-        const auctionView = auction!!;
+      const redeemBid = await sendRedeemBid(
+        connection,
+        wallet,
+        myPayingAccount.pubkey,
+        auctionView,
+        accountByMint,
+        prizeTrackingTickets,
+        bidRedemptions,
+        bids,
+      );
+      localStorage.setItem('reload', 'true');
 
-        const redeemBid = await sendRedeemBid(
-          connection,
-          wallet,
-          myPayingAccount.pubkey,
-          auctionView,
-          accountByMint,
-          prizeTrackingTickets,
-          bidRedemptions,
-          bids,
-        );
-        localStorage.setItem('reload', 'true');
-
-        if (auction?.auctionManager.authority === publicKey?.toBase58()) {
-          await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
-          updateNotifAuction(auction?.auction.pubkey || '');
-        } else {
-          await supabaseUpdateIsRedeem(
-            auctionView.auction.pubkey,
-            publicKey?.toBase58(),
-          );
-          updateNotifBidding(
-            `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
-          );
-          setShowCongratulations(true);
-          supabaseUpdateNFTHolder(
-            auctionView.thumbnail.metadata.pubkey,
-            wallet.publicKey?.toBase58(),
-            parseFloat(`${minimumBid}`),
-          );
-        }
+      if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+        await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+        updateNotifAuction(auction?.auction.pubkey || '');
       } else {
-        const wallet = walletContext;
-        const auctionView = auction!!;
-
-        const cancelBid = await sendCancelBid(
-          connection,
-          wallet,
-          myPayingAccount.pubkey,
-          auctionView,
-          accountByMint,
-          bids,
-          bidRedemptions,
-          prizeTrackingTickets,
+        await supabaseUpdateIsRedeem(
+          auctionView.auction.pubkey,
+          publicKey?.toBase58(),
         );
-        if (auction?.auctionManager.authority === publicKey?.toBase58()) {
-          await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
-          updateNotifAuction(auction?.auction.pubkey || '');
-        } else {
-          await supabaseUpdateIsRedeem(
-            auctionView.auction.pubkey,
-            publicKey?.toBase58(),
-          );
-          updateNotifBidding(
-            `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
-          );
-        }
-        setIsRedeem(true);
+        updateNotifBidding(
+          `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
+        );
+        setShowCongratulations(true);
+        supabaseUpdateNFTHolder(
+          auctionView.thumbnail.metadata.pubkey,
+          wallet.publicKey?.toBase58(),
+          parseFloat(`${minimumBid}`),
+        );
       }
-
     } catch (e) {
+      console.error(e);
+    }
 
+    setConfirmTrigger(false);
+  };
+  const actionEndedAuctionRefund = async () => {
+    setConfirmTrigger(true);
+    try {
+      const wallet = walletContext;
+      const auctionView = auction!!;
+
+      const cancelBid = await sendCancelBid(
+        connection,
+        wallet,
+        myPayingAccount.pubkey,
+        auctionView,
+        accountByMint,
+        bids,
+        bidRedemptions,
+        prizeTrackingTickets,
+      );
+      if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+        await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+        updateNotifAuction(auction?.auction.pubkey || '');
+      } else {
+        await supabaseUpdateIsRedeem(
+          auctionView.auction.pubkey,
+          publicKey?.toBase58(),
+        );
+        updateNotifBidding(
+          `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
+        );
+      }
+      setIsRedeem(true);
+    } catch (e) {
+      console.error(e);
+    }
+
+    setConfirmTrigger(false);
+  };
+  const actionEndedAuctionReclaim = async () => {
+    setConfirmTrigger(true);
+    try {
+      const wallet = walletContext;
+      const auctionView = auction!!;
+
+      const cancelBid = await sendCancelBid(
+        connection,
+        wallet,
+        myPayingAccount.pubkey,
+        auctionView,
+        accountByMint,
+        bids,
+        bidRedemptions,
+        prizeTrackingTickets,
+      );
+      localStorage.setItem('reload', 'true');
+      if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+        await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+        updateNotifAuction(auction?.auction.pubkey || '');
+        setShowCongratulations(true);
+        supabaseUpdateNFTHolder(
+          auctionView.thumbnail.metadata.pubkey,
+          wallet.publicKey?.toBase58(),
+          parseFloat(`${minimumBid}`),
+        );
+      } else {
+        console.log(
+          '🚀 ~ file: index.tsx ~ line 338 ~ actionEndedAuctionReclaim ~ authority lain',
+        );
+        await supabaseUpdateIsRedeem(
+          auctionView.auction.pubkey,
+          publicKey?.toBase58(),
+        );
+        updateNotifBidding(
+          `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
+        );
+        setShowCongratulations(true);
+        supabaseUpdateNFTHolder(
+          auctionView.thumbnail.metadata.pubkey,
+          wallet.publicKey?.toBase58(),
+          parseFloat(`${minimumBid}`),
+        );
+      }
+    } catch (e) {
       console.error(e);
     }
 
@@ -782,7 +865,7 @@ const BidDetails = ({
         return (
           <BidDetailsContent>
             <div className={ButtonWrapper}>
-              <ActionButton onClick={actionEndedAuction} width="100%">
+              <ActionButton onClick={actionEndedAuctionClaim} width="100%">
                 claim NFT
               </ActionButton>
             </div>
@@ -792,7 +875,7 @@ const BidDetails = ({
 
       // case 2: auction ended but not winning
       if (isParticipated) {
-        if (redeemData.length > 0 || isRedeem) {
+        if (isRedeem) {
           return (
             <BidDetailsContent>
               <div className={ButtonWrapper}>
@@ -806,7 +889,7 @@ const BidDetails = ({
           return (
             <BidDetailsContent>
               <div className={ButtonWrapper}>
-                <ActionButton onClick={actionEndedAuction} width="100%">
+                <ActionButton onClick={actionEndedAuctionRefund} width="100%">
                   refund bid
                 </ActionButton>
               </div>
@@ -821,7 +904,7 @@ const BidDetails = ({
         return (
           <BidDetailsContent>
             <div className={ButtonWrapper}>
-              <ActionButton onClick={actionEndedAuction} width="100%">
+              <ActionButton onClick={actionEndedAuctionReclaim} width="100%">
                 reclaim NFT
               </ActionButton>
             </div>
