@@ -54,6 +54,12 @@ module.exports = withPlugins(plugins, {
         permanent: false,
         basePath: false
       },
+      {
+        source: '/deck',
+        destination: 'https://www.canva.com/design/DAEyoqUAshE/vV7_hpMgcZM1jFtUVf9wyg/view ',
+        permanent: false,
+        basePath: false
+      },
     ]
   }
 });
