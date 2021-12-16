@@ -265,9 +265,6 @@ const BidDetails = ({
     bids.filter(bid => bid?.info?.bidderPubkey === publicKey?.toBase58())
       .length > 0;
   const actionEndedAuctionClaim = async () => {
-    if (!eligibleForAnything) {
-      window.location.reload();
-    }
     setConfirmTrigger(true);
     try {
       const wallet = walletContext;
@@ -296,6 +293,14 @@ const BidDetails = ({
         updateNotifBidding(
           `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
         );
+        // const filterMetadata = ownedMetadata.filter(
+        //   metadata => metadata.metadata.info.mint === art.mint,
+        // );
+        // console.log(
+        //   '🚀 ~ file: index.tsx ~ line 302 ~ actionEndedAuctionClaim ~ filterMetadata',
+        //   filterMetadata,
+        // );
+
         setShowCongratulations(true);
         supabaseUpdateNFTHolder(
           auctionView.thumbnail.metadata.pubkey,
@@ -364,6 +369,13 @@ const BidDetails = ({
       if (auction?.auctionManager.authority === publicKey?.toBase58()) {
         await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
         updateNotifAuction(auction?.auction.pubkey || '');
+        // const filterMetadata = ownedMetadata.filter(
+        //   metadata => metadata.metadata.info.mint === art.mint,
+        // );
+        // console.log(
+        //   '🚀 ~ file: index.tsx ~ line 378 ~ actionEndedAuctionReclaim ~ filterMetadata',
+        //   filterMetadata,
+        // );
         setShowCongratulations(true);
         supabaseUpdateNFTHolder(
           auctionView.thumbnail.metadata.pubkey,
@@ -371,9 +383,7 @@ const BidDetails = ({
           parseFloat(`${minimumBid}`),
         );
       } else {
-        console.log(
-          '🚀 ~ file: index.tsx ~ line 338 ~ actionEndedAuctionReclaim ~ authority lain',
-        );
+      
         await supabaseUpdateIsRedeem(
           auctionView.auction.pubkey,
           publicKey?.toBase58(),
@@ -518,6 +528,13 @@ const BidDetails = ({
       pullAuctionPage(auction?.auction.pubkey || '');
       await update();
       localStorage.setItem('reload', 'true');
+      // const filterMetadata = ownedMetadata.filter(
+      //   metadata => metadata.metadata.info.mint === art.mint,
+      // );
+      // console.log(
+      //   '🚀 ~ file: index.tsx ~ line 529 ~ instantSale ~ filterMetadata',
+      //   filterMetadata,
+      // );
 
       // const items = auctionView.items;
       // let isAlreadyBought: boolean = false;
@@ -861,7 +878,9 @@ const BidDetails = ({
             </BidDetailsContent>
           );
         }
-
+        if (!eligibleForAnything) {
+          window.location.reload();
+        }
         return (
           <BidDetailsContent>
             <div className={ButtonWrapper}>
