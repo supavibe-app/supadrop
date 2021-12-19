@@ -111,7 +111,8 @@ export const AuctionView = () => {
       edition = 'Unique';
       break;
     case ArtType.Master:
-      edition = 'NFT 0';
+      // edition = 'NFT 0';
+      edition = 'Edition 1 of 1';
       break;
     case ArtType.Print:
       edition = `edition ${art.edition} of ${art.supply} `;

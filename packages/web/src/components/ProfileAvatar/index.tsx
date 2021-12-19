@@ -22,7 +22,8 @@ const ProfileAvatar = ({ imgProfile, walletAddress, username, size = 32 }) => {
       </Link>
       <Link to={`/${username || walletAddress}`}>
         <span style={{ color: '#fafafb' }}>
-          {username || shortenAddress(walletAddress)}
+          {username && username.length > 8 ? shortenAddress(walletAddress) : username}
+          {!username && shortenAddress(walletAddress)}
         </span>
       </Link>
     </>
