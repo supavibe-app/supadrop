@@ -287,30 +287,10 @@ export const mintNFT = async (
   let thumbnailFile;
 
   if (metadata.properties?.category === 'image') {
-    originalFile = result.messages?.find(
-      m =>
-        m.filename.includes('.png') ||
-        m.filename.includes('.jpg') ||
-        m.filename.includes('.gif'),
-    );
+    originalFile = result.messages?.length ? result.messages[0] : undefined;
   } else {
-    originalFile = result.messages?.find(
-      m =>
-        m.filename.includes('.mp3') ||
-        m.filename.includes('.flac') ||
-        m.filename.includes('.wav') || // audio
-        m.filename.includes('.mp4') ||
-        m.filename.includes('.mov') ||
-        m.filename.includes('.webm') || // video
-        m.filename.includes('.glb') ||
-        m.filename.includes('.html'), // 3D & HTML
-    );
-    thumbnailFile = result.messages?.find(
-      m =>
-        m.filename.includes('.png') ||
-        m.filename.includes('.jpg') ||
-        m.filename.includes('.gif'),
-    );
+    originalFile = result.messages?.length ? result.messages[0] : undefined;
+    thumbnailFile = result.messages?.length ? result.messages[1] : undefined;
   }
 
   if (metadataFile?.transactionId && wallet.publicKey) {
