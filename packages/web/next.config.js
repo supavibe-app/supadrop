@@ -56,7 +56,7 @@ module.exports = withPlugins(plugins, {
       },
       {
         source: '/deck',
-        destination: 'https://www.canva.com/design/DAEyoqUAshE/vV7_hpMgcZM1jFtUVf9wyg/view ',
+        destination: 'https://www.canva.com/design/DAEyoqUAshE/vV7_hpMgcZM1jFtUVf9wyg/view#1',
         permanent: false,
         basePath: false
       },
