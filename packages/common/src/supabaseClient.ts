@@ -110,14 +110,40 @@ export const supabaseUpdateNFTHolder = (
   walletAddress?: string,
   soldFor?: number,
 ) => {
+  if (soldFor) {
+    supabase
+      .from('nft_data')
+      .update({
+        holder: walletAddress,
+        updated_at: timestampPostgre(),
+        sold: soldFor,
+      })
+      .eq('id', idNFT)
+      .then();
+  } else {
+    supabase
+      .from('nft_data')
+      .update({
+        holder: walletAddress,
+        updated_at: timestampPostgre(),
+      })
+      .eq('id', idNFT)
+      .then();
+  }
+};
+
+export const supabaseClearNFTHolder = (
+  idNFT: string,
+  walletAddress?: string,
+) => {
   supabase
     .from('nft_data')
     .update({
-      holder: walletAddress,
+      holder: null,
       updated_at: timestampPostgre(),
-      sold: soldFor,
     })
-    .eq('id', idNFT)
+    .not('id', 'eq', idNFT)
+    .eq('holder', walletAddress)
     .then();
 };
 

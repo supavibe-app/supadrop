@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Avatar, Button, Col, Row, Skeleton, Tabs, message, Badge } from 'antd';
 import { TwitterOutlined } from '@ant-design/icons';
 import { Link, useHistory } from 'react-router-dom';
-import { Identicon, shortenAddress, useMeta } from '@oyster/common';
+import { Identicon, shortenAddress, supabase, supabaseClearNFTHolder, supabaseUpdateNFTHolder, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import FeatherIcon from 'feather-icons-react';
 
@@ -116,6 +116,17 @@ const Profile = ({ userId }: { userId: string }) => {
     !loadingOnSale &&
     artwork.length === 0 &&
     onSale.length === 0;
+
+useEffect(() => {
+  if (ownedMetadata.length > 0 && walletAddress) {
+    console.log('owned', walletAddress)
+    ownedMetadata.map( m => {
+      supabaseClearNFTHolder(m.metadata.pubkey, walletAddress)
+      supabaseUpdateNFTHolder(m.metadata.pubkey, walletAddress)
+      console.log('owned', m.metadata.pubkey)
+    })
+  }
+}, [ownedMetadata]);
 
   useEffect(() => {
     // if username is available, show username in the url instead of their wallet address
