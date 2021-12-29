@@ -60,6 +60,10 @@ const EditProfile = ({
     const { data, error } = await supabase.storage
       .from('profile')
       .download(`avatars/${userData?.wallet_address}_${path}`);
+    console.log(
+      '🚀 ~ file: index.tsx ~ line 63 ~ downloadImage ~ { data, error }',
+      { data, error },
+    );
     if (error) {
       throw error;
     }
@@ -91,6 +95,7 @@ const EditProfile = ({
 
       imageProfile = `${process.env.NEXT_PUBLIC_BASE_STORAGE_URL}${userData?.wallet_address}_${file?.name}`;
     } else imageProfile = userData?.img_profile || '';
+    console.log('🚀 ~ file: index.tsx ~ line 98 ~ imageProfile', imageProfile);
 
     let { data, error } = await supabase
       .from('user_data')
@@ -136,6 +141,7 @@ const EditProfile = ({
     const { error: uploadError } = await supabase.storage
       .from('profile')
       .upload(`avatars/${userData?.wallet_address}_${event.name}`, event);
+    console.log('🚀 ~ file: index.tsx ~ line 139 ~ uploadError', uploadError);
 
     if (uploadError) {
       downloadImage(event.name);

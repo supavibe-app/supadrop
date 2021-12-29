@@ -19,6 +19,7 @@ import { TwitterURL } from '../../constants';
 import { getUsernameByPublicKeys } from '../../database/userData';
 import countDown from '../../helpers/countdown';
 import { CountdownState, ItemAuction, UserData } from '@oyster/common';
+import { getLiveDataAuction } from '../../database/auction';
 
 const { TabPane } = Tabs;
 
@@ -35,12 +36,11 @@ const AuctionListView = () => {
     dataCollection,
   } = useMeta();
 
+  const { data: liveAuction, loading } = getLiveDataAuction();
   const now = moment().unix();
-
   const [activeKey, setActiveKey] = useState(
-    Object.entries(liveDataAuctions).length > 0 ? '1' : '2',
+    Object.entries(liveAuction).length === 0 && !loading ? '2' : '1',
   );
-
   useEffect(() => {
     const calc = () =>
       setState(
@@ -53,9 +53,9 @@ const AuctionListView = () => {
   }, [endingTime, dataCollection]);
 
   useEffect(() => {
-    if (Object.entries(liveDataAuctions).length) setActiveKey('1');
-    else setActiveKey('2');
-  }, [liveDataAuctions]);
+    if (Object.entries(liveAuction).length === 0 && !loading) setActiveKey('2');
+    else setActiveKey('1');
+  }, [loading]);
 
   const auctionList = (list: ItemAuction[]) => {
     if (isLoadingDatabase)
@@ -172,10 +172,8 @@ const AuctionListView = () => {
               </div>
             }
           >
-            <Row gutter={[36, 36]}>{auctionList(liveDataAuctions)}</Row>
-            {!Boolean(liveDataAuctions.length) &&
-              !isLoadingMetaplex &&
-              emptyAuction}
+            <Row gutter={[36, 36]}>{auctionList(liveAuction)}</Row>
+            {!Boolean(liveAuction.length) && !loading && emptyAuction}
           </TabPane>
 
           <TabPane
@@ -184,7 +182,7 @@ const AuctionListView = () => {
           >
             <Row gutter={[36, 36]}>{auctionList(endedAuctions)}</Row>
             {!Boolean(endedAuctions.length) &&
-              !isLoadingMetaplex &&
+              !isLoadingDatabase &&
               emptyAuction}
           </TabPane>
         </Tabs>
