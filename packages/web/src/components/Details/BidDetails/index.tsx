@@ -107,6 +107,7 @@ const BidDetails = ({
   const { setVisible } = useWalletModal();
   const { account } = useNativeAccount();
   const { accountByMint } = useUserAccounts();
+  const [counter, setCounter] = useState(0);
   const {
     update,
     prizeTrackingTickets,
@@ -129,33 +130,15 @@ const BidDetails = ({
   } = getAuctionIsRedeemData(publicKey?.toBase58(), id);
 
   const owner = auctionDatabase?.owner;
-  const endAt = auctionDatabase?.endAt;
-  const isInstantSale = auction?.auction?.info?.endAuctionAt === undefined;
-
+  const [endAt, setEndAt] = useState(auctionDatabase?.endAt);
   useEffect(() => {
-    if (
-      auction?.auction.info.auctionGap &&
-      highestBid?.info.lastBidTimestamp?.toNumber() &&
-      endAt &&
-      auctionDatabase?.id
-    ) {
-      let latestTime =
-        auction?.auction.info.auctionGap?.toNumber() +
-        highestBid?.info.lastBidTimestamp?.toNumber();
-      if (latestTime > endAt) {
-        supabase
-          .from('auction_status')
-          .update({
-            end_auction: latestTime,
-          })
-          .eq('id', auctionDatabase.id)
-          .then(data => {
-            updateDetailAuction(auctionDatabase.id);
-          });
-      }
+    if (auctionDatabase?.endAt) {
+      setEndAt(auctionDatabase.endAt);
     }
-  }, [highestBid]);
+  }, [auctionDatabase]);
 
+  const isInstantSale = auction?.auction?.info?.endAuctionAt === undefined;
+  const [newBidding, setNewBidding] = useState(false);
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
 
@@ -238,7 +221,7 @@ const BidDetails = ({
     }
   }, [id]);
   useEffect(() => {
-    if (updatedData) {
+    if (updatedData && !isInstantSale) {
       pullAuctionPage(id);
 
       setUpdatedData('');
@@ -254,7 +237,50 @@ const BidDetails = ({
       return () => clearInterval(interval);
     }
   }, [endAt]);
+  useEffect(() => {
+    if (
+      auction?.auction.info.auctionGap &&
+      highestBid?.info.lastBidTimestamp?.toNumber() &&
+      endAt &&
+      auctionDatabase?.id
+    ) {
+      let latestTime =
+        auction?.auction.info.auctionGap?.toNumber() +
+        highestBid?.info.lastBidTimestamp?.toNumber();
 
+      console.log(
+        '🚀 ~ file: index.tsx ~ line 253 ~ useEffect ~ latestTime',
+        latestTime,
+        publicKey?.toBase58(),
+      );
+      if (latestTime > endAt) {
+        if (newBidding || counter === 0) {
+          supabase
+            .from('auction_status')
+            .update({
+              end_auction: latestTime,
+            })
+            .eq('id', auctionDatabase.id)
+            .then(data => {
+              updateDetailAuction(auctionDatabase.id);
+              console.log(
+                '🚀 ~ file: index.tsx ~ line 255 ~ useEffect ~ auctionDatabase.id',
+                auctionDatabase.id,
+              );
+            });
+        }
+        setEndAt(latestTime);
+      }
+    }
+    setNewBidding(false);
+    setCounter(counter + 1);
+
+    console.log(
+      '🚀 ~ file: index.tsx ~ line 273 ~ newBidding',
+      newBidding,
+      counter,
+    );
+  }, [minimumBid]);
   const handleConnect = useCallback(() => {
     if (wallet) connect();
     else open();
@@ -266,6 +292,14 @@ const BidDetails = ({
       .length > 0;
   const actionEndedAuctionClaim = async () => {
     setConfirmTrigger(true);
+    if (!eligibleForAnything) {
+      const newAuctionState = await update(auction?.auction.pubkey, publicKey);
+      if (auction) {
+        auction.auction = newAuctionState[0];
+        auction.myBidderPot = newAuctionState[1];
+        auction.myBidderMetadata = newAuctionState[2];
+      }
+    }
     try {
       const wallet = walletContext;
       const auctionView = auction!!;
@@ -383,7 +417,6 @@ const BidDetails = ({
           parseFloat(`${minimumBid}`),
         );
       } else {
-      
         await supabaseUpdateIsRedeem(
           auctionView.auction.pubkey,
           publicKey?.toBase58(),
@@ -444,13 +477,14 @@ const BidDetails = ({
       // user click approve
       setShowPlaceBid(false);
       setConfirmTrigger(false);
-      pullAuctionPage(auctionDatabase?.id || '');
+      // pullAuctionPage(auctionDatabase?.id || '');
       setBidPlaced(true);
       supabaseUpdateBid(
         auction?.auction.pubkey,
         publicKey?.toBase58(),
         currentBidAmount,
       );
+      setNewBidding(true);
       // user click cancel
     } catch (error) {
       console.error(error);
@@ -609,13 +643,13 @@ const BidDetails = ({
   };
   const BidDetailsContent = ({ children }) => {
     const isAuctionNotStarted =
-      auction?.auction.info.state === AuctionState.Created;
+      auction?.auction?.info?.state === AuctionState.Created;
 
     const isOpenEditionSale =
-      auction?.auction.info.bidState.type === BidStateType.OpenEdition;
+      auction?.auction?.info?.bidState?.type === BidStateType.OpenEdition;
     const doesInstantSaleHasNoItems =
       Number(auction?.myBidderPot?.info.emptied) !== 0 &&
-      auction?.auction.info.bidState.max?.toNumber() === bids.length;
+      auction?.auction?.info?.bidState?.max?.toNumber() === bids.length;
 
     const shouldHideInstantSale =
       !isOpenEditionSale &&
@@ -625,7 +659,7 @@ const BidDetails = ({
 
     const shouldHide =
       shouldHideInstantSale ||
-      auction?.vault.info.state === VaultState.Deactivated;
+      auction?.vault?.info?.state === VaultState.Deactivated;
 
     // if (redeemData?.length > 0 || isRedeem) return <></>;
 
@@ -661,15 +695,15 @@ const BidDetails = ({
             <div className={BidStatus}>
               <Link
                 to={`/${
-                  users[bid.info.bidderPubkey]?.username ||
-                  bid.info.bidderPubkey
+                  users[bid?.info?.bidderPubkey]?.username ||
+                  bid?.info?.bidderPubkey
                 }`}
               >
                 <Avatar
                   src={
-                    users[bid.info.bidderPubkey]?.img_profile || (
+                    users[bid?.info?.bidderPubkey]?.img_profile || (
                       <Identicon
-                        address={bid.info.bidderPubkey}
+                        address={bid?.info?.bidderPubkey}
                         style={{ width: 40 }}
                       />
                     )
@@ -682,18 +716,18 @@ const BidDetails = ({
                 {/* <DetailStatus
                   status={'winning bid by'}
                   username={
-                    users[bid.info.bidderPubkey]?.username
-                      ? users[bid.info.bidderPubkey].username
-                      : shortenAddress(bid.info.bidderPubkey)
+                    users[bid?.info?.bidderPubkey]?.username
+                      ? users[bid?.info?.bidderPubkey].username
+                      : shortenAddress(bid?.info?.bidderPubkey)
                   }
                   time={}
                 /> */}
                 <div>
                   winning bid by{' '}
                   <span className={WhiteColor}>
-                    {users[bid.info.bidderPubkey]?.username
-                      ? users[bid.info.bidderPubkey].username
-                      : shortenAddress(bid.info.bidderPubkey)}
+                    {users[bid?.info?.bidderPubkey]?.username
+                      ? users[bid?.info?.bidderPubkey].username
+                      : shortenAddress(bid?.info?.bidderPubkey)}
                   </span>
                 </div>
 
@@ -733,14 +767,14 @@ const BidDetails = ({
               <Link
                 to={`/${
                   users[highestBid.info.bidderPubkey]?.username ||
-                  bid.info.bidderPubkey
+                  bid?.info?.bidderPubkey
                 }`}
               >
                 <Avatar
                   src={
                     users[highestBid.info.bidderPubkey]?.img_profile || (
                       <Identicon
-                        address={bid.info.bidderPubkey}
+                        address={bid?.info?.bidderPubkey}
                         style={{ width: 40 }}
                       />
                     )
@@ -756,7 +790,7 @@ const BidDetails = ({
                     <Link
                       to={`/${
                         users[highestBid.info.bidderPubkey]?.username ||
-                        bid.info.bidderPubkey
+                        bid?.info?.bidderPubkey
                       }`}
                     >
                       <span className={WhiteColor}>
@@ -878,9 +912,7 @@ const BidDetails = ({
             </BidDetailsContent>
           );
         }
-        if (!eligibleForAnything) {
-          window.location.reload();
-        }
+
         return (
           <BidDetailsContent>
             <div className={ButtonWrapper}>
@@ -916,19 +948,31 @@ const BidDetails = ({
           );
         }
       }
-      if (
-        auction?.auctionManager.authority === publicKey?.toBase58() &&
-        bids.length === 0
-      ) {
-        return (
-          <BidDetailsContent>
-            <div className={ButtonWrapper}>
-              <ActionButton onClick={actionEndedAuctionReclaim} width="100%">
-                reclaim NFT
-              </ActionButton>
-            </div>
-          </BidDetailsContent>
-        );
+      if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+        if (bids.length === 0) {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton onClick={actionEndedAuctionReclaim} width="100%">
+                  reclaim NFT
+                </ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        } else {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton
+                  to={`/auction/${auction.auction.pubkey}/settle`}
+                  width="100%"
+                >
+                  settle
+                </ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        }
       }
 
       return (
