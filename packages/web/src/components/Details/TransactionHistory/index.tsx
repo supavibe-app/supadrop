@@ -60,7 +60,7 @@ const TransactionHistory = ({
       )}
 
       {bids.map((bid, idx) => (
-        <div key={idx}>
+        <div key={bid.pubkey}>
           {publicKey?.toBase58() === bid.info.bidderPubkey && (
             <div className={IsMyBid} />
           )}

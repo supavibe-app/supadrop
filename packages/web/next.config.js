@@ -38,6 +38,7 @@ module.exports = withPlugins(plugins, {
     NEXT_PUBLIC_SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_BASE_STORAGE_URL: process.env.REACT_APP_BASE_STORAGE_URL,
+    NEXT_PUBLIC_URL_UPLOAD_NFT: process.env.REACT_APP_URL_UPLOAD_NFT
   },
   async rewrites() {
     return [

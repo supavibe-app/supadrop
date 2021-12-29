@@ -233,7 +233,7 @@ const MarketComponent = () => {
 
             return (
               <Col
-                key={idx}
+                key={m.id}
                 span={24}
                 xxl={8}
                 xl={8}

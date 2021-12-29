@@ -85,6 +85,7 @@ export const findProgramAddress = async (
 
 // shorten the checksummed version of the input address to have 4 characters at start and end
 export function shortenAddress(address = '', chars = 4): string {
+  if (address.length < 15) return address
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 

@@ -62,7 +62,8 @@ export const ArtCreateView = () => {
   const [alertMessage, setAlertMessage] = useState<string>();
   const { width } = useWindowDimensions();
   const [nftCreateProgress, setNFTcreateProgress] = useState<number>(0);
-
+  const [coverFile, setCoverFile] = useState<File>();
+  const [mainFile, setMainFile] = useState<File>();
   const [step, setStep] = useState<number>(0);
   const [stepsVisible, setStepsVisible] = useState<boolean>(true);
   const [isMinting, setMinting] = useState<boolean>(false);
@@ -114,6 +115,8 @@ export const ArtCreateView = () => {
         metadata,
         setNFTcreateProgress,
         attributes.properties?.maxSupply,
+        coverFile,
+        mainFile,
       );
       if (_nft) {
         setNft(_nft);
@@ -167,6 +170,8 @@ export const ArtCreateView = () => {
           )}
           {step === 1 && (
             <UploadStep
+              onSetCoverFile={setCoverFile}
+              onSetMainFile={setMainFile}
               attributes={attributes}
               setAttributes={setAttributes}
               files={files}
@@ -307,6 +312,8 @@ const UploadStep = (props: {
   files: File[];
   setFiles: (files: File[]) => void;
   confirm: () => void;
+  onSetCoverFile?: (f: File) => void;
+  onSetMainFile?: (f: File) => void;
 }) => {
   const [coverFile, setCoverFile] = useState<File | undefined>(
     props.files?.[0],
@@ -402,7 +409,7 @@ const UploadStep = (props: {
               );
               return;
             }
-
+            props.onSetCoverFile && props.onSetCoverFile(file);
             setCoverFile(file);
             setCoverArtError(undefined);
           }}
@@ -443,7 +450,10 @@ const UploadStep = (props: {
               setCustomURL('');
               setCustomURLErr('');
 
-              if (file) setMainFile(file);
+              if (file) {
+                setMainFile(file);
+                props.onSetMainFile && props.onSetMainFile(file);
+              }
             }}
             onRemove={() => {
               setMainFile(undefined);

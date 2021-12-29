@@ -31,6 +31,7 @@ import {
 import crypto from 'crypto';
 import { AR_SOL_HOLDER_ID } from '../utils/ids';
 import BN from 'bn.js';
+import { PinFileResponse } from '../helpers/ipfs/types';
 
 const RESERVED_TXN_MANIFEST = 'manifest.json';
 const RESERVED_METADATA = 'metadata.json';
@@ -127,6 +128,8 @@ export const mintNFT = async (
   },
   progressCallback: Dispatch<SetStateAction<number>>,
   maxSupply?: number,
+  coverFile?: File,
+  mainFile?: File,
 ): Promise<{
   metadataAccount: StringPublicKey;
   // uploadedNFT: NFTDataUpload;
@@ -420,6 +423,303 @@ export const mintNFT = async (
   return { metadataAccount };
 };
 
+export const mintNFTIPFS = async (
+  connection: Connection,
+  wallet: WalletSigner | undefined,
+  env: ENV,
+  files: File[],
+  metadata: {
+    name: string;
+    symbol: string;
+    description: string;
+    image: string | undefined;
+    animation_url: string | undefined;
+    attributes: Attribute[] | undefined;
+    external_url: string;
+    properties: any;
+    creators: Creator[] | null;
+    sellerFeeBasisPoints: number;
+  },
+  progressCallback: Dispatch<SetStateAction<number>>,
+  maxSupply?: number,
+  coverFile?: File,
+  mainFile?: File,
+): Promise<{
+  metadataAccount: StringPublicKey;
+  // uploadedNFT: NFTDataUpload;
+} | void> => {
+  if (!wallet?.publicKey) return;
+
+  const metadataContent = {
+    name: metadata.name,
+    symbol: metadata.symbol,
+    description: metadata.description,
+    seller_fee_basis_points: metadata.sellerFeeBasisPoints,
+    image: metadata.image,
+    animation_url: metadata.animation_url,
+    attributes: metadata.attributes,
+    external_url: metadata.external_url,
+    properties: {
+      ...metadata.properties,
+      creators: metadata.creators?.map(creator => {
+        return {
+          address: creator.address,
+          share: creator.share,
+        };
+      }),
+    },
+  };
+
+  const realFiles: File[] = [
+    ...files,
+    new File([JSON.stringify(metadataContent)], RESERVED_METADATA),
+  ];
+
+  progressCallback(1);
+
+  progressCallback(2);
+
+  // const { instructions: pushInstructions, signers: pushSigners } =
+  //   await prepPayForFilesTxn(wallet, realFiles, metadata);
+
+  const TOKEN_PROGRAM_ID = programIds().token;
+
+  // Allocate memory for the account
+  const mintRent = await connection.getMinimumBalanceForRentExemption(
+    MintLayout.span,
+  );
+  // const accountRent = await connection.getMinimumBalanceForRentExemption(
+  //   AccountLayout.span,
+  // );
+
+  // This owner is a temporary signer and owner of metadata we use to circumvent requesting signing
+  // twice post Arweave. We store in an account (payer) and use it post-Arweave to update MD with new link
+  // then give control back to the user.
+  // const payer = new Account();
+  const payerPublicKey = wallet.publicKey.toBase58();
+  const instructions: TransactionInstruction[] = [];
+  const signers: Keypair[] = [];
+
+  // This is only temporarily owned by wallet...transferred to program by createMasterEdition below
+  const mintKey = createMint(
+    instructions,
+    wallet.publicKey,
+    mintRent,
+    0,
+    // Some weird bug with phantom where it's public key doesnt mesh with data encode wellff
+    toPublicKey(payerPublicKey),
+    toPublicKey(payerPublicKey),
+    signers,
+  ).toBase58();
+
+  const recipientKey = (
+    await findProgramAddress(
+      [
+        wallet.publicKey.toBuffer(),
+        programIds().token.toBuffer(),
+        toPublicKey(mintKey).toBuffer(),
+      ],
+      programIds().associatedToken,
+    )
+  )[0];
+
+  createAssociatedTokenAccountInstruction(
+    instructions,
+    toPublicKey(recipientKey),
+    wallet.publicKey,
+    wallet.publicKey,
+    toPublicKey(mintKey),
+  );
+
+  const fileDataForm = new FormData();
+
+  realFiles.map(f => {
+    fileDataForm.append(`file[${f.name}]`, f, f.name);
+  });
+
+  const uploadResponse = await fetch(
+    process.env.NEXT_PUBLIC_URL_UPLOAD_NFT || '',
+    {
+      mode: 'cors',
+      method: 'POST',
+      body: fileDataForm,
+    },
+  );
+  console.log('🚀 ~ file: nft.tsx ~ line 183 ~ uploadResponse', uploadResponse);
+
+  if (!uploadResponse.ok) {
+    throw new Error(
+      'Unable to upload files to IPFS. Please wait a moment and try again.',
+    );
+  }
+
+  const uploadedFilePins: { files: PinFileResponse[] } =
+    await uploadResponse.json();
+  console.log(
+    '🚀 ~ file: nft.tsx ~ line 628 ~ uploadedFilePins',
+    uploadedFilePins,
+  );
+  let imageSet = false;
+  metadataContent.properties.files = [];
+  uploadedFilePins.files.forEach(file => {
+    if (!coverFile && !imageSet && /image/.test(file.type || '')) {
+      metadataContent.image = file.uri;
+      imageSet = true;
+    }
+    metadataContent.properties.files.push({
+      uri: file.uri,
+      type: file.type,
+    });
+  });
+
+  if (coverFile) {
+    const coverFileUpload = uploadedFilePins.files.find(
+      file => file.name == coverFile.name,
+    );
+    if (coverFileUpload) {
+      metadataContent.image = coverFileUpload.uri;
+    }
+  }
+  if (mainFile) {
+    const mainFileUpload = uploadedFilePins.files.find(
+      file => file.name == mainFile.name,
+    );
+    if (mainFileUpload) {
+      metadataContent.animation_url = mainFileUpload.uri;
+    }
+  }
+
+  const metaData = new File(
+    [JSON.stringify(metadataContent)],
+    RESERVED_METADATA,
+  );
+  const metaDataFileForm = new FormData();
+  metaDataFileForm.append(`file[${metaData.name}]`, metaData, metaData.name);
+  const metaDataUploadResponse = await fetch(
+    process.env.NEXT_PUBLIC_URL_UPLOAD_NFT || '',
+    {
+      mode: 'cors',
+      method: 'POST',
+      body: metaDataFileForm,
+    },
+  );
+  console.log(
+    '🚀 ~ file: nft.tsx ~ line 671 ~ metaDataUploadResponse',
+    metaDataUploadResponse,
+  );
+
+  if (!metaDataUploadResponse.ok) {
+    throw new Error(
+      'Unable to upload NFT metadata to IPFS. Please wait a moment and try again.',
+    );
+  }
+
+  const uploadedMetaDataPinResponse = await metaDataUploadResponse.json();
+  const uploadedMetaDataPin = uploadedMetaDataPinResponse.files[0];
+  console.log(
+    '🚀 ~ file: nft.tsx ~ line 341 ~ uploadedMetaDataPin',
+    uploadedMetaDataPin,
+  );
+
+  const metadataAccount = await createMetadata(
+    new Data({
+      symbol: metadata.symbol,
+      name: metadata.name,
+      uri: uploadedMetaDataPin.uri,
+      sellerFeeBasisPoints: metadata.sellerFeeBasisPoints,
+      creators: metadata.creators,
+    }),
+    payerPublicKey,
+    mintKey,
+    payerPublicKey,
+    instructions,
+    wallet.publicKey.toBase58(),
+  );
+
+  progressCallback(3);
+
+  progressCallback(5);
+  // TODO: enable when using payer account to avoid 2nd popup
+  // const block = await connection.getRecentBlockhash('singleGossip');
+  // instructions.push(
+  //   SystemProgram.transfer({
+  //     fromPubkey: wallet.publicKey,
+  //     toPubkey: payerPublicKey,
+  //     lamports: 0.5 * LAMPORTS_PER_SOL // block.feeCalculator.lamportsPerSignature * 3 + mintRent, // TODO
+  //   }),
+  // );
+
+  progressCallback(6);
+  if (uploadedMetaDataPin && wallet.publicKey) {
+    const updateInstructions: TransactionInstruction[] = instructions;
+    const updateSigners: Keypair[] = signers;
+
+    updateInstructions.push(
+      Token.createMintToInstruction(
+        TOKEN_PROGRAM_ID,
+        toPublicKey(mintKey),
+        toPublicKey(recipientKey),
+        toPublicKey(payerPublicKey),
+        [],
+        1,
+      ),
+    );
+    progressCallback(7);
+    // // In this instruction, mint authority will be removed from the main mint, while
+    // // minting authority will be maintained for the Printing mint (which we want.)
+    await createMasterEdition(
+      maxSupply !== undefined ? new BN(maxSupply) : undefined,
+      mintKey,
+      payerPublicKey,
+      payerPublicKey,
+      payerPublicKey,
+      updateInstructions,
+    );
+
+    supabaseAddNewNFT(
+      metadataAccount,
+      metadataContent.animation_url || metadataContent.image, // table
+      metadata.name,
+      metadata.description,
+      metadata.attributes || [],
+      metadata.sellerFeeBasisPoints,
+      uploadedMetaDataPin.uri,
+      mintKey,
+      payerPublicKey,
+      metadata.properties?.category,
+      metadataContent.image,
+    );
+
+    const { txid } = await sendTransactionWithRetry(
+      connection,
+      wallet,
+      updateInstructions,
+      updateSigners,
+    );
+    try {
+      await connection.confirmTransaction(txid, 'max');
+    } catch {
+      // ignore
+    }
+    await connection.getParsedConfirmedTransaction(txid, 'confirmed');
+    progressCallback(8);
+
+    notify({
+      message: 'Art created on Solana',
+      description: (
+        <a
+          href={uploadedMetaDataPin.uri}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          IPFS Linkr
+        </a>
+      ),
+      type: 'success',
+    });
+  }
+  return { metadataAccount };
+};
 export const prepPayForFilesTxn = async (
   wallet: WalletSigner,
   files: File[],
