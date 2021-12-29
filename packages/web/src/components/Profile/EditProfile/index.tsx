@@ -19,7 +19,6 @@ import {
 } from './style';
 import { Identicon, supabase, useMeta, UserData } from '@oyster/common';
 import { useHistory } from 'react-router';
-import moment from 'moment';
 // import { replace } from 'lodash';
 
 const { TextArea } = Input;
@@ -60,7 +59,7 @@ const EditProfile = ({
   async function downloadImage(path) {
     const { data, error } = await supabase.storage
       .from('profile')
-      .download(`avatars/${userData?.wallet_address}_${path}`);
+      .download(`avatars/${path}`);
     console.log(
       '🚀 ~ file: index.tsx ~ line 63 ~ downloadImage ~ { data, error }',
       { data, error },
@@ -138,20 +137,18 @@ const EditProfile = ({
     if (file) {
       deleteLastImage();
     }
+    const path = `${userData?.wallet_address}_${Date.now()}_${event.name}`;
     setFile(event);
     const { error: uploadError } = await supabase.storage
       .from('profile')
-      .upload(
-        `avatars/${userData?.wallet_address}_${moment().unix()}_${event.name}`,
-        event,
-      );
+      .upload(`avatars/${path}`, event);
     console.log('🚀 ~ file: index.tsx ~ line 139 ~ uploadError', uploadError);
 
     if (uploadError) {
-      downloadImage(event.name);
+      downloadImage(path);
       // message.error(`upload failed, reason: ${uploadError.message}`);
       throw uploadError;
-    } else downloadImage(event.name);
+    } else downloadImage(path);
 
     return '';
   };
