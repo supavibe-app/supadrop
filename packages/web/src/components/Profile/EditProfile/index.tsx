@@ -19,6 +19,7 @@ import {
 } from './style';
 import { Identicon, supabase, useMeta, UserData } from '@oyster/common';
 import { useHistory } from 'react-router';
+import moment from 'moment';
 // import { replace } from 'lodash';
 
 const { TextArea } = Input;
@@ -95,7 +96,7 @@ const EditProfile = ({
 
       imageProfile = `${process.env.NEXT_PUBLIC_BASE_STORAGE_URL}${userData?.wallet_address}_${file?.name}`;
     } else imageProfile = userData?.img_profile || '';
-    console.log('🚀 ~ file: index.tsx ~ line 98 ~ imageProfile', imageProfile);
+    // console.log('🚀 ~ file: index.tsx ~ line 98 ~ imageProfile', imageProfile);
 
     let { data, error } = await supabase
       .from('user_data')
@@ -140,7 +141,10 @@ const EditProfile = ({
     setFile(event);
     const { error: uploadError } = await supabase.storage
       .from('profile')
-      .upload(`avatars/${userData?.wallet_address}_${event.name}`, event);
+      .upload(
+        `avatars/${userData?.wallet_address}_${moment().unix()}_${event.name}`,
+        event,
+      );
     console.log('🚀 ~ file: index.tsx ~ line 139 ~ uploadError', uploadError);
 
     if (uploadError) {
