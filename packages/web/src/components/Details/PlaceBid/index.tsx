@@ -21,6 +21,7 @@ import {
   Information,
   PlaceBidTitle,
 } from './style';
+import { useParams } from 'react-router-dom';
 
 const PlaceBid = ({
   auction,
@@ -31,36 +32,27 @@ const PlaceBid = ({
   bidAmount: number | undefined;
   setBidAmount: (num: number) => void;
 }) => {
+  const { id } = useParams<{ id: string }>();
   const { account } = useNativeAccount();
   const [showFundModal, setShowFundModal] = useState(false);
-
-  const bid = useHighestBidForAuction(auction?.id || '');
-  const mintInfo = useMint(auction?.token_mint);
+  const highestBid = useHighestBidForAuction(id);
   const priceFloor = auction?.price_floor;
 
   const balance = formatNumber.format(
     (account?.lamports || 0) / LAMPORTS_PER_SOL,
   );
-  const [currentBid, setCurrentBid] = useState(
-    bid ? parseFloat(formatTokenAmount(bid?.info.lastBid)) : priceFloor,
-  );
 
-  const [minimumBid, setMinimumBid] = useState(
-    bid ? getMinimumBid(currentBid) : priceFloor,
-  );
-  useEffect(() => {
-    setCurrentBid(
-      bid ? parseFloat(formatTokenAmount(bid?.info.lastBid)) : priceFloor,
-    );
-    setMinimumBid(bid ? getMinimumBid(currentBid) : priceFloor);
-  }, [bid, auction]);
+  const currentBid = highestBid
+    ? getMinimumBid(parseFloat(formatTokenAmount(highestBid.info.lastBid)))
+    : priceFloor;
+
   return (
     <>
       <div className={PlaceBidTitle}>place a bid </div>
 
       <div className={Information}>
         <div>your bid must at least</div>
-        <div className={WhiteColor}>{minimumBid} SOL</div>
+        <div className={WhiteColor}>{currentBid} SOL</div>
       </div>
 
       <Input
@@ -78,7 +70,7 @@ const PlaceBid = ({
           <span className={WhiteColor}>{balance} SOL</span>
         </div>
 
-        {balance < minimumBid && (
+        {Number(balance) < (currentBid || 0) && (
           <div className={AddFunds} onClick={() => setShowFundModal(true)}>
             add funds
           </div>
