@@ -23,8 +23,6 @@ import { useHistory } from 'react-router';
 
 const { TextArea } = Input;
 const maxChar = 280;
-const BASE_STORAGE_URL =
-  'https://fjgyltuahsuzqqkdnhay.supabase.in/storage/v1/object/public/profile/avatars/'; // TODO NEED TO MOVE or CHANGE
 
 const EditProfile = ({
   closeEdit,
@@ -59,12 +57,14 @@ const EditProfile = ({
 
   // will return localhost link just for temp data
   async function downloadImage(path) {
-    console.log('downloadImage: ', path);
     const { data, error } = await supabase.storage
       .from('profile')
       .download(`avatars/${userData?.wallet_address}_${path}`);
     if (error) {
       throw error;
+    }
+    if (!data) {
+      throw 'No data';
     }
     const url = URL.createObjectURL(data);
     setAvatarUrl(url);
@@ -84,16 +84,12 @@ const EditProfile = ({
         message.error(`username already taken`);
         return;
       }
-
-      if (error_user) {
-        console.log('error', error_user.message);
-      }
     }
 
     if (file) {
       deleteLastImage();
 
-      imageProfile = `${BASE_STORAGE_URL}${userData?.wallet_address}_${file?.name}`;
+      imageProfile = `${process.env.NEXT_PUBLIC_BASE_STORAGE_URL}${userData?.wallet_address}_${file?.name}`;
     } else imageProfile = userData?.img_profile || '';
 
     let { data, error } = await supabase
@@ -104,7 +100,6 @@ const EditProfile = ({
       .limit(1);
 
     if (error) {
-      console.log(error);
       message.error(`update profile failed, reason: ${error}`);
       return;
     }
@@ -134,7 +129,6 @@ const EditProfile = ({
   };
 
   const onUpload = async event => {
-    console.log('onUpload', typeof event);
     if (file) {
       deleteLastImage();
     }
@@ -154,19 +148,14 @@ const EditProfile = ({
 
   const props = {
     action: onUpload,
-    onStart(file) {
-      console.log('onStart file', file);
-      console.log('onStart file name', file.name);
-    },
+    onStart(file) {},
     onSuccess(ret) {
-      console.log('onSuccess', ret);
       onUpload;
     },
     onError(err) {
       console.log('onError', err);
     },
     beforeUpload(file) {
-      console.log(file);
       const isJpgOrPng =
         file.type === 'image/jpeg' || file.type === 'image/png';
       if (!isJpgOrPng) {
