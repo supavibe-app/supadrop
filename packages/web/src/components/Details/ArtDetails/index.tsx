@@ -28,18 +28,20 @@ const ArtDetails = ({
   extendedArt,
   highestBid,
   users,
+  nftData,
 }: {
   auction?: ItemAuction | undefined;
   art: Art | undefined;
   extendedArt: IMetadataExtension | undefined;
   highestBid?: ParsedAccount<BidderMetadata> | undefined;
   users: any;
+  nftData?: any;
 }) => {
   const creators = art?.creators || [];
-  const title = art?.title || auction?.name;
+  const title = art?.title || auction?.name || nftData?.name;
 
-  const description = extendedArt?.description;
-  const attributes = extendedArt?.attributes;
+  const description = extendedArt?.description || nftData?.description;
+  const attributes = extendedArt?.attributes || nftData?.attribute;
 
   const owner = auction?.owner;
   const endAt = auction?.endAt;
@@ -117,7 +119,7 @@ const ArtDetails = ({
         )}
       </Row>
 
-      {attributes && (
+      {attributes && attributes.length > 0 && (
         <div className={ContentSection}>
           <div className={Label}>attributes</div>
           <Row gutter={[12, 12]}>

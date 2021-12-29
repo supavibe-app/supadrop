@@ -77,7 +77,8 @@ const { TabPane } = Tabs;
 const Profile = ({ userId }: { userId: string }) => {
   const { replace, push, location } = useHistory();
   const { publicKey } = useWallet();
-  const { isLoadingMetaplex, pullAllMetadata, allDataAuctions } = useMeta();
+  const { isLoadingMetaplex, pullAllMetadata, allDataAuctions, updateArt } =
+    useMeta();
   const [onEdit, setOnEdit] = useState(false);
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
@@ -99,10 +100,14 @@ const Profile = ({ userId }: { userId: string }) => {
   }, [isLoadingMetaplex]);
 
   const walletAddress = userData?.wallet_address;
-  const { data: collected, loading: loadingCollected } =
-    getCollectedNFT(walletAddress);
-  const { data: artwork, loading: loadingArtwork } =
-    getCreatedDataNFT(walletAddress);
+  const { data: collected, loading: loadingCollected } = getCollectedNFT(
+    walletAddress,
+    updateArt,
+  );
+  const { data: artwork, loading: loadingArtwork } = getCreatedDataNFT(
+    walletAddress,
+    updateArt,
+  );
   const collectedArt = useCollectedArts(walletAddress);
 
   const { data: onSale, loading: loadingOnSale } =

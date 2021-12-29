@@ -28,6 +28,7 @@ const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
   isLoadingMetaplex: false,
   isLoadingDatabase: false,
+  art: {},
   endingTime: 0,
   isBidPlaced: false,
   liveDataAuctions: [],
@@ -46,12 +47,14 @@ const MetaContext = React.createContext<MetaContextState>({
   updateDetailAuction: function () {},
   updateNotifBidding: function () {},
   updateNotifAuction: function () {},
+  updateArt: function () {},
 });
 
 export function MetaProvider({ children = null as any }) {
   const connection = useConnection();
   const { isReady, storeAddress } = useStore();
   const { publicKey } = useWallet();
+  const [art, setArt] = useState<any>({});
   const [dataCollection, setDataCollection] = useState<Collection>(
     new Collection('', '', '', 0, 0, 0, 0, []),
   );
@@ -175,6 +178,13 @@ export function MetaProvider({ children = null as any }) {
     setState(nextState);
     await updateMints(nextState.metadataByMint);
     return;
+  }
+  async function updateArt(nftData: any) {
+    const data: any = {};
+    nftData.forEach((item: any) => {
+      data[item.id] = item;
+    });
+    setArt({ ...art, ...data });
   }
 
   async function updateLiveDataAuction() {
@@ -734,6 +744,8 @@ export function MetaProvider({ children = null as any }) {
         updateNotifBidding,
         isBidPlaced,
         setBidPlaced,
+        art,
+        updateArt,
       }}
     >
       {children}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { Row, Col, Skeleton, Popover, Image } from 'antd';
 import FeatherIcon from 'feather-icons-react';
@@ -29,18 +29,43 @@ import {
 } from './style';
 import { getUsernameByPublicKeys } from '../../database/userData';
 import { DetailArtContent } from '../../components/Details/DetailArtContent';
+import { supabase, useMeta } from '@oyster/common';
 
 export const ArtView = () => {
   const { id } = useParams<{ id: string }>();
+  const { art: artData, updateArt } = useMeta();
+  const detailArt = artData[id];
+  useEffect(() => {
+    console.log(
+      '🚀 ~ file: index.tsx ~ line 37 ~ ArtView ~ artData',
+      detailArt,
+      Object.entries(artData).length,
+    );
+  }, [artData]);
 
+  useEffect(() => {
+    if (artData[id] === undefined) {
+      supabase
+        .from('nft_data')
+        .select('*,id_auction(*),creator(username,wallet_address,img_profile)')
+        .eq('id', id)
+        .order('updated_at', { ascending: false })
+        .then(res => {
+          if (!res.error) {
+            updateArt(res.body);
+          }
+        });
+    }
+  }, []);
   const art = useArt(id);
   const {
     location: { state },
   } = useHistory();
   const { ref, data } = useExtendedArt(id);
-  const isDataReady = Boolean(art) && Boolean(data);
+  // const  = Boolean(art) && Boolean(data);
   const { soldFor, nftData }: any = state || {};
   const { thumbnail, original_file, media_type } = nftData || {};
+
   const everSold = soldFor > 0;
   const creators = data?.creators || [];
 
@@ -64,16 +89,14 @@ export const ArtView = () => {
       {/* Art Column */}
       <Col className={ColumnBox} span={24} md={16}>
         <div className={ArtContainer}>
-          {isDataReady && (
-            <DetailArtContent
-              category={media_type}
-              className={ArtContentStyle}
-              thumbnail={thumbnail}
-              originalFile={original_file}
-            />
-          )}
+          <DetailArtContent
+            category={media_type || detailArt?.media_type}
+            className={ArtContentStyle}
+            thumbnail={thumbnail || detailArt?.thumbnail}
+            originalFile={original_file || detailArt?.original_file}
+          />
 
-          {!isDataReady && <ThreeDots />}
+          {/* {<ThreeDots />} */}
         </div>
       </Col>
 
@@ -82,29 +105,47 @@ export const ArtView = () => {
         <div className={ArtDetailsColumn}>
           <div className={`${OverflowYAuto} ${PaddingBox} `}>
             <div className={`${ArtDetailsHeader} ${Label} `}>
-              {!isDataReady && <Skeleton paragraph={{ rows: 0 }} />}
+              {/* {! && <Skeleton paragraph={{ rows: 0 }} />} */}
 
               {/* Show edition if showing art details */}
-              {isDataReady && <div>{edition}</div>}
+              {<div>{edition}</div>}
 
-              <Popover
-                overlayClassName={OptionsPopover}
-                trigger="click"
-                placement="bottomRight"
-                content={<MoreOptions art={art} />}
-              >
-                <div style={{ cursor: 'pointer', color: '#FAFAFB' }}>
-                  <FeatherIcon icon="more-horizontal" size={20} />
-                </div>
-              </Popover>
+              {(art.uri || nftData) && (
+                <Popover
+                  overlayClassName={OptionsPopover}
+                  trigger="click"
+                  placement="bottomRight"
+                  content={
+                    <MoreOptions
+                      art={
+                        art.uri
+                          ? art
+                          : {
+                              uri: nftData?.arweave_link,
+                              mint: nftData?.mint_key,
+                            }
+                      }
+                    />
+                  }
+                >
+                  <div style={{ cursor: 'pointer', color: '#FAFAFB' }}>
+                    <FeatherIcon icon="more-horizontal" size={20} />
+                  </div>
+                </Popover>
+              )}
             </div>
 
             {/* Show Skeleton when Loading */}
-            {!isDataReady && <ArtDetailSkeleton />}
+            {/* {! && <ArtDetailSkeleton />} */}
 
-            {isDataReady && (
-              <ArtDetails art={art} extendedArt={data} users={users} />
-            )}
+            {
+              <ArtDetails
+                nftData={artData[id]}
+                art={art}
+                extendedArt={data}
+                users={users}
+              />
+            }
           </div>
 
           <div className={StatusContainer}>

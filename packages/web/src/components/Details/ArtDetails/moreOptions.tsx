@@ -4,12 +4,16 @@ import { useConnectionConfig } from '@oyster/common';
 import { List, Button } from 'antd';
 
 const MoreOptions = ({ art }) => {
+  console.log('🚀 ~ file: moreOptions.tsx ~ line 7 ~ MoreOptions ~ art', art);
   const { env } = useConnectionConfig();
 
   return (
     <List>
       <List.Item>
-        <Button type="link" onClick={() => window.open(art.uri || '', '_blank')}>
+        <Button
+          type="link"
+          onClick={() => window.open(art.uri || '', '_blank')}
+        >
           view on arweave
         </Button>
       </List.Item>
@@ -18,7 +22,8 @@ const MoreOptions = ({ art }) => {
           type="link"
           onClick={() =>
             window.open(
-              `https://explorer.solana.com/account/${art?.mint || ''}${env.indexOf('main') >= 0 ? '' : `?cluster=${env}`
+              `https://explorer.solana.com/account/${art?.mint || ''}${
+                env.indexOf('main') >= 0 ? '' : `?cluster=${env}`
               }`,
               '_blank',
             )

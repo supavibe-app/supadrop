@@ -81,7 +81,7 @@ export const ArtCard = (props: ArtCardProps) => {
   } = props;
 
   const art = useArt(pubkey);
-  const { userData } = useMeta();
+  const { userData, updateArt } = useMeta();
   const singleUser = useUserSingleArt(pubkey || '');
 
   const { location } = useHistory();

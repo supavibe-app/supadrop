@@ -4,7 +4,7 @@ import { supabase } from '@oyster/common';
 import { IGetDataDB } from './types';
 import moment from 'moment';
 
-export const getCollectedNFT = walletAddress => {
+export const getCollectedNFT = (walletAddress, callback) => {
   const [result, setResult] = useState<IGetDataDB>({
     loading: true,
     data: [],
@@ -21,6 +21,7 @@ export const getCollectedNFT = walletAddress => {
         .then(res => {
           if (!res.error) {
             setResult({ loading: false, data: res.body });
+            callback(res.body);
           }
         });
     }
@@ -31,7 +32,7 @@ export const getCollectedNFT = walletAddress => {
   return { ...result, refetch };
 };
 
-export const getCreatedDataNFT = walletAddress => {
+export const getCreatedDataNFT = (walletAddress, callback) => {
   const [result, setResult] = useState<IGetDataDB>({
     loading: true,
     data: [],
@@ -47,6 +48,7 @@ export const getCreatedDataNFT = walletAddress => {
         .then(res => {
           if (!res.error) {
             setResult({ loading: false, data: res.body });
+            callback(res.body);
           }
         });
     }

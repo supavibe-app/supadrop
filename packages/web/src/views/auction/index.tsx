@@ -222,6 +222,7 @@ export const AuctionView = () => {
       {!auctionDatabase?.isInstantSale && (
         <Col className={`${ColumnBox} ${PaddingBox} `} span={24} md={4}>
           <TransactionHistory
+            key={auctionDatabase?.id}
             auction={auctionDatabase}
             bids={bids}
             users={users}
