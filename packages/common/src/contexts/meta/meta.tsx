@@ -5,6 +5,7 @@ import { getEmptyMetaState } from './getEmptyMetaState';
 import {
   limitedLoadAccounts,
   loadAccounts,
+  pullPacks,
   pullYourMetadata,
   USE_SPEED_RUN,
 } from './loadAccounts';
@@ -158,7 +159,38 @@ export function MetaProvider({ children = null as any }) {
     await updateMints(nextState.metadataByMint);
     return nextState;
   }
+  async function pullItemsPage(
+    userTokenAccounts: TokenAccount[],
+  ): Promise<void> {
+    if (isLoadingMetaplex) {
+      return;
+    }
+    if (!storeAddress) {
+      return setIsLoadingMetaplex(false);
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
 
+    const shouldEnableNftPacks = process.env.NEXT_ENABLE_NFT_PACKS === 'true';
+    const packsState = shouldEnableNftPacks
+      ? await pullPacks(connection, state, publicKey)
+      : state;
+
+    await pullUserMetadata(userTokenAccounts, packsState);
+  }
+  async function pullUserMetadata(
+    userTokenAccounts: TokenAccount[],
+    tempState?: MetaState,
+  ): Promise<void> {
+    const nextState = await pullYourMetadata(
+      connection,
+      userTokenAccounts,
+      tempState || state,
+    );
+    await updateMints(nextState.metadataByMint);
+
+    setState(nextState);
+  }
   async function pullAllSiteData() {
     if (isLoadingMetaplex) return state;
     if (!storeAddress) {
@@ -746,6 +778,7 @@ export function MetaProvider({ children = null as any }) {
         setBidPlaced,
         art,
         updateArt,
+        pullItemsPage,
       }}
     >
       {children}

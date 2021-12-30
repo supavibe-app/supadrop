@@ -1,5 +1,6 @@
 import { AccountInfo } from '@solana/web3.js';
 import { Dispatch, SetStateAction } from 'react';
+import { TokenAccount } from '../..';
 import {
   AuctionData,
   AuctionDataExtended,
@@ -25,6 +26,10 @@ import {
   StoreIndexer,
   WhitelistedCreator,
 } from '../../models/metaplex';
+import { PackCard } from '../../models/packs/accounts/PackCard';
+import { PackSet } from '../../models/packs/accounts/PackSet';
+import { PackVoucher } from '../../models/packs/accounts/PackVoucher';
+import { ProvingProcess } from '../../models/packs/accounts/ProvingProcess';
 import { PublicKeyStringAndAccount, StringPublicKey } from '../../utils';
 import { ParsedAccount, UserData } from '../accounts/types';
 
@@ -79,6 +84,11 @@ export interface MetaState {
   payoutTickets: Record<string, ParsedAccount<PayoutTicket>>;
   auctionCaches: Record<string, ParsedAccount<AuctionCache>>;
   storeIndexer: ParsedAccount<StoreIndexer>[];
+  packs: Record<string, ParsedAccount<PackSet>>;
+  packCards: Record<string, ParsedAccount<PackCard>>;
+  packCardsByPackSet: Record<string, ParsedAccount<PackCard>[]>;
+  vouchers: Record<string, ParsedAccount<PackVoucher>>;
+  provingProcesses: Record<string, ParsedAccount<ProvingProcess>>;
 }
 
 export interface MetaContextState extends MetaState {
@@ -114,6 +124,7 @@ export interface MetaContextState extends MetaState {
   pullAllMetadata: () => void;
   isBidPlaced: boolean;
   setBidPlaced: Dispatch<SetStateAction<boolean>>;
+  pullItemsPage: (userTokenAccounts: TokenAccount[]) => Promise<void>;
 }
 
 export type AccountAndPubkey = {

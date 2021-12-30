@@ -70,6 +70,8 @@ const findProgramAddress = async (seeds, programId) => {
 exports.findProgramAddress = findProgramAddress;
 // shorten the checksummed version of the input address to have 4 characters at start and end
 function shortenAddress(address = '', chars = 4) {
+    if (address.length < 15)
+        return address;
     return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 exports.shortenAddress = shortenAddress;

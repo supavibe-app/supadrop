@@ -47,6 +47,14 @@ import { getMultipleAccounts } from '../accounts/getMultipleAccounts';
 import { getProgramAccounts } from './web3';
 import { createPipelineExecutor } from '../../utils/createPipelineExecutor';
 import { programIds } from '../..';
+import { getPackSets } from '../../models/packs/accounts/PackSet';
+import { getCardsByPackSet } from '../../models/packs/accounts/PackCard';
+import { processPackSets } from './processPackSets';
+import { processPackCards } from './processPackCards';
+import { getVouchersByPackSet } from '../../models/packs/accounts/PackVoucher';
+import { processPackVouchers } from './processPackVouchers';
+import { getProvingProcessByPackSetAndWallet } from '../../models/packs/accounts/ProvingProcess';
+import { processProvingProcess } from './processProvingProcess';
 const MULTIPLE_ACCOUNT_BATCH_SIZE = 100;
 
 export const USE_SPEED_RUN = false;
@@ -234,6 +242,74 @@ export const pullPayoutTickets = async (
   }).then(forEach(processMetaplexAccounts));
 
   return tempCache;
+};
+export const pullPacks = async (
+  connection: Connection,
+  state: MetaState,
+  walletKey?: PublicKey | null,
+): Promise<MetaState> => {
+  const updateTemp = makeSetter(state);
+  const forEach =
+    (fn: ProcessAccountsFunc) => async (accounts: AccountAndPubkey[]) => {
+      for (const account of accounts.flat()) {
+        await fn(account, updateTemp);
+      }
+    };
+
+  const store = programIds().store;
+  if (store) {
+    await getPackSets({ connection, storeId: store }).then(
+      forEach(processPackSets),
+    );
+  }
+
+  // Fetch packs' cards
+  const fetchCardsPromises = Object.keys(state.packs).map(packSetKey =>
+    getCardsByPackSet({ connection, packSetKey }),
+  );
+  await Promise.all(fetchCardsPromises).then(cards =>
+    cards.forEach(forEach(processPackCards)),
+  );
+
+  const packKeys = Object.keys(state.packs);
+  // Fetch vouchers
+  const fetchVouchersPromises = packKeys.map(packSetKey =>
+    getVouchersByPackSet({
+      connection,
+      packSetKey,
+    }),
+  );
+  await Promise.all(fetchVouchersPromises).then(vouchers =>
+    vouchers.forEach(forEach(processPackVouchers)),
+  );
+
+  // Fetch proving process if user connected wallet
+  if (walletKey) {
+    const fetchProvingProcessPromises = packKeys.map(packSetKey =>
+      getProvingProcessByPackSetAndWallet({
+        connection,
+        packSetKey,
+        walletKey,
+      }),
+    );
+    await Promise.all(fetchProvingProcessPromises).then(provingProcess =>
+      provingProcess.forEach(forEach(processProvingProcess)),
+    );
+  }
+
+  const metadataKeys = Object.values(state.packCards).map(
+    ({ info }) => info.metadata,
+  );
+  const newState = await pullMetadataByKeys(connection, state, metadataKeys);
+
+  await pullEditions(
+    connection,
+    updateTemp,
+    newState,
+    metadataKeys.map(m => newState.metadataByMetadata[m]),
+  );
+
+  return newState;
 };
 
 export const pullAuctionSubaccounts = async (
@@ -949,7 +1025,46 @@ const pullMetadataByCreators = (
 
   return Promise.all(additionalPromises);
 };
+export const pullMetadataByKeys = async (
+  connection: Connection,
+  state: MetaState,
+  metadataKeys: StringPublicKey[],
+): Promise<MetaState> => {
+  const updateState = makeSetter(state);
 
+  let setOf100MetadataEditionKeys: string[] = [];
+  const metadataPromises: Promise<void>[] = [];
+
+  const loadBatch = () => {
+    metadataPromises.push(
+      getMultipleAccounts(
+        connection,
+        setOf100MetadataEditionKeys,
+        'recent',
+      ).then(({ keys, array }) => {
+        keys.forEach((key, index) =>
+          processMetaData({ pubkey: key, account: array[index] }, updateState),
+        );
+      }),
+    );
+    setOf100MetadataEditionKeys = [];
+  };
+
+  for (const metadata of metadataKeys) {
+    setOf100MetadataEditionKeys.push(metadata);
+
+    if (setOf100MetadataEditionKeys.length >= 100) {
+      loadBatch();
+    }
+  }
+
+  if (setOf100MetadataEditionKeys.length >= 0) {
+    loadBatch();
+  }
+
+  await Promise.all(metadataPromises);
+  return state;
+};
 export const makeSetter =
   (state: MetaState): UpdateStateValueFunc<MetaState> =>
   (prop, key, value) => {

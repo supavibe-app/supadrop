@@ -38,6 +38,7 @@ import { endSale } from '../AuctionCard/utils/endSale';
 import moment from 'moment';
 import countDown from '../../helpers/countdown';
 import ProfileAvatar from '../ProfileAvatar';
+import { MetaAvatar } from '../MetaAvatar';
 
 const { Meta } = Card;
 
@@ -61,6 +62,7 @@ export interface ArtCardProps extends CardProps {
   close?: () => void;
   height?: number;
   width?: number;
+  onSellPage?: boolean;
 }
 
 export const ArtCard = (props: ArtCardProps) => {
@@ -288,6 +290,231 @@ export const ArtCard = (props: ArtCardProps) => {
                 </Col>
               )}
             </Row>
+          </>
+        }
+      />
+    </Card>
+  );
+
+  return art.creators?.find(c => !c.verified) ? (
+    <Badge.Ribbon text="Unverified">{card}</Badge.Ribbon>
+  ) : (
+    card
+  );
+};
+
+export const ArtCardSell = (props: ArtCardProps) => {
+  let {
+    auctionView,
+    category,
+    image,
+    animationURL,
+    name,
+    preview,
+    creators,
+    pubkey,
+    nftData,
+    auctionData,
+    artItem,
+    isCollected,
+    soldFor,
+    onSellPage,
+  } = props;
+
+  const art = useArt(pubkey);
+  const { userData } = useMeta();
+  const singleUser = useUserSingleArt(pubkey || '');
+
+  const { location } = useHistory();
+  const { state: dataState } = location;
+  const { idNFT }: any = dataState || {};
+  creators = art?.creators || creators || [];
+  const [cardWidth, setCardWidth] = useState(0);
+  if (!auctionData) {
+    auctionData = nftData?.id_auction;
+  }
+
+  const haveLastAuction = !!auctionData;
+
+  const isLiveAuction = auctionData?.end_auction > moment().unix();
+  const isInstantSale = auctionData?.type_auction && auctionData?.isLiveMarket;
+  const isOnSale = isLiveAuction || isInstantSale;
+  const haveBidders = auctionData?.highest_bid > 0;
+  const everSold = nftData?.sold > 0;
+  const holderNFT = auctionData?.winner
+    ? auctionData?.winner
+    : nftData?.holder.username
+    ? nftData?.holder.username
+    : nftData?.holder.wallet_address;
+
+  // onsale requirements
+  const walletContext = useWallet();
+  if (haveLastAuction && auctionData?.winner) {
+    isCollected = auctionData?.winner === walletContext.publicKey?.toBase58();
+  }
+  name = art?.title || name || '';
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const [state, setState] = useState<CountdownState>();
+
+  useEffect(() => {
+    const calc = () => setState(countDown(auctionData?.end_auction));
+
+    const interval = setInterval(() => calc(), 1000);
+    calc();
+    return () => clearInterval(interval);
+  }, [nftData, setState]);
+
+  let badge = '';
+  if (art.type === ArtType.NFT) {
+    badge = 'Unique';
+  } else if (art.type === ArtType.Master) {
+    badge = 'NFT 0';
+  } else if (art.type === ArtType.Print) {
+    badge = `edition ${art.edition} of ${art.supply}`;
+  }
+
+  useEffect(() => {
+    if (cardRef.current?.offsetWidth)
+      setCardWidth(cardRef.current?.offsetWidth);
+  }, [cardRef.current?.offsetWidth, setCardWidth]);
+
+  const card = (
+    <Card
+      hoverable
+      className={CardStyle}
+      cover={
+        <div ref={cardRef}>
+          <ArtContent
+            className={AuctionImage(cardWidth)}
+            preview={preview}
+            pubkey={pubkey}
+            uri={nftData?.thumbnail}
+            animationURL={nftData?.original_file}
+            category={category}
+            allowMeshRender={false}
+          />
+        </div>
+      }
+    >
+      <Meta title={name} />
+    </Card>
+  );
+
+  return art.creators?.find(c => !c.verified) ? (
+    <Badge.Ribbon text="Unverified">{card}</Badge.Ribbon>
+  ) : (
+    card
+  );
+};
+export interface OriginalArtCardProps extends CardProps {
+  pubkey?: StringPublicKey;
+
+  image?: string;
+  animationURL?: string;
+
+  category?: MetadataCategory;
+
+  name?: string;
+  symbol?: string;
+  description?: string;
+  creators?: Artist[];
+  preview?: boolean;
+  small?: boolean;
+  onClose?: () => void;
+
+  height?: number;
+  artView?: boolean;
+  width?: number;
+
+  count?: string;
+}
+export const OriginalArtCard = (props: OriginalArtCardProps) => {
+  let {
+    className,
+    small,
+    category,
+    image,
+    animationURL,
+    name,
+    preview,
+    creators,
+    description,
+    onClose,
+    pubkey,
+    height,
+    artView,
+    width,
+    count,
+    ...rest
+  } = props;
+  const art = useArt(pubkey);
+  creators = art?.creators || creators || [];
+  name = art?.title || name || ' ';
+
+  let badge = '';
+  if (art.type === ArtType.NFT) {
+    badge = 'Unique';
+  } else if (art.type === ArtType.Master) {
+    badge = 'NFT 0';
+  } else if (art.type === ArtType.Print) {
+    badge = `${art.edition} of ${art.supply}`;
+  }
+
+  const card = (
+    <Card
+      hoverable={true}
+      className={`art-card ${small ? 'small' : ''} ${className ?? ''}`}
+      {...rest}
+    >
+      {onClose && (
+        <Button
+          className="card-close-button"
+          shape="circle"
+          onClick={e => {
+            e.stopPropagation();
+            e.preventDefault();
+            onClose && onClose();
+          }}
+        >
+          X
+        </Button>
+      )}
+      <div className="art-card__header">
+        <MetaAvatar creators={creators} size={32} />
+        <div className="edition-badge">{badge}</div>
+      </div>
+      <div className="art-content__wrapper">
+        <ArtContent
+          pubkey={pubkey}
+          uri={image}
+          animationURL={animationURL}
+          category={category}
+          preview={preview}
+          height={height}
+          width={width}
+          artView={artView}
+        />
+      </div>
+      <Meta
+        title={`${name}`}
+        description={
+          <>
+            {/* {art.type === ArtType.Master && (
+              <>
+                <br />
+                {!endAuctionAt && (
+                  <span style={{ padding: '24px' }}>
+                    {(art.maxSupply || 0) - (art.supply || 0)}/
+                    {art.maxSupply || 0} prints remaining
+                  </span>
+                )}
+              </>
+            )} */}
+
+            {count && (
+              <div className="edition-badge">Selected count: {count}</div>
+            )}
           </>
         }
       />
