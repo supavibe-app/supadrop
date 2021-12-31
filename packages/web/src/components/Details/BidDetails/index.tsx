@@ -91,6 +91,7 @@ const BidDetails = ({
   currentBidAmount,
   users,
   setShowCongratulations,
+  loadingDetailAuction,
 }: {
   art: Art;
   auction?: AuctionView;
@@ -101,7 +102,8 @@ const BidDetails = ({
   setShowPlaceBid: (visible: boolean) => void;
   currentBidAmount: number | undefined;
   users: any;
-  setShowCongratulations: (visible: boolean) => void;
+  setShowCongratulations: (type: string) => void;
+  loadingDetailAuction: boolean;
 }) => {
   const connection = useConnection();
   const { setVisible } = useWalletModal();
@@ -118,6 +120,7 @@ const BidDetails = ({
     updateNotifAuction,
     updateNotifBidding,
     pullAllSiteData,
+    isLoadingMetaplex,
   } = useMeta();
   const { id } = useParams<{ id: string }>();
   const ownedMetadata = useUserArts();
@@ -248,11 +251,6 @@ const BidDetails = ({
         auction?.auction.info.auctionGap?.toNumber() +
         highestBid?.info.lastBidTimestamp?.toNumber();
 
-      console.log(
-        '🚀 ~ file: index.tsx ~ line 253 ~ useEffect ~ latestTime',
-        latestTime,
-        publicKey?.toBase58(),
-      );
       if (latestTime > endAt) {
         if (newBidding || counter === 0) {
           supabase
@@ -263,10 +261,6 @@ const BidDetails = ({
             .eq('id', auctionDatabase.id)
             .then(data => {
               updateDetailAuction(auctionDatabase.id);
-              console.log(
-                '🚀 ~ file: index.tsx ~ line 255 ~ useEffect ~ auctionDatabase.id',
-                auctionDatabase.id,
-              );
             });
         }
         setEndAt(latestTime);
@@ -274,12 +268,6 @@ const BidDetails = ({
     }
     setNewBidding(false);
     setCounter(counter + 1);
-
-    console.log(
-      '🚀 ~ file: index.tsx ~ line 273 ~ newBidding',
-      newBidding,
-      counter,
-    );
   }, [minimumBid]);
   const handleConnect = useCallback(() => {
     if (wallet) connect();
@@ -335,7 +323,7 @@ const BidDetails = ({
         //   filterMetadata,
         // );
 
-        setShowCongratulations(true);
+        setShowCongratulations('claim');
         supabaseUpdateNFTHolder(
           auctionView.thumbnail.metadata.pubkey,
           wallet.publicKey?.toBase58(),
@@ -410,21 +398,7 @@ const BidDetails = ({
         //   '🚀 ~ file: index.tsx ~ line 378 ~ actionEndedAuctionReclaim ~ filterMetadata',
         //   filterMetadata,
         // );
-        setShowCongratulations(true);
-        supabaseUpdateNFTHolder(
-          auctionView.thumbnail.metadata.pubkey,
-          wallet.publicKey?.toBase58(),
-          parseFloat(`${minimumBid}`),
-        );
-      } else {
-        await supabaseUpdateIsRedeem(
-          auctionView.auction.pubkey,
-          publicKey?.toBase58(),
-        );
-        updateNotifBidding(
-          `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
-        );
-        setShowCongratulations(true);
+        setShowCongratulations('reclaim');
         supabaseUpdateNFTHolder(
           auctionView.thumbnail.metadata.pubkey,
           wallet.publicKey?.toBase58(),
@@ -456,7 +430,7 @@ const BidDetails = ({
       supabaseUpdateIsRedeemAuctionStatus(auctionView.auction.pubkey);
       updateNotifBidding(`${auction?.auction.pubkey}_${publicKey?.toBase58()}`);
       setConfirmTrigger(false);
-      setShowCongratulations(true);
+      setShowCongratulations('reclaim');
     } catch (e) {
       setConfirmTrigger(false);
       return;
@@ -601,7 +575,7 @@ const BidDetails = ({
       // console.log('RESULT HERE REDEEM 1', canClaimPurchasedItem);
 
       // if (isAlreadyBought) {
-      setShowCongratulations(true);
+      setShowCongratulations('claim');
       supabaseUpdateIsRedeem(
         auction?.auction.pubkey,
         wallet.publicKey?.toBase58(),
@@ -864,7 +838,7 @@ const BidDetails = ({
   }
 
   // case 0: loading
-  if (!art.title || !auction) {
+  if (!art.title || !auction || isLoadingMetaplex || loadingDetailAuction) {
     return (
       <div className={PaddingBox}>
         <div className={BidStatus}>
@@ -974,6 +948,12 @@ const BidDetails = ({
           );
         }
       }
+      console.log(
+        '🚀 ~ file: index.tsx ~ line 857 ~ isInstantSale',
+        bids,
+        isLoadingMetaplex,
+        Date.now(),
+      );
 
       return (
         <BidDetailsContent>

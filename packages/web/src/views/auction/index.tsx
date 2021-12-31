@@ -52,10 +52,12 @@ export const AuctionView = () => {
   } = useMeta();
 
   const action = queryParams.get('action');
-  const [showCongratulations, setCongratulations] = useState(false);
+  const [showCongratulations, setCongratulations] = useState('');
   const { id } = useParams<{ id: string }>();
   const { connected } = useWallet();
   const auction = useAuction(id);
+
+  const [loadingDetailAuction, setLoadingDetailAuction] = useState(true);
 
   const [bidAmount, setBidAmount] = useState<number>();
   const [showPlaceBid, setShowPlaceBid] = useState(action === 'bid');
@@ -119,10 +121,15 @@ export const AuctionView = () => {
   }
 
   useEffect(() => {
-    pullAuctionPage(id);
+    updateDetailAuction();
   }, [location.key]);
-
-  if (showCongratulations) return <Congratulations id={id} />;
+  async function updateDetailAuction() {
+    setLoadingDetailAuction(true);
+    await pullAuctionPage(id);
+    setLoadingDetailAuction(false);
+  }
+  if (showCongratulations !== '')
+    return <Congratulations id={id} type={showCongratulations} />;
 
   return (
     <Row className={Container} ref={ref}>
@@ -212,6 +219,7 @@ export const AuctionView = () => {
               currentBidAmount={bidAmount}
               users={users}
               setShowCongratulations={setCongratulations}
+              loadingDetailAuction={loadingDetailAuction}
             />
           </div>
         </div>

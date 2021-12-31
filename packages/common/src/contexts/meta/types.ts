@@ -119,6 +119,7 @@ export interface MetaContextState extends MetaState {
   updateDetailAuction: (idAuction: string) => void;
   updateNotifBidding: (publicKey: string) => void;
   updateNotifAuction: (publicKey: string) => void;
+  updateAllNotification: (publicKey: string) => void;
   updateArt: (nftData: any) => void;
   pullAllSiteData: () => void;
   pullAllMetadata: () => void;

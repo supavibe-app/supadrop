@@ -49,6 +49,7 @@ const MetaContext = React.createContext<MetaContextState>({
   updateNotifBidding: function () {},
   updateNotifAuction: function () {},
   updateArt: function () {},
+  updateAllNotification: function () {},
 });
 
 export function MetaProvider({ children = null as any }) {
@@ -98,126 +99,7 @@ export function MetaProvider({ children = null as any }) {
     },
     [setState],
   );
-  async function pullAllMetadata() {
-    if (isLoadingMetaplex) return false;
-    if (!storeAddress) {
-      if (isReady) {
-        setIsLoadingMetaplex(false);
-      }
-      return;
-    } else if (!state.store) {
-      setIsLoadingMetaplex(true);
-    }
-    setIsLoadingMetaplex(true);
-    const nextState = await pullStoreMetadata(connection, state);
-    setIsLoadingMetaplex(false);
-    setState(nextState);
-    await updateMints(nextState.metadataByMint);
-    return [];
-  }
-
-  async function pullBillingPage(auctionAddress: StringPublicKey) {
-    if (isLoadingMetaplex) return false;
-    if (!storeAddress) {
-      if (isReady) {
-        setIsLoadingMetaplex(false);
-      }
-      return;
-    } else if (!state.store) {
-      setIsLoadingMetaplex(true);
-    }
-    const nextState = await pullAuctionSubaccounts(
-      connection,
-      auctionAddress,
-      state,
-    );
-
-    console.log('-----> Pulling all payout tickets');
-    await pullPayoutTickets(connection, nextState);
-
-    setState(nextState);
-    await updateMints(nextState.metadataByMint);
-    return [];
-  }
-
-  async function pullAuctionPage(auctionAddress: StringPublicKey) {
-    if (isLoadingMetaplex) return state;
-    if (!storeAddress) {
-      if (isReady) {
-        setIsLoadingMetaplex(false);
-      }
-      return state;
-    } else if (!state.store) {
-      setIsLoadingMetaplex(true);
-    }
-    const nextState = await pullAuctionSubaccounts(
-      connection,
-      auctionAddress,
-      state,
-    );
-    setState(nextState);
-    await updateMints(nextState.metadataByMint);
-    return nextState;
-  }
-  async function pullItemsPage(
-    userTokenAccounts: TokenAccount[],
-  ): Promise<void> {
-    if (isLoadingMetaplex) {
-      return;
-    }
-    if (!storeAddress) {
-      return setIsLoadingMetaplex(false);
-    } else if (!state.store) {
-      setIsLoadingMetaplex(true);
-    }
-
-    const shouldEnableNftPacks = process.env.NEXT_ENABLE_NFT_PACKS === 'true';
-    const packsState = shouldEnableNftPacks
-      ? await pullPacks(connection, state, publicKey)
-      : state;
-
-    await pullUserMetadata(userTokenAccounts, packsState);
-  }
-  async function pullUserMetadata(
-    userTokenAccounts: TokenAccount[],
-    tempState?: MetaState,
-  ): Promise<void> {
-    const nextState = await pullYourMetadata(
-      connection,
-      userTokenAccounts,
-      tempState || state,
-    );
-    await updateMints(nextState.metadataByMint);
-
-    setState(nextState);
-  }
-  async function pullAllSiteData() {
-    if (isLoadingMetaplex) return state;
-    if (!storeAddress) {
-      if (isReady) {
-        setIsLoadingMetaplex(false);
-      }
-      return state;
-    } else if (!state.store) {
-      setIsLoadingMetaplex(true);
-    }
-    console.log('------->Query started');
-
-    const nextState = await loadAccounts(connection);
-
-    console.log('------->Query finished');
-
-    setState(nextState);
-    await updateMints(nextState.metadataByMint);
-    return;
-  }
-  async function updateArt(nftData: any) {
-    const data: any = {};
-    nftData.forEach((item: any) => {
-      data[item.id] = item;
-    });
-    setArt({ ...art, ...data });
-  }
+  // get data from supabase
 
   async function updateLiveDataAuction() {
     supabase
@@ -381,6 +263,10 @@ export function MetaProvider({ children = null as any }) {
           }
         }
       });
+  }
+  async function updateAllNotification(publicKey: string) {
+    getNotifAuction(publicKey);
+    getNotifBidding(publicKey);
   }
   // if type_auction is true, it's an instant sale -> isLiveMarket
   // if type_auction is false, it's an auction -> end auction less than current time
@@ -546,6 +432,135 @@ export function MetaProvider({ children = null as any }) {
         }
       });
   }
+  // --------------
+  async function pullAllMetadata() {
+    if (isLoadingMetaplex) return false;
+    if (!storeAddress) {
+      if (isReady) {
+        setIsLoadingMetaplex(false);
+      }
+      return;
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+    setIsLoadingMetaplex(true);
+    const nextState = await pullStoreMetadata(connection, state);
+    setIsLoadingMetaplex(false);
+    setState(nextState);
+    await updateMints(nextState.metadataByMint);
+    return [];
+  }
+
+  async function pullBillingPage(auctionAddress: StringPublicKey) {
+    if (isLoadingMetaplex) return false;
+    if (!storeAddress) {
+      if (isReady) {
+        setIsLoadingMetaplex(false);
+      }
+      return;
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+    const nextState = await pullAuctionSubaccounts(
+      connection,
+      auctionAddress,
+      state,
+    );
+
+    console.log('-----> Pulling all payout tickets');
+    await pullPayoutTickets(connection, nextState);
+
+    setState(nextState);
+    await updateMints(nextState.metadataByMint);
+    return [];
+  }
+
+  async function pullAuctionPage(auctionAddress: StringPublicKey) {
+    if (isLoadingMetaplex) return state;
+    console.log(
+      '🚀 ~ file: meta.tsx ~ line 475 ~ pullAuctionPage ~ isLoadingMetaplex',
+      isLoadingMetaplex,
+    );
+    if (!storeAddress) {
+      if (isReady) {
+        setIsLoadingMetaplex(false);
+      }
+      return state;
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+    const nextState = await pullAuctionSubaccounts(
+      connection,
+      auctionAddress,
+      state,
+    );
+    setState(nextState);
+    await updateMints(nextState.metadataByMint);
+    console.log(
+      '🚀 ~ file: meta.tsx ~ line 491 ~ pullAuctionPage ~ updateMints',
+      isLoadingMetaplex,
+    );
+    return nextState;
+  }
+  async function pullItemsPage(
+    userTokenAccounts: TokenAccount[],
+  ): Promise<void> {
+    if (isLoadingMetaplex) {
+      return;
+    }
+    if (!storeAddress) {
+      return setIsLoadingMetaplex(false);
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+
+    const shouldEnableNftPacks = process.env.NEXT_ENABLE_NFT_PACKS === 'true';
+    const packsState = shouldEnableNftPacks
+      ? await pullPacks(connection, state, publicKey)
+      : state;
+
+    await pullUserMetadata(userTokenAccounts, packsState);
+  }
+  async function pullUserMetadata(
+    userTokenAccounts: TokenAccount[],
+    tempState?: MetaState,
+  ): Promise<void> {
+    const nextState = await pullYourMetadata(
+      connection,
+      userTokenAccounts,
+      tempState || state,
+    );
+    await updateMints(nextState.metadataByMint);
+
+    setState(nextState);
+  }
+  async function pullAllSiteData() {
+    if (isLoadingMetaplex) return state;
+    if (!storeAddress) {
+      if (isReady) {
+        setIsLoadingMetaplex(false);
+      }
+      return state;
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+    console.log('------->Query started');
+
+    const nextState = await loadAccounts(connection);
+
+    console.log('------->Query finished');
+
+    setState(nextState);
+    await updateMints(nextState.metadataByMint);
+    return;
+  }
+  async function updateArt(nftData: any) {
+    const data: any = {};
+    nftData.forEach((item: any) => {
+      data[item.id] = item;
+    });
+    setArt({ ...art, ...data });
+  }
 
   async function update(
     auctionAddress?: any,
@@ -565,7 +580,6 @@ export function MetaProvider({ children = null as any }) {
       setIsLoadingMetaplex(true);
     }
 
-    console.log('-----> Query started', new Date());
     Promise.all([
       updateLiveDataAuction(),
       updateAllDataAuction(),
@@ -575,6 +589,7 @@ export function MetaProvider({ children = null as any }) {
     ]);
 
     let nextState = await pullPage(connection, page, state);
+    console.log('-----> Query started', new Date());
 
     if (nextState.storeIndexer.length) {
       if (USE_SPEED_RUN) {
@@ -779,6 +794,7 @@ export function MetaProvider({ children = null as any }) {
         art,
         updateArt,
         pullItemsPage,
+        updateAllNotification,
       }}
     >
       {children}
