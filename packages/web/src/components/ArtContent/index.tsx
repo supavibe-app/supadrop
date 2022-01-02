@@ -117,7 +117,7 @@ const VideoArtContent = ({
 
   const content =
     likelyVideo &&
-    likelyVideo.startsWith('https://watch.videodelivery.net/') ? (
+      likelyVideo.startsWith('https://watch.videodelivery.net/') ? (
       <div className={`${className} square`}>
         <Stream
           streamRef={(e: any) => playerRef(e)}
@@ -275,7 +275,7 @@ export const ArtContent = ({
   }
 
   const content =
-    category === 'video' ? (
+    category === MetadataCategory.Video ? (
       <VideoArtContent
         className={className}
         style={style}
@@ -285,44 +285,25 @@ export const ArtContent = ({
         active={active}
       />
     ) : (
-      //     (category === 'html' || animationUrlExt === 'html') ? (
-      //       <HTMLContent
-      //         uri={uri}
-      //         animationUrl={animationURL}
-      //         className={className}
-      //         preview={preview}
-      //         style={style}
-      //         files={files}
-      //         artView={artView}
-      //       />
-      //     ) :
-      //     (
-      //       <CachedImageContent
-      //         uri={uri}
-      //         className={className}
-      //         preview={preview}
-      //         style={style}
-      //       />
-      //     );
-      //
-      //   return (
-      //     <div
-      //       ref={ref as any}
-      //       style={{
-      //         display: 'flex',
-      //         alignItems: 'center',
-      //         justifyContent: 'center',
-      //       }}
-      //     >
-      //       {content}
-      //     </div>
-      //   );
-      <CachedImageContent
-        uri={uri}
-        className={className}
-        preview={preview}
-        style={style}
-      />
+      (category === MetadataCategory.HTML || animationUrlExt === MetadataCategory.HTML) ? (
+        <HTMLContent
+          uri={uri}
+          animationUrl={animationURL}
+          className={className}
+          preview={preview}
+          style={style}
+          files={files}
+          artView={artView}
+        />
+      ) :
+        (
+          <CachedImageContent
+            uri={uri}
+            className={className}
+            preview={preview}
+            style={style}
+          />
+        )
     );
 
   return (
