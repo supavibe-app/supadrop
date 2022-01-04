@@ -93,6 +93,7 @@ export interface MetaState {
 
 export interface MetaContextState extends MetaState {
   art: any;
+  users:any;
   isLoadingMetaplex: boolean;
   isLoadingDatabase: boolean;
   dataCollection: Collection;
@@ -121,6 +122,7 @@ export interface MetaContextState extends MetaState {
   updateNotifAuction: (publicKey: string) => void;
   updateAllNotification: (publicKey: string) => void;
   updateArt: (nftData: any) => void;
+  updateUsers: (userData: any) => void;
   pullAllSiteData: () => void;
   pullAllMetadata: () => void;
   isBidPlaced: boolean;

@@ -30,6 +30,7 @@ const MetaContext = React.createContext<MetaContextState>({
   isLoadingMetaplex: false,
   isLoadingDatabase: false,
   art: {},
+  users: {},
   endingTime: 0,
   isBidPlaced: false,
   liveDataAuctions: [],
@@ -49,6 +50,7 @@ const MetaContext = React.createContext<MetaContextState>({
   updateNotifBidding: function () {},
   updateNotifAuction: function () {},
   updateArt: function () {},
+  updateUsers: function () {},
   updateAllNotification: function () {},
 });
 
@@ -57,6 +59,7 @@ export function MetaProvider({ children = null as any }) {
   const { isReady, storeAddress } = useStore();
   const { publicKey } = useWallet();
   const [art, setArt] = useState<any>({});
+  const [users, setUsers] = useState<any>({});
   const [dataCollection, setDataCollection] = useState<Collection>(
     new Collection('', '', '', 0, 0, 0, 0, []),
   );
@@ -561,6 +564,9 @@ export function MetaProvider({ children = null as any }) {
     });
     setArt({ ...art, ...data });
   }
+  async function updateUsers(userData: any) {
+    setUsers({ ...users, [userData.wallet_address]: userData });
+  }
 
   async function update(
     auctionAddress?: any,
@@ -793,6 +799,8 @@ export function MetaProvider({ children = null as any }) {
         setBidPlaced,
         art,
         updateArt,
+        users,
+        updateUsers,
         pullItemsPage,
         updateAllNotification,
       }}
