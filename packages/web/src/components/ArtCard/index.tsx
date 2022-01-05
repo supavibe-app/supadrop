@@ -32,7 +32,6 @@ import {
 } from './style';
 import { Link, useHistory } from 'react-router-dom';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
-import { getUsernameByPublicKeys } from '../../database/userData';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { endSale } from '../AuctionCard/utils/endSale';
 import moment from 'moment';

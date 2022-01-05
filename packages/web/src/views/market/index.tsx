@@ -12,7 +12,6 @@ import {
   OverlayStyle,
 } from './style';
 import { GreyColor, uTextAlignEnd, YellowGlowColor } from '../../styles';
-import { getUsernameByPublicKeys } from '../../database/userData';
 // import moment from 'moment';
 
 const { Option } = Select;

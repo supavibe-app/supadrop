@@ -16,7 +16,6 @@ import {
   TitleWrapper,
 } from './style';
 import { TwitterURL } from '../../constants';
-import { getUsernameByPublicKeys } from '../../database/userData';
 import countDown from '../../helpers/countdown';
 import { CountdownState, ItemAuction, UserData } from '@oyster/common';
 import { getLiveDataAuction } from '../../database/auction';
