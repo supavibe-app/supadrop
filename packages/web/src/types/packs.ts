@@ -1,4 +1,10 @@
-import { ParsedAccount, StringPublicKey } from '@oyster/common';
+import {
+  PackSet,
+  PackVoucher,
+  ParsedAccount,
+  ProvingProcess,
+  StringPublicKey,
+} from '@oyster/common';
 
 export type VoucherByKey = Record<string, ParsedAccount<PackVoucher>>;
 export type ExtendedVoucher = ParsedAccount<PackVoucher> & {

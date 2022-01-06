@@ -19,16 +19,11 @@ import {
   pullPayoutTickets,
   pullStoreMetadata,
 } from '.';
-import {
-  StringPublicKey,
-  TokenAccount,
-  UserData,
-  useUserAccounts,
-} from '../..';
+import { StringPublicKey, TokenAccount, useUserAccounts } from '../..';
 import { supabase } from '../../supabaseClient';
 import moment from 'moment';
 import { useWallet } from '@solana/wallet-adapter-react';
-
+import { UserData } from '../';
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
   isLoadingMetaplex: false,

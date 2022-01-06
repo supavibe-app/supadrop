@@ -25,7 +25,7 @@ export const getLiveDataAuction = () => {
       .order('end_auction', { ascending: true })
       .then(dataAuction => {
         const listData: ItemAuction[] = [];
-        if (dataAuction.body != null && dataAuction.body.length > 0) {
+        if (dataAuction.body != null) {
           dataAuction.body.forEach(v => {
             listData.push(
               new ItemAuction(
