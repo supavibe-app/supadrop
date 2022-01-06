@@ -37,7 +37,6 @@ import {
   PaddingBox,
   StatusContainer,
 } from './style';
-import { getUsernameByPublicKeys } from '../../database/userData';
 import Congratulations from '../../components/Congratulations';
 import { DetailArtContent } from '../../components/Details/DetailArtContent';
 
@@ -72,6 +71,7 @@ export const AuctionView = () => {
   );
 
   const auctionDatabase = allDataAuctions[id];
+  
   useEffect(() => {
     if (!auctionDatabase && !isLoadingDatabase) {
       supabase
@@ -105,7 +105,6 @@ export const AuctionView = () => {
     ...bidderPublicKeys,
     ...creatorPublicKeys,
   ];
-  const { data: users = {} } = getUsernameByPublicKeys(userIDs);
 
   let edition = '';
   switch (art.type) {
@@ -202,7 +201,6 @@ export const AuctionView = () => {
                 art={art}
                 extendedArt={data}
                 highestBid={highestBid}
-                users={users}
               />
             )}
           </div>
@@ -217,7 +215,6 @@ export const AuctionView = () => {
               showPlaceBid={showPlaceBid}
               setShowPlaceBid={setPlaceBidVisibility}
               currentBidAmount={bidAmount}
-              users={users}
               setShowCongratulations={setCongratulations}
               loadingDetailAuction={loadingDetailAuction}
             />
@@ -233,7 +230,6 @@ export const AuctionView = () => {
             key={auctionDatabase?.id}
             auction={auctionDatabase}
             bids={bids}
-            users={users}
           />
         </Col>
       )}

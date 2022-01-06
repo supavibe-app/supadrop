@@ -93,14 +93,12 @@ export interface MetaState {
 
 export interface MetaContextState extends MetaState {
   art: any;
-  users:any;
+  users: any;
   isLoadingMetaplex: boolean;
   isLoadingDatabase: boolean;
   dataCollection: Collection;
   userData: UserData;
   endingTime: number;
-  liveDataAuctions: ItemAuction[];
-  endedAuctions: ItemAuction[];
   notifBidding: any[];
   notifAuction: any[];
   allDataAuctions: { [key: string]: ItemAuction };
@@ -114,8 +112,6 @@ export interface MetaContextState extends MetaState {
   ];
   pullAuctionPage: (auctionAddress: StringPublicKey) => Promise<MetaState>;
   pullBillingPage: (auctionAddress: StringPublicKey) => void;
-  updateLiveDataAuction: () => void;
-  updateAllDataAuction: () => void;
   updateUserData: (data: UserData) => void;
   updateDetailAuction: (idAuction: string) => void;
   updateNotifBidding: (publicKey: string) => void;

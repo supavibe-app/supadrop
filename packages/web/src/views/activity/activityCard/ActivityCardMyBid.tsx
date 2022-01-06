@@ -34,7 +34,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
   const owner = auctionView.id_auction.owner;
   const winner = auctionView.id_auction.winner;
 
-  const isWinner = winner?.wallet_address === wallet.publicKey?.toBase58();
+  const isWinner = winner === wallet.publicKey?.toBase58();
 
   const highestBid = auctionView.id_auction.highest_bid;
   const [updatedData, setUpdatedData] = useState<any>();
@@ -60,9 +60,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
   useEffect(() => {
     if (updatedData) {
       auctionView.id_auction.highest_bid = updatedData.new.highest_bid;
-      auctionView.id_auction.winner = {
-        wallet_address: updatedData.new.winner,
-      };
+      auctionView.id_auction.winner = updatedData.new.winner;
 
       setUpdatedData('');
     }
@@ -97,11 +95,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                 {auctionView.id_auction.id_nft.name}
               </div>
               <div className={UserContainer}>
-                <ProfileAvatar
-                  imgProfile={owner?.img_profile}
-                  username={owner?.username}
-                  walletAddress={owner?.wallet_address}
-                />
+                <ProfileAvatar walletAddress={owner} />
               </div>
 
               <div className={NFTStatus}>
@@ -156,11 +150,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>winning bid</div>
                         <div className={UserContainer}>
-                          <ProfileAvatar
-                            imgProfile={winner.img_profile}
-                            username={winner.username}
-                            walletAddress={winner.wallet_address}
-                          />
+                          <ProfileAvatar walletAddress={winner} />
                         </div>
                       </div>
                     )}

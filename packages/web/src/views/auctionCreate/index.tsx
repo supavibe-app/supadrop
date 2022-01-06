@@ -81,8 +81,7 @@ export const AuctionCreateView = () => {
   const {
     whitelistedCreatorsByCreator,
     storeIndexer,
-    updateAllDataAuction,
-    updateLiveDataAuction,
+    updateDetailAuction,
     update,
   } = useMeta();
 
@@ -307,13 +306,11 @@ export const AuctionCreateView = () => {
                 .from('auction_status')
                 .insert([item])
                 .then(result => {
-                  updateLiveDataAuction();
-                  updateAllDataAuction();
+                  updateDetailAuction(item.id);
                 });
             });
         } else {
-          updateLiveDataAuction();
-          updateAllDataAuction();
+          updateDetailAuction(item.id);
           supabase
             .from('nft_data')
             .update({ id_auction: item.id })

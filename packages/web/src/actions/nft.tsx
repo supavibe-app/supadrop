@@ -545,7 +545,6 @@ export const mintNFTIPFS = async (
       body: fileDataForm,
     },
   );
-  console.log('🚀 ~ file: nft.tsx ~ line 183 ~ uploadResponse', uploadResponse);
 
   if (!uploadResponse.ok) {
     throw new Error(
@@ -555,10 +554,7 @@ export const mintNFTIPFS = async (
 
   const uploadedFilePins: { files: PinFileResponse[] } =
     await uploadResponse.json();
-  console.log(
-    '🚀 ~ file: nft.tsx ~ line 628 ~ uploadedFilePins',
-    uploadedFilePins,
-  );
+  
   let imageSet = false;
   metadataContent.properties.files = [];
   uploadedFilePins.files.forEach(file => {
@@ -603,10 +599,6 @@ export const mintNFTIPFS = async (
       body: metaDataFileForm,
     },
   );
-  console.log(
-    '🚀 ~ file: nft.tsx ~ line 671 ~ metaDataUploadResponse',
-    metaDataUploadResponse,
-  );
 
   if (!metaDataUploadResponse.ok) {
     throw new Error(
@@ -616,10 +608,7 @@ export const mintNFTIPFS = async (
 
   const uploadedMetaDataPinResponse = await metaDataUploadResponse.json();
   const uploadedMetaDataPin = uploadedMetaDataPinResponse.files[0];
-  console.log(
-    '🚀 ~ file: nft.tsx ~ line 341 ~ uploadedMetaDataPin',
-    uploadedMetaDataPin,
-  );
+  
 
   const metadataAccount = await createMetadata(
     new Data({

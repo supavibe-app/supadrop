@@ -60,10 +60,7 @@ const EditProfile = ({
     const { data, error } = await supabase.storage
       .from('profile')
       .download(`avatars/${path}`);
-    console.log(
-      '🚀 ~ file: index.tsx ~ line 63 ~ downloadImage ~ { data, error }',
-      { data, error },
-    );
+    
     if (error) {
       throw error;
     }
@@ -142,7 +139,6 @@ const EditProfile = ({
     const { error: uploadError } = await supabase.storage
       .from('profile')
       .upload(`avatars/${path}`, event);
-    console.log('🚀 ~ file: index.tsx ~ line 139 ~ uploadError', uploadError);
 
     if (uploadError) {
       downloadImage(path);

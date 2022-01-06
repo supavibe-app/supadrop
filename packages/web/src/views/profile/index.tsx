@@ -89,7 +89,7 @@ const Profile = ({ userId }: { userId: string }) => {
       refetch();
     } else if (localStorage.getItem('reload') === 'true') {
       localStorage.setItem('reload', 'false');
-      window.location.reload();
+      // window.location.reload();
     }
   }, [location.key]);
 

@@ -22,10 +22,15 @@ const ActivityView = () => {
   const { data: activeBids, refetch: refetchActiveBid } = getActiveBids(
     wallet.publicKey?.toBase58(),
   );
+  console.log(
+    '🚀 ~ file: index.tsx ~ line 25 ~ ActivityView ~ activeBids',
+    activeBids,
+  );
 
   const { data: onSale, refetch: refetchOnSale } = getOnSale(
     wallet.publicKey?.toBase58(),
   );
+  console.log('🚀 ~ file: index.tsx ~ line 30 ~ ActivityView ~ onSale', onSale);
 
   const EmptyState = ({}) => (
     <div>
@@ -48,9 +53,16 @@ const ActivityView = () => {
               onSale &&
               [...activeBids, ...onSale].map(auction => {
                 if (auction.id_auction) {
-                  return <ActivityCardMyBid auctionView={auction} />;
+                  return (
+                    <ActivityCardMyBid key={auction.id} auctionView={auction} />
+                  );
                 } else {
-                  return <ActivityCardOnSale auctionView={auction} />;
+                  return (
+                    <ActivityCardOnSale
+                      key={auction.id}
+                      auctionView={auction}
+                    />
+                  );
                 }
               })}
             {!Boolean([...activeBids, ...onSale].length) &&
@@ -60,7 +72,9 @@ const ActivityView = () => {
           <TabPane tab="my bids" key="2">
             {activeBids &&
               activeBids.map(auction => {
-                return <ActivityCardMyBid auctionView={auction} />;
+                return (
+                  <ActivityCardMyBid key={auction.id} auctionView={auction} />
+                );
               })}
 
             {!Boolean(activeBids.length) && !isLoadingMetaplex && (
@@ -70,7 +84,9 @@ const ActivityView = () => {
           <TabPane tab="on sale" key="3">
             {onSale &&
               onSale.map(auction => {
-                return <ActivityCardOnSale auctionView={auction} />;
+                return (
+                  <ActivityCardOnSale key={auction.id} auctionView={auction} />
+                );
               })}
 
             {!Boolean(onSale.length) && !isLoadingMetaplex && <EmptyState />}

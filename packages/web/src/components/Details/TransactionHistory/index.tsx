@@ -25,11 +25,9 @@ import ProfileAvatar from '../../ProfileAvatar';
 const TransactionHistory = ({
   auction,
   bids,
-  users,
 }: {
   auction: ItemAuction | undefined;
   bids: ParsedAccount<BidderMetadata>[];
-  users: any;
 }) => {
   const { publicKey } = useWallet();
   const { isLoadingDatabase } = useMeta();
@@ -67,8 +65,6 @@ const TransactionHistory = ({
           <Row className={Activity} justify="space-between" align="middle">
             <Col className={uFlexAlignItemsCenter} span={12}>
               <ProfileAvatar
-                imgProfile={users[bid.info.bidderPubkey]?.img_profile}
-                username={users[bid.info.bidderPubkey]?.username}
                 walletAddress={bid.info.bidderPubkey}
                 size={24}
               />

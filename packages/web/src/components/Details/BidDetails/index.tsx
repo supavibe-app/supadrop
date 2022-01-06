@@ -89,7 +89,6 @@ const BidDetails = ({
   setShowPlaceBid,
   showPlaceBid,
   currentBidAmount,
-  users,
   setShowCongratulations,
   loadingDetailAuction,
 }: {
@@ -101,7 +100,6 @@ const BidDetails = ({
   showPlaceBid: boolean;
   setShowPlaceBid: (visible: boolean) => void;
   currentBidAmount: number | undefined;
-  users: any;
   setShowCongratulations: (type: string) => void;
   loadingDetailAuction: boolean;
 }) => {
@@ -121,6 +119,7 @@ const BidDetails = ({
     updateNotifBidding,
     pullAllSiteData,
     isLoadingMetaplex,
+    users,
   } = useMeta();
   const { id } = useParams<{ id: string }>();
   const ownedMetadata = useUserArts();
@@ -948,12 +947,12 @@ const BidDetails = ({
           );
         }
       }
-      console.log(
-        '🚀 ~ file: index.tsx ~ line 857 ~ isInstantSale',
-        bids,
-        isLoadingMetaplex,
-        Date.now(),
-      );
+      // console.log(
+      //   '🚀 ~ file: index.tsx ~ line 857 ~ isInstantSale',
+      //   bids,
+      //   isLoadingMetaplex,
+      //   Date.now(),
+      // );
 
       return (
         <BidDetailsContent>

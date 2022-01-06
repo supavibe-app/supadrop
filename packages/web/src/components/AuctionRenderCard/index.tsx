@@ -10,6 +10,7 @@ import {
   shortenAddress,
   UserData,
   Identicon,
+  useMeta,
 } from '@oyster/common';
 import { ArtContent, ArtContent2 } from '../ArtContent';
 import { AuctionView, AuctionViewState, useArt } from '../../hooks';
@@ -32,10 +33,12 @@ import ProfileAvatar from '../ProfileAvatar';
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
   auctionView: ItemAuction;
-  owner: UserData;
+  wallet_address: string;
 }
 export const AuctionRenderCard = (props: AuctionCard) => {
-  const { auctionView, owner } = props;
+  const { auctionView, wallet_address } = props;
+  const { users } = useMeta();
+
   const id = auctionView.id_nft;
   const art = useArt(id);
   const name = art?.title || auctionView.name;
@@ -54,7 +57,8 @@ export const AuctionRenderCard = (props: AuctionCard) => {
   const now = Math.floor(new Date().getTime() / 1000);
   const endAt = auctionView.endAt;
 
-  const winningBid = auctionView.winner;
+  const winningBid = users[auctionView.winner]?.username || auctionView.winner;
+  const owner = users[auctionView.owner]?.username || auctionView.owner;
   const ended = !auctionView.isInstantSale && endAt < now;
 
   let currentBid: number | string = 0;
@@ -110,11 +114,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
         description={
           <>
             <div className={UserWrapper}>
-              <ProfileAvatar
-                imgProfile={owner.img_profile}
-                username={owner.username}
-                walletAddress={owner.wallet_address}
-              />
+              <ProfileAvatar walletAddress={wallet_address} />
             </div>
 
             <Row>
@@ -164,7 +164,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
                 )}
                 {auctionView.isInstantSale && (
                   <div className={OwnerContainer} style={{ fontSize: 20 }}>
-                    {shortenAddress(auctionView?.owner)}
+                    {shortenAddress(owner)}
                   </div>
                 )}
 

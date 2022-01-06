@@ -20,10 +20,7 @@ export const getActiveBids = publicKey => {
         id_auction (
           *,
           id_nft(*)
-          ,winner(*)
-          ,owner(*)
-        ),
-        user_data(*)
+        )
         `,
         )
         .eq('wallet_address', publicKey)
@@ -53,9 +50,7 @@ export const getOnSale = publicKey => {
         .select(
           `
         *,
-        id_nft(*),
-        winner(*),
-        owner(*)
+        id_nft(*)
         `,
         )
         .eq('owner', publicKey)

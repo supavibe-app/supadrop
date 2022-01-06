@@ -18,27 +18,24 @@ import {
 import { TwitterURL } from '../../constants';
 import countDown from '../../helpers/countdown';
 import { CountdownState, ItemAuction, UserData } from '@oyster/common';
-import { getLiveDataAuction } from '../../database/auction';
+import {
+  getEndedDataAuction,
+  getLiveDataAuction,
+} from '../../database/auction';
 
 const { TabPane } = Tabs;
 
 const AuctionListView = () => {
   const [state, setState] = useState<CountdownState>();
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
-  const {
-    isLoadingMetaplex,
-    isLoadingDatabase,
-    liveDataAuctions,
-    endedAuctions,
-    allDataAuctions,
-    endingTime,
-    dataCollection,
-  } = useMeta();
+  const { isLoadingMetaplex, isLoadingDatabase, endingTime, dataCollection } =
+    useMeta();
 
-  const { data: liveAuction, loading } = getLiveDataAuction();
+  const { data: liveAuctions, loading } = getLiveDataAuction();
+  const { data: endedAuctions } = getEndedDataAuction();
   const now = moment().unix();
   const [activeKey, setActiveKey] = useState(
-    Object.entries(liveAuction).length === 0 && !loading ? '2' : '1',
+    Object.entries(liveAuctions).length === 0 && !loading ? '2' : '1',
   );
   useEffect(() => {
     const calc = () =>
@@ -52,7 +49,8 @@ const AuctionListView = () => {
   }, [endingTime, dataCollection]);
 
   useEffect(() => {
-    if (Object.entries(liveAuction).length === 0 && !loading) setActiveKey('2');
+    if (Object.entries(liveAuctions).length === 0 && !loading)
+      setActiveKey('2');
     else setActiveKey('1');
   }, [loading]);
 
@@ -65,18 +63,6 @@ const AuctionListView = () => {
       ));
 
     return list.map((auction: ItemAuction, idx) => {
-      const userData = new UserData(
-        '',
-        '',
-        auction.ownerImg || '',
-        '',
-        '',
-        '',
-        auction.ownerUsername || '',
-        '',
-        auction.owner,
-      );
-
       return (
         <Col
           key={auction.id}
@@ -89,7 +75,10 @@ const AuctionListView = () => {
           xs={24}
         >
           <Link to={`/auction/${auction.id}`}>
-            <AuctionRenderCard auctionView={auction} owner={userData} />
+            <AuctionRenderCard
+              auctionView={auction}
+              wallet_address={auction.owner}
+            />
           </Link>
         </Col>
       );
@@ -171,8 +160,8 @@ const AuctionListView = () => {
               </div>
             }
           >
-            <Row gutter={[36, 36]}>{auctionList(liveAuction)}</Row>
-            {!Boolean(liveAuction.length) && !loading && emptyAuction}
+            <Row gutter={[36, 36]}>{auctionList(liveAuctions)}</Row>
+            {!Boolean(liveAuctions.length) && !loading && emptyAuction}
           </TabPane>
 
           <TabPane

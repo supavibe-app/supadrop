@@ -82,7 +82,7 @@ export const ArtCard = (props: ArtCardProps) => {
   } = props;
 
   const art = useArt(pubkey);
-  const { userData, updateArt } = useMeta();
+  const { userData, updateArt, users } = useMeta();
   const singleUser = useUserSingleArt(pubkey || '');
 
   const { location } = useHistory();
@@ -107,6 +107,7 @@ export const ArtCard = (props: ArtCardProps) => {
     : nftData?.holder
     ? nftData?.holder
     : auctionData?.owner;
+  const holderUsername = users[holderNFT]?.username || holderNFT;
 
   // onsale requirements
   const walletContext = useWallet();
@@ -163,11 +164,7 @@ export const ArtCard = (props: ArtCardProps) => {
         description={
           <>
             <div className={UserWrapper}>
-              <ProfileAvatar
-                imgProfile={nftData?.creator?.img_profile}
-                username={nftData?.creator?.username}
-                walletAddress={nftData?.creator?.wallet_address}
-              />
+              <ProfileAvatar walletAddress={nftData?.creator?.wallet_address} />
             </div>
             <Row>
               {/* Left Section */}
@@ -250,14 +247,18 @@ export const ArtCard = (props: ArtCardProps) => {
               {!isCollected && isInstantSale && !onListingPage && (
                 <Col span={12}>
                   <div>listed by</div>
-                  <div className={WhiteColor}>{shortenAddress(holderNFT)}</div>
+                  <div className={WhiteColor}>
+                    {shortenAddress(holderUsername)}
+                  </div>
                 </Col>
               )}
 
               {!isCollected && !isOnSale && !onListingPage && (
                 <Col span={12}>
                   <div>owner</div>
-                  <div className={WhiteColor}>{shortenAddress(holderNFT)}</div>
+                  <div className={WhiteColor}>
+                    {shortenAddress(holderUsername)}
+                  </div>
                 </Col>
               )}
               {onListingPage && (
