@@ -19,11 +19,15 @@ import {
   pullPayoutTickets,
   pullStoreMetadata,
 } from '.';
-import { StringPublicKey, TokenAccount, useUserAccounts } from '../..';
+import {
+  StringPublicKey,
+  TokenAccount,
+  UserData,
+  useUserAccounts,
+} from '../..';
 import { supabase } from '../../supabaseClient';
 import moment from 'moment';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { UserData } from '..';
 
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
@@ -564,8 +568,13 @@ export function MetaProvider({ children = null as any }) {
     });
     setArt({ ...art, ...data });
   }
+
   async function updateUsers(userData: any) {
-    setUsers({ ...users, [userData.wallet_address]: userData });
+    const data: any = {};
+    userData.forEach((item: any) => {
+      data[item.wallet_address] = item;
+    });
+    setUsers({ ...users, ...data });
   }
 
   async function update(

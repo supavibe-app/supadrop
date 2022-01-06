@@ -16,7 +16,6 @@ import { AuctionView, AuctionViewState, useArt } from '../../hooks';
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
 import { useAuctionStatus } from './hooks/useAuctionStatus';
-import { getUsernameByPublicKeys } from '../../database/userData';
 import { uTextAlignEnd } from '../../styles';
 import {
   AuctionImage,
