@@ -28,6 +28,7 @@ const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
   isLoadingMetaplex: false,
   isLoadingDatabase: false,
+  isLoadingAllMetadata: false,
   art: {},
   users: {},
   endingTime: 0,
@@ -51,6 +52,7 @@ const MetaContext = React.createContext<MetaContextState>({
 
 export function MetaProvider({ children = null as any }) {
   const connection = useConnection();
+  const wallet = useWallet();
   const { isReady, storeAddress } = useStore();
   const { publicKey } = useWallet();
   const [art, setArt] = useState<any>({});
@@ -75,6 +77,7 @@ export function MetaProvider({ children = null as any }) {
 
   const [isLoadingMetaplex, setIsLoadingMetaplex] = useState(true);
   const [isLoadingDatabase, setIsLoadingDatabase] = useState(true);
+  const [isLoadingAllMetadata, setIsLoadingAllMetadata] = useState(false);
   const [isBidPlaced, setBidPlaced] = useState(false);
 
   const updateMints = useCallback(
@@ -243,6 +246,7 @@ export function MetaProvider({ children = null as any }) {
             dataAuction.body.winner,
             dataAuction.body.id_nft.mint_key,
             dataAuction.body.type_auction,
+            dataAuction.body.id_nft.royalty,
           );
 
           setAllDataAuction({ ...allDataAuctions, detailAuction });
@@ -288,6 +292,7 @@ export function MetaProvider({ children = null as any }) {
               v.winner,
               v.id_nft.mint_key,
               v.type_auction,
+              v.id_nft.royalty,
             );
           });
 
@@ -338,11 +343,16 @@ export function MetaProvider({ children = null as any }) {
     } else if (!state.store) {
       setIsLoadingMetaplex(true);
     }
+
+    setIsLoadingAllMetadata(true);
     setIsLoadingMetaplex(true);
     const nextState = await pullStoreMetadata(connection, state);
+
     setIsLoadingMetaplex(false);
     setState(nextState);
     await updateMints(nextState.metadataByMint);
+    setIsLoadingAllMetadata(false);
+
     return [];
   }
 
@@ -483,7 +493,15 @@ export function MetaProvider({ children = null as any }) {
       getDataCollection(),
     ]);
 
-    let nextState = await pullPage(connection, page, state);
+    const shouldFetchNftPacks = process.env.NEXT_ENABLE_NFT_PACKS === 'true';
+
+    let nextState = await pullPage(
+      connection,
+      page,
+      state,
+      wallet?.publicKey,
+      shouldFetchNftPacks,
+    );
     console.log('-----> Query started', new Date());
 
     if (nextState.storeIndexer.length) {
@@ -577,6 +595,13 @@ export function MetaProvider({ children = null as any }) {
     await updateMints(nextState.metadataByMint);
 
     if (auctionAddress && bidderAddress) {
+      nextState = await pullAuctionSubaccounts(
+        connection,
+        auctionAddress,
+        nextState,
+      );
+      setState(nextState);
+
       const auctionBidderKey = auctionAddress + '-' + bidderAddress;
       return [
         nextState.auctions[auctionAddress],
@@ -670,6 +695,7 @@ export function MetaProvider({ children = null as any }) {
         pullAllSiteData,
         isLoadingMetaplex,
         isLoadingDatabase,
+        isLoadingAllMetadata,
         dataCollection,
         endingTime,
         notifBidding,

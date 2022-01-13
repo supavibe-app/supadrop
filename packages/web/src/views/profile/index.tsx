@@ -77,13 +77,27 @@ const { TabPane } = Tabs;
 const Profile = ({ userId }: { userId: string }) => {
   const { replace, push, location } = useHistory();
   const { publicKey } = useWallet();
-  const { isLoadingMetaplex, pullAllMetadata, allDataAuctions, updateArt } =
-    useMeta();
+  const {
+    isLoadingMetaplex,
+    pullAllMetadata,
+    allDataAuctions,
+    updateArt,
+    isLoadingAllMetadata,
+  } = useMeta();
   const [onEdit, setOnEdit] = useState(false);
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
   const ownedMetadata = useUserArts();
 
+  //TODO pull all metadata only 1 time
+  // useEffect(() => {
+  //   if (!isLoadingMetaplex && !isLoadingAllMetadata ) {
+  //     pullAllMetadata();
+  //     console.log(
+  //       '🚀 ~ file: index.tsx ~ line 104 ~ useEffect ~ pullAllMetadata',
+  //     );
+  //   }
+  // }, [isLoadingMetaplex]);
   useEffect(() => {
     if (location.state === 'refresh') {
       refetch();
@@ -92,12 +106,6 @@ const Profile = ({ userId }: { userId: string }) => {
       // window.location.reload();
     }
   }, [location.key]);
-
-  useEffect(() => {
-    if (!isLoadingMetaplex) {
-      pullAllMetadata();
-    }
-  }, [isLoadingMetaplex]);
 
   const walletAddress = userData?.wallet_address;
   const { data: collected, loading: loadingCollected } = getCollectedNFT(

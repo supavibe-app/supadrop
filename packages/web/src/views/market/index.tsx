@@ -64,6 +64,7 @@ const MarketComponent = () => {
               v.winner,
               v.id_nft.mint_key,
               v.type_auction,
+              v.id_nft.royalty,
               v.owner.img_profile,
               v.owner.username,
             );

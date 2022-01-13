@@ -47,14 +47,18 @@ import { getMultipleAccounts } from '../accounts/getMultipleAccounts';
 import { getProgramAccounts } from './web3';
 import { createPipelineExecutor } from '../../utils/createPipelineExecutor';
 import { programIds } from '../..';
-import { getPackSets } from '../../models/packs/accounts/PackSet';
-import { getCardsByPackSet } from '../../models/packs/accounts/PackCard';
+import {
+  getPackSetByPubkey,
+  getPackSets,
+} from '../../models/packs/accounts/PackSet';
 import { processPackSets } from './processPackSets';
-import { processPackCards } from './processPackCards';
 import { getVouchersByPackSet } from '../../models/packs/accounts/PackVoucher';
 import { processPackVouchers } from './processPackVouchers';
+import { getCardsByPackSet } from '../../models/packs/accounts/PackCard';
+import { processPackCards } from './processPackCards';
 import { getProvingProcessByPackSetAndWallet } from '../../models/packs/accounts/ProvingProcess';
 import { processProvingProcess } from './processProvingProcess';
+
 const MULTIPLE_ACCOUNT_BATCH_SIZE = 100;
 
 export const USE_SPEED_RUN = false;
@@ -218,6 +222,7 @@ export const pullYourMetadata = async (
   await postProcessMetadata(tempCache);
 
   console.log('-------->User metadata processing complete.');
+
   return tempCache;
 };
 
@@ -243,6 +248,7 @@ export const pullPayoutTickets = async (
 
   return tempCache;
 };
+
 export const pullPacks = async (
   connection: Connection,
   state: MetaState,
@@ -312,6 +318,54 @@ export const pullPacks = async (
   return newState;
 };
 
+export const pullPack = async ({
+  connection,
+  state,
+  packSetKey,
+  walletKey,
+}: {
+  connection: Connection;
+  state: MetaState;
+  packSetKey: StringPublicKey;
+  walletKey: PublicKey | null;
+}): Promise<MetaState> => {
+  const updateTemp = makeSetter(state);
+
+  const packSet = await getPackSetByPubkey(connection, packSetKey);
+  processPackSets(packSet, updateTemp);
+
+  const packCards = await getCardsByPackSet({
+    connection,
+    packSetKey,
+  });
+  packCards.forEach(card => processPackCards(card, updateTemp));
+
+  if (walletKey) {
+    const provingProcess = await getProvingProcessByPackSetAndWallet({
+      connection,
+      packSetKey,
+      walletKey,
+    });
+    provingProcess.forEach(process =>
+      processProvingProcess(process, updateTemp),
+    );
+  }
+
+  const metadataKeys = Object.values(
+    state.packCardsByPackSet[packSetKey] || {},
+  ).map(({ info }) => info.metadata);
+  const newState = await pullMetadataByKeys(connection, state, metadataKeys);
+
+  await pullEditions(
+    connection,
+    updateTemp,
+    newState,
+    metadataKeys.map(m => newState.metadataByMetadata[m]),
+  );
+
+  return newState;
+};
+
 export const pullAuctionSubaccounts = async (
   connection: Connection,
   auction: StringPublicKey,
@@ -329,7 +383,6 @@ export const pullAuctionSubaccounts = async (
   const cache = tempCache.auctionCaches[cacheKey]?.info;
   if (!cache) {
     console.log('-----> No auction cache exists for', auction, 'returning');
-    window.location.reload();
     return tempCache;
   }
   const forEach =
@@ -394,18 +447,27 @@ export const pullAuctionSubaccounts = async (
     }).then(forEach(processVaultData)),
 
     // bid redemptions
-    ...WHITELISTED_AUCTION_MANAGER.map(() =>
-      getProgramAccounts(connection, METAPLEX_ID, {
-        filters: [
-          {
-            memcmp: {
-              offset: 9,
-              bytes: cache.auctionManager,
-            },
+    getProgramAccounts(connection, METAPLEX_ID, {
+      filters: [
+        {
+          memcmp: {
+            offset: 10,
+            bytes: cache.auctionManager,
           },
-        ],
-      }).then(forEach(processMetaplexAccounts)),
-    ),
+        },
+      ],
+    }).then(forEach(processMetaplexAccounts)),
+    // bdis where you arent winner
+    getProgramAccounts(connection, METAPLEX_ID, {
+      filters: [
+        {
+          memcmp: {
+            offset: 2,
+            bytes: cache.auctionManager,
+          },
+        },
+      ],
+    }).then(forEach(processMetaplexAccounts)),
     // safety deposit configs
     getProgramAccounts(connection, METAPLEX_ID, {
       filters: [
@@ -465,6 +527,8 @@ export const pullPage = async (
   connection: Connection,
   page: number,
   tempCache: MetaState,
+  walletKey?: PublicKey | null,
+  shouldFetchNftPacks?: boolean,
 ) => {
   const updateTemp = makeSetter(tempCache);
   const forEach =
@@ -610,6 +674,10 @@ export const pullPage = async (
       }
     }
 
+    if (shouldFetchNftPacks) {
+      await pullPacks(connection, tempCache, walletKey);
+    }
+
     if (page == 0) {
       console.log('-------->Page 0, pulling creators and store');
       await getProgramAccounts(connection, METAPLEX_ID, {
@@ -619,6 +687,7 @@ export const pullPage = async (
           },
         ],
       }).then(forEach(processMetaplexAccounts));
+
       const store = programIds().store;
       if (store) {
         const storeAcc = await connection.getAccountInfo(store);
@@ -938,9 +1007,10 @@ const pullEditions = async (
   };
 
   for (const metadata of metadataArr) {
+    // let editionKey: StringPublicKey;
     // TODO the nonce builder isnt working here, figure out why
     //if (metadata.info.editionNonce === null) {
-    const editionKey: StringPublicKey = await getEdition(metadata.info.mint);
+    const editionKey = await getEdition(metadata.info.mint);
     /*} else {
       editionKey = (
         await PublicKey.createProgramAddress(
@@ -1025,6 +1095,7 @@ const pullMetadataByCreators = (
 
   return Promise.all(additionalPromises);
 };
+
 export const pullMetadataByKeys = async (
   connection: Connection,
   state: MetaState,
@@ -1065,6 +1136,7 @@ export const pullMetadataByKeys = async (
   await Promise.all(metadataPromises);
   return state;
 };
+
 export const makeSetter =
   (state: MetaState): UpdateStateValueFunc<MetaState> =>
   (prop, key, value) => {
@@ -1080,6 +1152,17 @@ export const makeSetter =
       state.storeIndexer = state.storeIndexer.sort((a, b) =>
         a.info.page.sub(b.info.page).toNumber(),
       );
+    } else if (prop === 'packCardsByPackSet') {
+      if (!state.packCardsByPackSet[key]) {
+        state.packCardsByPackSet[key] = [];
+      }
+
+      const alreadyHasInState = state.packCardsByPackSet[key].some(
+        ({ pubkey }) => pubkey === value.pubkey,
+      );
+      if (!alreadyHasInState) {
+        state.packCardsByPackSet[key].push(value);
+      }
     } else {
       state[prop][key] = value;
     }
@@ -1120,8 +1203,10 @@ export const metadataByMintUpdater = async (
     if (masterEditionKey) {
       state.metadataByMasterEdition[masterEditionKey] = metadata;
     }
+    if (!state.metadata.some(({ pubkey }) => metadata.pubkey === pubkey)) {
+      state.metadata.push(metadata);
+    }
     state.metadataByMint[key] = metadata;
-    if (!state.metadataByMint[key]) state.metadata.push(metadata);
   } else {
     delete state.metadataByMint[key];
   }

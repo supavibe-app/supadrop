@@ -1,7 +1,6 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useEffect, useState } from 'react';
 import { Layout, Row, Col, Tabs, Button, Dropdown, Menu } from 'antd';
-import { useMeta } from '../../contexts';
 import { CardLoader } from '../../components/MyLoader';
 
 import { ArtworkViewState } from './types';
@@ -10,28 +9,36 @@ import ItemCard from './components/ItemCard';
 import { useUserAccounts } from '@oyster/common';
 import { DownOutlined } from '@ant-design/icons';
 import { isMetadata, isPack } from './utils';
+import { useMeta } from '@oyster/common';
 
 const { TabPane } = Tabs;
 const { Content } = Layout;
 
 export const SellView = () => {
   const { connected } = useWallet();
-  const { isLoadingMetaplex, pullAllMetadata, storeIndexer, pullItemsPage } =
-    useMeta();
+  const {
+    isLoadingMetaplex,
+    pullAllMetadata,
+    storeIndexer,
+    pullItemsPage,
+    isLoadingAllMetadata,
+  } = useMeta();
   const { userAccounts } = useUserAccounts();
 
   const [activeKey, setActiveKey] = useState(ArtworkViewState.Metaplex);
 
   const userItems = useItems({ activeKey });
-  console.log(
-    '🚀 ~ file: index.tsx ~ line 25 ~ ArtworksView ~ userItems',
-    userItems.length,
-    userItems,
-  );
 
+  const [counter, setCounter] = useState(0);
   useEffect(() => {
-    pullItemsPage(userAccounts);
-  }, []);
+    if (!isLoadingMetaplex && counter === 0 && !isLoadingAllMetadata) {
+      pullAllMetadata();
+      console.log(
+        '🚀 ~ file: index.tsx ~ line 36 ~ useEffect ~ pullAllMetadata',
+      );
+      setCounter(1);
+    }
+  }, [isLoadingMetaplex]);
 
   useEffect(() => {
     if (connected) {
@@ -43,9 +50,9 @@ export const SellView = () => {
 
   const artworkGrid = (
     <div className="artwork-grid">
-      {isLoadingMetaplex &&
+      {isLoadingAllMetadata &&
         [...Array(10)].map((_, idx) => <CardLoader key={idx} />)}
-      {!isLoadingMetaplex &&
+      {(!isLoadingMetaplex || userItems.length > 0) &&
         userItems.map(item => {
           const pubkey = isMetadata(item)
             ? item.pubkey

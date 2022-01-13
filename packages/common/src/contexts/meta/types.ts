@@ -96,6 +96,7 @@ export interface MetaContextState extends MetaState {
   users: any;
   isLoadingMetaplex: boolean;
   isLoadingDatabase: boolean;
+  isLoadingAllMetadata: boolean;
   dataCollection: Collection;
   userData: UserData;
   endingTime: number;
@@ -195,6 +196,7 @@ export class ItemAuction {
   winner: string;
   mint_key: string;
   isInstantSale: boolean;
+  royalty: number;
   ownerImg?: string;
   ownerUsername?: string;
 
@@ -219,6 +221,7 @@ export class ItemAuction {
     winner: string,
     mint_key: string,
     isInstantSale: boolean,
+    royalty: number,
     ownerImg?: string,
     ownerUsername?: string,
   ) {
@@ -242,6 +245,7 @@ export class ItemAuction {
     this.winner = winner;
     this.mint_key = mint_key;
     this.isInstantSale = isInstantSale;
+    this.royalty = royalty;
     this.ownerImg = ownerImg;
     this.ownerUsername = ownerUsername;
   }
