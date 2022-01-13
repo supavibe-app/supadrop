@@ -71,7 +71,7 @@ export const AuctionView = () => {
   );
 
   const auctionDatabase = allDataAuctions[id];
-  
+
   useEffect(() => {
     if (!auctionDatabase && !isLoadingDatabase) {
       supabase
@@ -121,14 +121,16 @@ export const AuctionView = () => {
 
   useEffect(() => {
     updateDetailAuction();
+    setCongratulations('');
   }, [location.key]);
   async function updateDetailAuction() {
     setLoadingDetailAuction(true);
     await pullAuctionPage(id);
     setLoadingDetailAuction(false);
   }
-  if (showCongratulations !== '')
+  if (showCongratulations !== '') {
     return <Congratulations id={id} type={showCongratulations} />;
+  }
 
   return (
     <Row className={Container} ref={ref}>
