@@ -11,6 +11,7 @@ import {
   useMeta,
   CountdownState,
   supabaseUpdateIsRedeem,
+  supabase,
 } from '@oyster/common';
 import { ArtContent } from './../ArtContent';
 import {
@@ -79,12 +80,39 @@ export const ArtCard = (props: ArtCardProps) => {
     artItem,
     isCollected,
     soldFor,
+    onSellPage,
   } = props;
 
   const art = useArt(pubkey);
-  const { userData, updateArt, users } = useMeta();
+  const { userData, updateArt, art: artData, users } = useMeta();
   const singleUser = useUserSingleArt(pubkey || '');
-
+  const [dataNFT, setDataNFT] = useState<any>(nftData);
+  const detailArt = artData[pubkey || ''];
+  useEffect(() => {
+    if (detailArt && !dataNFT) {
+      setDataNFT(detailArt);
+    }
+  }, [detailArt]);
+  useEffect(() => {
+    if (detailArt === undefined) {
+      if (nftData) {
+        updateArt([nftData]);
+      } else {
+        supabase
+          .from('nft_data')
+          .select(
+            '*,id_auction(*),creator(username,wallet_address,img_profile)',
+          )
+          .eq('id', pubkey)
+          .order('updated_at', { ascending: false })
+          .then(res => {
+            if (!res.error && res.body.length > 0) {
+              updateArt(res.body);
+            }
+          });
+      }
+    }
+  }, []);
   const { location } = useHistory();
   const { state: dataState } = location;
   const { idNFT, onListingPage }: any = dataState || {};
@@ -101,12 +129,19 @@ export const ArtCard = (props: ArtCardProps) => {
   const isInstantSale = auctionData?.type_auction && auctionData?.isLiveMarket;
   const isOnSale = isLiveAuction || isInstantSale;
   const haveBidders = auctionData?.highest_bid > 0;
-  const everSold = nftData?.sold > 0;
+  const everSold = dataNFT?.sold > 0;
   const holderNFT = auctionData?.winner
     ? auctionData?.winner
-    : nftData?.holder
-    ? nftData?.holder
+    : dataNFT?.holder
+    ? dataNFT?.holder
     : auctionData?.owner;
+  let creatorNFT = dataNFT?.creator?.wallet_address;
+  if (!creatorNFT) {
+    if (art && art.creators && art.creators.length > 0) {
+      creatorNFT = art.creators[0].address;
+    }
+  }
+
   const holderUsername = users[holderNFT]?.username || holderNFT;
 
   // onsale requirements
@@ -125,7 +160,7 @@ export const ArtCard = (props: ArtCardProps) => {
     const interval = setInterval(() => calc(), 1000);
     calc();
     return () => clearInterval(interval);
-  }, [nftData, setState]);
+  }, [dataNFT, setState]);
 
   let badge = '';
   if (art.type === ArtType.NFT) {
@@ -151,8 +186,8 @@ export const ArtCard = (props: ArtCardProps) => {
             className={AuctionImage(cardWidth)}
             preview={preview}
             pubkey={pubkey}
-            uri={nftData?.thumbnail}
-            animationURL={nftData?.original_file}
+            uri={dataNFT?.thumbnail}
+            animationURL={dataNFT?.original_file}
             category={category}
             allowMeshRender={false}
           />
@@ -164,14 +199,14 @@ export const ArtCard = (props: ArtCardProps) => {
         description={
           <>
             <div className={UserWrapper}>
-              <ProfileAvatar walletAddress={nftData?.creator?.wallet_address} />
+              <ProfileAvatar walletAddress={creatorNFT} />
             </div>
             <Row>
               {/* Left Section */}
               {!isOnSale && everSold && (
                 <Col span={12}>
                   <div>sold for</div>
-                  <div className={WhiteColor}>{nftData.sold} SOL</div>
+                  <div className={WhiteColor}>{dataNFT.sold} SOL</div>
                 </Col>
               )}
 
@@ -202,33 +237,35 @@ export const ArtCard = (props: ArtCardProps) => {
               )}
 
               {/* Right Section */}
-              {art.title &&
+              {((art.title &&
                 singleUser.length > 0 &&
                 !isOnSale &&
                 !onListingPage &&
                 isCollected &&
-                pubkey && (
-                  <Col className={ButtonCard} span={12}>
-                    <Link
-                      to={{
-                        pathname: `/list/create`,
-                        state: {
-                          idNFT: pubkey,
-                          auctionData,
-                          nftData,
-                          onListingPage: true,
-                        },
-                      }}
-                    >
-                      <Button shape="round">LIST</Button>
-                    </Link>
-                  </Col>
-                )}
+                pubkey) ||
+                onSellPage) && (
+                <Col className={ButtonCard} span={12}>
+                  <Link
+                    to={{
+                      pathname: `/list/create`,
+                      state: {
+                        idNFT: pubkey,
+                        auctionData,
+                        nftData: dataNFT,
+                        onListingPage: true,
+                      },
+                    }}
+                  >
+                    <Button shape="round">LIST</Button>
+                  </Link>
+                </Col>
+              )}
               {!art.title &&
                 !onListingPage &&
                 isCollected &&
                 pubkey &&
-                !isLiveAuction && (
+                !isLiveAuction &&
+                !onSellPage && (
                   <Col className={ButtonCard} span={12}>
                     <Button shape="round" disabled>
                       please wait...
@@ -236,15 +273,19 @@ export const ArtCard = (props: ArtCardProps) => {
                   </Col>
                 )}
 
-              {art.title && isCollected && !onListingPage && isInstantSale && (
-                <Col className={ButtonCard} span={12}>
-                  <Link to={`/auction/${auctionData?.id}`}>
-                    <Button shape="round">UNLIST</Button>
-                  </Link>
-                </Col>
-              )}
+              {art.title &&
+                isCollected &&
+                !onListingPage &&
+                isInstantSale &&
+                !onSellPage && (
+                  <Col className={ButtonCard} span={12}>
+                    <Link to={`/auction/${auctionData?.id}`}>
+                      <Button shape="round">UNLIST</Button>
+                    </Link>
+                  </Col>
+                )}
 
-              {!isCollected && isInstantSale && !onListingPage && (
+              {!isCollected && isInstantSale && !onListingPage && !onSellPage && (
                 <Col span={12}>
                   <div>listed by</div>
                   <div className={WhiteColor}>
@@ -253,7 +294,7 @@ export const ArtCard = (props: ArtCardProps) => {
                 </Col>
               )}
 
-              {!isCollected && !isOnSale && !onListingPage && (
+              {!isCollected && !isOnSale && !onListingPage && !onSellPage && (
                 <Col span={12}>
                   <div>owner</div>
                   <div className={WhiteColor}>
@@ -261,7 +302,7 @@ export const ArtCard = (props: ArtCardProps) => {
                   </div>
                 </Col>
               )}
-              {onListingPage && (
+              {onListingPage && !onSellPage && (
                 <Col span={12}>
                   <div>owner</div>
                   <div className={WhiteColor}>
@@ -271,7 +312,7 @@ export const ArtCard = (props: ArtCardProps) => {
                 </Col>
               )}
 
-              {isLiveAuction && (
+              {isLiveAuction && !onSellPage && (
                 <Col span={12}>
                   <div>ending in</div>
                   <div className={WhiteColor}>
@@ -295,12 +336,12 @@ export const ArtCard = (props: ArtCardProps) => {
       />
     </Card>
   );
-
-  return art.creators?.find(c => !c.verified) ? (
-    <Badge.Ribbon text="Unverified">{card}</Badge.Ribbon>
-  ) : (
-    card
-  );
+  return card;
+  // return art.creators?.find(c => !c.verified) ? (
+  //   <Badge.Ribbon text="Unverified">{card}</Badge.Ribbon>
+  // ) : (
+  //   card
+  // );
 };
 
 export const ArtCardSell = (props: ArtCardProps) => {
@@ -520,10 +561,10 @@ export const OriginalArtCard = (props: OriginalArtCardProps) => {
       />
     </Card>
   );
-
-  return art.creators?.find(c => !c.verified) ? (
-    <Badge.Ribbon text="Unverified">{card}</Badge.Ribbon>
-  ) : (
-    card
-  );
+  return card;
+  // return art.creators?.find(c => !c.verified) ? (
+  //   <Badge.Ribbon text="Unverified">{card}</Badge.Ribbon>
+  // ) : (
+  //   card
+  // );
 };
