@@ -85,4 +85,38 @@ const Congratulations = ({ id }) => {
   );
 };
 
+export const CongratulationsNew = ({ artCard, title, description, primaryAction, primaryText, secondaryAction, secondaryText }) => {
+  return (
+    <Row justify="center">
+      <Col span={16} style={{ marginTop: 72 }}>
+        <Row justify="center" gutter={[72, 0]} align="middle">
+          <Col span={9}>{artCard}</Col>
+
+          <Col span={9}>
+            <div className={HeaderStyle}>
+              <div>Congratulations!</div>
+              <div style={{ width: 238 }}>{title}</div>
+            </div>
+
+            <div className={Description}>{description}</div>
+
+            <div className={uFontSize18}>
+              <Button
+                className={ShareButton}
+                type="default"
+                shape="round"
+                onClick={primaryAction}
+              >
+                {primaryText}
+              </Button>
+
+              <Button className={ContinueButton} type="link" onClick={secondaryAction}>{secondaryText}</Button>
+            </div>
+          </Col>
+        </Row>
+      </Col>
+    </Row>
+  );
+};
+
 export default Congratulations;

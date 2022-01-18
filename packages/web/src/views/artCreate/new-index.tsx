@@ -1,19 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Avatar, Row, Col, Card, Tabs, Form, Input, Upload, Switch, Image, Skeleton, Slider, Button, message } from 'antd';
+import { Avatar, Row, Col, Card, Tabs, Form, Input, Upload, Switch, Image, Skeleton, Slider, Button, message, Steps } from 'antd';
 import FeatherIcon from 'feather-icons-react';
 import ActionButton from '../../components/ActionButton'
 import { uFlexAlignItemsCenter, uFlexSpaceBetween, uTextAlignEnd } from '../../styles';
 import { ArtTitleStyle, CardStyle, ErrorTextStyle, FormStyle, HeaderLabelStyle, ImageWrapper, InputStyle, InputWithSuffixStyle, PlaceholderStyle, TransparentInput, TabsStyle, TextAreaStyle, TitleSkeletonStyle, UsernameStyle, SliderStyle, InputWithAddon } from './style';
 import getBase64 from '../../helpers/getBase64';
-import { Creator, getAssetCostToStore, LAMPORT_MULTIPLIER, MAX_METADATA_LEN, MetadataCategory, StringPublicKey, useConnection, useConnectionConfig } from '@oyster/common';
+import { Creator, getAssetCostToStore, LAMPORT_MULTIPLIER, MAX_METADATA_LEN, MetadataCategory, shortenAddress, StringPublicKey, useConnection, useConnectionConfig } from '@oyster/common';
 import { mintNFT } from '../../actions';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { ArtContent, ArtContent2 } from '../../components/ArtContent';
+import { ArtContent } from '../../components/ArtContent';
 import { MintLayout } from '@solana/spl-token';
 import { useSolPrice } from '../../contexts';
+import { CongratulationsNew } from '../../components/Congratulations';
+import { LoadingOutlined } from '@ant-design/icons';
 
 const { TabPane } = Tabs;
 const { Dragger } = Upload;
+const { Step } = Steps;
 
 const ArtCreateView = () => {
   const { publicKey } = useWallet();
@@ -39,8 +42,10 @@ const ArtCreateView = () => {
   const [coverFile, setCoverFile] = useState<File | undefined>();
   const [coverImage, setCoverImage] = useState('');
   const [artCategory, setArtCategory] = useState<MetadataCategory>(MetadataCategory.Image);
+  const [isMinting, setMinting] = useState<boolean>(false);
 
   const previewColRef = useRef<HTMLDivElement>(null);
+  const owner = shortenAddress(publicKey?.toBase58());
 
   useEffect(() => {
     const attributes = form.getFieldsValue();
@@ -98,7 +103,7 @@ const ArtCreateView = () => {
       setPreviewColWidth(previewColRef.current?.offsetWidth);
   }, [previewColRef.current?.offsetWidth, setPreviewColWidth]);
 
-  const onFieldsChange = (changedFields, allFields) => {
+  const onFieldsChange = changedFields => {
     const changedField = changedFields[0];
 
     if (changedField && changedField.name[0] === 'title') {
@@ -132,50 +137,57 @@ const ArtCreateView = () => {
     const attributes = values;
     const files = [coverFile, artFile].filter(f => f) as File[];
 
-    const creatorStructs: Creator[] = values.creators.map(
-      c =>
+    if (publicKey) {
+      const creatorStructs: Creator[] = values.creators ? values.creators.map(
+        c =>
+          new Creator({
+            address: c.address,
+            verified: c.address === publicKey?.toBase58(),
+            share: c.share,
+          }),
+      ) : [
         new Creator({
-          address: c.address,
-          verified: c.address === publicKey?.toBase58(),
-          share: c.share
-        }),
-    );
+          address: publicKey?.toBase58(),
+          verified: true,
+          share: 100,
+        })
+      ];
+      const metadata = {
+        name: attributes.title,
+        symbol: attributes.symbol || '',
+        creators: creatorStructs,
+        description: attributes.description,
+        sellerFeeBasisPoints: attributes.royalties * 100,
+        image: coverFile?.name,
+        animation_url: attributes.animation_url || '',
+        attributes: attributes.attributes,
+        external_url: attributes.external_url || '',
+        properties: {
+          files: files,
+          category: artCategory,
+        },
+      };
 
-    const metadata = {
-      name: attributes.title,
-      symbol: attributes.symbol || '',
-      creators: creatorStructs,
-      description: attributes.description,
-      sellerFeeBasisPoints: attributes.royalties * 100,
-      image: coverFile?.name,
-      animation_url: attributes.animation_url || '',
-      attributes: attributes.attributes,
-      external_url: attributes.external_url || '',
-      properties: {
-        files: files,
-        category: artCategory,
-      },
-    };
+      try {
+        setMinting(true);
 
-    console.log(metadata);
+        const _nft = await mintNFT(
+          connection,
+          wallet,
+          env,
+          files,
+          metadata,
+          setNFTcreateProgress,
+          attributes.properties?.maxSupply,
+        );
 
-    // setStepsVisible(false);
-    // setMinting(true);
-
-    try {
-      const _nft = await mintNFT(
-        connection,
-        wallet,
-        env,
-        files,
-        metadata,
-        setNFTcreateProgress,
-        attributes.properties?.maxSupply,
-      );
-
-      if (_nft) setNft(_nft);
-    } catch (e: any) {
-      message.error(e.message);
+        if (_nft) setNft(_nft);
+      } catch (e: any) {
+        message.error(e.message);
+      } finally {
+        setMinting(false)
+        console.log('berhasil');
+      }
     }
   };
 
@@ -232,6 +244,45 @@ const ArtCreateView = () => {
       category: MetadataCategory.Image,
     }
   ];
+
+  if (isMinting) {
+    return (
+      <WaitingStep
+        mint={mint}
+        minting={isMinting}
+        step={nftCreateProgress}
+      />
+    );
+  }
+
+  if (artPreview && nft) {
+    return (
+      <CongratulationsNew
+        title="Your NFT is now ready!"
+        description="You can start selling it on supadrop marketplace or check it on your profile"
+        primaryText="sell nft"
+        primaryAction={() => console.log('see on profile')}
+        secondaryText="see on profile →"
+        secondaryAction={() => console.log('see on profile')}
+        artCard={
+          <Card
+            className={CardStyle}
+            cover={<ArtContent uri={artPreview} animationURL={artPreview} category={artCategory} style={{ height: previewColWidth, width: '100%' }} />}
+          >
+            <div>
+              <Skeleton className={TitleSkeletonStyle} paragraph={false} round title={{ width: 180 }} loading={!Boolean(artTitle)}>
+                <div className={ArtTitleStyle}>{artTitle}</div>
+              </Skeleton>
+              <div className={UsernameStyle}>
+                <Avatar size={32} />
+                <span>{owner}</span>
+              </div>
+            </div>
+          </Card>
+        }
+      />
+    );
+  }
 
   return (
     <Row justify="center" gutter={184} style={{ margin: '56px 0' }}>
@@ -380,7 +431,7 @@ const ArtCreateView = () => {
                       </Skeleton>
                       <div className={UsernameStyle}>
                         <Avatar size={32} />
-                        <span>@exnd</span>
+                        <span>{owner}</span>
                       </div>
                     </div>
                   </Card>
@@ -390,7 +441,7 @@ const ArtCreateView = () => {
           </div>
         </div>
       </Col>
-    </Row >
+    </Row>
   );
 };
 
@@ -540,6 +591,85 @@ const UploadContainer = ({ artCategory, setCoverFile, setCoverImage, coverImage,
       )}
     </div>
   )
-}
+};
+
+const WaitingStep = (props: {
+  mint: Function;
+  minting: boolean;
+  step: number;
+}) => {
+
+  const setIconForStep = (currentStep: number, componentStep) => {
+    if (currentStep === componentStep) {
+      return <LoadingOutlined />;
+    }
+    return null;
+  };
+
+  return (
+    <div
+      style={{
+        marginTop: 70,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <Card>
+        <Steps direction="vertical" current={props.step}>
+          <Step
+            className={'white-description'}
+            title="Minting"
+            description="Starting Mint Process"
+            icon={setIconForStep(props.step, 0)}
+          />
+          <Step
+            className={'white-description'}
+            title="Preparing Assets"
+            icon={setIconForStep(props.step, 1)}
+          />
+          <Step
+            className={'white-description'}
+            title="Signing Metadata Transaction"
+            description="Approve the transaction from your wallet"
+            icon={setIconForStep(props.step, 2)}
+          />
+          <Step
+            className={'white-description'}
+            title="Sending Transaction to Solana"
+            description="This will take a few seconds."
+            icon={setIconForStep(props.step, 3)}
+          />
+          <Step
+            className={'white-description'}
+            title="Waiting for Initial Confirmation"
+            icon={setIconForStep(props.step, 4)}
+          />
+          <Step
+            className={'white-description'}
+            title="Waiting for Final Confirmation"
+            icon={setIconForStep(props.step, 5)}
+          />
+          <Step
+            className={'white-description'}
+            title="Uploading to Arweave"
+            icon={setIconForStep(props.step, 6)}
+          />
+          <Step
+            className={'white-description'}
+            title="Updating Metadata"
+            icon={setIconForStep(props.step, 7)}
+          />
+          <Step
+            className={'white-description'}
+            title="Signing Token Transaction"
+            description="Approve the final transaction from your wallet"
+            icon={setIconForStep(props.step, 8)}
+          />
+        </Steps>
+      </Card>
+    </div>
+  );
+};
 
 export default ArtCreateView;

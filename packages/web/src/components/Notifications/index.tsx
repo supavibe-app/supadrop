@@ -163,7 +163,7 @@ export function useCollapseWrappedSol({
         if ((balance && balance.value.uiAmount) || 0 > 0) {
           setShowNotification(true);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     setTimeout(fn, 60000);
   };
@@ -316,7 +316,7 @@ export function useSettlementAuctions({
               safetyDepositBoxesByVaultAndIndex,
               metadataByMint,
               bidderMetadataByAuctionAndBidder:
-                updatedBidderMetadataByAuctionAndBidder,
+              updatedBidderMetadataByAuctionAndBidder,
               bidderPotsByAuctionAndBidder,
               bidRedemptionV2sByAuctionManagerAndWinningIndex,
               masterEditions,
@@ -361,7 +361,7 @@ export function useSettlementAuctions({
               if (
                 wallet.publicKey &&
                 auctionView.auction.info.tokenMint ==
-                  WRAPPED_SOL_MINT.toBase58()
+                WRAPPED_SOL_MINT.toBase58()
               ) {
                 const ata = await getPersonalEscrowAta(wallet);
                 if (ata) await closePersonalEscrow(connection, wallet, ata);
@@ -397,6 +397,7 @@ export function Notifications() {
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
   const wallet = useWallet();
+  const [popoverVisible, setPopoverVisible] = useState(false);
 
   //NOTE: notifications untuk kasih tau seller sol yg bisa diambil (settle)
   const notifications: NotificationCard[] = [];
@@ -610,7 +611,10 @@ export function Notifications() {
             extra={
               <Button
                 className={uBoldFont}
-                onClick={notification.action}
+                onClick={() => {
+                  notification.action();
+                  setPopoverVisible(false);
+                }}
                 type="link"
               >
                 {notification.textButton}
@@ -646,6 +650,8 @@ export function Notifications() {
   if (notifications.length === 0) {
     return (
       <Popover
+        onVisibleChange={setPopoverVisible}
+        visible={popoverVisible}
         overlayClassName={NotificationPopover}
         content={content}
         trigger="click"
@@ -668,6 +674,8 @@ export function Notifications() {
   return (
     <Badge className={BadgeStyle} dot>
       <Popover
+        onVisibleChange={setPopoverVisible}
+        visible={popoverVisible}
         overlayClassName={NotificationPopover}
         content={content}
         trigger="click"

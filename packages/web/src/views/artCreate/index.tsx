@@ -99,28 +99,26 @@ export const ArtCreateView = () => {
         category: attributes.properties?.category,
       },
     };
+    setStepsVisible(false);
+    setMinting(true);
 
-    console.log(metadata);
-    // setStepsVisible(false);
-    // setMinting(true);
+    try {
+      const _nft = await mintNFT(
+        connection,
+        wallet,
+        env,
+        files,
+        metadata,
+        setNFTcreateProgress,
+        attributes.properties?.maxSupply,
+      );
 
-    // try {
-    //   const _nft = await mintNFT(
-    //     connection,
-    //     wallet,
-    //     env,
-    //     files,
-    //     metadata,
-    //     setNFTcreateProgress,
-    //     attributes.properties?.maxSupply,
-    //   );
-
-    //   if (_nft) setNft(_nft);
-    // } catch (e: any) {
-    //   setAlertMessage(e.message);
-    // } finally {
-    //   setMinting(false);
-    // }
+      if (_nft) setNft(_nft);
+    } catch (e: any) {
+      setAlertMessage(e.message);
+    } finally {
+      setMinting(false);
+    }
   };
 
   return (
