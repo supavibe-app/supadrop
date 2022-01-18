@@ -53,6 +53,23 @@ export const RoundButton = css`
   margin-left: 12px;
 `;
 
+export const RoundGreenButton = css`
+  height: 42px;
+  padding: 0 24px;
+  border-radius: 28px;
+  border: 2px solid;
+  border-image-source: linear-gradient(
+    225deg,
+    #ccff00 0%,
+    #00ffa3 65.1%,
+    #00ffa3 100%
+  );
+  box-sizing: border-box;
+  font-size: 14px;
+  font-weight: 700;
+  margin-left: 12px;
+`;
+
 export const ActivityBadge = css`
   sup {
     width: 10px;

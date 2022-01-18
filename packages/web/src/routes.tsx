@@ -17,6 +17,7 @@ import Profile from './views/profile';
 import MarketComponent from './views/market';
 import LandingPage from './views/landingPage';
 import About from './views/about';
+import ArtCreacteViewNew from './views/artCreate/new-index';
 
 const DirectPath = () => {
   const { path } = useParams<{ path: string }>();
@@ -69,6 +70,7 @@ export function Routes() {
           <Route exact path="/auction/:id/settle" component={() => <BillingView />} />
           <Route exact path="/list/create" component={() => <AuctionCreateView />} />
           <Route exact path="/art/:id" component={() => <ArtView />} />
+          <Route exact path="/create/new" component={() => <ArtCreacteViewNew />} />
         </Providers>
       </Switch>
     </Router>

@@ -15,7 +15,7 @@ import { ArtContent } from './../ArtContent';
 import { AuctionView, useBidsForAuction, useArt } from '../../hooks';
 import { Artist, ArtType } from '../../types';
 
-import { uTextAlignEnd, WhiteColor } from '../../styles';
+import { WhiteColor } from '../../styles';
 import { AuctionImage, AvatarStyle, ButtonCard, CardStyle, ConfirmModal, UserWrapper } from './style';
 import { Link } from 'react-router-dom';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
