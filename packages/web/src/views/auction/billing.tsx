@@ -429,6 +429,24 @@ export const InnerBillingView = ({
 
   useEffect(() => {
     pullBillingPage(id);
+    async function checkHolder() {
+      const uploadResponse = await fetch(
+        'https://api-supadrop.vercel.app/api/nfts/verify?wallet_address=' +
+          wallet.publicKey?.toBase58(),
+        {
+          mode: 'cors',
+          method: 'GET',
+        },
+      );
+      const hasil = await uploadResponse.json();
+      console.log(
+        '🚀 ~ file: billing.tsx ~ line 437 ~ checkHolder ~ uploadResponse',
+        hasil,
+      );
+    }
+    console.log('masuk sini');
+
+    checkHolder();
   }, []);
   useEffect(() => {
     if (location.state) {
