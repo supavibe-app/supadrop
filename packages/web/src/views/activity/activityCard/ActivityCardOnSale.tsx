@@ -58,9 +58,7 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
   useEffect(() => {
     if (updatedData) {
       auctionView.highest_bid = updatedData.new.highest_bid;
-      auctionView.winner = {
-        wallet_address: updatedData.new.winner,
-      };
+      auctionView.winner = updatedData.new.winner;
 
       setUpdatedData('');
     }
@@ -93,11 +91,7 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
             <Col flex={3}>
               <div className={NFTName}>{auctionView.id_nft.name}</div>
               <div className={UserContainer}>
-                <ProfileAvatar
-                  imgProfile={owner.img_profile}
-                  walletAddress={owner.wallet_address}
-                  username={owner.username}
-                />
+                <ProfileAvatar walletAddress={owner} />
               </div>
 
               <div className={NFTStatus}>
@@ -135,11 +129,7 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <ProfileAvatar
-                            imgProfile={winner.img_profile}
-                            walletAddress={winner.wallet_address}
-                            username={winner.username}
-                          />{' '}
+                          <ProfileAvatar walletAddress={winner} />{' '}
                         </div>
                       </div>
                     )}
@@ -148,11 +138,7 @@ export const ActivityCardOnSale = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>bid by</div>
                         <div className={UserContainer}>
-                          <ProfileAvatar
-                            imgProfile={winner.img_profile}
-                            walletAddress={winner.wallet_address}
-                            username={winner.username}
-                          />{' '}
+                          <ProfileAvatar walletAddress={winner} />{' '}
                         </div>
                       </div>
                     )}

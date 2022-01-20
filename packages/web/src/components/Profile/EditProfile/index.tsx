@@ -41,39 +41,6 @@ const EditProfile = ({
   const [file, setFile] = useState<File>();
   const [avatarUrl, setAvatarUrl] = useState<String>();
 
-  async function deleteLastImage() {
-    let exProfpic;
-    if (userData?.img_profile) {
-      exProfpic = userData.img_profile.split('/');
-      await supabase.storage
-        .from('profile')
-        .remove([
-          `avatars/${userData?.wallet_address}_${
-            exProfpic[exProfpic.length - 1]
-          }`,
-        ]);
-    }
-  }
-
-  // will return localhost link just for temp data
-  async function downloadImage(path) {
-    const { data, error } = await supabase.storage
-      .from('profile')
-      .download(`avatars/${path}`);
-    console.log(
-      '🚀 ~ file: index.tsx ~ line 63 ~ downloadImage ~ { data, error }',
-      { data, error },
-    );
-    if (error) {
-      throw error;
-    }
-    if (!data) {
-      throw 'No data';
-    }
-    const url = URL.createObjectURL(data);
-    setAvatarUrl(url);
-  }
-
   // NEED CLEAN THE CODE FOR THIS FUNC MAYBE
   const saveProfile = async values => {
     let imageProfile = '';
@@ -90,17 +57,15 @@ const EditProfile = ({
       }
     }
 
-    if (file) {
-      deleteLastImage();
-
-      imageProfile = `${process.env.NEXT_PUBLIC_BASE_STORAGE_URL}${userData?.wallet_address}_${file?.name}`;
-    } else imageProfile = userData?.img_profile || '';
+    if (!file) {
+      imageProfile = userData?.img_profile || '';
+    }
     // console.log('🚀 ~ file: index.tsx ~ line 98 ~ imageProfile', imageProfile);
 
     let { data, error } = await supabase
       .from('user_data')
       // .update([{ ...values, img_profile: avatarUrl }])
-      .update([{ ...values, img_profile: imageProfile }])
+      .update([{ ...values, img_profile: avatarUrl || imageProfile }])
       .eq('wallet_address', publicKey)
       .limit(1);
 
@@ -134,21 +99,18 @@ const EditProfile = ({
   };
 
   const onUpload = async event => {
-    if (file) {
-      deleteLastImage();
-    }
     const path = `${userData?.wallet_address}_${Date.now()}_${event.name}`;
     setFile(event);
     const { error: uploadError } = await supabase.storage
       .from('profile')
       .upload(`avatars/${path}`, event);
-    console.log('🚀 ~ file: index.tsx ~ line 139 ~ uploadError', uploadError);
 
     if (uploadError) {
-      downloadImage(path);
+      console.log('🚀 ~ file: index.tsx ~ line 125 ~ uploadError', uploadError);
+      setAvatarUrl(process.env.NEXT_PUBLIC_BASE_STORAGE_URL + path);
       // message.error(`upload failed, reason: ${uploadError.message}`);
       throw uploadError;
-    } else downloadImage(path);
+    } else setAvatarUrl(process.env.NEXT_PUBLIC_BASE_STORAGE_URL + path);
 
     return '';
   };
@@ -184,7 +146,7 @@ const EditProfile = ({
         <div className={UploadImageContainer}>
           <div>
             <Upload {...props} className={UploadStyle}>
-              {userData?.img_profile && avatarUrl && (
+              {avatarUrl && (
                 <Avatar
                   size={90}
                   src={avatarUrl}

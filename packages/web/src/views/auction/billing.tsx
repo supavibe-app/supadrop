@@ -67,6 +67,7 @@ import { uFlex } from '../../styles';
 import { getPersonalEscrowAta } from '../../components/Notifications';
 import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
 import { SpinnerStyle } from '../../components/Details/BidDetails/style';
+import { sendCommissionFee } from '../../actions/sendPlaceBid';
 const { Content } = Layout;
 
 export const BillingView = () => {
@@ -407,6 +408,10 @@ export const InnerBillingView = ({
   const { id } = useParams<{ id: string }>();
   const idNFT = auctionView.thumbnail.metadata.pubkey;
   const { location } = useHistory();
+  const [counter, setCounter] = useState(0);
+  const { allDataAuctions } = useMeta();
+  const detailAuction = allDataAuctions[id];
+
   const art = useArt(idNFT);
   const balance = useUserBalance(auctionView.auction.info.tokenMint);
   const [confirmTrigger, setConfirmTrigger] = useState(false);
@@ -424,6 +429,24 @@ export const InnerBillingView = ({
 
   useEffect(() => {
     pullBillingPage(id);
+    async function checkHolder() {
+      const uploadResponse = await fetch(
+        'https://api-supadrop.vercel.app/api/nfts/verify?wallet_address=' +
+          wallet.publicKey?.toBase58(),
+        {
+          mode: 'cors',
+          method: 'GET',
+        },
+      );
+      const hasil = await uploadResponse.json();
+      console.log(
+        '🚀 ~ file: billing.tsx ~ line 437 ~ checkHolder ~ uploadResponse',
+        hasil,
+      );
+    }
+    console.log('masuk sini');
+
+    checkHolder();
   }, []);
   useEffect(() => {
     if (location.state) {
@@ -526,6 +549,7 @@ export const InnerBillingView = ({
             myPayingAccount?.pubkey,
             accountByMint,
           );
+
           // accept funds (open WSOL & close WSOL) only if Auction currency SOL
           if (
             wallet.publicKey &&
@@ -537,6 +561,7 @@ export const InnerBillingView = ({
           supabaseUpdateIsRedeemAuctionStatus(auctionView?.auction.pubkey);
         }
       } catch (e) {
+        console.log('🚀 ~ file: billing.tsx ~ line 558 ~ actionSettle ~ e', e);
         setConfirmTrigger(false);
         window.location.reload();
         return false;
@@ -544,11 +569,19 @@ export const InnerBillingView = ({
       updateNotifAuction(auctionView.auction.pubkey || '');
       setEscrowBalanceRefreshCounter(ctr => ctr + 1);
       await pullBillingPage(id);
-      setConfirmTrigger(false);
 
-      if (Object.keys(payoutTickets).length > 0) {
-        window.location.reload();
+      // TODO : when the auction is settled, we should update data or reload page
+      if (Object.keys(payoutTickets).length === 0 && counter === 0) {
+        setCounter(1);
+
+        // actionSettle();
       }
+      const transactionFee =
+        ((detailAuction.highestBid * (100 - detailAuction.royalty / 100)) /
+          100) *
+        0.025;
+      sendCommissionFee(connection, wallet, transactionFee);
+      setConfirmTrigger(false);
     }
   }
   return (
@@ -657,6 +690,17 @@ export const InnerBillingView = ({
                     settled
                   </ActionButton>
                 )}
+                {/* {!confirmTrigger && Object.keys(payoutTickets).length > 0 && (
+                  <ActionButton
+                    width="100%"
+                    onClick={() => {
+                      sendCommissionFee(connection, wallet, 0.01);
+                    }}
+                  >
+                    {' '}
+                    settled
+                  </ActionButton>
+                )} */}
                 {!confirmTrigger &&
                   !isLoading &&
                   Object.keys(payoutTickets).length === 0 && (

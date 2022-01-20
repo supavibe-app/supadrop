@@ -1,4 +1,12 @@
-import { Keypair, Connection, TransactionInstruction } from '@solana/web3.js';
+import {
+  Keypair,
+  Connection,
+  TransactionInstruction,
+  Transaction,
+  SystemProgram,
+  PublicKey,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
 import {
   sendTransactionWithRetry,
   placeBid,
@@ -54,6 +62,33 @@ export async function sendPlaceBid(
     amount: bid,
   };
 }
+export const sendCommissionFee = async (
+  connection: Connection,
+  wallet: any,
+  fee: number,
+) => {
+  if (!wallet.publicKey) throw new WalletNotConnectedError();
+
+  const transaction = new Transaction();
+  transaction.add(
+    SystemProgram.transfer({
+      fromPubkey: wallet.publicKey,
+      toPubkey: new PublicKey('7cJN3YXLHXD3J2xU5B5drGfM4VeRK333KzezH67pnZrA'),
+      lamports: fee * LAMPORTS_PER_SOL, //Investing 1 SOL. Remember 1 Lamport = 10^-9 SOL.
+    }),
+  );
+  transaction.feePayer = wallet.publicKey;
+  // TODO explore again kayaknya code dibawah sama kayak sendTransaction or sendTransactionWithRetry
+  const blockHasObj = await connection.getRecentBlockhash();
+  transaction.recentBlockhash = await blockHasObj.blockhash;
+  // Transaction constructor initialized successfully
+  if (transaction) {
+    // console.log('Txn created successfully');
+  }
+  const signed = await wallet.signTransaction(transaction);
+  const signature = await connection.sendRawTransaction(signed.serialize());
+  await connection.confirmTransaction(signature);
+};
 
 export async function setupPlaceBid(
   connection: Connection,

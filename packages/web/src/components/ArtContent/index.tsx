@@ -121,6 +121,7 @@ export const ArtContent = ({
 
   return (
     <div
+      key={id}
       ref={ref as any}
       style={{
         display: 'flex',

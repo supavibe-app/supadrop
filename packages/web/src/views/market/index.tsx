@@ -12,7 +12,6 @@ import {
   OverlayStyle,
 } from './style';
 import { GreyColor, uTextAlignEnd, YellowGlowColor } from '../../styles';
-import { getUsernameByPublicKeys } from '../../database/userData';
 // import moment from 'moment';
 
 const { Option } = Select;
@@ -65,6 +64,7 @@ const MarketComponent = () => {
               v.winner,
               v.id_nft.mint_key,
               v.type_auction,
+              v.id_nft.royalty,
               v.owner.img_profile,
               v.owner.username,
             );
@@ -219,18 +219,6 @@ const MarketComponent = () => {
 
         <Row gutter={[36, 36]}>
           {list.map((m, idx) => {
-            const userData = new UserData(
-              '',
-              '',
-              m.ownerImg || '',
-              '',
-              '',
-              '',
-              m.ownerUsername || '',
-              '',
-              m.owner,
-            );
-
             return (
               <Col
                 key={m.id}
@@ -243,7 +231,7 @@ const MarketComponent = () => {
                 xs={24}
               >
                 <Link to={`/auction/${m.id}`}>
-                  <AuctionRenderCard auctionView={m} owner={userData} />
+                  <AuctionRenderCard auctionView={m} wallet_address={m.owner} />
                 </Link>
               </Col>
             );

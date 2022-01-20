@@ -15,7 +15,7 @@ class Collection {
 }
 exports.Collection = Collection;
 class ItemAuction {
-    constructor(id, name, id_nft, token_mint, price_floor, original_file, thumbnail, media_type, startAt, endAt, highestBid, price_tick, gapTime, tickExtend, vault, arweave_link, owner, winner, mint_key, isInstantSale) {
+    constructor(id, name, id_nft, token_mint, price_floor, original_file, thumbnail, media_type, startAt, endAt, highestBid, price_tick, gapTime, tickExtend, vault, arweave_link, owner, winner, mint_key, isInstantSale, ownerImg, ownerUsername) {
         this.id = id;
         this.name = name;
         this.id_nft = id_nft;
@@ -36,6 +36,8 @@ class ItemAuction {
         this.winner = winner;
         this.mint_key = mint_key;
         this.isInstantSale = isInstantSale;
+        this.ownerImg = ownerImg;
+        this.ownerUsername = ownerUsername;
     }
 }
 exports.ItemAuction = ItemAuction;

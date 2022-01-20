@@ -1,5 +1,6 @@
 import { AccountInfo } from '@solana/web3.js';
 import { Dispatch, SetStateAction } from 'react';
+import { TokenAccount } from '../..';
 import {
   AuctionData,
   AuctionDataExtended,
@@ -25,6 +26,10 @@ import {
   StoreIndexer,
   WhitelistedCreator,
 } from '../../models/metaplex';
+import { PackCard } from '../../models/packs/accounts/PackCard';
+import { PackSet } from '../../models/packs/accounts/PackSet';
+import { PackVoucher } from '../../models/packs/accounts/PackVoucher';
+import { ProvingProcess } from '../../models/packs/accounts/ProvingProcess';
 import { PublicKeyStringAndAccount, StringPublicKey } from '../../utils';
 import { ParsedAccount, UserData } from '../accounts/types';
 
@@ -79,17 +84,22 @@ export interface MetaState {
   payoutTickets: Record<string, ParsedAccount<PayoutTicket>>;
   auctionCaches: Record<string, ParsedAccount<AuctionCache>>;
   storeIndexer: ParsedAccount<StoreIndexer>[];
+  packs: Record<string, ParsedAccount<PackSet>>;
+  packCards: Record<string, ParsedAccount<PackCard>>;
+  packCardsByPackSet: Record<string, ParsedAccount<PackCard>[]>;
+  vouchers: Record<string, ParsedAccount<PackVoucher>>;
+  provingProcesses: Record<string, ParsedAccount<ProvingProcess>>;
 }
 
 export interface MetaContextState extends MetaState {
   art: any;
+  users: any;
   isLoadingMetaplex: boolean;
   isLoadingDatabase: boolean;
+  isLoadingAllMetadata: boolean;
   dataCollection: Collection;
   userData: UserData;
   endingTime: number;
-  liveDataAuctions: ItemAuction[];
-  endedAuctions: ItemAuction[];
   notifBidding: any[];
   notifAuction: any[];
   allDataAuctions: { [key: string]: ItemAuction };
@@ -103,17 +113,18 @@ export interface MetaContextState extends MetaState {
   ];
   pullAuctionPage: (auctionAddress: StringPublicKey) => Promise<MetaState>;
   pullBillingPage: (auctionAddress: StringPublicKey) => void;
-  updateLiveDataAuction: () => void;
-  updateAllDataAuction: () => void;
   updateUserData: (data: UserData) => void;
   updateDetailAuction: (idAuction: string) => void;
   updateNotifBidding: (publicKey: string) => void;
   updateNotifAuction: (publicKey: string) => void;
+  updateAllNotification: (publicKey: string) => void;
   updateArt: (nftData: any) => void;
+  updateUsers: (userData: any) => void;
   pullAllSiteData: () => void;
   pullAllMetadata: () => void;
   isBidPlaced: boolean;
   setBidPlaced: Dispatch<SetStateAction<boolean>>;
+  pullItemsPage: (userTokenAccounts: TokenAccount[]) => Promise<void>;
 }
 
 export type AccountAndPubkey = {
@@ -185,6 +196,7 @@ export class ItemAuction {
   winner: string;
   mint_key: string;
   isInstantSale: boolean;
+  royalty: number;
   ownerImg?: string;
   ownerUsername?: string;
 
@@ -209,6 +221,7 @@ export class ItemAuction {
     winner: string,
     mint_key: string,
     isInstantSale: boolean,
+    royalty: number,
     ownerImg?: string,
     ownerUsername?: string,
   ) {
@@ -232,6 +245,7 @@ export class ItemAuction {
     this.winner = winner;
     this.mint_key = mint_key;
     this.isInstantSale = isInstantSale;
+    this.royalty = royalty;
     this.ownerImg = ownerImg;
     this.ownerUsername = ownerUsername;
   }

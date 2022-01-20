@@ -5,6 +5,7 @@ import { getEmptyMetaState } from './getEmptyMetaState';
 import {
   limitedLoadAccounts,
   loadAccounts,
+  pullPacks,
   pullYourMetadata,
   USE_SPEED_RUN,
 } from './loadAccounts';
@@ -22,17 +23,16 @@ import { StringPublicKey, TokenAccount, useUserAccounts } from '../..';
 import { supabase } from '../../supabaseClient';
 import moment from 'moment';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { UserData } from '..';
-
+import { UserData } from '../';
 const MetaContext = React.createContext<MetaContextState>({
   ...getEmptyMetaState(),
   isLoadingMetaplex: false,
   isLoadingDatabase: false,
+  isLoadingAllMetadata: false,
   art: {},
+  users: {},
   endingTime: 0,
   isBidPlaced: false,
-  liveDataAuctions: [],
-  endedAuctions: [],
   notifBidding: [],
   notifAuction: [],
   allDataAuctions: {},
@@ -41,20 +41,22 @@ const MetaContext = React.createContext<MetaContextState>({
   // @ts-ignore
   update: () => [AuctionData, BidderMetadata, BidderPot],
   // @ts-ignore
-  updateLiveDataAuction: function () {},
   updateUserData: function () {},
-  updateAllDataAuction: function () {},
   updateDetailAuction: function () {},
   updateNotifBidding: function () {},
   updateNotifAuction: function () {},
   updateArt: function () {},
+  updateUsers: function () {},
+  updateAllNotification: function () {},
 });
 
 export function MetaProvider({ children = null as any }) {
   const connection = useConnection();
+  const wallet = useWallet();
   const { isReady, storeAddress } = useStore();
   const { publicKey } = useWallet();
   const [art, setArt] = useState<any>({});
+  const [users, setUsers] = useState<any>({});
   const [dataCollection, setDataCollection] = useState<Collection>(
     new Collection('', '', '', 0, 0, 0, 0, []),
   );
@@ -63,8 +65,6 @@ export function MetaProvider({ children = null as any }) {
   );
   const [endingTime, setEndingTime] = useState(0);
   const [state, setState] = useState<MetaState>(getEmptyMetaState());
-  const [liveDataAuctions, setLiveDataAuction] = useState<ItemAuction[]>([]);
-  const [endedAuctions, setEndedAuctions] = useState<ItemAuction[]>([]);
   const [notifBidding, setNotifBidding] = useState<any[]>([]);
   const [notifAuction, setNotifAuction] = useState<any[]>([]);
   const [allDataAuctions, setAllDataAuction] = useState<{
@@ -77,6 +77,7 @@ export function MetaProvider({ children = null as any }) {
 
   const [isLoadingMetaplex, setIsLoadingMetaplex] = useState(true);
   const [isLoadingDatabase, setIsLoadingDatabase] = useState(true);
+  const [isLoadingAllMetadata, setIsLoadingAllMetadata] = useState(false);
   const [isBidPlaced, setBidPlaced] = useState(false);
 
   const updateMints = useCallback(
@@ -97,148 +98,8 @@ export function MetaProvider({ children = null as any }) {
     },
     [setState],
   );
-  async function pullAllMetadata() {
-    if (isLoadingMetaplex) return false;
-    if (!storeAddress) {
-      if (isReady) {
-        setIsLoadingMetaplex(false);
-      }
-      return;
-    } else if (!state.store) {
-      setIsLoadingMetaplex(true);
-    }
-    setIsLoadingMetaplex(true);
-    const nextState = await pullStoreMetadata(connection, state);
-    setIsLoadingMetaplex(false);
-    setState(nextState);
-    await updateMints(nextState.metadataByMint);
-    return [];
-  }
+  // get data from supabase
 
-  async function pullBillingPage(auctionAddress: StringPublicKey) {
-    if (isLoadingMetaplex) return false;
-    if (!storeAddress) {
-      if (isReady) {
-        setIsLoadingMetaplex(false);
-      }
-      return;
-    } else if (!state.store) {
-      setIsLoadingMetaplex(true);
-    }
-    const nextState = await pullAuctionSubaccounts(
-      connection,
-      auctionAddress,
-      state,
-    );
-
-    console.log('-----> Pulling all payout tickets');
-    await pullPayoutTickets(connection, nextState);
-
-    setState(nextState);
-    await updateMints(nextState.metadataByMint);
-    return [];
-  }
-
-  async function pullAuctionPage(auctionAddress: StringPublicKey) {
-    if (isLoadingMetaplex) return state;
-    if (!storeAddress) {
-      if (isReady) {
-        setIsLoadingMetaplex(false);
-      }
-      return state;
-    } else if (!state.store) {
-      setIsLoadingMetaplex(true);
-    }
-    const nextState = await pullAuctionSubaccounts(
-      connection,
-      auctionAddress,
-      state,
-    );
-    setState(nextState);
-    await updateMints(nextState.metadataByMint);
-    return nextState;
-  }
-
-  async function pullAllSiteData() {
-    if (isLoadingMetaplex) return state;
-    if (!storeAddress) {
-      if (isReady) {
-        setIsLoadingMetaplex(false);
-      }
-      return state;
-    } else if (!state.store) {
-      setIsLoadingMetaplex(true);
-    }
-    console.log('------->Query started');
-
-    const nextState = await loadAccounts(connection);
-
-    console.log('------->Query finished');
-
-    setState(nextState);
-    await updateMints(nextState.metadataByMint);
-    return;
-  }
-  async function updateArt(nftData: any) {
-    const data: any = {};
-    nftData.forEach((item: any) => {
-      data[item.id] = item;
-    });
-    setArt({ ...art, ...data });
-  }
-
-  async function updateLiveDataAuction() {
-    supabase
-      .from('auction_status')
-      .select(
-        `
-    *,
-    owner(img_profile,wallet_address,username),
-    id_nft (
-      *
-    )
-    `,
-      )
-      .gt('end_auction', moment().unix())
-      .order('end_auction', { ascending: true })
-      .then(dataAuction => {
-        let listData: ItemAuction[] = [];
-        if (dataAuction.body != null && dataAuction.body.length > 0) {
-          dataAuction.body.forEach(v => {
-            listData.push(
-              new ItemAuction(
-                v.id,
-                v.id_nft.name,
-                v.id_nft.id,
-                v.token_mint,
-                v.price_floor,
-                v.id_nft.original_file,
-                v.id_nft.thumbnail,
-                v.id_nft.media_type,
-                v.start_auction,
-                v.end_auction,
-                v.highest_bid,
-                v.price_tick,
-                v.gap_time,
-                v.tick_size_ending_phase,
-                v.vault,
-                v.id_nft.arweave_link,
-                v.owner.wallet_address,
-                v.winner,
-                v.id_nft.mint_key,
-                v.type_auction,
-                v.owner.img_profile,
-                v.owner.username,
-              ),
-            );
-          });
-          setEndingTime(
-            dataAuction.body[dataAuction.body.length - 1].end_auction,
-          );
-          setLiveDataAuction(listData);
-        }
-      });
-  }
   async function getUserData(publicKey: string) {
     supabase
       .from('user_data')
@@ -278,57 +139,7 @@ export function MetaProvider({ children = null as any }) {
   async function updateUserData(data: UserData) {
     setUserData(data);
   }
-  async function updateEndedAuction() {
-    supabase
-      .from('auction_status')
-      .select(
-        `
-    *,
-    owner(img_profile,wallet_address,username),
-    id_nft (
-      *
-    )
-    `,
-      )
-      .lt('end_auction', moment().unix())
-      .eq('type_auction', false)
-      .order('end_auction', { ascending: false })
-      .then(dataAuction => {
-        let listData: ItemAuction[] = [];
-        if (dataAuction.body != null && dataAuction.body.length > 0) {
-          dataAuction.body.forEach(v => {
-            listData.push(
-              new ItemAuction(
-                v.id,
-                v.id_nft.name,
-                v.id_nft.id,
-                v.token_mint,
-                v.price_floor,
-                v.id_nft.original_file,
-                v.id_nft.thumbnail,
-                v.id_nft.media_type,
-                v.start_auction,
-                v.end_auction,
-                v.highest_bid,
-                v.price_tick,
-                v.gap_time,
-                v.tick_size_ending_phase,
-                v.vault,
-                v.id_nft.arweave_link,
-                v.owner.wallet_address,
-                v.winner,
-                v.id_nft.mint_key,
-                v.type_auction,
-                v.owner.img_profile,
-                v.owner.username,
-              ),
-            );
-          });
 
-          setEndedAuctions(listData);
-        }
-      });
-  }
   async function getNotifBidding(publicKey: string) {
     supabase
       .from('action_bidding')
@@ -347,6 +158,21 @@ export function MetaProvider({ children = null as any }) {
             );
             setNotifBidding(data);
           }
+        }
+      });
+  }
+  async function updateAllNotification(publicKey: string) {
+    getNotifAuction(publicKey);
+    getNotifBidding(publicKey);
+  }
+  //TODO for now is not problem because data user still small (need improvement)
+  async function getAllDataUser() {
+    supabase
+      .from('user_data')
+      .select()
+      .then(userData => {
+        if (userData.body) {
+          updateUsers(userData.body);
         }
       });
   }
@@ -420,18 +246,9 @@ export function MetaProvider({ children = null as any }) {
             dataAuction.body.winner,
             dataAuction.body.id_nft.mint_key,
             dataAuction.body.type_auction,
+            dataAuction.body.id_nft.royalty,
           );
-          if (detailAuction.endAt > moment().unix()) {
-            const dataUpdate: ItemAuction[] = [];
-            liveDataAuctions.forEach(v => {
-              if (v.id === idAuction) {
-                dataUpdate.push(detailAuction);
-              } else {
-                dataUpdate.push(v);
-              }
-            });
-            setLiveDataAuction(dataUpdate);
-          }
+
           setAllDataAuction({ ...allDataAuctions, detailAuction });
           setIsLoadingDatabase(false);
         }
@@ -475,6 +292,7 @@ export function MetaProvider({ children = null as any }) {
               v.winner,
               v.id_nft.mint_key,
               v.type_auction,
+              v.id_nft.royalty,
             );
           });
 
@@ -514,6 +332,142 @@ export function MetaProvider({ children = null as any }) {
         }
       });
   }
+  // --------------
+  async function pullAllMetadata() {
+    if (isLoadingMetaplex) return false;
+    if (!storeAddress) {
+      if (isReady) {
+        setIsLoadingMetaplex(false);
+      }
+      return;
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+
+    setIsLoadingAllMetadata(true);
+    setIsLoadingMetaplex(true);
+    const nextState = await pullStoreMetadata(connection, state);
+
+    setIsLoadingMetaplex(false);
+    setState(nextState);
+    await updateMints(nextState.metadataByMint);
+    setIsLoadingAllMetadata(false);
+
+    return [];
+  }
+
+  async function pullBillingPage(auctionAddress: StringPublicKey) {
+    if (isLoadingMetaplex) return false;
+    if (!storeAddress) {
+      if (isReady) {
+        setIsLoadingMetaplex(false);
+      }
+      return;
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+    const nextState = await pullAuctionSubaccounts(
+      connection,
+      auctionAddress,
+      state,
+    );
+
+    console.log('-----> Pulling all payout tickets');
+    await pullPayoutTickets(connection, nextState);
+
+    setState(nextState);
+    await updateMints(nextState.metadataByMint);
+    return [];
+  }
+
+  async function pullAuctionPage(auctionAddress: StringPublicKey) {
+    if (isLoadingMetaplex) return state;
+
+    if (!storeAddress) {
+      if (isReady) {
+        setIsLoadingMetaplex(false);
+      }
+      return state;
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+    const nextState = await pullAuctionSubaccounts(
+      connection,
+      auctionAddress,
+      state,
+    );
+    setState(nextState);
+    await updateMints(nextState.metadataByMint);
+
+    return nextState;
+  }
+  async function pullItemsPage(
+    userTokenAccounts: TokenAccount[],
+  ): Promise<void> {
+    if (isLoadingMetaplex) {
+      return;
+    }
+    if (!storeAddress) {
+      return setIsLoadingMetaplex(false);
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+
+    const shouldEnableNftPacks = process.env.NEXT_ENABLE_NFT_PACKS === 'true';
+    const packsState = shouldEnableNftPacks
+      ? await pullPacks(connection, state, publicKey)
+      : state;
+
+    await pullUserMetadata(userTokenAccounts, packsState);
+  }
+  async function pullUserMetadata(
+    userTokenAccounts: TokenAccount[],
+    tempState?: MetaState,
+  ): Promise<void> {
+    const nextState = await pullYourMetadata(
+      connection,
+      userTokenAccounts,
+      tempState || state,
+    );
+    await updateMints(nextState.metadataByMint);
+
+    setState(nextState);
+  }
+  async function pullAllSiteData() {
+    if (isLoadingMetaplex) return state;
+    if (!storeAddress) {
+      if (isReady) {
+        setIsLoadingMetaplex(false);
+      }
+      return state;
+    } else if (!state.store) {
+      setIsLoadingMetaplex(true);
+    }
+    console.log('------->Query started');
+
+    const nextState = await loadAccounts(connection);
+
+    console.log('------->Query finished');
+
+    setState(nextState);
+    await updateMints(nextState.metadataByMint);
+    return;
+  }
+  async function updateArt(nftData: any) {
+    const data: any = {};
+    nftData.forEach((item: any) => {
+      data[item.id] = item;
+    });
+    setArt({ ...art, ...data });
+  }
+
+  async function updateUsers(userData: any) {
+    const data: any = {};
+    userData.forEach((item: any) => {
+      data[item.wallet_address] = item;
+    });
+    setUsers({ ...users, ...data });
+  }
 
   async function update(
     auctionAddress?: any,
@@ -533,16 +487,22 @@ export function MetaProvider({ children = null as any }) {
       setIsLoadingMetaplex(true);
     }
 
-    console.log('-----> Query started', new Date());
     Promise.all([
-      updateLiveDataAuction(),
+      getAllDataUser(),
       updateAllDataAuction(),
-      updateEndedAuction(),
-
       getDataCollection(),
     ]);
 
-    let nextState = await pullPage(connection, page, state);
+    const shouldFetchNftPacks = process.env.NEXT_ENABLE_NFT_PACKS === 'true';
+
+    let nextState = await pullPage(
+      connection,
+      page,
+      state,
+      wallet?.publicKey,
+      shouldFetchNftPacks,
+    );
+    console.log('-----> Query started', new Date());
 
     if (nextState.storeIndexer.length) {
       if (USE_SPEED_RUN) {
@@ -635,6 +595,13 @@ export function MetaProvider({ children = null as any }) {
     await updateMints(nextState.metadataByMint);
 
     if (auctionAddress && bidderAddress) {
+      nextState = await pullAuctionSubaccounts(
+        connection,
+        auctionAddress,
+        nextState,
+      );
+      setState(nextState);
+
       const auctionBidderKey = auctionAddress + '-' + bidderAddress;
       return [
         nextState.auctions[auctionAddress],
@@ -728,17 +695,14 @@ export function MetaProvider({ children = null as any }) {
         pullAllSiteData,
         isLoadingMetaplex,
         isLoadingDatabase,
+        isLoadingAllMetadata,
         dataCollection,
         endingTime,
-        liveDataAuctions,
-        endedAuctions,
         notifBidding,
         notifAuction,
         updateUserData,
         userData,
         allDataAuctions,
-        updateLiveDataAuction,
-        updateAllDataAuction,
         updateDetailAuction,
         updateNotifAuction,
         updateNotifBidding,
@@ -746,6 +710,10 @@ export function MetaProvider({ children = null as any }) {
         setBidPlaced,
         art,
         updateArt,
+        users,
+        updateUsers,
+        pullItemsPage,
+        updateAllNotification,
       }}
     >
       {children}

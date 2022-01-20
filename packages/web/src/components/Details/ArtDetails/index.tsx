@@ -27,14 +27,12 @@ const ArtDetails = ({
   art,
   extendedArt,
   highestBid,
-  users,
   nftData,
 }: {
   auction?: ItemAuction | undefined;
   art: Art | undefined;
   extendedArt: IMetadataExtension | undefined;
   highestBid?: ParsedAccount<BidderMetadata> | undefined;
-  users: any;
   nftData?: any;
 }) => {
   const creators = art?.creators || [];
@@ -72,10 +70,8 @@ const ArtDetails = ({
                   return (
                     <div className={UserThumbnail} key={creator.address}>
                       <ProfileAvatar
-                        imgProfile={users[creator.address]?.profile}
                         key={creator.address}
                         walletAddress={creator.address}
-                        username={users[creator.address]?.username}
                         size={40}
                       />
                     </div>
@@ -94,22 +90,13 @@ const ArtDetails = ({
               <div className={UserThumbnail}>
                 {/* auction still live */}
                 {(!ended || !highestBid) && (
-                  <ProfileAvatar
-                    imgProfile={users[owner]?.img_profile}
-                    walletAddress={owner}
-                    username={users[owner]?.username}
-                    size={40}
-                  />
+                  <ProfileAvatar walletAddress={owner} size={40} />
                 )}
 
                 {/* auction ended and have winner */}
                 {ended && highestBid && (
                   <ProfileAvatar
-                    imgProfile={
-                      users[highestBid?.info.bidderPubkey]?.img_profile
-                    }
                     walletAddress={highestBid?.info.bidderPubkey}
-                    username={users[highestBid?.info.bidderPubkey]?.username}
                     size={40}
                   />
                 )}

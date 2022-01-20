@@ -27,7 +27,6 @@ import {
   PriceBox,
   StatusContainer,
 } from './style';
-import { getUsernameByPublicKeys } from '../../database/userData';
 import { DetailArtContent } from '../../components/Details/DetailArtContent';
 import { supabase, useMeta } from '@oyster/common';
 
@@ -35,13 +34,6 @@ export const ArtView = () => {
   const { id } = useParams<{ id: string }>();
   const { art: artData, updateArt } = useMeta();
   const detailArt = artData[id];
-  useEffect(() => {
-    console.log(
-      '🚀 ~ file: index.tsx ~ line 37 ~ ArtView ~ artData',
-      detailArt,
-      Object.entries(artData).length,
-    );
-  }, [artData]);
 
   useEffect(() => {
     if (artData[id] === undefined) {
@@ -68,8 +60,6 @@ export const ArtView = () => {
 
   const everSold = soldFor > 0;
   const creators = data?.creators || [];
-
-  const { data: users = {} } = getUsernameByPublicKeys([...creators]);
 
   let edition = '';
   switch (art.type) {
@@ -138,14 +128,7 @@ export const ArtView = () => {
             {/* Show Skeleton when Loading */}
             {/* {! && <ArtDetailSkeleton />} */}
 
-            {
-              <ArtDetails
-                nftData={artData[id]}
-                art={art}
-                extendedArt={data}
-                users={users}
-              />
-            }
+            {<ArtDetails nftData={artData[id]} art={art} extendedArt={data} />}
           </div>
 
           <div className={StatusContainer}>

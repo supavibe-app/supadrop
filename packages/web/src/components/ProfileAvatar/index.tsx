@@ -2,17 +2,19 @@ import React from 'react';
 import FeatherIcon from 'feather-icons-react';
 import { Avatar } from 'antd';
 import { AvatarStyle, StyledLink } from './style';
-import { Identicon, shortenAddress } from '@oyster/common';
+import { Identicon, shortenAddress, useMeta } from '@oyster/common';
 import { Link, useHistory } from 'react-router-dom';
 
-const ProfileAvatar = ({ imgProfile, walletAddress, username, size = 32 }) => {
+const ProfileAvatar = ({ walletAddress, size = 32 }) => {
   const { push } = useHistory();
+  const { users } = useMeta();
+  const user = users[walletAddress];
   return (
     <>
-      <Link to={`/${username || walletAddress}`}>
+      <Link to={`/${user?.username || walletAddress}`}>
         <Avatar
           src={
-            imgProfile || (
+            user?.img_profile || (
               <Identicon address={walletAddress} style={{ width: size }} />
             )
           }
@@ -20,9 +22,9 @@ const ProfileAvatar = ({ imgProfile, walletAddress, username, size = 32 }) => {
           className={AvatarStyle}
         />
       </Link>
-      <Link to={`/${username || walletAddress}`}>
+      <Link to={`/${user?.username || walletAddress}`}>
         <span style={{ color: '#fafafb' }}>
-          {username || shortenAddress(walletAddress)}
+          {user?.username || shortenAddress(walletAddress)}
         </span>
       </Link>
     </>

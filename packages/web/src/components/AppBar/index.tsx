@@ -31,7 +31,7 @@ import { GreyColor, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
   const { publicKey, connected } = useWallet();
-  const { userData } = useMeta();
+  const { userData, updateAllNotification } = useMeta();
   const { pathname } = useLocation();
   const { isBidPlaced, setBidPlaced, whitelistedCreatorsByCreator } = useMeta();
 
@@ -81,7 +81,10 @@ export const AppBar = () => {
                 <Button
                   className={`${LinkButton} ${GreyColor}`}
                   type="link"
-                  onClick={hideActivityBadge}
+                  onClick={() => {
+                    hideActivityBadge();
+                    updateAllNotification(userData.wallet_address);
+                  }}
                 >
                   ACTIVITY
                 </Button>

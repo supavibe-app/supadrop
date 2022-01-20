@@ -18,7 +18,7 @@ import {
 import { ArtCardCreate } from './../../components/ArtCardCreate';
 import { UserSearch, UserValue } from './../../components/UserSearch';
 import { Confetti } from './../../components/Confetti';
-import { mintNFT } from '../../actions';
+import { mintNFT, mintNFTIPFS } from '../../actions';
 import {
   MAX_METADATA_LEN,
   useConnection,
@@ -107,7 +107,7 @@ export const ArtCreateView = () => {
     setMinting(true);
 
     try {
-      const _nft = await mintNFT(
+      const _nft = await mintNFTIPFS(
         connection,
         wallet,
         env,

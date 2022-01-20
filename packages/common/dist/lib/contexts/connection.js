@@ -73,7 +73,8 @@ function ConnectionProvider({ children = undefined }) {
     const [savedEndpoint, setEndpoint] = utils_1.useLocalStorageState('connectionEndpoint', defaultEndpoint.endpoint);
     const endpoint = queryEndpoint || savedEndpoint;
     const connection = react_1.useMemo(() => new web3_js_1.Connection(endpoint, 'recent'), [endpoint]);
-    const env = ((_b = exports.ENDPOINTS.find(end => end.endpoint === endpoint)) === null || _b === void 0 ? void 0 : _b.name) || defaultEndpoint.name;
+    const env = ((_b = exports.ENDPOINTS.find(end => end.endpoint === endpoint)) === null || _b === void 0 ? void 0 : _b.name) ||
+        defaultEndpoint.name;
     const [tokens, setTokens] = react_1.useState([]);
     const [tokenMap, setTokenMap] = react_1.useState(new Map());
     react_1.useEffect(() => {

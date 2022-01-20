@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.supabaseUpdateWinnerAuction = exports.supabaseUpdateHighestBid = exports.supabaseUpdateIsRedeemAuctionStatus = exports.supabaseUpdateIsRedeem = exports.supabaseUpdateStatusInstantSale = exports.supabaseGetAllOwnedNFT = exports.supabaseUpdateNFTHolder = exports.supabaseAddNewNFT = exports.supabaseAddNewUser = exports.supabaseUpdateBid = exports.supabase = void 0;
+exports.supabaseUpdateWinnerAuction = exports.supabaseUpdateHighestBid = exports.supabaseUpdateIsRedeemAuctionStatus = exports.supabaseUpdateIsRedeem = exports.supabaseUpdateStatusInstantSale = exports.supabaseGetAllOwnedNFT = exports.supabaseUpdateNFTHolder = exports.supabaseDeleteNFT = exports.supabaseAddNewNFT = exports.supabaseAddNewUser = exports.supabaseUpdateBid = exports.supabase = void 0;
 const supabase_js_1 = require("@supabase/supabase-js");
 const _1 = require(".");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -80,6 +80,10 @@ const supabaseAddNewNFT = (id, original_file, name, description, attribute, roya
         .then();
 };
 exports.supabaseAddNewNFT = supabaseAddNewNFT;
+const supabaseDeleteNFT = (id) => {
+    exports.supabase.from('nft_data').delete().eq('id', id).match({ id: id }).then();
+};
+exports.supabaseDeleteNFT = supabaseDeleteNFT;
 const supabaseUpdateNFTHolder = (idNFT, walletAddress, soldFor) => {
     exports.supabase
         .from('nft_data')
@@ -154,7 +158,10 @@ exports.supabaseUpdateHighestBid = supabaseUpdateHighestBid;
 const supabaseUpdateWinnerAuction = (idAuction, walletAddress) => {
     exports.supabase
         .from('auction_status')
-        .update({ winner: walletAddress, is_redeem: true, updated_at: _1.timestampPostgre() })
+        .update({
+        winner: walletAddress,
+        updated_at: _1.timestampPostgre(),
+    })
         .eq('id', idAuction)
         .then(result => {
         console.log('res', result);

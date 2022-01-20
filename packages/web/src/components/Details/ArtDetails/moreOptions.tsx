@@ -4,7 +4,6 @@ import { useConnectionConfig } from '@oyster/common';
 import { List, Button } from 'antd';
 
 const MoreOptions = ({ art }) => {
-  console.log('🚀 ~ file: moreOptions.tsx ~ line 7 ~ MoreOptions ~ art', art);
   const { env } = useConnectionConfig();
 
   return (
