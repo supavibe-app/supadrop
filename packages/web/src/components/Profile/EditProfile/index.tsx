@@ -59,13 +59,15 @@ const EditProfile = ({
 
     if (!file) {
       imageProfile = userData?.img_profile || '';
+    } else {
+      imageProfile = avatarUrl ? `${avatarUrl}` : '';
     }
     // console.log('🚀 ~ file: index.tsx ~ line 98 ~ imageProfile', imageProfile);
 
     let { data, error } = await supabase
       .from('user_data')
       // .update([{ ...values, img_profile: avatarUrl }])
-      .update([{ ...values, img_profile: avatarUrl || imageProfile }])
+      .update([{ ...values, img_profile: imageProfile }])
       .eq('wallet_address', publicKey)
       .limit(1);
 
