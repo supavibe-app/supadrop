@@ -35,7 +35,7 @@ const DirectPath = () => {
     case 3:
       return <About />;
     case 4:
-      return <ArtCreateView />;
+      return <ArtCreacteViewNew />;
     case 5:
       return <SellView />;
     default:
@@ -81,11 +81,11 @@ export function Routes() {
             component={() => <AuctionCreateView />}
           />
           <Route exact path="/art/:id" component={() => <ArtView />} />
-          <Route
+          {/* <Route
             exact
             path="/create/new"
             component={() => <ArtCreacteViewNew />}
-          />
+          /> */}
         </Providers>
       </Switch>
     </Router>

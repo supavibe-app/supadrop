@@ -374,8 +374,8 @@ const UploadStep = (props: {
       <Row className="call-to-action">
         <h2>Now, let's upload your creation</h2>
         <p style={{ fontSize: '1.2rem' }}>
-          Your file will be uploaded to the decentralized web via Arweave.
-          Depending on file type, can take up to 1 minute. Arweave is a new type
+          Your file will be uploaded to the decentralized web via IPFS.
+          Depending on file type, can take up to 1 minute. IPFS is a new type
           of storage that backs data with sustainable and perpetual endowments,
           allowing users and developers to truly store data forever – for the
           very first time.
@@ -1222,7 +1222,7 @@ const WaitingStep = (props: {
           />
           <Step
             className={'white-description'}
-            title="Uploading to Arweave"
+            title="Uploading to IPFS"
             icon={setIconForStep(props.step, 6)}
           />
           <Step

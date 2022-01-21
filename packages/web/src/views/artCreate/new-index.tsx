@@ -1,11 +1,58 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Avatar, Row, Col, Card, Tabs, Form, Input, Upload, Switch, Image, Skeleton, Slider, Button, message, Steps } from 'antd';
+import {
+  Avatar,
+  Row,
+  Col,
+  Card,
+  Tabs,
+  Form,
+  Input,
+  Upload,
+  Switch,
+  Image,
+  Skeleton,
+  Slider,
+  Button,
+  message,
+  Steps,
+} from 'antd';
 import FeatherIcon from 'feather-icons-react';
-import ActionButton from '../../components/ActionButton'
-import { uFlexAlignItemsCenter, uFlexSpaceBetween, uTextAlignEnd } from '../../styles';
-import { ArtTitleStyle, CardStyle, ErrorTextStyle, FormStyle, HeaderLabelStyle, ImageWrapper, InputStyle, InputWithSuffixStyle, PlaceholderStyle, TransparentInput, TabsStyle, TextAreaStyle, TitleSkeletonStyle, UsernameStyle, SliderStyle, InputWithAddon } from './style';
+import ActionButton from '../../components/ActionButton';
+import {
+  uFlexAlignItemsCenter,
+  uFlexSpaceBetween,
+  uTextAlignEnd,
+} from '../../styles';
+import {
+  ArtTitleStyle,
+  CardStyle,
+  ErrorTextStyle,
+  FormStyle,
+  HeaderLabelStyle,
+  ImageWrapper,
+  InputStyle,
+  InputWithSuffixStyle,
+  PlaceholderStyle,
+  TransparentInput,
+  TabsStyle,
+  TextAreaStyle,
+  TitleSkeletonStyle,
+  UsernameStyle,
+  SliderStyle,
+  InputWithAddon,
+} from './style';
 import getBase64 from '../../helpers/getBase64';
-import { Creator, getAssetCostToStore, LAMPORT_MULTIPLIER, MAX_METADATA_LEN, MetadataCategory, shortenAddress, StringPublicKey, useConnection, useConnectionConfig } from '@oyster/common';
+import {
+  Creator,
+  getAssetCostToStore,
+  LAMPORT_MULTIPLIER,
+  MAX_METADATA_LEN,
+  MetadataCategory,
+  shortenAddress,
+  StringPublicKey,
+  useConnection,
+  useConnectionConfig,
+} from '@oyster/common';
 import { mintNFT } from '../../actions';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ArtContent } from '../../components/ArtContent';
@@ -41,7 +88,9 @@ const ArtCreateView = () => {
   const [artPreview, setArtPreview] = useState('');
   const [coverFile, setCoverFile] = useState<File | undefined>();
   const [coverImage, setCoverImage] = useState('');
-  const [artCategory, setArtCategory] = useState<MetadataCategory>(MetadataCategory.Image);
+  const [artCategory, setArtCategory] = useState<MetadataCategory>(
+    MetadataCategory.Image,
+  );
   const [isMinting, setMinting] = useState<boolean>(false);
 
   const previewColRef = useRef<HTMLDivElement>(null);
@@ -118,14 +167,20 @@ const ArtCreateView = () => {
     formValue.creators[name].share = parseInt(value) || 0;
     form.setFieldsValue(formValue);
 
-    const sumSplitter = formValue.creators.reduce((n, { share }) => n + share, 0);
+    const sumSplitter = formValue.creators.reduce(
+      (n, { share }) => n + share,
+      0,
+    );
     setTotalSplitter(100 - sumSplitter);
   };
 
   const setSplitterEvenly = () => {
     const formValue = form.getFieldsValue();
     const creators = formValue.creators;
-    const creatorSplitter = formValue.creators.map(creator => ({ ...creator, share: 100 / creators.length }));
+    const creatorSplitter = formValue.creators.map(creator => ({
+      ...creator,
+      share: 100 / creators.length,
+    }));
 
     setTotalSplitter(0);
 
@@ -138,20 +193,22 @@ const ArtCreateView = () => {
     const files = [coverFile, artFile].filter(f => f) as File[];
 
     if (publicKey) {
-      const creatorStructs: Creator[] = values.creators ? values.creators.map(
-        c =>
-          new Creator({
-            address: c.address,
-            verified: c.address === publicKey?.toBase58(),
-            share: c.share,
-          }),
-      ) : [
-        new Creator({
-          address: publicKey?.toBase58(),
-          verified: true,
-          share: 100,
-        })
-      ];
+      const creatorStructs: Creator[] = values.creators
+        ? values.creators.map(
+            c =>
+              new Creator({
+                address: c.address,
+                verified: c.address === publicKey?.toBase58(),
+                share: c.share,
+              }),
+          )
+        : [
+            new Creator({
+              address: publicKey?.toBase58(),
+              verified: true,
+              share: 100,
+            }),
+          ];
       const metadata = {
         name: attributes.title,
         symbol: attributes.symbol || '',
@@ -185,7 +242,7 @@ const ArtCreateView = () => {
       } catch (e: any) {
         message.error(e.message);
       } finally {
-        setMinting(false)
+        setMinting(false);
         console.log('berhasil');
       }
     }
@@ -208,7 +265,7 @@ const ArtCreateView = () => {
     MetadataCategory.Video,
     MetadataCategory.Audio,
     MetadataCategory.VR,
-    MetadataCategory.HTML
+    MetadataCategory.HTML,
   ];
 
   const iconPlaceholder = (category: MetadataCategory) => {
@@ -242,16 +299,12 @@ const ArtCreateView = () => {
       show: category !== MetadataCategory.Image,
       thumbnail: coverImage,
       category: MetadataCategory.Image,
-    }
+    },
   ];
 
   if (isMinting) {
     return (
-      <WaitingStep
-        mint={mint}
-        minting={isMinting}
-        step={nftCreateProgress}
-      />
+      <WaitingStep mint={mint} minting={isMinting} step={nftCreateProgress} />
     );
   }
 
@@ -267,10 +320,23 @@ const ArtCreateView = () => {
         artCard={
           <Card
             className={CardStyle}
-            cover={<ArtContent uri={artPreview} animationURL={artPreview} category={artCategory} style={{ height: previewColWidth, width: '100%' }} />}
+            cover={
+              <ArtContent
+                uri={artPreview}
+                animationURL={artPreview}
+                category={artCategory}
+                style={{ height: previewColWidth, width: '100%' }}
+              />
+            }
           >
             <div>
-              <Skeleton className={TitleSkeletonStyle} paragraph={false} round title={{ width: 180 }} loading={!Boolean(artTitle)}>
+              <Skeleton
+                className={TitleSkeletonStyle}
+                paragraph={false}
+                round
+                title={{ width: 180 }}
+                loading={!Boolean(artTitle)}
+              >
                 <div className={ArtTitleStyle}>{artTitle}</div>
               </Skeleton>
               <div className={UsernameStyle}>
@@ -287,10 +353,22 @@ const ArtCreateView = () => {
   return (
     <Row justify="center" gutter={184} style={{ margin: '56px 0' }}>
       <Col span={12}>
-        <Form form={form} labelAlign="left" className={FormStyle} onFieldsChange={onFieldsChange} onFinish={mint} requiredMark={false} initialValues={{ royalties: 10 }}>
+        <Form
+          form={form}
+          labelAlign="left"
+          className={FormStyle}
+          onFieldsChange={onFieldsChange}
+          onFinish={mint}
+          requiredMark={false}
+          initialValues={{ royalties: 10 }}
+        >
           <div className={HeaderLabelStyle}>Choose format</div>
 
-          <Tabs defaultActiveKey={MetadataCategory.Image} className={TabsStyle} onChange={onTabsChange}>
+          <Tabs
+            defaultActiveKey={MetadataCategory.Image}
+            className={TabsStyle}
+            onChange={onTabsChange}
+          >
             {categoryTabs.map(tab => (
               <TabPane tab={tab} key={tab}>
                 <UploadContainer
@@ -307,23 +385,51 @@ const ArtCreateView = () => {
             ))}
           </Tabs>
 
-          <Form.Item name="title" label="TITLE" labelCol={{ span: 24 }} rules={[{ required: true, message: 'Enter the title of your artwork to make it remarkable' }]}>
-            <Input className={InputStyle} placeholder={`e.g. "Portal to Heaven"`} />
+          <Form.Item
+            name="title"
+            label="TITLE"
+            labelCol={{ span: 24 }}
+            rules={[
+              {
+                required: true,
+                message:
+                  'Enter the title of your artwork to make it remarkable',
+              },
+            ]}
+          >
+            <Input
+              className={InputStyle}
+              placeholder={`e.g. "Portal to Heaven"`}
+            />
           </Form.Item>
 
-          <Form.Item name="description" label="DESCRIPTION" labelCol={{ span: 24 }} rules={[{ required: true, message: 'Enter the description of your artwork to make it better' }]}>
-            <Input.TextArea className={TextAreaStyle} placeholder="story or any details about your artwork.." rows={1} autoSize />
+          <Form.Item
+            name="description"
+            label="DESCRIPTION"
+            labelCol={{ span: 24 }}
+            rules={[
+              {
+                required: true,
+                message:
+                  'Enter the description of your artwork to make it better',
+              },
+            ]}
+          >
+            <Input.TextArea
+              className={TextAreaStyle}
+              placeholder="story or any details about your artwork.."
+              rows={1}
+              autoSize
+            />
           </Form.Item>
 
           <Form.Item
             name="royalties"
             label="ROYALTIES"
             labelCol={{ span: 24 }}
-            extra={(
-              <div style={{ marginTop: 4 }}>
-                suggestion 5%, 10% – max 20%
-              </div>
-            )}
+            extra={
+              <div style={{ marginTop: 4 }}>suggestion 5%, 10% – max 20%</div>
+            }
             rules={[
               {
                 type: 'number',
@@ -335,19 +441,37 @@ const ArtCreateView = () => {
               },
             ]}
           >
-            <Input className={InputWithSuffixStyle} placeholder="royalties for the creators" suffix="%" type="number" />
+            <Input
+              className={InputWithSuffixStyle}
+              placeholder="royalties for the creators"
+              suffix="%"
+              type="number"
+            />
           </Form.Item>
 
-          <Form.Item name="split" label="CREATORS SPLIT" colon={false} className={uTextAlignEnd} valuePropName="checked">
+          <Form.Item
+            name="split"
+            label="CREATORS SPLIT"
+            colon={false}
+            className={uTextAlignEnd}
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
 
           <p style={{ width: '80%' }}>
-            with SUPADROP, you can split your payment and royalties with as many wallet addresses as you like.
+            with SUPADROP, you can split your payment and royalties with as many
+            wallet addresses as you like.
           </p>
 
           {showSplitter && (
-            <Form.List name="creators" initialValue={[{ address: publicKey?.toBase58(), share: 50 }, { address: '', share: 50 }]}>
+            <Form.List
+              name="creators"
+              initialValue={[
+                { address: publicKey?.toBase58(), share: 50 },
+                { address: '', share: 50 },
+              ]}
+            >
               {(fields, { add, remove }) => (
                 <>
                   {fields.map(({ key, name, fieldKey }) => (
@@ -355,10 +479,24 @@ const ArtCreateView = () => {
                       <Form.Item
                         name={[name, 'address']}
                         fieldKey={[fieldKey, 'address']}
-                        rules={[{ required: true, message: 'Missing wallet address' }]}
+                        rules={[
+                          { required: true, message: 'Missing wallet address' },
+                        ]}
                         hidden={key === 0}
                       >
-                        <Input className={InputWithAddon} placeholder={`Wallet Address – Creator ${name + 1}`} addonBefore={key > 0 ? <FeatherIcon icon="minus-square" onClick={() => remove(name)} /> : null} disabled={key === 0} />
+                        <Input
+                          className={InputWithAddon}
+                          placeholder={`Wallet Address – Creator ${name + 1}`}
+                          addonBefore={
+                            key > 0 ? (
+                              <FeatherIcon
+                                icon="minus-square"
+                                onClick={() => remove(name)}
+                              />
+                            ) : null
+                          }
+                          disabled={key === 0}
+                        />
                       </Form.Item>
 
                       {key === 0 && (
@@ -374,23 +512,56 @@ const ArtCreateView = () => {
                             <Slider
                               className={SliderStyle}
                               onChange={value => setShareValue(name, value)}
-                              value={form.getFieldValue(['creators', name, 'share'])}
-                              tooltipVisible={false} min={0} max={totalSplitter + form.getFieldValue(['creators', name, 'share'])}
-                              disabled={totalSplitter + form.getFieldValue(['creators', name, 'share']) <= 0}
+                              value={form.getFieldValue([
+                                'creators',
+                                name,
+                                'share',
+                              ])}
+                              tooltipVisible={false}
+                              min={0}
+                              max={
+                                totalSplitter +
+                                form.getFieldValue(['creators', name, 'share'])
+                              }
+                              disabled={
+                                totalSplitter +
+                                  form.getFieldValue([
+                                    'creators',
+                                    name,
+                                    'share',
+                                  ]) <=
+                                0
+                              }
                             />
                           </Form.Item>
                         </Col>
 
                         <Col span={4}>
                           <Form.Item name={[name, 'share']} noStyle>
-                            <Input className={TransparentInput} suffix="%" onChange={e => setShareValue(name, e.target.value)} value={form.getFieldValue(['creators', name, 'share'])} />
+                            <Input
+                              className={TransparentInput}
+                              suffix="%"
+                              onChange={e =>
+                                setShareValue(name, e.target.value)
+                              }
+                              value={form.getFieldValue([
+                                'creators',
+                                name,
+                                'share',
+                              ])}
+                            />
                           </Form.Item>
                         </Col>
                       </Row>
                     </div>
                   ))}
 
-                  <Button className={uFlexAlignItemsCenter} type="link" onClick={() => add({ share: 0 })} icon={<FeatherIcon icon="plus-square" />}>
+                  <Button
+                    className={uFlexAlignItemsCenter}
+                    type="link"
+                    onClick={() => add({ share: 0 })}
+                    icon={<FeatherIcon icon="plus-square" />}
+                  >
                     add new address
                   </Button>
                 </>
@@ -398,12 +569,19 @@ const ArtCreateView = () => {
             </Form.List>
           )}
 
-          <div className={uFlexSpaceBetween} style={{ marginTop: 48, marginBottom: 48 }}>
+          <div
+            className={uFlexSpaceBetween}
+            style={{ marginTop: 48, marginBottom: 48 }}
+          >
             <div>COST TO CREATE</div>
-            <div>◎ {cost.toFixed(5)} (${(cost * solPrice).toFixed(2)})</div>
+            <div>
+              ◎ {cost.toFixed(5)} (${(cost * solPrice).toFixed(2)})
+            </div>
           </div>
 
-          <ActionButton onClick={() => form.submit()} width="100%">CREATE ITEM</ActionButton>
+          <ActionButton onClick={() => form.submit()} width="100%">
+            CREATE ITEM
+          </ActionButton>
         </Form>
       </Col>
 
@@ -411,32 +589,45 @@ const ArtCreateView = () => {
         <div ref={previewColRef}>
           <div style={{ position: 'fixed', width: previewColWidth }}>
             <Tabs className={TabsStyle}>
-              {previewTabs(artCategory).map(tab => tab.show ? (
-                <TabPane tab={tab.title} key={tab.title}>
-                  <Card
-                    className={CardStyle}
-                    cover={
-                      tab.thumbnail
-                        ? <ArtContent uri={tab.thumbnail} animationURL={tab.thumbnail} category={tab.category} style={{ height: previewColWidth, width: '100%' }} />
-                        : (
+              {previewTabs(artCategory).map(tab =>
+                tab.show ? (
+                  <TabPane tab={tab.title} key={tab.title}>
+                    <Card
+                      className={CardStyle}
+                      cover={
+                        tab.thumbnail ? (
+                          <ArtContent
+                            uri={tab.thumbnail}
+                            animationURL={tab.thumbnail}
+                            category={tab.category}
+                            style={{ height: previewColWidth, width: '100%' }}
+                          />
+                        ) : (
                           <div className={PlaceholderStyle(previewColWidth)}>
                             <FeatherIcon icon={tab.icon} size="64" />
                           </div>
                         )
-                    }
-                  >
-                    <div>
-                      <Skeleton className={TitleSkeletonStyle} paragraph={false} round title={{ width: 180 }} loading={!Boolean(artTitle)}>
-                        <div className={ArtTitleStyle}>{artTitle}</div>
-                      </Skeleton>
-                      <div className={UsernameStyle}>
-                        <Avatar size={32} />
-                        <span>{owner}</span>
+                      }
+                    >
+                      <div>
+                        <Skeleton
+                          className={TitleSkeletonStyle}
+                          paragraph={false}
+                          round
+                          title={{ width: 180 }}
+                          loading={!Boolean(artTitle)}
+                        >
+                          <div className={ArtTitleStyle}>{artTitle}</div>
+                        </Skeleton>
+                        <div className={UsernameStyle}>
+                          <Avatar size={32} />
+                          <span>{owner}</span>
+                        </div>
                       </div>
-                    </div>
-                  </Card>
-                </TabPane>
-              ) : null)}
+                    </Card>
+                  </TabPane>
+                ) : null,
+              )}
             </Tabs>
           </div>
         </div>
@@ -445,15 +636,23 @@ const ArtCreateView = () => {
   );
 };
 
-const UploadContainer = ({ artCategory, setCoverFile, setCoverImage, coverImage, setArtFile, setArtPreview, artPreview }: {
-  artCategory: MetadataCategory,
-  setCoverFile: React.Dispatch<React.SetStateAction<File | undefined>>,
-  setArtFile: React.Dispatch<React.SetStateAction<File | undefined>>,
-  setCoverImage: React.Dispatch<React.SetStateAction<string>>,
-  setArtPreview: React.Dispatch<React.SetStateAction<string>>,
-  artFile: File | undefined,
-  coverImage: string,
-  artPreview: string,
+const UploadContainer = ({
+  artCategory,
+  setCoverFile,
+  setCoverImage,
+  coverImage,
+  setArtFile,
+  setArtPreview,
+  artPreview,
+}: {
+  artCategory: MetadataCategory;
+  setCoverFile: React.Dispatch<React.SetStateAction<File | undefined>>;
+  setArtFile: React.Dispatch<React.SetStateAction<File | undefined>>;
+  setCoverImage: React.Dispatch<React.SetStateAction<string>>;
+  setArtPreview: React.Dispatch<React.SetStateAction<string>>;
+  artFile: File | undefined;
+  coverImage: string;
+  artPreview: string;
 }) => {
   const [coverArtError, setCoverArtError] = useState<string>();
 
@@ -490,14 +689,19 @@ const UploadContainer = ({ artCategory, setCoverFile, setCoverImage, coverImage,
 
   const draggerProps = (artCategory, isCover) => ({
     accept: acceptableFiles(artCategory),
-    style: { border: '2px dashed #444444', background: 'transparent', borderRadius: 4, padding: '20px 0' },
+    style: {
+      border: '2px dashed #444444',
+      background: 'transparent',
+      borderRadius: 4,
+      padding: '20px 0',
+    },
     showUploadList: false,
     multiple: false,
     customRequest: info => {
       // dont upload files here, handled outside of the control
       info?.onSuccess?.({}, null as any);
     },
-    onChange: async (info) => {
+    onChange: async info => {
       const { status, originFileObj: file } = info.file;
 
       if (!file || status === 'uploading') {
@@ -507,7 +711,11 @@ const UploadContainer = ({ artCategory, setCoverFile, setCoverImage, coverImage,
       const sizeKB = file.size / 1024;
 
       if (sizeKB < 25) {
-        setCoverArtError(`The file ${file.name} is too small. It is ${Math.round(10 * sizeKB) / 10}KB but should be at least 25KB.`);
+        setCoverArtError(
+          `The file ${file.name} is too small. It is ${
+            Math.round(10 * sizeKB) / 10
+          }KB but should be at least 25KB.`,
+        );
         return;
       }
 
@@ -546,7 +754,15 @@ const UploadContainer = ({ artCategory, setCoverFile, setCoverImage, coverImage,
               >
                 <source src={artPreview} type="video/mp4" />
               </video>
-              <span style={{ color: '#444444', position: 'absolute', right: '5%', cursor: 'pointer' }} onClick={resetArtFile}>
+              <span
+                style={{
+                  color: '#444444',
+                  position: 'absolute',
+                  right: '5%',
+                  cursor: 'pointer',
+                }}
+                onClick={resetArtFile}
+              >
                 <FeatherIcon icon="x-circle" size="32" />
               </span>
             </div>
@@ -556,21 +772,37 @@ const UploadContainer = ({ artCategory, setCoverFile, setCoverImage, coverImage,
                 <b>upload file</b>
               </p>
               <p className="ant-upload-hint">
-                {acceptableFiles(artCategory).replaceAll('.', ' ').toUpperCase()}
+                {acceptableFiles(artCategory)
+                  .replaceAll('.', ' ')
+                  .toUpperCase()}
               </p>
               <p>MAX 2GB</p>
             </Dragger>
           )}
 
-
-          <div className={HeaderLabelStyle} style={{ marginTop: 48 }}>Cover Image</div>
+          <div className={HeaderLabelStyle} style={{ marginTop: 48 }}>
+            Cover Image
+          </div>
         </>
       )}
 
       {coverImage ? (
         <div className={ImageWrapper}>
-          <Image src={coverImage} width="80%" preview={false} style={{ borderRadius: 2 }} />
-          <span style={{ color: '#444444', position: 'absolute', right: '5%', cursor: 'pointer' }} onClick={resetCoverFile}>
+          <Image
+            src={coverImage}
+            width="80%"
+            preview={false}
+            style={{ borderRadius: 2 }}
+          />
+          <span
+            style={{
+              color: '#444444',
+              position: 'absolute',
+              right: '5%',
+              cursor: 'pointer',
+            }}
+            onClick={resetCoverFile}
+          >
             <FeatherIcon icon="x-circle" size="32" />
           </span>
         </div>
@@ -580,17 +812,17 @@ const UploadContainer = ({ artCategory, setCoverFile, setCoverImage, coverImage,
             <p className="ant-upload-text">
               <b>upload file</b>
             </p>
-            <p className="ant-upload-hint">
-              PNG, JPG, GIF, SVG,
-            </p>
+            <p className="ant-upload-hint">PNG, JPG, GIF, SVG,</p>
             <p>MAX 2GB</p>
           </Dragger>
 
-          {Boolean(coverArtError) && <div className={ErrorTextStyle}>{coverArtError}</div>}
+          {Boolean(coverArtError) && (
+            <div className={ErrorTextStyle}>{coverArtError}</div>
+          )}
         </>
       )}
     </div>
-  )
+  );
 };
 
 const WaitingStep = (props: {
@@ -598,7 +830,6 @@ const WaitingStep = (props: {
   minting: boolean;
   step: number;
 }) => {
-
   const setIconForStep = (currentStep: number, componentStep) => {
     if (currentStep === componentStep) {
       return <LoadingOutlined />;
@@ -652,7 +883,7 @@ const WaitingStep = (props: {
           />
           <Step
             className={'white-description'}
-            title="Uploading to Arweave"
+            title="Uploading to IPFS"
             icon={setIconForStep(props.step, 6)}
           />
           <Step

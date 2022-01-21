@@ -406,7 +406,7 @@ export const mintNFT = async (
       message: 'Art created on Solana',
       description: (
         <a href={arweaveLink} target="_blank" rel="noopener noreferrer">
-          Arweave Link
+          IPFS Link
         </a>
       ),
       type: 'success',
