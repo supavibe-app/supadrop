@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Col, Divider, Dropdown, Menu, Row, Select } from 'antd';
 import { Link } from 'react-router-dom';
 import FeatherIcon from 'feather-icons-react';
-import { ItemAuction, supabase, useMeta } from '@oyster/common';
+import { ItemAuction, supabase, useMeta, UserData } from '@oyster/common';
 import { AuctionRenderCard } from '../../components/AuctionRenderCard';
 import {
   ActiveSortBy,
@@ -12,7 +12,6 @@ import {
   OverlayStyle,
 } from './style';
 import { GreyColor, uTextAlignEnd, YellowGlowColor } from '../../styles';
-import { getUsernameByPublicKeys } from '../../database/userData';
 // import moment from 'moment';
 
 const { Option } = Select;
@@ -32,6 +31,7 @@ const MarketComponent = () => {
       .select(
         `
     *,
+    owner(wallet_address,img_profile,username),
     id_nft (
       *
     )
@@ -49,7 +49,9 @@ const MarketComponent = () => {
               v.id_nft.id,
               v.token_mint,
               v.price_floor,
-              v.id_nft.img_nft,
+              v.id_nft.original_file,
+              v.id_nft.thumbnail,
+              v.id_nft.media_type,
               v.start_auction,
               v.end_auction,
               v.highest_bid,
@@ -58,10 +60,13 @@ const MarketComponent = () => {
               v.tick_size_ending_phase,
               v.vault,
               v.id_nft.arweave_link,
-              v.owner,
+              v.owner.wallet_address,
               v.winner,
               v.id_nft.mint_key,
               v.type_auction,
+              v.id_nft.royalty,
+              v.owner.img_profile,
+              v.owner.username,
             );
 
             data.push(itemAuction);
@@ -121,7 +126,6 @@ const MarketComponent = () => {
     );
     setList(newData);
   }, [updatedData]);
-  // TODO: Filter sold NFT
 
   switch (sortBy) {
     case 1:
@@ -155,9 +159,6 @@ const MarketComponent = () => {
       </Menu.Item>
     </Menu>
   );
-
-  const ownerAddress = list.map(auction => auction.owner);
-  const { data = {} } = getUsernameByPublicKeys(ownerAddress);
 
   return (
     <Row justify="center">
@@ -218,14 +219,9 @@ const MarketComponent = () => {
 
         <Row gutter={[36, 36]}>
           {list.map((m, idx) => {
-            const defaultOwnerData = {
-              wallet_address: m.owner,
-              img_profile: null,
-            };
-
             return (
               <Col
-                key={idx}
+                key={m.id}
                 span={24}
                 xxl={8}
                 xl={8}
@@ -235,10 +231,7 @@ const MarketComponent = () => {
                 xs={24}
               >
                 <Link to={`/auction/${m.id}`}>
-                  <AuctionRenderCard
-                    auctionView={m}
-                    owner={data[m.owner] || defaultOwnerData}
-                  />
+                  <AuctionRenderCard auctionView={m} wallet_address={m.owner} />
                 </Link>
               </Col>
             );

@@ -26,7 +26,6 @@ import {
   supabaseUpdateIsRedeemAuctionStatus,
   supabaseUpdateNFTHolder,
   supabaseUpdateWinnerAuction,
-  supabaseUpdateOnSaleNFT,
   Identicon,
 } from '@oyster/common';
 import { Avatar, Col, Row, Skeleton, Spin, message, Modal } from 'antd';
@@ -64,9 +63,22 @@ import countDown from '../../../helpers/countdown';
 import { endSale } from '../../AuctionCard/utils/endSale';
 import { useInstantSaleState } from '../../AuctionCard/hooks/useInstantSaleState';
 import { sendCancelBid } from '../../../actions/cancelBid';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import isEnded from '../../Home/helpers/isEnded';
 import { getAuctionIsRedeemData } from '../../../database/activityData';
+import { ConfirmModal } from '../../ArtCard/style';
+
+const DetailStatus = ({ status, username, time }) => {
+  return (
+    <div>
+      {`${status} `}
+      <Link to={`/${username}`}>
+        <span className={WhiteColor}>{username}</span>
+      </Link>
+      <span className={NormalFont}>・{time}</span>
+    </div>
+  );
+};
 
 const BidDetails = ({
   art,
@@ -77,8 +89,8 @@ const BidDetails = ({
   setShowPlaceBid,
   showPlaceBid,
   currentBidAmount,
-  users,
   setShowCongratulations,
+  loadingDetailAuction,
 }: {
   art: Art;
   auction?: AuctionView;
@@ -88,13 +100,14 @@ const BidDetails = ({
   showPlaceBid: boolean;
   setShowPlaceBid: (visible: boolean) => void;
   currentBidAmount: number | undefined;
-  users: any;
-  setShowCongratulations: (visible: boolean) => void;
+  setShowCongratulations: (type: string) => void;
+  loadingDetailAuction: boolean;
 }) => {
   const connection = useConnection();
   const { setVisible } = useWalletModal();
   const { account } = useNativeAccount();
   const { accountByMint } = useUserAccounts();
+  const [counter, setCounter] = useState(0);
   const {
     update,
     prizeTrackingTickets,
@@ -102,40 +115,32 @@ const BidDetails = ({
     pullAuctionPage,
     setBidPlaced,
     updateDetailAuction,
+    updateNotifAuction,
+    updateNotifBidding,
+    pullAllSiteData,
+    isLoadingMetaplex,
+    users,
   } = useMeta();
-
+  const { id } = useParams<{ id: string }>();
   const ownedMetadata = useUserArts();
   const walletContext = useWallet();
   const { wallet, connect, connected, publicKey } = walletContext;
-  const { data: redeemData, loading, refetch } = getAuctionIsRedeemData(publicKey?.toBase58(), auction?.auction.pubkey);
+  const {
+    data: redeemData,
+    loading,
+    refetch,
+  } = getAuctionIsRedeemData(publicKey?.toBase58(), id);
 
   const owner = auctionDatabase?.owner;
-  const endAt = auctionDatabase?.endAt;
-
+  const [endAt, setEndAt] = useState(auctionDatabase?.endAt);
   useEffect(() => {
-    if (
-      auction?.auction.info.auctionGap &&
-      highestBid?.info.lastBidTimestamp.toNumber() &&
-      endAt &&
-      auctionDatabase?.id
-    ) {
-      let latestTime =
-        auction?.auction.info.auctionGap?.toNumber() +
-        highestBid?.info.lastBidTimestamp.toNumber();
-      if (latestTime > endAt) {
-        supabase
-          .from('auction_status')
-          .update({
-            end_auction: latestTime,
-          })
-          .eq('id', auctionDatabase.id)
-          .then(data => {
-            updateDetailAuction(auctionDatabase.id);
-          });
-      }
+    if (auctionDatabase?.endAt) {
+      setEndAt(auctionDatabase.endAt);
     }
-  }, [highestBid]);
+  }, [auctionDatabase]);
 
+  const isInstantSale = auction?.auction?.info?.endAuctionAt === undefined;
+  const [newBidding, setNewBidding] = useState(false);
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const [state, setState] = useState<CountdownState>();
 
@@ -180,14 +185,6 @@ const BidDetails = ({
 
   const [isRedeem, setIsRedeem] = useState(false);
 
-  //
-
-  useEffect(() => {
-    if (isRedeem === true) {
-      refetch();
-    }
-  }, [isRedeem]);
-
   useEffect(() => {
     if (!connected && showPlaceBid) setShowPlaceBid(false);
     // if (connected) setShowPlaceBid(true);
@@ -206,6 +203,33 @@ const BidDetails = ({
     setMinimumBid(bid ? getMinimumBid(currentBid) : priceFloor);
   }, [auctionDatabase, bid, auction]);
 
+  const [updatedData, setUpdatedData] = useState<any>();
+  const getChangeOnSale = () => {
+    const mySubscription = supabase
+      .from(`auction_status:id=eq.${id}`)
+      .on('UPDATE', payload => {
+        setUpdatedData('update auction page');
+      })
+      .subscribe();
+    return mySubscription;
+  };
+
+  useEffect(() => {
+    if (id) {
+      const subscriptionOnSale = getChangeOnSale();
+      return () => {
+        supabase.removeSubscription(subscriptionOnSale);
+      };
+    }
+  }, [id]);
+  useEffect(() => {
+    if (updatedData && !isInstantSale) {
+      pullAuctionPage(id);
+
+      setUpdatedData('');
+    }
+  }, [updatedData]);
+
   // countdown
   useEffect(() => {
     if (endAt) {
@@ -215,7 +239,35 @@ const BidDetails = ({
       return () => clearInterval(interval);
     }
   }, [endAt]);
+  useEffect(() => {
+    if (
+      auction?.auction.info.auctionGap &&
+      highestBid?.info.lastBidTimestamp?.toNumber() &&
+      endAt &&
+      auctionDatabase?.id
+    ) {
+      let latestTime =
+        auction?.auction.info.auctionGap?.toNumber() +
+        highestBid?.info.lastBidTimestamp?.toNumber();
 
+      if (latestTime > endAt) {
+        if (newBidding || counter === 0) {
+          supabase
+            .from('auction_status')
+            .update({
+              end_auction: latestTime,
+            })
+            .eq('id', auctionDatabase.id)
+            .then(data => {
+              updateDetailAuction(auctionDatabase.id);
+            });
+        }
+        setEndAt(latestTime);
+      }
+    }
+    setNewBidding(false);
+    setCounter(counter + 1);
+  }, [minimumBid]);
   const handleConnect = useCallback(() => {
     if (wallet) connect();
     else open();
@@ -223,71 +275,139 @@ const BidDetails = ({
 
   const baseInstantSalePrice = auctionDatabase?.price_floor || minimumBid;
   const isParticipated =
-    bids.filter(bid => bid.info.bidderPubkey === publicKey?.toBase58()).length >
-    0;
-  const actionEndedAuction = async () => {
+    bids.filter(bid => bid?.info?.bidderPubkey === publicKey?.toBase58())
+      .length > 0;
+  const actionEndedAuctionClaim = async () => {
     setConfirmTrigger(true);
+    if (!eligibleForAnything) {
+      const newAuctionState = await update(auction?.auction.pubkey, publicKey);
+      if (auction) {
+        auction.auction = newAuctionState[0];
+        auction.myBidderPot = newAuctionState[1];
+        auction.myBidderMetadata = newAuctionState[2];
+      }
+    }
     try {
-      if (eligibleForAnything) {
-        const wallet = walletContext;
-        const auctionView = auction!!;
-        await sendRedeemBid(
-          connection,
-          wallet,
-          myPayingAccount.pubkey,
-          auctionView,
-          accountByMint,
-          prizeTrackingTickets,
-          bidRedemptions,
-          bids,
-        ).then(data => {
-          if (auction?.auctionManager.authority === publicKey?.toBase58()) {
-            supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
-          } else {
-            supabaseUpdateIsRedeem(
-              auctionView.auction.pubkey,
-              publicKey?.toBase58(),
-            );
-            setShowCongratulations(true);
-            supabaseUpdateNFTHolder(
-              auctionView.thumbnail.metadata.pubkey,
-              wallet.publicKey?.toBase58(),
-              parseFloat(`${minimumBid}`),
-            );
-            supabaseUpdateOnSaleNFT(
-              auctionView.thumbnail.metadata.pubkey,
-              false,
-            );
-            // setIsRedeem(true);
-          }
-        });
+      const wallet = walletContext;
+      const auctionView = auction!!;
+
+      const redeemBid = await sendRedeemBid(
+        connection,
+        wallet,
+        myPayingAccount.pubkey,
+        auctionView,
+        accountByMint,
+        prizeTrackingTickets,
+        bidRedemptions,
+        bids,
+      );
+      localStorage.setItem('reload', 'true');
+
+      if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+        await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+        updateNotifAuction(auction?.auction.pubkey || '');
       } else {
-        const wallet = walletContext;
-        const auctionView = auction!!;
-        await sendCancelBid(
-          connection,
-          wallet,
-          myPayingAccount.pubkey,
-          auctionView,
-          accountByMint,
-          bids,
-          bidRedemptions,
-          prizeTrackingTickets,
-        ).then(data => {
-          if (auction?.auctionManager.authority === publicKey?.toBase58()) {
-            supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
-          } else {
-            supabaseUpdateIsRedeem(
-              auctionView.auction.pubkey,
-              publicKey?.toBase58(),
-            );
-          }
-          setIsRedeem(true);
-        });
+        await supabaseUpdateIsRedeem(
+          auctionView.auction.pubkey,
+          publicKey?.toBase58(),
+        );
+        updateNotifBidding(
+          `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
+        );
+        // const filterMetadata = ownedMetadata.filter(
+        //   metadata => metadata.metadata.info.mint === art.mint,
+        // );
+        // console.log(
+        //   '🚀 ~ file: index.tsx ~ line 302 ~ actionEndedAuctionClaim ~ filterMetadata',
+        //   filterMetadata,
+        // );
+
+        setShowCongratulations('claim');
+        supabaseUpdateNFTHolder(
+          auctionView.thumbnail.metadata.pubkey,
+          wallet.publicKey?.toBase58(),
+          parseFloat(`${minimumBid}`),
+        );
       }
     } catch (e) {
       console.error(e);
     }
+
+    setConfirmTrigger(false);
+  };
+  const actionEndedAuctionRefund = async () => {
+    setConfirmTrigger(true);
+    try {
+      const wallet = walletContext;
+      const auctionView = auction!!;
+
+      const cancelBid = await sendCancelBid(
+        connection,
+        wallet,
+        myPayingAccount.pubkey,
+        auctionView,
+        accountByMint,
+        bids,
+        bidRedemptions,
+        prizeTrackingTickets,
+      );
+      if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+        await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+        updateNotifAuction(auction?.auction.pubkey || '');
+      } else {
+        await supabaseUpdateIsRedeem(
+          auctionView.auction.pubkey,
+          publicKey?.toBase58(),
+        );
+        updateNotifBidding(
+          `${auction?.auction.pubkey}_${publicKey?.toBase58()}`,
+        );
+      }
+      setIsRedeem(true);
+    } catch (e) {
+      console.error(e);
+    }
+
+    setConfirmTrigger(false);
+  };
+  const actionEndedAuctionReclaim = async () => {
+    setConfirmTrigger(true);
+    try {
+      const wallet = walletContext;
+      const auctionView = auction!!;
+
+      const cancelBid = await sendCancelBid(
+        connection,
+        wallet,
+        myPayingAccount.pubkey,
+        auctionView,
+        accountByMint,
+        bids,
+        bidRedemptions,
+        prizeTrackingTickets,
+      );
+      localStorage.setItem('reload', 'true');
+      if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+        await supabaseUpdateIsRedeemAuctionStatus(auction?.auction.pubkey);
+        updateNotifAuction(auction?.auction.pubkey || '');
+        // const filterMetadata = ownedMetadata.filter(
+        //   metadata => metadata.metadata.info.mint === art.mint,
+        // );
+        // console.log(
+        //   '🚀 ~ file: index.tsx ~ line 378 ~ actionEndedAuctionReclaim ~ filterMetadata',
+        //   filterMetadata,
+        // );
+        setShowCongratulations('reclaim');
+        supabaseUpdateNFTHolder(
+          auctionView.thumbnail.metadata.pubkey,
+          wallet.publicKey?.toBase58(),
+          parseFloat(`${minimumBid}`),
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     setConfirmTrigger(false);
   };
 
@@ -306,14 +426,42 @@ const BidDetails = ({
         wallet,
       }).then();
       supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
-      supabaseUpdateIsRedeem(auctionView.auction.pubkey, publicKey?.toBase58());
-      supabaseUpdateOnSaleNFT(auctionView.thumbnail.metadata.pubkey, false);
+      supabaseUpdateIsRedeemAuctionStatus(auctionView.auction.pubkey);
+      updateNotifBidding(`${auction?.auction.pubkey}_${publicKey?.toBase58()}`);
       setConfirmTrigger(false);
-      setShowCongratulations(true);
+      setShowCongratulations('reclaim');
     } catch (e) {
       setConfirmTrigger(false);
-      console.error('endAuction', e);
       return;
+    }
+  };
+
+  const placeBid = async currentBidAmount => {
+    try {
+      setConfirmTrigger(true);
+      await sendPlaceBid(
+        connection,
+        walletContext,
+        publicKey?.toBase58(),
+        auction!!,
+        accountByMint,
+        currentBidAmount,
+      );
+      // user click approve
+      setShowPlaceBid(false);
+      setConfirmTrigger(false);
+      // pullAuctionPage(auctionDatabase?.id || '');
+      setBidPlaced(true);
+      supabaseUpdateBid(
+        auction?.auction.pubkey,
+        publicKey?.toBase58(),
+        currentBidAmount,
+      );
+      setNewBidding(true);
+      // user click cancel
+    } catch (error) {
+      console.error(error);
+      setConfirmTrigger(false);
     }
   };
 
@@ -323,7 +471,7 @@ const BidDetails = ({
       auction?.auctionDataExtended?.info.instantSalePrice;
     const winningConfigType =
       auction?.participationItem?.winningConfigType ||
-      auction?.items[0][0].winningConfigType;
+      auction?.items[0][0]?.winningConfigType;
     const isAuctionItemMaster = [
       WinningConfigType.FullRightsTransfer,
       WinningConfigType.TokenOnlyTransfer,
@@ -354,7 +502,7 @@ const BidDetails = ({
         supabaseUpdateBid(
           auction?.auction.pubkey,
           wallet.publicKey?.toBase58(),
-          instantSalePrice.toNumber() / Math.pow(10, 9),
+          instantSalePrice?.toNumber() / Math.pow(10, 9),
         );
         supabaseUpdateStatusInstantSale(auction?.auction.pubkey);
       } catch (e) {
@@ -373,6 +521,7 @@ const BidDetails = ({
     try {
       const wallet = walletContext;
       const auctionView = auction!!;
+
       await sendRedeemBid(
         connection,
         wallet,
@@ -382,61 +531,110 @@ const BidDetails = ({
         prizeTrackingTickets,
         bidRedemptions,
         bids,
-      ).then(async () => {
-        supabaseUpdateIsRedeem(
-          auction?.auction.pubkey,
-          wallet.publicKey?.toBase58(),
-        );
-        pullAuctionPage(auction?.auction.pubkey || '');
-        await update();
-        setShowCongratulations(true);
-        supabaseUpdateNFTHolder(
-          auctionView.thumbnail.metadata.pubkey,
-          wallet.publicKey?.toBase58(),
-          instantSalePrice!!.toNumber() / Math.pow(10, 9),
-        );
-        supabaseUpdateWinnerAuction(
-          auction?.auction.pubkey,
-          walletContext.publicKey?.toBase58(),
-        );
-        supabaseUpdateOnSaleNFT(auctionView.thumbnail.metadata.pubkey, false);
-      });
+      );
+      pullAuctionPage(auction?.auction.pubkey || '');
+      await update();
+      localStorage.setItem('reload', 'true');
+      // const filterMetadata = ownedMetadata.filter(
+      //   metadata => metadata.metadata.info.mint === art.mint,
+      // );
+      // console.log(
+      //   '🚀 ~ file: index.tsx ~ line 529 ~ instantSale ~ filterMetadata',
+      //   filterMetadata,
+      // );
+
+      // const items = auctionView.items;
+      // let isAlreadyBought: boolean = false;
+      // const isBidCanceled = !!auctionView.myBidderMetadata?.info.cancelled;
+      // let canClaimPurchasedItem: boolean = false;
+      // if (
+      //   auctionView.auction.info.bidState.type == BidStateType.EnglishAuction
+      // ) {
+      //   console.log('RESULT HERE TRUE', auctionView.auction.info.bidState.type);
+      //   for (const item of items) {
+      //     for (const subItem of item) {
+      //       const bidRedeemed =
+      //         auctionView.myBidRedemption?.info.getBidRedeemed(
+      //           subItem.safetyDeposit.info.order,
+      //         );
+      //       console.log('RESULT HERE ITEM', bidRedeemed); // TODO disini masih null
+      //       isAlreadyBought = bidRedeemed ? bidRedeemed : false;
+      //       if (isAlreadyBought) break;
+      //     }
+      //   }
+      //   canClaimPurchasedItem =
+      //     !!(auctionView.myBidderPot && !isBidCanceled) && !isAlreadyBought;
+      // } else {
+      //   console.log('RESULT HERE ELSE', auctionView.auction.info.bidState.type);
+      //   isAlreadyBought = !!(auctionView.myBidderPot && isBidCanceled);
+      //   canClaimPurchasedItem = !!(auctionView.myBidderPot && !isBidCanceled);
+      // }
+
+      // console.log('RESULT HERE REDEEM 0', isAlreadyBought);
+      // console.log('RESULT HERE REDEEM 1', canClaimPurchasedItem);
+
+      // if (isAlreadyBought) {
+      setShowCongratulations('claim');
+      supabaseUpdateIsRedeem(
+        auction?.auction.pubkey,
+        wallet.publicKey?.toBase58(),
+      );
+      updateNotifBidding(`${auction?.auction.pubkey}_${publicKey?.toBase58()}`);
+      supabaseUpdateNFTHolder(
+        auctionView.thumbnail.metadata.pubkey,
+        wallet.publicKey?.toBase58(),
+        instantSalePrice?.toNumber()
+          ? instantSalePrice?.toNumber() / Math.pow(10, 9)
+          : 0,
+      );
+      supabaseUpdateWinnerAuction(
+        auction?.auction.pubkey,
+        walletContext.publicKey?.toBase58(),
+      );
+      // }
     } catch (e) {
       console.error(e);
     }
+
     setConfirmTrigger(false);
   };
-  const unlistConfirmation = () => {
+  const unlistConfirmation = e => {
+    e.preventDefault();
     Modal.confirm({
+      className: ConfirmModal,
       title: 'unlist confirmation',
       content: 'Are you sure delisting your NFT?',
       onOk: endInstantSale,
       okText: 'yes',
+      okType: 'text',
       cancelText: 'no',
+      cancelButtonProps: { type: 'text' },
+      centered: true,
+      closable: true,
+      icon: null,
     });
   };
   const BidDetailsContent = ({ children }) => {
     const isAuctionNotStarted =
-      auction?.auction.info.state === AuctionState.Created;
+      auction?.auction?.info?.state === AuctionState.Created;
 
     const isOpenEditionSale =
-      auction?.auction.info.bidState.type === BidStateType.OpenEdition;
+      auction?.auction?.info?.bidState?.type === BidStateType.OpenEdition;
     const doesInstantSaleHasNoItems =
       Number(auction?.myBidderPot?.info.emptied) !== 0 &&
-      auction?.auction.info.bidState.max.toNumber() === bids.length;
+      auction?.auction?.info?.bidState?.max?.toNumber() === bids.length;
 
     const shouldHideInstantSale =
       !isOpenEditionSale &&
-      auction?.isInstantSale &&
+      isInstantSale &&
       !owner &&
       doesInstantSaleHasNoItems;
 
     const shouldHide =
       shouldHideInstantSale ||
-      auction?.vault.info.state === VaultState.Deactivated;
+      auction?.vault?.info?.state === VaultState.Deactivated;
 
-    // console.log('isRedeem', redeemData[0].is_redeem);
-    if (redeemData.length > 0) return <></>;
+    // if (redeemData?.length > 0 || isRedeem) return <></>;
 
     if (shouldHideInstantSale && isAuctionNotStarted) {
       return (
@@ -463,32 +661,46 @@ const BidDetails = ({
 
       return <></>;
     }
-    if (isEnded(state) && !auction?.isInstantSale) {
+    if (isEnded(state) && !isInstantSale) {
       return (
         <div className={art.title && highestBid ? PaddingBox : SmallPaddingBox}>
           {art.title && highestBid && (
             <div className={BidStatus}>
-              <div>
+              <Link
+                to={`/${
+                  users[bid?.info?.bidderPubkey]?.username ||
+                  bid?.info?.bidderPubkey
+                }`}
+              >
                 <Avatar
                   src={
-                    users[bid.info.bidderPubkey]?.img_profile || (
+                    users[bid?.info?.bidderPubkey]?.img_profile || (
                       <Identicon
-                        address={bid.info.bidderPubkey}
+                        address={bid?.info?.bidderPubkey}
                         style={{ width: 40 }}
                       />
                     )
                   }
                   size={40}
                 />
-              </div>
+              </Link>
 
               <div>
+                {/* <DetailStatus
+                  status={'winning bid by'}
+                  username={
+                    users[bid?.info?.bidderPubkey]?.username
+                      ? users[bid?.info?.bidderPubkey].username
+                      : shortenAddress(bid?.info?.bidderPubkey)
+                  }
+                  time={}
+                /> */}
                 <div>
                   winning bid by{' '}
                   <span className={WhiteColor}>
-                    {users[bid.info.bidderPubkey]?.username
-                      ? users[bid.info.bidderPubkey].username
-                      : shortenAddress(bid.info.bidderPubkey)}
+                    {users[bid?.info?.bidderPubkey]?.username
+                      ? users[bid?.info?.bidderPubkey].username
+                      : shortenAddress(bid?.info?.bidderPubkey)}
                   </span>
                 </div>
 
@@ -525,33 +737,45 @@ const BidDetails = ({
         <div className={BidStatus}>
           {art.title && highestBid && (
             <>
-              <div>
+              <Link
+                to={`/${
+                  users[highestBid.info.bidderPubkey]?.username ||
+                  bid?.info?.bidderPubkey
+                }`}
+              >
                 <Avatar
                   src={
                     users[highestBid.info.bidderPubkey]?.img_profile || (
                       <Identicon
-                        address={bid.info.bidderPubkey}
+                        address={bid?.info?.bidderPubkey}
                         style={{ width: 40 }}
                       />
                     )
                   }
                   size={40}
                 />
-              </div>
+              </Link>
 
               <div>
-                {!auction?.isInstantSale && (
+                {!isInstantSale && (
                   <div>
                     current bid by{' '}
-                    <span className={WhiteColor}>
-                      {users[highestBid.info.bidderPubkey]
-                        ? users[highestBid.info.bidderPubkey].username
-                        : shortenAddress(highestBid.info.bidderPubkey)}
-                    </span>
+                    <Link
+                      to={`/${
+                        users[highestBid.info.bidderPubkey]?.username ||
+                        bid?.info?.bidderPubkey
+                      }`}
+                    >
+                      <span className={WhiteColor}>
+                        {users[highestBid.info.bidderPubkey]
+                          ? users[highestBid.info.bidderPubkey].username
+                          : shortenAddress(highestBid.info.bidderPubkey)}
+                      </span>
+                    </Link>
                     <span className={NormalFont}>
                       ・
                       {moment
-                        .unix(highestBid.info.lastBidTimestamp.toNumber())
+                        .unix(highestBid.info.lastBidTimestamp?.toNumber())
                         .fromNow()}
                     </span>
                   </div>
@@ -559,9 +783,9 @@ const BidDetails = ({
 
                 <div className={CurrentBid}>
                   <span className={WhiteColor}>{currentBid} SOL</span> ending in{' '}
-                  {!auction?.isInstantSale && state && (
+                  {!isInstantSale && state && (
                     <span className={WhiteColor}>
-                      {state.hours} :{' '}
+                      {state.hours > 9 ? state?.hours : `0${state.hours}`} :{' '}
                       {state.minutes > 9 ? state.minutes : `0${state.minutes}`}{' '}
                       :{' '}
                       {state.seconds > 9 ? state.seconds : `0${state.seconds}`}
@@ -582,10 +806,10 @@ const BidDetails = ({
               </Col>
 
               <Col className={uTextAlignEnd} span={12}>
-                {!auction?.isInstantSale && <div>ending in</div>}
-                {!auction?.isInstantSale && state && (
+                {!isInstantSale && <div>ending in</div>}
+                {!isInstantSale && state && (
                   <div className={`${WhiteColor} ${uFontSize24}`}>
-                    {state.hours} :{' '}
+                    {state.hours > 9 ? state?.hours : `0${state.hours}`} :{' '}
                     {state.minutes > 9 ? state.minutes : `0${state.minutes}`} :{' '}
                     {state.seconds > 9 ? state.seconds : `0${state.seconds}`}
                   </div>
@@ -599,7 +823,6 @@ const BidDetails = ({
       </div>
     );
   };
-
   if (confirmTrigger) {
     return (
       <BidDetailsContent>
@@ -614,7 +837,7 @@ const BidDetails = ({
   }
 
   // case 0: loading
-  if (!art.title) {
+  if (!art.title || !auction || isLoadingMetaplex || loadingDetailAuction) {
     return (
       <div className={PaddingBox}>
         <div className={BidStatus}>
@@ -631,14 +854,12 @@ const BidDetails = ({
 
   // if auction ended
   if (isEnded(state)) {
-    if (!auction?.isInstantSale) {
+    if (!isInstantSale) {
       // case 1: you win the bid
-
       if (
         highestBid &&
         publicKey &&
-        publicKey?.toBase58() === highestBid?.info.bidderPubkey &&
-        auction?.auctionManager.authority === publicKey?.toBase58()
+        publicKey?.toBase58() === highestBid?.info.bidderPubkey
       ) {
         const filterMetadata = ownedMetadata.filter(
           metadata => metadata.metadata.info.mint === art.mint,
@@ -668,7 +889,7 @@ const BidDetails = ({
         return (
           <BidDetailsContent>
             <div className={ButtonWrapper}>
-              <ActionButton onClick={actionEndedAuction} width="100%">
+              <ActionButton onClick={actionEndedAuctionClaim} width="100%">
                 claim NFT
               </ActionButton>
             </div>
@@ -678,30 +899,60 @@ const BidDetails = ({
 
       // case 2: auction ended but not winning
       if (isParticipated) {
-        return (
-          <BidDetailsContent>
-            <div className={ButtonWrapper}>
-              <ActionButton onClick={actionEndedAuction} width="100%">
-                refund bid
-              </ActionButton>
-            </div>
-          </BidDetailsContent>
-        );
+        if (isRedeem) {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton disabled width="100%">
+                  refunded
+                </ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        } else {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton onClick={actionEndedAuctionRefund} width="100%">
+                  refund bid
+                </ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        }
       }
-      if (
-        auction?.auctionManager.authority === publicKey?.toBase58() &&
-        bids.length === 0
-      ) {
-        return (
-          <BidDetailsContent>
-            <div className={ButtonWrapper}>
-              <ActionButton onClick={actionEndedAuction} width="100%">
-                reclaim NFT
-              </ActionButton>
-            </div>
-          </BidDetailsContent>
-        );
+      if (auction?.auctionManager.authority === publicKey?.toBase58()) {
+        if (bids.length === 0) {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton onClick={actionEndedAuctionReclaim} width="100%">
+                  reclaim NFT
+                </ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        } else {
+          return (
+            <BidDetailsContent>
+              <div className={ButtonWrapper}>
+                <ActionButton
+                  to={`/auction/${auction.auction.pubkey}/settle`}
+                  width="100%"
+                >
+                  settle
+                </ActionButton>
+              </div>
+            </BidDetailsContent>
+          );
+        }
       }
+      // console.log(
+      //   '🚀 ~ file: index.tsx ~ line 857 ~ isInstantSale',
+      //   bids,
+      //   isLoadingMetaplex,
+      //   Date.now(),
+      // );
 
       return (
         <BidDetailsContent>
@@ -712,7 +963,7 @@ const BidDetails = ({
           </div>
         </BidDetailsContent>
       );
-    } else if (!auction.isInstantSale) {
+    } else if (!isInstantSale) {
       return (
         <BidDetailsContent>
           <div className={ButtonWrapper}>
@@ -733,7 +984,7 @@ const BidDetails = ({
     const twitterText = `gm%21%E2%80%A8i%20just%20list%20my%20NFT%20on%20supadrop%20marketplace%2C%20check%20this%20out%21%E2%80%A8%20${auctionURL}`;
     const twitterIntent = `https://twitter.com/intent/tweet?text=${twitterText}`;
 
-    if (auction?.isInstantSale && !eligibleForAnything) {
+    if (isInstantSale && !eligibleForAnything) {
       return (
         <BidDetailsContent>
           <a className={ButtonWrapper}>
@@ -761,7 +1012,7 @@ const BidDetails = ({
 
   // case : instant sale
   if (
-    auction?.isInstantSale &&
+    isInstantSale &&
     !(publicKey?.toBase58() === owner && !eligibleForAnything)
   ) {
     if (balance > baseInstantSalePrice) {
@@ -838,33 +1089,7 @@ const BidDetails = ({
           <div className={ButtonWrapper}>
             <ActionButton
               width="100%"
-              onClick={async () => {
-                setConfirmTrigger(true);
-                await sendPlaceBid(
-                  connection,
-                  walletContext,
-                  publicKey?.toBase58(),
-                  auction!!,
-                  accountByMint,
-                  currentBidAmount,
-                )
-                  .then(() => {
-                    // user click approve
-                    setShowPlaceBid(false);
-                    setConfirmTrigger(false);
-                    pullAuctionPage(auctionDatabase?.id || '');
-                    setBidPlaced(true);
-                    supabaseUpdateBid(
-                      auction?.auction.pubkey,
-                      publicKey?.toBase58(),
-                      currentBidAmount,
-                    );
-                  })
-                  .catch(() => {
-                    // user click cancel
-                    setConfirmTrigger(false);
-                  });
-              }}
+              onClick={() => placeBid(currentBidAmount)}
             >
               CONFIRM
             </ActionButton>
@@ -886,7 +1111,7 @@ const BidDetails = ({
   }
 
   // case : instant sale end
-  if (auction?.isInstantSale && isEnded(state) && eligibleForAnything) {
+  if (isInstantSale && isEnded(state) && eligibleForAnything) {
     return <></>;
   }
 

@@ -18,7 +18,7 @@ import {
 import { ArtCardCreate } from './../../components/ArtCardCreate';
 import { UserSearch, UserValue } from './../../components/UserSearch';
 import { Confetti } from './../../components/Confetti';
-import { mintNFT } from '../../actions';
+import { mintNFT, mintNFTIPFS } from '../../actions';
 import {
   MAX_METADATA_LEN,
   useConnection,
@@ -34,6 +34,8 @@ import {
   StringPublicKey,
   getAssetCostToStore,
   LAMPORT_MULTIPLIER,
+  supabaseDeleteNFT,
+  useMeta,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -55,11 +57,13 @@ const { Text } = Typography;
 export const ArtCreateView = () => {
   const connection = useConnection();
   const { env } = useConnectionConfig();
+  const { update } = useMeta();
   const wallet = useWallet();
   const [alertMessage, setAlertMessage] = useState<string>();
   const { width } = useWindowDimensions();
   const [nftCreateProgress, setNFTcreateProgress] = useState<number>(0);
-
+  const [coverFile, setCoverFile] = useState<File>();
+  const [mainFile, setMainFile] = useState<File>();
   const [step, setStep] = useState<number>(0);
   const [stepsVisible, setStepsVisible] = useState<boolean>(true);
   const [isMinting, setMinting] = useState<boolean>(false);
@@ -103,7 +107,7 @@ export const ArtCreateView = () => {
     setMinting(true);
 
     try {
-      const _nft = await mintNFT(
+      const _nft = await mintNFTIPFS(
         connection,
         wallet,
         env,
@@ -111,9 +115,13 @@ export const ArtCreateView = () => {
         metadata,
         setNFTcreateProgress,
         attributes.properties?.maxSupply,
+        coverFile,
+        mainFile,
       );
-
-      if (_nft) setNft(_nft);
+      if (_nft) {
+        setNft(_nft);
+      }
+      localStorage.setItem('reload', 'true');
     } catch (e: any) {
       setAlertMessage(e.message);
     } finally {
@@ -162,6 +170,8 @@ export const ArtCreateView = () => {
           )}
           {step === 1 && (
             <UploadStep
+              onSetCoverFile={setCoverFile}
+              onSetMainFile={setMainFile}
               attributes={attributes}
               setAttributes={setAttributes}
               files={files}
@@ -302,6 +312,8 @@ const UploadStep = (props: {
   files: File[];
   setFiles: (files: File[]) => void;
   confirm: () => void;
+  onSetCoverFile?: (f: File) => void;
+  onSetMainFile?: (f: File) => void;
 }) => {
   const [coverFile, setCoverFile] = useState<File | undefined>(
     props.files?.[0],
@@ -391,12 +403,13 @@ const UploadStep = (props: {
 
             if (sizeKB < 25) {
               setCoverArtError(
-                `The file ${file.name} is too small. It is ${Math.round(10 * sizeKB) / 10
+                `The file ${file.name} is too small. It is ${
+                  Math.round(10 * sizeKB) / 10
                 }KB but should be at least 25KB.`,
               );
               return;
             }
-
+            props.onSetCoverFile && props.onSetCoverFile(file);
             setCoverFile(file);
             setCoverArtError(undefined);
           }}
@@ -437,7 +450,10 @@ const UploadStep = (props: {
               setCustomURL('');
               setCustomURLErr('');
 
-              if (file) setMainFile(file);
+              if (file) {
+                setMainFile(file);
+                props.onSetMainFile && props.onSetMainFile(file);
+              }
             }}
             onRemove={() => {
               setMainFile(undefined);
@@ -1238,8 +1254,9 @@ const Congrats = (props: {
   const newTweetURL = () => {
     const params = {
       text: "I've created a new NFT artwork on Metaplex Supadrop, check it out!",
-      url: `${window.location.origin
-        }/#/art/${props.nft?.metadataAccount.toString()}`,
+      url: `${
+        window.location.origin
+      }/#/art/${props.nft?.metadataAccount.toString()}`,
       hashtags: 'NFT,Crypto,Metaplex,Supadrop',
       // via: "Metaplex",
       related: 'Metaplex,Solana,Supadrop',
@@ -1250,11 +1267,14 @@ const Congrats = (props: {
 
   if (props.alert) {
     // TODO  - properly reset this components state on error
+    if (props.nft?.metadataAccount)
+      supabaseDeleteNFT(props.nft?.metadataAccount.toString()); // Delete Data NFT FROM DB IF THERE'S AN ERROR
+
     return (
       <>
         <div className="waiting-title">Sorry, there was an error!</div>
         <p>{props.alert}</p>
-        <Button onClick={_ => history.push('/create')}>
+        <Button onClick={() => window.location.reload()}>
           Back to Create NFT
         </Button>
       </>
@@ -1275,15 +1295,10 @@ const Congrats = (props: {
         <Button
           className="metaplex-button"
           onClick={_ =>
-            history.push(`/art/${props.nft?.metadataAccount.toString()}`)
+            history.push({
+              pathname: `/${publicKey?.toBase58()}`,
+            })
           }
-        >
-          <span>See it in your collection</span>
-          <span>&gt;</span>
-        </Button>
-        <Button
-          className="metaplex-button"
-          onClick={_ => history.push(`/${publicKey?.toBase58()}`)}
         >
           <span>Sell it via auction</span>
           <span>&gt;</span>

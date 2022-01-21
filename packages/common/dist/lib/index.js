@@ -37,5 +37,6 @@ exports.models = __importStar(require("./models"));
 __exportStar(require("./models"), exports);
 exports.utils = __importStar(require("./utils"));
 __exportStar(require("./utils"), exports);
+// export * as supabase from './supabaseClient';
 __exportStar(require("./supabaseClient"), exports);
 //# sourceMappingURL=index.js.map

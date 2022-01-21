@@ -1,8 +1,13 @@
-import { CountdownState, Identicon, shortenAddress } from '@oyster/common';
+import {
+  CountdownState,
+  Identicon,
+  shortenAddress,
+  supabase,
+} from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useEffect, useState } from 'react';
 import countDown from '../../../helpers/countdown';
-import { Avatar, Col, Row } from 'antd';
+import { Col, Row } from 'antd';
 import {
   ActivityCardStyle,
   ButtonWrapper,
@@ -16,9 +21,10 @@ import {
   UserContainer,
 } from './style';
 import { Link } from 'react-router-dom';
-import { ArtContent } from '../../../components/ArtContent';
+import { ArtContent, ArtContent2 } from '../../../components/ArtContent';
 import isEnded from '../../../components/Home/helpers/isEnded';
 import ActionButton from '../../../components/ActionButton';
+import ProfileAvatar from '../../../components/ProfileAvatar';
 
 export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
   const [state, setState] = useState<CountdownState>();
@@ -28,10 +34,37 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
   const owner = auctionView.id_auction.owner;
   const winner = auctionView.id_auction.winner;
 
-  const isWinner = winner.wallet_address === wallet.publicKey?.toBase58();
+  const isWinner = winner === wallet.publicKey?.toBase58();
 
   const highestBid = auctionView.id_auction.highest_bid;
-  const haveWinner = highestBid > 0;
+  const [updatedData, setUpdatedData] = useState<any>();
+  const getChangeActiveBid = () => {
+    const mySubscription = supabase
+      .from(`auction_status:id=eq.${auctionView?.id_auction?.id}`)
+      .on('UPDATE', payload => {
+        setUpdatedData(payload);
+      })
+      .subscribe();
+    return mySubscription;
+  };
+
+  useEffect(() => {
+    if (auctionView?.id) {
+      const subscriptionActiveBid = getChangeActiveBid();
+
+      return () => {
+        supabase.removeSubscription(subscriptionActiveBid);
+      };
+    }
+  }, [auctionView?.id]);
+  useEffect(() => {
+    if (updatedData) {
+      auctionView.id_auction.highest_bid = updatedData.new.highest_bid;
+      auctionView.id_auction.winner = updatedData.new.winner;
+
+      setUpdatedData('');
+    }
+  }, [updatedData]);
 
   useEffect(() => {
     const calc = () => setState(countDown(auctionView.id_auction.end_auction));
@@ -47,10 +80,14 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
         <Link to={`/auction/${auctionView.id_auction.id}`}>
           <Row>
             <Col flex={1}>
-              <ArtContent
+              <ArtContent2
                 className={ImageCard}
-                pubkey={auctionView.id_auction.id}
-                allowMeshRender={true}
+                preview={false}
+                pubkey={auctionView.id_auction.id_nft.id}
+                originalFile={auctionView.id_auction.id_nft.original_file}
+                thumbnail={auctionView.id_auction.id_nft?.thumbnail}
+                allowMeshRender={false}
+                category={'activity'}
               />
             </Col>
             <Col flex={3}>
@@ -58,22 +95,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                 {auctionView.id_auction.id_nft.name}
               </div>
               <div className={UserContainer}>
-                <Avatar
-                  src={
-                    owner.img_profile || (
-                      <Identicon
-                        address={owner.wallet_address}
-                        style={{ width: 32 }}
-                      />
-                    )
-                  }
-                  size={32}
-                />
-                <div>
-                  {owner.username
-                    ? owner.username
-                    : shortenAddress(owner.wallet_address)}
-                </div>
+                <ProfileAvatar walletAddress={owner} />
               </div>
 
               <div className={NFTStatus}>
@@ -88,7 +110,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                       <div className={Label}>ending in</div>
                       {state && (
                         <div className={StatusValue}>
-                          {state.hours} :{' '}
+                          {state.hours > 9 ? state?.hours : `0${state.hours}`} :{' '}
                           {state.minutes > 9
                             ? state.minutes
                             : `0${state.minutes}`}{' '}
@@ -128,22 +150,7 @@ export const ActivityCardMyBid = ({ auctionView }: { auctionView: any }) => {
                       <div>
                         <div className={Label}>winning bid</div>
                         <div className={UserContainer}>
-                          <Avatar
-                            src={
-                              winner.img_profile || (
-                                <Identicon
-                                  address={winner.wallet_address}
-                                  style={{ width: 32 }}
-                                />
-                              )
-                            }
-                            size={32}
-                          />
-                          <span>
-                            {winner.username
-                              ? winner.username
-                              : shortenAddress(winner.wallet_address)}
-                          </span>
+                          <ProfileAvatar walletAddress={winner} />
                         </div>
                       </div>
                     )}

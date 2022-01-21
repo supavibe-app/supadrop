@@ -35,8 +35,12 @@ import {
   UsernameSection,
 } from './style';
 import getUserData from '../../database/userData';
-import { getCollectedNFT, getCreatedDataNFT } from '../../database/nftData';
-
+import {
+  getCollectedNFT,
+  getCreatedDataNFT,
+  getOnSaleDataNFT,
+} from '../../database/nftData';
+import moment from 'moment';
 
 const { TabPane } = Tabs;
 
@@ -73,36 +77,58 @@ const { TabPane } = Tabs;
 const Profile = ({ userId }: { userId: string }) => {
   const { replace, push, location } = useHistory();
   const { publicKey } = useWallet();
-  const { isLoadingMetaplex, pullAllMetadata, allDataAuctions } = useMeta();
+  const {
+    isLoadingMetaplex,
+    pullAllMetadata,
+    allDataAuctions,
+    updateArt,
+    isLoadingAllMetadata,
+  } = useMeta();
   const [onEdit, setOnEdit] = useState(false);
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
+  const ownedMetadata = useUserArts();
 
+  //TODO pull all metadata only 1 time
+  // useEffect(() => {
+  //   if (!isLoadingMetaplex && !isLoadingAllMetadata ) {
+  //     pullAllMetadata();
+  //     console.log(
+  //       '🚀 ~ file: index.tsx ~ line 104 ~ useEffect ~ pullAllMetadata',
+  //     );
+  //   }
+  // }, [isLoadingMetaplex]);
   useEffect(() => {
     if (location.state === 'refresh') {
       refetch();
+    } else if (localStorage.getItem('reload') === 'true') {
+      localStorage.setItem('reload', 'false');
+      // window.location.reload();
     }
   }, [location.key]);
 
-  useEffect(() => {
-    if (!isLoadingMetaplex) {
-      pullAllMetadata();
-    }
-  }, [isLoadingMetaplex]);
-
   const walletAddress = userData?.wallet_address;
-  const collected = getCollectedNFT(walletAddress).data;
-  const artwork = getCreatedDataNFT(walletAddress).data;
-  const collected2 = useCollectedArts(walletAddress);
-
-  const onSale = useAuctions(AuctionViewState.Live).filter(
-    m => m.auctionManager.authority === walletAddress,
+  const { data: collected, loading: loadingCollected } = getCollectedNFT(
+    walletAddress,
+    updateArt,
   );
+  const { data: artwork, loading: loadingArtwork } = getCreatedDataNFT(
+    walletAddress,
+    updateArt,
+  );
+  const collectedArt = useCollectedArts(walletAddress);
 
-  console.log('allDataAuctions: ', allDataAuctions);
+  const { data: onSale, loading: loadingOnSale } =
+    getOnSaleDataNFT(walletAddress);
 
   const isProfileOwner = publicKey?.toBase58() === userData?.wallet_address;
-  const isEmpty = collected.length === 0 && artwork.length === 0;
+  const isEmpty =
+    collected.length === 0 &&
+    !loadingArtwork &&
+    !loadingCollected &&
+    !loadingOnSale &&
+    artwork.length === 0 &&
+    onSale.length === 0;
 
   useEffect(() => {
     // if username is available, show username in the url instead of their wallet address
@@ -264,7 +290,9 @@ const Profile = ({ userId }: { userId: string }) => {
                 <>
                   Created{' '}
                   <span>
-                    {artwork.length < 10 ? `0${artwork.length}` : artwork.length}
+                    {artwork.length < 10
+                      ? `0${artwork.length}`
+                      : artwork.length}
                   </span>
                 </>
               }
@@ -274,16 +302,33 @@ const Profile = ({ userId }: { userId: string }) => {
                 gutter={[36, 36]}
               >
                 {artwork.map(art => {
+                  const isLiveAuction =
+                    art?.id_auction?.end_auction > moment().unix();
+                  const isInstantSale =
+                    art?.id_auction?.type_auction &&
+                    art?.id_auction?.isLiveMarket;
+                  const isOnSale = isLiveAuction || isInstantSale;
+
                   return (
                     <Col key={art.id} span={8}>
-                      <Link to={`/art/${art.id}`}>
+                      <Link
+                        to={
+                          isOnSale
+                            ? `/auction/${art.id_auction.id}`
+                            : {
+                                pathname: `/art/${art.id}`,
+                                state: { soldFor: art.sold, nftData: art },
+                              }
+                        }
+                      >
                         <ArtCard
                           key={art.id}
+                          name={art.name}
+                          category={art.media_type}
+                          nftData={art}
                           pubkey={art.id}
                           preview={false}
                           isCollected={art.holder === publicKey?.toBase58()}
-                          isNotForSale={art.creator === art.holder}
-                          soldFor={art.sold}
                         />
                       </Link>
                     </Col>
@@ -311,22 +356,40 @@ const Profile = ({ userId }: { userId: string }) => {
                 className={collected.length === 0 ? EmptyRow : ``}
                 gutter={[36, 36]}
               >
-                {collected.length === 0 && <EmptyState />}
+                {isEmpty && <EmptyState />}
 
-                {collected.map(art => (
-                  <Col key={art.id} span={8}>
-                    <Link to={`/art/${art.id}`}>
-                      <ArtCard
-                        key={art.id}
-                        pubkey={art.id}
-                        isCollected={art.holder === publicKey?.toBase58()}
-                        // isNotForSale={art.holder === }
-                        preview={false}
-                        soldFor={art.sold}
-                      />
-                    </Link>
-                  </Col>
-                ))}
+                {collected.map(art => {
+                  const isLiveAuction =
+                    art?.id_auction?.end_auction > moment().unix();
+                  const isInstantSale =
+                    art?.id_auction?.type_auction &&
+                    art?.id_auction?.isLiveMarket;
+                  const isOnSale = isLiveAuction || isInstantSale;
+                  return (
+                    <Col key={art.id} span={8}>
+                      <Link
+                        to={
+                          isOnSale
+                            ? `/auction/${art.id_auction.id}`
+                            : {
+                                pathname: `/art/${art.id}`,
+                                state: { soldFor: art.sold, nftData: art },
+                              }
+                        }
+                      >
+                        <ArtCard
+                          key={art.id}
+                          pubkey={art.id}
+                          name={art.name}
+                          category={art.media_type}
+                          isCollected={art.holder === publicKey?.toBase58()}
+                          nftData={art}
+                          preview={false}
+                        />
+                      </Link>
+                    </Col>
+                  );
+                })}
               </Row>
             </TabPane>
           )}
@@ -347,15 +410,18 @@ const Profile = ({ userId }: { userId: string }) => {
                 className={onSale.length === 0 ? EmptyRow : ``}
                 gutter={[36, 36]}
               >
-                {onSale.map(art => (
-                  <Col key={art.auction.pubkey} span={8}>
-                    <Link to={`/auction/${art.auction.pubkey}`}>
+                {onSale.map(auction => (
+                  <Col key={auction.id} span={8}>
+                    <Link to={`/auction/${auction.id}`}>
                       <ArtCard
-                        auctionView={art}
-                        key={art.thumbnail.metadata.pubkey}
-                        pubkey={art.thumbnail.metadata.pubkey}
+                        key={auction.id}
+                        pubkey={auction.id_nft.id}
+                        name={auction.id_nft.name}
+                        category={auction.id_nft.category}
+                        auctionData={auction}
+                        nftData={auction.id_nft}
                         preview={false}
-                        isOnSale={!art.auction.info.endAuctionAt}
+                        isCollected={auction.owner === publicKey?.toBase58()}
                       />
                     </Link>
                   </Col>

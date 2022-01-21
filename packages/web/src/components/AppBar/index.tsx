@@ -31,9 +31,10 @@ import { GreyColor, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
   const { publicKey, connected } = useWallet();
-  const { data: userData } = getUserData(publicKey?.toBase58());
+  const { userData, updateAllNotification } = useMeta();
   const { pathname } = useLocation();
-  const { isBidPlaced, setBidPlaced } = useMeta();
+  const { isBidPlaced, setBidPlaced, whitelistedCreatorsByCreator } = useMeta();
+
   const [showMenu, setShowMenu] = useState(false);
   const { push } = useHistory();
   const isLandingPage = pathname === '/' || pathname === '/about';
@@ -78,7 +79,10 @@ export const AppBar = () => {
                 <Button
                   className={`${LinkButton} ${GreyColor}`}
                   type="link"
-                  onClick={hideActivityBadge}
+                  onClick={() => {
+                    hideActivityBadge();
+                    updateAllNotification(userData.wallet_address);
+                  }}
                 >
                   ACTIVITY
                 </Button>
@@ -99,7 +103,7 @@ export const AppBar = () => {
           <Notifications />
 
           <CurrentUserBadge userData={userData} />
-
+          {/* 
           <Link
             to={{
               pathname: `/${userData?.username ? userData.username : publicKey?.toBase58()
@@ -110,7 +114,15 @@ export const AppBar = () => {
             <Button className={RoundButton} type="default" shape="round">
               SELL
             </Button>
-          </Link>
+          </Link> */}
+
+          {whitelistedCreatorsByCreator[publicKey?.toBase58() || ''] && (
+            <Link to={'/create'}>
+              <Button className={RoundButton} type="default" shape="round">
+                CREATE
+              </Button>
+            </Link>
+          )}
 
           <Link to="/create/new">
             <Button className={RoundButton} type="default" shape="round">
@@ -169,7 +181,7 @@ export const AppBar = () => {
           </>
         )}
 
-        {!isLandingPage && <ConnectButton type="default" allowWalletChange />}
+        <ConnectButton type="default" allowWalletChange />
         {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
       </Col>
 

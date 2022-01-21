@@ -18,10 +18,11 @@ import MarketComponent from './views/market';
 import LandingPage from './views/landingPage';
 import About from './views/about';
 import ArtCreacteViewNew from './views/artCreate/new-index';
+import { SellView } from './views/sellPage';
 
 const DirectPath = () => {
   const { path } = useParams<{ path: string }>();
-  const paths = ['auction', 'activity', 'market', 'about', 'create'];
+  const paths = ['auction', 'activity', 'market', 'about', 'create', 'sell'];
   const visitedPath = paths.indexOf(path);
 
   switch (visitedPath) {
@@ -35,6 +36,8 @@ const DirectPath = () => {
       return <About />;
     case 4:
       return <ArtCreateView />;
+    case 5:
+      return <SellView />;
     default:
       return <Profile userId={path} />;
   }
@@ -67,10 +70,22 @@ export function Routes() {
           <Route exact path="/" component={() => <LandingPage />} />
           <Route exact path="/:path" component={DirectPath} />
           <Route exact path="/auction/:id" component={() => <AuctionView />} />
-          <Route exact path="/auction/:id/settle" component={() => <BillingView />} />
-          <Route exact path="/list/create" component={() => <AuctionCreateView />} />
+          <Route
+            exact
+            path="/auction/:id/settle"
+            component={() => <BillingView />}
+          />
+          <Route
+            exact
+            path="/list/create"
+            component={() => <AuctionCreateView />}
+          />
           <Route exact path="/art/:id" component={() => <ArtView />} />
-          <Route exact path="/create/new" component={() => <ArtCreacteViewNew />} />
+          <Route
+            exact
+            path="/create/new"
+            component={() => <ArtCreacteViewNew />}
+          />
         </Providers>
       </Switch>
     </Router>

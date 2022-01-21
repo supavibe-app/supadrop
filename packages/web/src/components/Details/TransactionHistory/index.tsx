@@ -20,15 +20,14 @@ import {
   YellowGlowColor,
 } from '../../../styles';
 import { Activity, ActivityHeader, IsMyBid } from './style';
+import ProfileAvatar from '../../ProfileAvatar';
 
 const TransactionHistory = ({
   auction,
   bids,
-  users,
 }: {
   auction: ItemAuction | undefined;
   bids: ParsedAccount<BidderMetadata>[];
-  users: any;
 }) => {
   const { publicKey } = useWallet();
   const { isLoadingDatabase } = useMeta();
@@ -59,27 +58,16 @@ const TransactionHistory = ({
       )}
 
       {bids.map((bid, idx) => (
-        <div key={idx}>
+        <div key={bid.pubkey}>
           {publicKey?.toBase58() === bid.info.bidderPubkey && (
             <div className={IsMyBid} />
           )}
           <Row className={Activity} justify="space-between" align="middle">
             <Col className={uFlexAlignItemsCenter} span={12}>
-              <div>
-                <Avatar
-                  src={
-                    users[bid.info.bidderPubkey]?.img_profile
-                    || <Identicon address={bid.info.bidderPubkey} style={{ width: 24 }} />
-                  }
-                  size={24}
-                />
-              </div>
-
-              <div>
-                {users[bid.info.bidderPubkey]?.username
-                  ? users[bid.info.bidderPubkey].username
-                  : shortenAddress(bid.info.bidderPubkey)}
-              </div>
+              <ProfileAvatar
+                walletAddress={bid.info.bidderPubkey}
+                size={24}
+              />
             </Col>
 
             <Col className={uBoldFont} span={12}>

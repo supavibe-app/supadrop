@@ -16,33 +16,31 @@ import {
   TitleWrapper,
 } from './style';
 import { TwitterURL } from '../../constants';
-import { getUsernameByPublicKeys } from '../../database/userData';
 import countDown from '../../helpers/countdown';
-import { CountdownState } from '@oyster/common';
+import { CountdownState, ItemAuction, UserData } from '@oyster/common';
+import {
+  getEndedDataAuction,
+  getLiveDataAuction,
+} from '../../database/auction';
 
 const { TabPane } = Tabs;
 
 const AuctionListView = () => {
   const [state, setState] = useState<CountdownState>();
   const auctionsEnded = useAuctions(AuctionViewState.Ended);
-  const {
-    isLoadingMetaplex,
-    isLoadingDatabase,
-    liveDataAuctions,
-    allDataAuctions,
-    endingTime,
-    dataCollection,
-  } = useMeta();
+  const { isLoadingMetaplex, isLoadingDatabase, endingTime, dataCollection } =
+    useMeta();
+
+  const { data: liveAuctions, loading } = getLiveDataAuction();
+  const { data: endedAuctions } = getEndedDataAuction();
   const now = moment().unix();
-
   const [activeKey, setActiveKey] = useState(
-    Object.entries(liveDataAuctions).length > 0 ? '1' : '2',
+    Object.entries(liveAuctions).length === 0 && !loading ? '2' : '1',
   );
-
   useEffect(() => {
     const calc = () =>
       setState(
-        countDown(endingTime ? endingTime : dataCollection.start_publish),
+        countDown(endingTime ? endingTime : dataCollection.start_publish, true),
       );
     const interval = setInterval(() => calc(), 1000);
     calc();
@@ -51,38 +49,35 @@ const AuctionListView = () => {
   }, [endingTime, dataCollection]);
 
   useEffect(() => {
-    if (Object.entries(liveDataAuctions).length) setActiveKey('1');
-    else setActiveKey('2');
-  }, [liveDataAuctions]);
+    if (Object.entries(liveAuctions).length === 0 && !loading)
+      setActiveKey('2');
+    else setActiveKey('1');
+  }, [loading]);
 
-  const liveAuctions = Object.entries(liveDataAuctions).filter(
-    ([key, data]) => data.endAt > now,
-  );
-
-  const endAuctions = Object.entries(allDataAuctions)
-    .filter(([key, data]) => data.endAt < now && !data.isInstantSale)
-    .reverse();
-
-  const auctionList = list => {
-    if (isLoadingMetaplex && isLoadingDatabase)
+  const auctionList = (list: ItemAuction[]) => {
+    if (isLoadingDatabase)
       return [...Array(8)].map((_, idx) => (
         <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
           <CardLoader key={idx} />
         </Col>
       ));
 
-    const ownerAddress = list.map(([id, m]) => m.owner);
-    const { data = {} } = getUsernameByPublicKeys(ownerAddress);
-
-    return list.map(([id, m], idx) => {
-      const defaultOwnerData = { wallet_address: m.owner, img_profile: null };
-
+    return list.map((auction: ItemAuction, idx) => {
       return (
-        <Col key={idx} span={24} xxl={8} xl={8} lg={8} md={12} sm={24} xs={24}>
-          <Link to={`/auction/${m.id}`}>
+        <Col
+          key={auction.id}
+          span={24}
+          xxl={8}
+          xl={8}
+          lg={8}
+          md={12}
+          sm={24}
+          xs={24}
+        >
+          <Link to={`/auction/${auction.id}`}>
             <AuctionRenderCard
-              auctionView={m}
-              owner={data[m.owner] || defaultOwnerData}
+              auctionView={auction}
+              wallet_address={auction.owner}
             />
           </Link>
         </Col>
@@ -166,16 +161,16 @@ const AuctionListView = () => {
             }
           >
             <Row gutter={[36, 36]}>{auctionList(liveAuctions)}</Row>
-            {!Boolean(liveAuctions.length) && !isLoadingMetaplex && emptyAuction}
+            {!Boolean(liveAuctions.length) && !loading && emptyAuction}
           </TabPane>
 
           <TabPane
             key="2"
             tab={<div className={TitleWrapper}>ended auctions</div>}
           >
-            <Row gutter={[36, 36]}>{auctionList(endAuctions)}</Row>
-            {!Boolean(endAuctions.length) &&
-              !isLoadingMetaplex &&
+            <Row gutter={[36, 36]}>{auctionList(endedAuctions)}</Row>
+            {!Boolean(endedAuctions.length) &&
+              !isLoadingDatabase &&
               emptyAuction}
           </TabPane>
         </Tabs>

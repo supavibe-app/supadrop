@@ -14,4 +14,5 @@ __exportStar(require("./account"), exports);
 __exportStar(require("./metadata"), exports);
 __exportStar(require("./vault"), exports);
 __exportStar(require("./auction"), exports);
+__exportStar(require("./packs"), exports);
 //# sourceMappingURL=index.js.map

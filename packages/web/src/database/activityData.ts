@@ -11,7 +11,7 @@ export const getActiveBids = publicKey => {
   });
 
   useEffect(() => {
-    if (publicKey) {
+    if (publicKey && result.loading) {
       supabase
         .from('action_bidding')
         .select(
@@ -20,10 +20,7 @@ export const getActiveBids = publicKey => {
         id_auction (
           *,
           id_nft(*)
-          ,winner(*)
-          ,owner(*)
-        ),
-        user_data(*)
+        )
         `,
         )
         .eq('wallet_address', publicKey)
@@ -34,11 +31,41 @@ export const getActiveBids = publicKey => {
           }
         });
     }
-  }, [publicKey]);
+  }, [publicKey, result.loading]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: result.data });
 
-  return { ...result, refetch };
+  return { ...result, refetch, setResult };
+};
+export const getOnSale = publicKey => {
+  const [result, setResult] = useState<IGetDataDB>({
+    loading: true,
+    data: [],
+  });
+
+  useEffect(() => {
+    if (publicKey && result.loading) {
+      supabase
+        .from('auction_status')
+        .select(
+          `
+        *,
+        id_nft(*)
+        `,
+        )
+        .eq('owner', publicKey)
+        .eq('is_redeem', false)
+        .then(data => {
+          if (data.body) {
+            setResult({ loading: false, data: data.body });
+          }
+        });
+    }
+  }, [publicKey, result.loading]);
+
+  const refetch = () => setResult({ loading: true, data: result.data });
+
+  return { ...result, refetch, setResult };
 };
 
 export const getInfoEndedBidding = publicKey => {
@@ -71,7 +98,7 @@ export const getInfoEndedBidding = publicKey => {
     }
   }, [publicKey]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };
@@ -89,6 +116,7 @@ export const getAuctionIsRedeemData = (publicKey, idAuction) => {
         .select()
         .eq('wallet_address', publicKey)
         .eq('id_auction', idAuction)
+        .eq('is_redeem', true)
         .limit(1)
         .then(result => {
           if (result.body != null) {
@@ -102,40 +130,7 @@ export const getAuctionIsRedeemData = (publicKey, idAuction) => {
     }
   }, [publicKey]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
-
-  return { ...result, refetch };
-};
-
-export const getOnSale = publicKey => {
-  const [result, setResult] = useState<IGetDataDB>({
-    loading: true,
-    data: [],
-  });
-
-  useEffect(() => {
-    if (publicKey) {
-      supabase
-        .from('auction_status')
-        .select(
-          `
-        *,
-        id_nft(*),
-        winner(*),
-        owner(*)
-        `,
-        )
-        .eq('owner', publicKey)
-        .eq('is_redeem', false)
-        .then(data => {
-          if (data.body) {
-            setResult({ loading: false, data: data.body });
-          }
-        });
-    }
-  }, [publicKey]);
-
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };
@@ -162,7 +157,7 @@ export const getEndedOnSale = publicKey => {
     }
   }, [publicKey]);
 
-  const refetch = () => setResult({ loading: true, data: [] });
+  const refetch = () => setResult({ loading: true, data: undefined });
 
   return { ...result, refetch };
 };

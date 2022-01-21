@@ -17,7 +17,6 @@ import {
   pubkeyToString,
   supabase,
   supabaseAddNewNFT,
-  supabaseUpdateOnSaleNFT,
 } from '@oyster/common';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -79,22 +78,18 @@ export interface AuctionState {
 }
 
 export const AuctionCreateView = () => {
-  // const connection = useConnection();
-  // const wallet = useWallet();
   const {
     whitelistedCreatorsByCreator,
     storeIndexer,
-    updateAllDataAuction,
-    updateLiveDataAuction,
+    updateDetailAuction,
+    update,
   } = useMeta();
 
-  // const { step_param }: { step_param: string } = useParams();
-  // const history = useHistory();
   const history = useHistory();
   const wallet = useWallet();
-  const { update } = useMeta();
+
   const { state } = history.location;
-  const { idNFT }: any = state || {};
+  const { idNFT, auctionData, nftData }: any = state || {};
 
   const singleUser = useUserSingleArt(idNFT);
 
@@ -273,10 +268,9 @@ export const AuctionCreateView = () => {
       token_mint: QUOTE_MINT.toBase58(),
       vault: _auctionObj.vault,
       type_auction: isInstantSale || false,
+      isLiveMarket: isInstantSale || false,
       owner: wallet.publicKey?.toBase58(),
     };
-
-    // const isDataReady = Boolean(data);
 
     supabase
       .from('auction_status')
@@ -290,7 +284,7 @@ export const AuctionCreateView = () => {
             .insert([
               {
                 id: item.id_nft,
-                img_nft: data?.image,
+                original_file: data?.image,
                 name: data?.name,
                 description: data?.description,
                 attribute: data?.attributes,
@@ -306,25 +300,24 @@ export const AuctionCreateView = () => {
               supabase
                 .from('nft_data')
                 .update({ id_auction: item.id })
-                .eq('id', item.id_nft);
+                .eq('id', item.id_nft)
+                .then();
               supabase
                 .from('auction_status')
                 .insert([item])
                 .then(result => {
-                  updateLiveDataAuction();
-                  updateAllDataAuction();
+                  updateDetailAuction(item.id);
                 });
             });
         } else {
-          updateLiveDataAuction();
-          updateAllDataAuction();
+          updateDetailAuction(item.id);
           supabase
             .from('nft_data')
             .update({ id_auction: item.id })
-            .eq('id', item.id_nft);
+            .eq('id', item.id_nft)
+            .then();
         }
       });
-    supabaseUpdateOnSaleNFT(idNFT, true);
 
     setAuctionObj(_auctionObj);
     await update();
@@ -373,7 +366,12 @@ export const AuctionCreateView = () => {
 
         <Row align={step > 0 ? 'middle' : 'top'} gutter={72}>
           <Col span={12}>
-            <ArtCard pubkey={idNFT} preview={false} />
+            <ArtCard
+              pubkey={idNFT}
+              auctionData={auctionData}
+              nftData={nftData}
+              preview={false}
+            />
           </Col>
 
           {stepsSellNFT[step]}

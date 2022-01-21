@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Avatar, Card, Col, CardProps, Row, Statistic } from 'antd';
+import { Card, Col, CardProps, Row, Statistic } from 'antd';
 import {
   formatTokenAmount,
   CountdownState,
@@ -10,13 +10,13 @@ import {
   shortenAddress,
   UserData,
   Identicon,
+  useMeta,
 } from '@oyster/common';
 import { ArtContent, ArtContent2 } from '../ArtContent';
 import { AuctionView, AuctionViewState, useArt } from '../../hooks';
 import { useHighestBidForAuction } from '../../hooks';
 import { BN } from 'bn.js';
 import { useAuctionStatus } from './hooks/useAuctionStatus';
-import { getUsernameByPublicKeys } from '../../database/userData';
 import { uTextAlignEnd } from '../../styles';
 import {
   AuctionImage,
@@ -28,14 +28,17 @@ import {
   UserWrapper,
 } from './style';
 import countDown from '../../helpers/countdown';
+import ProfileAvatar from '../ProfileAvatar';
 
 const { Meta } = Card;
 export interface AuctionCard extends CardProps {
   auctionView: ItemAuction;
-  owner: UserData;
+  wallet_address: string;
 }
 export const AuctionRenderCard = (props: AuctionCard) => {
-  const { auctionView, owner } = props;
+  const { auctionView, wallet_address } = props;
+  const { users } = useMeta();
+
   const id = auctionView.id_nft;
   const art = useArt(id);
   const name = art?.title || auctionView.name;
@@ -47,12 +50,15 @@ export const AuctionRenderCard = (props: AuctionCard) => {
 
   const participationFixedPrice = 0;
   const participationOnly = false;
-  const priceFloor = (auctionView.isInstantSale) ? auctionView.price_floor : (auctionView.price_floor * 1000000000);
+  const priceFloor = auctionView.isInstantSale
+    ? auctionView.price_floor
+    : auctionView.price_floor * 1000000000;
   const isUpcoming = false;
   const now = Math.floor(new Date().getTime() / 1000);
   const endAt = auctionView.endAt;
 
-  const winningBid = auctionView.winner;
+  const winningBid = users[auctionView.winner]?.username || auctionView.winner;
+  const owner = users[auctionView.owner]?.username || auctionView.owner;
   const ended = !auctionView.isInstantSale && endAt < now;
 
   let currentBid: number | string = 0;
@@ -95,8 +101,10 @@ export const AuctionRenderCard = (props: AuctionCard) => {
             className={AuctionImage(cardWidth)}
             preview={false}
             pubkey={id}
-            uri={auctionView.img_nft}
+            originalFile={auctionView.original_file}
+            thumbnail={auctionView?.thumbnail}
             allowMeshRender={false}
+            category={auctionView.media_type}
           />
         </div>
       }
@@ -106,33 +114,37 @@ export const AuctionRenderCard = (props: AuctionCard) => {
         description={
           <>
             <div className={UserWrapper}>
-              <Avatar
-                src={owner.img_profile || <Identicon address={owner.wallet_address} style={{ width: 32 }} />}
-                size={32}
-                className={AvatarStyle}
-              />
-              <span>
-                {owner.username
-                  ? owner.username
-                  : shortenAddress(auctionView?.owner)}
-              </span>
+              <ProfileAvatar walletAddress={wallet_address} />
             </div>
 
             <Row>
-              <Col span={12}>
-                {/* case 1 & 3: live/ended and no bidder */}
-                {!winningBid && <div>reserve price</div>}
-                {/* case 2: live and have bidder */}
-                {winningBid && !ended && <div>current bid</div>}
-                {/* case 4: ended and have bidder */}
-                {winningBid && ended && <div>sold for</div>}
+              {!auctionView.isInstantSale && (
+                <Col span={12}>
+                  {/* case 1 & 3: live/ended and no bidder */}
+                  {!winningBid && <div>reserve price</div>}
+                  {/* case 2: live and have bidder */}
+                  {winningBid && !ended && <div>current bid</div>}
+                  {/* case 4: ended and have bidder */}
+                  {winningBid && ended && <div>sold for</div>}
 
-                <Statistic
-                  className={BidPrice}
-                  value={currentBid}
-                  suffix="SOL"
-                />
-              </Col>
+                  <Statistic
+                    className={BidPrice}
+                    value={currentBid}
+                    suffix="SOL"
+                  />
+                </Col>
+              )}
+              {auctionView.isInstantSale && (
+                <Col span={12}>
+                  <div>reserve price</div>
+
+                  <Statistic
+                    className={BidPrice}
+                    value={auctionView.price_floor}
+                    suffix="SOL"
+                  />
+                </Col>
+              )}
 
               <Col className={uTextAlignEnd} span={12}>
                 <div>
@@ -142,6 +154,7 @@ export const AuctionRenderCard = (props: AuctionCard) => {
                   {!winningBid && ended && <div>status</div>}
                   {/* case 4: ended and have bidder */}
                   {winningBid && ended && <div>owned by</div>}
+                  {auctionView.isInstantSale && <div>owner</div>}
                 </div>
 
                 {ended && (
@@ -149,20 +162,18 @@ export const AuctionRenderCard = (props: AuctionCard) => {
                     {winningBid ? shortenAddress(winningBid) : 'ended'}
                   </div>
                 )}
+                {auctionView.isInstantSale && (
+                  <div className={OwnerContainer} style={{ fontSize: 20 }}>
+                    {shortenAddress(owner)}
+                  </div>
+                )}
 
-                {!ended && !auctionView.isInstantSale && (
+                {!ended && !auctionView.isInstantSale && state && (
                   <div className={NumberStyle}>
-                    {state && state.hours < 10
-                      ? '0' + state?.hours
-                      : state?.hours}{' '}
+                    {state.hours < 10 ? '0' + state?.hours : state?.hours} :{' '}
+                    {state.minutes < 10 ? '0' + state?.minutes : state?.minutes}{' '}
                     :{' '}
-                    {state && state.minutes < 10
-                      ? '0' + state?.minutes
-                      : state?.minutes}{' '}
-                    :{' '}
-                    {state && state.seconds < 10
-                      ? '0' + state?.seconds
-                      : state?.seconds}
+                    {state.seconds < 10 ? '0' + state?.seconds : state?.seconds}
                   </div>
                 )}
               </Col>

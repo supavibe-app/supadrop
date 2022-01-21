@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar, Button, Col, Row } from 'antd';
+import { Button, Col, Row } from 'antd';
 import {
   BidderMetadata,
   Identicon,
@@ -20,25 +20,26 @@ import {
 import countDown from '../../../helpers/countdown';
 
 import { Art } from '../../../types';
+import ProfileAvatar from '../../ProfileAvatar';
 
 const ArtDetails = ({
   auction,
   art,
   extendedArt,
   highestBid,
-  users,
+  nftData,
 }: {
   auction?: ItemAuction | undefined;
   art: Art | undefined;
   extendedArt: IMetadataExtension | undefined;
   highestBid?: ParsedAccount<BidderMetadata> | undefined;
-  users: any;
+  nftData?: any;
 }) => {
   const creators = art?.creators || [];
-  const title = art?.title || auction?.name;
+  const title = art?.title || auction?.name || nftData?.name;
 
-  const description = extendedArt?.description;
-  const attributes = extendedArt?.attributes;
+  const description = extendedArt?.description || nftData?.description;
+  const attributes = extendedArt?.attributes || nftData?.attribute;
 
   const owner = auction?.owner;
   const endAt = auction?.endAt;
@@ -68,19 +69,11 @@ const ArtDetails = ({
                 if (creator.address) {
                   return (
                     <div className={UserThumbnail} key={creator.address}>
-                      <Avatar
-                        src={
-                          users[creator.address]?.img_profile
-                          || <Identicon address={creator.address} style={{ width: 40 }} />
-                        }
+                      <ProfileAvatar
+                        key={creator.address}
+                        walletAddress={creator.address}
                         size={40}
                       />
-
-                      <span>
-                        {users[creator.address]?.username
-                          ? `@${users[creator.address].username}`
-                          : shortenAddress(creator.address)}
-                      </span>
                     </div>
                   );
                 }
@@ -97,30 +90,15 @@ const ArtDetails = ({
               <div className={UserThumbnail}>
                 {/* auction still live */}
                 {(!ended || !highestBid) && (
-                  <>
-                    <Avatar
-                      src={users[owner]?.img_profile || <Identicon address={owner} style={{ width: 40 }} />}
-                      size={40}
-                    />
-                    <span>
-                      {users[owner]?.username
-                        ? `@${users[owner].username}`
-                        : shortenAddress(owner)}
-                    </span>
-                  </>
+                  <ProfileAvatar walletAddress={owner} size={40} />
                 )}
 
                 {/* auction ended and have winner */}
                 {ended && highestBid && (
-                  <>
-                    <Avatar
-                      src={users[highestBid?.info.bidderPubkey]?.img_profile || <Identicon address={highestBid?.info.bidderPubkey} style={{ width: 40 }} />}
-                      size={40}
-                    />
-                    <span>{users[highestBid?.info.bidderPubkey]
-                      ? `@${users[highestBid?.info.bidderPubkey].username}`
-                      : shortenAddress(highestBid?.info.bidderPubkey)}</span>
-                  </>
+                  <ProfileAvatar
+                    walletAddress={highestBid?.info.bidderPubkey}
+                    size={40}
+                  />
                 )}
               </div>
             </div>
@@ -128,7 +106,7 @@ const ArtDetails = ({
         )}
       </Row>
 
-      {attributes && (
+      {attributes && attributes.length > 0 && (
         <div className={ContentSection}>
           <div className={Label}>attributes</div>
           <Row gutter={[12, 12]}>

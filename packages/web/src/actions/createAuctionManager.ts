@@ -40,7 +40,6 @@ import {
   TupleNumericType,
   SafetyDepositConfig,
   ParticipationStateV2,
-  AuctionCache,
   StoreIndexer,
 } from '@oyster/common/dist/lib/models/metaplex/index';
 import { createTokenAccount } from '@oyster/common/dist/lib/actions/account';
@@ -426,10 +425,10 @@ async function buildSafetyDepositArray(
           auctionManager: SystemProgram.programId.toBase58(),
           order: new BN(i),
           amountRanges: s.amountRanges,
-          amountType: maxAmount.gte(new BN(254))
+          amountType: maxAmount?.gte(new BN(254))
             ? TupleNumericType.U16
             : TupleNumericType.U8,
-          lengthType: maxLength.gte(new BN(254))
+          lengthType: maxLength?.gte(new BN(254))
             ? TupleNumericType.U16
             : TupleNumericType.U8,
           winningConfigType: s.winningConfigType,

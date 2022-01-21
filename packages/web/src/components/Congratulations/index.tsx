@@ -9,21 +9,17 @@ import { uFontSize18 } from '../../styles';
 import { TwitterOutlined } from '@ant-design/icons';
 import { useArt } from '../../hooks';
 import { ContinueButton, Description, HeaderStyle, ShareButton } from './style';
-import { getUsernameByPublicKeys } from '../../database/userData';
 
 // TODO CHANGE HOLDER
-
 
 const TweetURL = (title, urlToNFT) =>
   `https://twitter.com/intent/tweet?text=I%20just%20won%20an%20NFT%20auction%20for%20${title}%20on%20%40supadropnft%E2%80%A8%0A${urlToNFT}`;
 
-const Congratulations = ({ id }) => {
-  const { allDataAuctions } = useMeta();
+const Congratulations = ({ id, type }) => {
+  const { allDataAuctions,users } = useMeta();
   const { publicKey } = useWallet();
   const auctionView = allDataAuctions[id];
   const art = useArt(auctionView.id_nft);
-
-  const { data: ownerData = {} } = getUsernameByPublicKeys([auctionView.owner]);
 
   return (
     <Row justify="center">
@@ -34,20 +30,26 @@ const Congratulations = ({ id }) => {
               <Link to={`/auction/${id}`}>
                 <AuctionRenderCard
                   auctionView={auctionView}
-                  owner={ownerData}
+                  wallet_address={auctionView.owner}
                 />
               </Link>
             </Col>
           )}
 
           <Col span={9}>
-            <div className={HeaderStyle}>
-              Congratulations!
-              <br />
-              Your NFT is
-              <br />
-              on its way.
-            </div>
+            {
+              <div className={HeaderStyle}>
+                {type === 'claim' && (
+                  <>
+                    Congratulations!
+                    <br />
+                  </>
+                )}
+                Your NFT is
+                <br />
+                on its way.
+              </div>
+            }
 
             <div className={Description}>
               your NFT currently being transferred to your wallet. Let’s spread

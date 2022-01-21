@@ -68,7 +68,7 @@ export const supabaseAddNewUser = (walletAddress?: string) => {
 
 export const supabaseAddNewNFT = (
   id: string,
-  img_nft?: string,
+  original_file?: string,
   name?: string,
   description?: string,
   attribute?: Attribute[],
@@ -77,13 +77,14 @@ export const supabaseAddNewNFT = (
   mint_key?: string,
   creator?: string,
   mediaType?: string,
+  thumbnail?: string,
 ) => {
   supabase
     .from('nft_data')
     .insert([
       {
         id,
-        img_nft,
+        original_file,
         name,
         description,
         attribute,
@@ -93,10 +94,15 @@ export const supabaseAddNewNFT = (
         creator,
         holder: creator,
         media_type: mediaType,
+        thumbnail: thumbnail,
         max_supply: 1,
       },
     ])
     .then();
+};
+
+export const supabaseDeleteNFT = (id: string) => {
+  supabase.from('nft_data').delete().eq('id', id).match({ id: id }).then();
 };
 
 export const supabaseUpdateNFTHolder = (
@@ -108,14 +114,11 @@ export const supabaseUpdateNFTHolder = (
     .from('nft_data')
     .update({
       holder: walletAddress,
-      sold: soldFor,
       updated_at: timestampPostgre(),
+      sold: soldFor,
     })
     .eq('id', idNFT)
-    .then(result => {
-      console.log('res', result);
-      supabaseUpdateOnSaleNFT(idNFT, false);
-    });
+    .then();
 };
 
 export const supabaseGetAllOwnedNFT = (
@@ -137,7 +140,6 @@ export const supabaseUpdateStatusInstantSale = (idAuction?: string) => {
     .from('auction_status')
     .update({
       isLiveMarket: false,
-      is_redeem: true,
       updated_at: timestampPostgre(),
     })
     .eq('id', idAuction)
@@ -192,21 +194,12 @@ export const supabaseUpdateWinnerAuction = (
 ) => {
   supabase
     .from('auction_status')
-    .update({ winner: walletAddress, updated_at: timestampPostgre() })
+    .update({
+      winner: walletAddress,
+      updated_at: timestampPostgre(),
+    })
     .eq('id', idAuction)
     .then(result => {
       console.log('res', result);
     });
-};
-
-export const supabaseUpdateOnSaleNFT = (idNFT?: string, onSale?: boolean) => {
-  supabase
-    .from('nft_data')
-    .update({ on_sale: onSale, updated_at: timestampPostgre() })
-    .eq('id', idNFT)
-    .then();
-};
-
-export const supabaseUpdateLastSoldNFT = (idNFT?: string, bid?: number) => {
-  supabase.from('nft_data').update({ last_sold: bid }).eq('id', idNFT).then();
 };

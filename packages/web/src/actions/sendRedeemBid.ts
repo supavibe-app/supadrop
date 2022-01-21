@@ -131,7 +131,10 @@ export async function sendRedeemBid(
     const winningSet = auctionView.items[winnerIndex];
 
     for (let i = 0; i < winningSet.length; i++) {
+      console.log('Result Here', winningSet.length);
       const item = winningSet[i];
+      console.log('Result Here', item.winningConfigType);
+      console.log('Result Here', i);
       const safetyDeposit = item.safetyDeposit;
       switch (item.winningConfigType) {
         case WinningConfigType.PrintingV1:
@@ -370,6 +373,9 @@ async function setupRedeemFullRightsTransferInstructions(
     winnerIndex,
     safetyDeposit.info.order,
   );
+
+  console.log('RESULT HERE 0:', claimed);
+
   if (!claimed && auctionView.myBidderMetadata) {
     let newTokenAccount = accountsByMint.get(
       safetyDeposit.info.tokenMint,
@@ -384,7 +390,7 @@ async function setupRedeemFullRightsTransferInstructions(
         winningPrizeSigner,
       ).toBase58();
 
-    await redeemFullRightsTransferBid(
+    const redeemNig = await redeemFullRightsTransferBid(
       auctionView.auctionManager.vault,
       safetyDeposit.info.store,
       newTokenAccount,
@@ -397,13 +403,17 @@ async function setupRedeemFullRightsTransferInstructions(
       wallet.publicKey.toBase58(),
     );
 
+    console.log('RESULT HERE 1:', redeemNig);
+
     const metadata = await getMetadata(safetyDeposit.info.tokenMint);
-    await updatePrimarySaleHappenedViaToken(
+    const metaNig = await updatePrimarySaleHappenedViaToken(
       metadata,
       wallet.publicKey.toBase58(),
       newTokenAccount,
       winningPrizeInstructions,
     );
+
+    console.log('RESULT HERE 2:', metaNig);
   }
 }
 

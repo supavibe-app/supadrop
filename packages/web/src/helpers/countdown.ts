@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-const countDown = endAt => {
+const countDown = (endAt, displayDay = false) => {
   const now = moment().unix();
   const ended = { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
@@ -13,7 +13,21 @@ const countDown = endAt => {
   const minutes = Math.floor(delta / 60) % 60;
   delta -= minutes * 60;
   const seconds = Math.floor(delta % 60);
-  return { days, hours, minutes, seconds };
+  if (displayDay) {
+    return {
+      days,
+      hours,
+      minutes,
+      seconds,
+    };
+  } else {
+    return {
+      days: 0,
+      hours: hours + days * 24,
+      minutes,
+      seconds,
+    };
+  }
 };
 
 export default countDown;
