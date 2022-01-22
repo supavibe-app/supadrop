@@ -97,6 +97,7 @@ export interface MetaContextState extends MetaState {
   isLoadingMetaplex: boolean;
   isLoadingDatabase: boolean;
   isLoadingAllMetadata: boolean;
+  counterPullAllMetadata: number;
   dataCollection: Collection;
   userData: UserData;
   endingTime: number;

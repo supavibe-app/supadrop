@@ -29,6 +29,7 @@ const MetaContext = React.createContext<MetaContextState>({
   isLoadingMetaplex: false,
   isLoadingDatabase: false,
   isLoadingAllMetadata: false,
+  counterPullAllMetadata: 0,
   art: {},
   users: {},
   endingTime: 0,
@@ -57,6 +58,7 @@ export function MetaProvider({ children = null as any }) {
   const { publicKey } = useWallet();
   const [art, setArt] = useState<any>({});
   const [users, setUsers] = useState<any>({});
+  const [counterPullAllMetadata, setCounterPullAllMetadata] = useState(0);
   const [dataCollection, setDataCollection] = useState<Collection>(
     new Collection('', '', '', 0, 0, 0, 0, []),
   );
@@ -345,6 +347,10 @@ export function MetaProvider({ children = null as any }) {
     }
 
     setIsLoadingAllMetadata(true);
+    console.log(
+      '🚀 ~ file: meta.tsx ~ line 350 ~ pullAllMetadata ~ start',
+      new Date(),
+    );
     setIsLoadingMetaplex(true);
     const nextState = await pullStoreMetadata(connection, state);
 
@@ -352,7 +358,11 @@ export function MetaProvider({ children = null as any }) {
     setState(nextState);
     await updateMints(nextState.metadataByMint);
     setIsLoadingAllMetadata(false);
-
+    setCounterPullAllMetadata(counterPullAllMetadata + 1);
+    console.log(
+      '🚀 ~ file: meta.tsx ~ line 359 ~ pullAllMetadata ~ finish',
+      new Date(),
+    );
     return [];
   }
 
@@ -714,6 +724,7 @@ export function MetaProvider({ children = null as any }) {
         updateUsers,
         pullItemsPage,
         updateAllNotification,
+        counterPullAllMetadata,
       }}
     >
       {children}

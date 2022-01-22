@@ -26,6 +26,7 @@ export const SellView = () => {
     pullItemsPage,
     art: artData,
     isLoadingAllMetadata,
+    counterPullAllMetadata,
   } = useMeta();
   const { userAccounts } = useUserAccounts();
 
@@ -33,14 +34,13 @@ export const SellView = () => {
 
   const userItems = useItems({ activeKey });
 
-  const [counter, setCounter] = useState(0);
   useEffect(() => {
-    if (!isLoadingMetaplex && counter === 0 && !isLoadingAllMetadata) {
+    if (
+      !isLoadingMetaplex &&
+      counterPullAllMetadata === 0 &&
+      !isLoadingAllMetadata
+    ) {
       pullAllMetadata();
-      console.log(
-        '🚀 ~ file: index.tsx ~ line 36 ~ useEffect ~ pullAllMetadata',
-      );
-      setCounter(1);
     }
   }, [isLoadingMetaplex]);
 
@@ -110,23 +110,24 @@ export const SellView = () => {
                 !isLoadingMetaplex &&
                 userItems.length === 0 && <EmptyState />}
 
-              {userItems.map((art: any) => {
-                const pubkey = art?.metadata?.pubkey;
+              {!isLoadingAllMetadata &&
+                userItems.map((art: any) => {
+                  const pubkey = art?.metadata?.pubkey;
 
-                return (
-                  <Col key={pubkey} span={6}>
-                    <Link to={`/art/${pubkey}`}>
-                      <ArtCard
-                        key={pubkey}
-                        pubkey={pubkey}
-                        name={art?.metadata?.info?.data?.name}
-                        onSellPage={true}
-                        preview={false}
-                      />
-                    </Link>
-                  </Col>
-                );
-              })}
+                  return (
+                    <Col key={pubkey} span={6}>
+                      <Link to={`/art/${pubkey}`}>
+                        <ArtCard
+                          key={pubkey}
+                          pubkey={pubkey}
+                          name={art?.metadata?.info?.data?.name}
+                          onSellPage={true}
+                          preview={false}
+                        />
+                      </Link>
+                    </Col>
+                  );
+                })}
             </Row>
           </TabPane>
         </Tabs>
