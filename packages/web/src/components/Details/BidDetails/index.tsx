@@ -277,6 +277,15 @@ const BidDetails = ({
   const isParticipated =
     bids.filter(bid => bid?.info?.bidderPubkey === publicKey?.toBase58())
       .length > 0;
+
+  let myCurrentBid = 0;
+  if (isParticipated) {
+    bids.forEach(bid => {
+      if (bid?.info?.bidderPubkey === publicKey?.toBase58()) {
+        myCurrentBid = bid?.info?.lastBid.toNumber() / LAMPORTS_PER_SOL;
+      }
+    });
+  }
   const actionEndedAuctionClaim = async () => {
     setConfirmTrigger(true);
     if (!eligibleForAnything) {
@@ -1054,9 +1063,10 @@ const BidDetails = ({
   // place bid page active
   if (showPlaceBid) {
     // case 5: insufficient balance
+
     if (
-      balance < minimumBid ||
-      (currentBidAmount && currentBidAmount > balance)
+      balance < minimumBid - myCurrentBid ||
+      (currentBidAmount && currentBidAmount - myCurrentBid > balance)
     ) {
       return (
         <BidDetailsContent>
