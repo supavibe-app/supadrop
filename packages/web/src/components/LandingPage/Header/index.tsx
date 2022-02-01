@@ -14,7 +14,7 @@ const HeaderSection = () => {
       <Col span={13}>
         <div className={MainTitle}>Invest in Culture</div>
         <div className={SecondaryTitle}>Create • Share • Collect Digital Arts</div>
-        <div className={Description}>a curated NFT art & collectibles marketplace on solana –empowering the future of creative economy • connecting authentic creators and collectors</div>
+        <div className={Description}>a community-driven marketplace for authentic NFT drops on Solana – empowering the future of creative economy • connecting passionate creators and collectors.</div>
 
         <div className={ButtonGroup}>
           <div>
@@ -30,7 +30,7 @@ const HeaderSection = () => {
                 });
               }}>
               <div>
-                <span style={{ marginRight: 8 }}>APPLY AS CREATOR</span>
+                <span style={{ marginRight: 8 }}>JOIN AS CREATOR</span>
                 <span className={GradientText}>//</span>
               </div>
             </Button>
@@ -81,7 +81,7 @@ export const MobileHeaderSection = () => {
 
         <div className={MobileMainTitle}>Invest in Culture</div>
         <div className={MobileSecondaryTitle}>Create • Share • Collect Digital Arts</div>
-        <div className={MobileDescription}>a curated NFT art & collectibles marketplace on solana –empowering the future of creative economy • connecting authentic creators and collectors</div>
+        <div className={MobileDescription}>a community-driven marketplace for authentic NFT drops on Solana – empowering the future of creative economy • connecting passionate creators and collectors.</div>
 
         <div className={MobileButtonGroup}>
           <div>
@@ -93,7 +93,7 @@ export const MobileHeaderSection = () => {
               });
             }}>
               <div>
-                <span style={{ marginRight: 8 }}>APPLY AS CREATOR</span>
+                <span style={{ marginRight: 8 }}>JOIN AS CREATOR</span>
                 <span className={GradientText}>//</span>
               </div>
             </Button>

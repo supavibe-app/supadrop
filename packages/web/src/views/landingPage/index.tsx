@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import ReactGA from 'react-ga';
 import { Row, Col, Divider } from 'antd';
 
@@ -9,7 +9,10 @@ import Features, { MobileFeatures } from '../../components/LandingPage/Features'
 import GetEarlyAccess, { MobileGetEarlyAccess } from '../../components/LandingPage/GetEarlyAccess';
 import Initiatives, { MobileInitiatives } from '../../components/LandingPage/Initiatives';
 import Footer, { MobileFooter } from '../../components/LandingPage/Footer';
-import NFTDrop, { MobileNFTDrop } from '../../components/LandingPage/NFTDrop';
+// import NFTDrop, { MobileNFTDrop } from '../../components/LandingPage/NFTDrop';
+import Benefits, { MobileBenefits } from '../../components/LandingPage/AlphaMembership/Benefits';
+import SpecialWhitelist, { MobileSpecialWhitelist } from '../../components/LandingPage/AlphaMembership/SpecialWhitelist';
+import AppBar, { MobileAppBar } from '../../components/LandingPage/AppBar';
 
 const LandingPage = () => {
   ReactGA.pageview(window.location.pathname + window.location.search);
@@ -30,8 +33,13 @@ const LandingPage = () => {
 }
 
 const DesktopLandingPage = () => {
+  const refMembership = useRef() as React.MutableRefObject<HTMLInputElement>;
+  const refWhitelist = useRef() as React.MutableRefObject<HTMLInputElement>;
+
   return (
     <>
+      <AppBar refMembership={refMembership} refWhitelist={refWhitelist} />
+
       <HeaderSection />
       <SubHeader />
 
@@ -40,9 +48,17 @@ const DesktopLandingPage = () => {
       <Features />
       <Initiatives />
 
-      <MarqueeText text="NFT DROP" />
+      {/* <MarqueeText text="NFT DROP" />
 
-      <NFTDrop />
+      <NFTDrop /> */}
+
+      <MarqueeText text="ALPHA MEMBERSHIP" refProp={refMembership} />
+
+      {/* Benefits */}
+      <Benefits />
+
+      {/* SpecialWhitelist */}
+      <SpecialWhitelist refMembership={refMembership} refWhitelist={refWhitelist} />
 
       <MarqueeText text="GET EARLY ACCESS" />
 
@@ -60,8 +76,13 @@ const DesktopLandingPage = () => {
 };
 
 const MobileLandingPage = () => {
+  const refMembership = useRef() as React.MutableRefObject<HTMLInputElement>;
+  const refWhitelist = useRef() as React.MutableRefObject<HTMLInputElement>;
+
   return (
     <>
+      <MobileAppBar refMembership={refMembership} refWhitelist={refWhitelist} />
+
       <MobileHeaderSection />
       <MobileSubHeader />
 
@@ -70,9 +91,12 @@ const MobileLandingPage = () => {
       <MobileFeatures />
       <MobileInitiatives />
 
-      <MobileMarqueeText text="NFT DROP" />
+      {/* <MobileMarqueeText text="NFT DROP" />
+      <MobileNFTDrop /> */}
 
-      <MobileNFTDrop />
+      <MobileMarqueeText text="ALPHA MEMBERSHIP" refProp={refMembership} />
+      <MobileBenefits />
+      <MobileSpecialWhitelist refMembership={refMembership} refWhitelist={refWhitelist} />
 
       <MobileMarqueeText text="GET EARLY ACCESS" />
 
