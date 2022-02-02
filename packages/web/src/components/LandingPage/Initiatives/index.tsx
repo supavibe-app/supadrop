@@ -40,7 +40,7 @@ const Initiatives = () => {
           <span> but we prefer to adapt to what our creators or community needed. So, here is some ideas that we are planning to build in the future.</span>
         </div>
 
-        <Row gutter={[16, 16]} style={{ marginBottom: 72 }}>
+        <Row gutter={[16, 16]} style={{ marginBottom: 72, width: '100%' }}>
           {initiatives.map(initiative => (
             <Col key={initiative}>
               <Button className={ButtonList} shape="round" size="large" onClick={() => {
@@ -166,7 +166,7 @@ export const MobileInitiatives = () => {
             </div>
           </Button>
         </Divider>
-      </Col >
+      </Col>
     </Row >
   );
 };

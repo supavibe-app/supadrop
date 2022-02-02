@@ -37,16 +37,17 @@ const __1 = require("../..");
 const supabaseClient_1 = require("../../supabaseClient");
 const moment_1 = __importDefault(require("moment"));
 const wallet_adapter_react_1 = require("@solana/wallet-adapter-react");
-const __2 = require("..");
+const __2 = require("../");
 const MetaContext = react_1.default.createContext({
     ...getEmptyMetaState_1.getEmptyMetaState(),
     isLoadingMetaplex: false,
     isLoadingDatabase: false,
+    isLoadingAllMetadata: false,
+    counterPullAllMetadata: 0,
     art: {},
+    users: {},
     endingTime: 0,
     isBidPlaced: false,
-    liveDataAuctions: [],
-    endedAuctions: [],
     notifBidding: [],
     notifAuction: [],
     allDataAuctions: {},
@@ -55,25 +56,26 @@ const MetaContext = react_1.default.createContext({
     // @ts-ignore
     update: () => [actions_1.AuctionData, actions_1.BidderMetadata, actions_1.BidderPot],
     // @ts-ignore
-    updateLiveDataAuction: function () { },
     updateUserData: function () { },
-    updateAllDataAuction: function () { },
     updateDetailAuction: function () { },
     updateNotifBidding: function () { },
     updateNotifAuction: function () { },
     updateArt: function () { },
+    updateUsers: function () { },
+    updateAllNotification: function () { },
 });
 function MetaProvider({ children = null }) {
     const connection = connection_1.useConnection();
+    const wallet = wallet_adapter_react_1.useWallet();
     const { isReady, storeAddress } = store_1.useStore();
     const { publicKey } = wallet_adapter_react_1.useWallet();
     const [art, setArt] = react_1.useState({});
+    const [users, setUsers] = react_1.useState({});
+    const [counterPullAllMetadata, setCounterPullAllMetadata] = react_1.useState(0);
     const [dataCollection, setDataCollection] = react_1.useState(new types_1.Collection('', '', '', 0, 0, 0, 0, []));
     const [userData, setUserData] = react_1.useState(new __2.UserData('', '', '', '', '', '', '', '', ''));
     const [endingTime, setEndingTime] = react_1.useState(0);
     const [state, setState] = react_1.useState(getEmptyMetaState_1.getEmptyMetaState());
-    const [liveDataAuctions, setLiveDataAuction] = react_1.useState([]);
-    const [endedAuctions, setEndedAuctions] = react_1.useState([]);
     const [notifBidding, setNotifBidding] = react_1.useState([]);
     const [notifAuction, setNotifAuction] = react_1.useState([]);
     const [allDataAuctions, setAllDataAuction] = react_1.useState({});
@@ -83,6 +85,7 @@ function MetaProvider({ children = null }) {
     const { userAccounts } = __1.useUserAccounts();
     const [isLoadingMetaplex, setIsLoadingMetaplex] = react_1.useState(true);
     const [isLoadingDatabase, setIsLoadingDatabase] = react_1.useState(true);
+    const [isLoadingAllMetadata, setIsLoadingAllMetadata] = react_1.useState(false);
     const [isBidPlaced, setBidPlaced] = react_1.useState(false);
     const updateMints = react_1.useCallback(async (metadataByMint) => {
         try {
@@ -97,6 +100,145 @@ function MetaProvider({ children = null }) {
             console.error(er);
         }
     }, [setState]);
+    // get data from supabase
+    async function getUserData(publicKey) {
+        supabaseClient_1.supabase
+            .from('user_data')
+            .select('*')
+            .eq(`wallet_address`, publicKey)
+            .limit(1)
+            .single()
+            .then(res => {
+            if (res.body) {
+                const { bio, created_at, img_profile, name, twitter, updated_at, username, wallet_address, website, } = res.body;
+                let data = new __2.UserData(bio, created_at, img_profile, name, twitter, updated_at, username, website, wallet_address);
+                setUserData(data);
+            }
+        });
+    }
+    async function updateUserData(data) {
+        setUserData(data);
+    }
+    async function getNotifBidding(publicKey) {
+        supabaseClient_1.supabase
+            .from('action_bidding')
+            .select(`*,
+      id_auction (*)
+  `)
+            .eq('wallet_address', publicKey)
+            .eq('is_redeem', false)
+            .then(action => {
+            if (action.body != null) {
+                if (action.body.length) {
+                    const data = action.body.filter(val => val.id_auction.end_auction < moment_1.default().unix());
+                    setNotifBidding(data);
+                }
+            }
+        });
+    }
+    async function updateAllNotification(publicKey) {
+        getNotifAuction(publicKey);
+        getNotifBidding(publicKey);
+    }
+    //TODO for now is not problem because data user still small (need improvement)
+    async function getAllDataUser() {
+        supabaseClient_1.supabase
+            .from('user_data')
+            .select()
+            .then(userData => {
+            if (userData.body) {
+                updateUsers(userData.body);
+            }
+        });
+    }
+    // if type_auction is true, it's an instant sale -> isLiveMarket
+    // if type_auction is false, it's an auction -> end auction less than current time
+    async function getNotifAuction(publicKey) {
+        supabaseClient_1.supabase
+            .from('auction_status')
+            .select()
+            .eq('owner', publicKey)
+            .eq('is_redeem', false)
+            .eq('isLiveMarket', false)
+            .lt(`end_auction`, moment_1.default().unix())
+            .then(data => {
+            if (data.body) {
+                setNotifAuction(data.body);
+            }
+        });
+    }
+    async function updateNotifBidding(id) {
+        const data = [];
+        notifBidding.forEach(v => {
+            if (v.id !== id) {
+                data.push(v);
+            }
+        });
+        setNotifBidding(data);
+    }
+    async function updateNotifAuction(id) {
+        const data = [];
+        notifAuction.forEach(v => {
+            if (v.id !== id) {
+                data.push(v);
+            }
+        });
+        setNotifAuction(data);
+    }
+    async function updateDetailAuction(idAuction) {
+        supabaseClient_1.supabase
+            .from('auction_status')
+            .select(`
+    *,
+    id_nft (
+      *
+    )
+    `)
+            .eq('id', idAuction)
+            .single()
+            .then(dataAuction => {
+            if (dataAuction.body != null && dataAuction.body.length > 0) {
+                let detailAuction = new types_1.ItemAuction(dataAuction.body.id, dataAuction.body.id_nft.name, dataAuction.body.id_nft.id, dataAuction.body.token_mint, dataAuction.body.price_floor, dataAuction.body.id_nft.original_file, dataAuction.body.id_nft.thumbnail, dataAuction.body.id_nft.media_type, dataAuction.body.start_auction, dataAuction.body.end_auction, dataAuction.body.highest_bid, dataAuction.body.price_tick, dataAuction.body.gap_time, dataAuction.body.tick_size_ending_phase, dataAuction.body.vault, dataAuction.body.id_nft.arweave_link, dataAuction.body.owner, dataAuction.body.winner, dataAuction.body.id_nft.mint_key, dataAuction.body.type_auction, dataAuction.body.id_nft.royalty);
+                setAllDataAuction({ ...allDataAuctions, detailAuction });
+                setIsLoadingDatabase(false);
+            }
+        });
+    }
+    async function updateAllDataAuction() {
+        setIsLoadingDatabase(true);
+        supabaseClient_1.supabase
+            .from('auction_status')
+            .select(`
+    *,
+    id_nft (
+      *
+    )
+    `)
+            .then(dataAuction => {
+            let listData = {};
+            if (dataAuction.body != null && dataAuction.body.length > 0) {
+                dataAuction.body.forEach(v => {
+                    listData[v.id] = new types_1.ItemAuction(v.id, v.id_nft.name, v.id_nft.id, v.token_mint, v.price_floor, v.id_nft.original_file, v.id_nft.thumbnail, v.id_nft.media_type, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.id_nft.arweave_link, v.owner, v.winner, v.id_nft.mint_key, v.type_auction, v.id_nft.royalty);
+                });
+                setAllDataAuction(listData);
+                setIsLoadingDatabase(false);
+            }
+        });
+    }
+    async function getDataCollection() {
+        supabaseClient_1.supabase
+            .from('collections')
+            .select(`*`)
+            .eq('id', 1)
+            .then(data => {
+            if (data.body != null) {
+                const { id, name, description, supply, price, sold, start_publish, sample_images, } = data.body[0];
+                let collection = new types_1.Collection(id, name, description, supply, price, sold, start_publish, sample_images);
+                setDataCollection(collection);
+            }
+        });
+    }
+    // --------------
     async function pullAllMetadata() {
         if (isLoadingMetaplex)
             return false;
@@ -109,11 +251,16 @@ function MetaProvider({ children = null }) {
         else if (!state.store) {
             setIsLoadingMetaplex(true);
         }
+        setIsLoadingAllMetadata(true);
+        console.log('🚀 ~ file: meta.tsx ~ line 350 ~ pullAllMetadata ~ start', new Date());
         setIsLoadingMetaplex(true);
         const nextState = await _1.pullStoreMetadata(connection, state);
         setIsLoadingMetaplex(false);
         setState(nextState);
         await updateMints(nextState.metadataByMint);
+        setIsLoadingAllMetadata(false);
+        setCounterPullAllMetadata(counterPullAllMetadata + 1);
+        console.log('🚀 ~ file: meta.tsx ~ line 359 ~ pullAllMetadata ~ finish', new Date());
         return [];
     }
     async function pullBillingPage(auctionAddress) {
@@ -199,185 +346,12 @@ function MetaProvider({ children = null }) {
         });
         setArt({ ...art, ...data });
     }
-    async function updateLiveDataAuction() {
-        supabaseClient_1.supabase
-            .from('auction_status')
-            .select(`
-    *,
-    owner(img_profile,wallet_address,username),
-    id_nft (
-      *
-    )
-    `)
-            .gt('end_auction', moment_1.default().unix())
-            .order('end_auction', { ascending: true })
-            .then(dataAuction => {
-            let listData = [];
-            if (dataAuction.body != null && dataAuction.body.length > 0) {
-                dataAuction.body.forEach(v => {
-                    listData.push(new types_1.ItemAuction(v.id, v.id_nft.name, v.id_nft.id, v.token_mint, v.price_floor, v.id_nft.original_file, v.id_nft.thumbnail, v.id_nft.media_type, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.id_nft.arweave_link, v.owner.wallet_address, v.winner, v.id_nft.mint_key, v.type_auction, v.owner.img_profile, v.owner.username));
-                });
-                setEndingTime(dataAuction.body[dataAuction.body.length - 1].end_auction);
-                setLiveDataAuction(listData);
-            }
+    async function updateUsers(userData) {
+        const data = {};
+        userData.forEach((item) => {
+            data[item.wallet_address] = item;
         });
-    }
-    async function getUserData(publicKey) {
-        supabaseClient_1.supabase
-            .from('user_data')
-            .select('*')
-            .eq(`wallet_address`, publicKey)
-            .limit(1)
-            .single()
-            .then(res => {
-            if (res.body) {
-                const { bio, created_at, img_profile, name, twitter, updated_at, username, wallet_address, website, } = res.body;
-                let data = new __2.UserData(bio, created_at, img_profile, name, twitter, updated_at, username, website, wallet_address);
-                setUserData(data);
-            }
-        });
-    }
-    async function updateUserData(data) {
-        setUserData(data);
-    }
-    async function updateEndedAuction() {
-        supabaseClient_1.supabase
-            .from('auction_status')
-            .select(`
-    *,
-    owner(img_profile,wallet_address,username),
-    id_nft (
-      *
-    )
-    `)
-            .lt('end_auction', moment_1.default().unix())
-            .eq('type_auction', false)
-            .order('end_auction', { ascending: false })
-            .then(dataAuction => {
-            let listData = [];
-            if (dataAuction.body != null && dataAuction.body.length > 0) {
-                dataAuction.body.forEach(v => {
-                    listData.push(new types_1.ItemAuction(v.id, v.id_nft.name, v.id_nft.id, v.token_mint, v.price_floor, v.id_nft.original_file, v.id_nft.thumbnail, v.id_nft.media_type, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.id_nft.arweave_link, v.owner.wallet_address, v.winner, v.id_nft.mint_key, v.type_auction, v.owner.img_profile, v.owner.username));
-                });
-                setEndedAuctions(listData);
-            }
-        });
-    }
-    async function getNotifBidding(publicKey) {
-        supabaseClient_1.supabase
-            .from('action_bidding')
-            .select(`*,
-      id_auction (*)
-  `)
-            .eq('wallet_address', publicKey)
-            .eq('is_redeem', false)
-            .then(action => {
-            if (action.body != null) {
-                if (action.body.length) {
-                    const data = action.body.filter(val => val.id_auction.end_auction < moment_1.default().unix());
-                    setNotifBidding(data);
-                }
-            }
-        });
-    }
-    // if type_auction is true, it's an instant sale -> isLiveMarket
-    // if type_auction is false, it's an auction -> end auction less than current time
-    async function getNotifAuction(publicKey) {
-        supabaseClient_1.supabase
-            .from('auction_status')
-            .select()
-            .eq('owner', publicKey)
-            .eq('is_redeem', false)
-            .eq('isLiveMarket', false)
-            .lt(`end_auction`, moment_1.default().unix())
-            .then(data => {
-            if (data.body) {
-                setNotifAuction(data.body);
-            }
-        });
-    }
-    async function updateNotifBidding(id) {
-        const data = [];
-        notifBidding.forEach(v => {
-            if (v.id !== id) {
-                data.push(v);
-            }
-        });
-        setNotifBidding(data);
-    }
-    async function updateNotifAuction(id) {
-        const data = [];
-        notifAuction.forEach(v => {
-            if (v.id !== id) {
-                data.push(v);
-            }
-        });
-        setNotifAuction(data);
-    }
-    async function updateDetailAuction(idAuction) {
-        supabaseClient_1.supabase
-            .from('auction_status')
-            .select(`
-    *,
-    id_nft (
-      *
-    )
-    `)
-            .eq('id', idAuction)
-            .single()
-            .then(dataAuction => {
-            if (dataAuction.body != null && dataAuction.body.length > 0) {
-                let detailAuction = new types_1.ItemAuction(dataAuction.body.id, dataAuction.body.id_nft.name, dataAuction.body.id_nft.id, dataAuction.body.token_mint, dataAuction.body.price_floor, dataAuction.body.id_nft.original_file, dataAuction.body.id_nft.thumbnail, dataAuction.body.id_nft.media_type, dataAuction.body.start_auction, dataAuction.body.end_auction, dataAuction.body.highest_bid, dataAuction.body.price_tick, dataAuction.body.gap_time, dataAuction.body.tick_size_ending_phase, dataAuction.body.vault, dataAuction.body.id_nft.arweave_link, dataAuction.body.owner, dataAuction.body.winner, dataAuction.body.id_nft.mint_key, dataAuction.body.type_auction);
-                if (detailAuction.endAt > moment_1.default().unix()) {
-                    const dataUpdate = [];
-                    liveDataAuctions.forEach(v => {
-                        if (v.id === idAuction) {
-                            dataUpdate.push(detailAuction);
-                        }
-                        else {
-                            dataUpdate.push(v);
-                        }
-                    });
-                    setLiveDataAuction(dataUpdate);
-                }
-                setAllDataAuction({ ...allDataAuctions, detailAuction });
-                setIsLoadingDatabase(false);
-            }
-        });
-    }
-    async function updateAllDataAuction() {
-        setIsLoadingDatabase(true);
-        supabaseClient_1.supabase
-            .from('auction_status')
-            .select(`
-    *,
-    id_nft (
-      *
-    )
-    `)
-            .then(dataAuction => {
-            let listData = {};
-            if (dataAuction.body != null && dataAuction.body.length > 0) {
-                dataAuction.body.forEach(v => {
-                    listData[v.id] = new types_1.ItemAuction(v.id, v.id_nft.name, v.id_nft.id, v.token_mint, v.price_floor, v.id_nft.original_file, v.id_nft.thumbnail, v.id_nft.media_type, v.start_auction, v.end_auction, v.highest_bid, v.price_tick, v.gap_time, v.tick_size_ending_phase, v.vault, v.id_nft.arweave_link, v.owner, v.winner, v.id_nft.mint_key, v.type_auction);
-                });
-                setAllDataAuction(listData);
-                setIsLoadingDatabase(false);
-            }
-        });
-    }
-    async function getDataCollection() {
-        supabaseClient_1.supabase
-            .from('collections')
-            .select(`*`)
-            .eq('id', 1)
-            .then(data => {
-            if (data.body != null) {
-                const { id, name, description, supply, price, sold, start_publish, sample_images, } = data.body[0];
-                let collection = new types_1.Collection(id, name, description, supply, price, sold, start_publish, sample_images);
-                setDataCollection(collection);
-            }
-        });
+        setUsers({ ...users, ...data });
     }
     async function update(auctionAddress, bidderAddress, userTokenAccounts) {
         if (!storeAddress) {
@@ -393,14 +367,14 @@ function MetaProvider({ children = null }) {
             window.loadingData = true;
             setIsLoadingMetaplex(true);
         }
-        console.log('-----> Query started', new Date());
         Promise.all([
-            updateLiveDataAuction(),
+            getAllDataUser(),
             updateAllDataAuction(),
-            updateEndedAuction(),
             getDataCollection(),
         ]);
-        let nextState = await _1.pullPage(connection, page, state);
+        const shouldFetchNftPacks = process.env.NEXT_ENABLE_NFT_PACKS === 'true';
+        let nextState = await _1.pullPage(connection, page, state, wallet === null || wallet === void 0 ? void 0 : wallet.publicKey, shouldFetchNftPacks);
+        console.log('-----> Query started', new Date());
         if (nextState.storeIndexer.length) {
             if (loadAccounts_1.USE_SPEED_RUN) {
                 nextState = await loadAccounts_1.limitedLoadAccounts(connection);
@@ -464,6 +438,8 @@ function MetaProvider({ children = null }) {
         console.log('------->set finished', new Date());
         await updateMints(nextState.metadataByMint);
         if (auctionAddress && bidderAddress) {
+            nextState = await _1.pullAuctionSubaccounts(connection, auctionAddress, nextState);
+            setState(nextState);
             const auctionBidderKey = auctionAddress + '-' + bidderAddress;
             return [
                 nextState.auctions[auctionAddress],
@@ -548,17 +524,14 @@ function MetaProvider({ children = null }) {
             pullAllSiteData,
             isLoadingMetaplex,
             isLoadingDatabase,
+            isLoadingAllMetadata,
             dataCollection,
             endingTime,
-            liveDataAuctions,
-            endedAuctions,
             notifBidding,
             notifAuction,
             updateUserData,
             userData,
             allDataAuctions,
-            updateLiveDataAuction,
-            updateAllDataAuction,
             updateDetailAuction,
             updateNotifAuction,
             updateNotifBidding,
@@ -566,7 +539,11 @@ function MetaProvider({ children = null }) {
             setBidPlaced,
             art,
             updateArt,
+            users,
+            updateUsers,
             pullItemsPage,
+            updateAllNotification,
+            counterPullAllMetadata,
         } }, children));
 }
 exports.MetaProvider = MetaProvider;

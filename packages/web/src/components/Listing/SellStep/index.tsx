@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button, Col } from 'antd';
-import { useLocation } from 'react-router-dom';
 import FeatherIcon from 'feather-icons-react';
 import moment from 'moment';
 import { StringPublicKey } from '@oyster/common';
 
 import InputPrice from '../../../components/InputPrice';
 import ActionButton from '../../ActionButton';
-import { useUserArts } from '../../../hooks';
 import { AuctionCategory, AuctionState } from '../../../views/auctionCreate';
 import {
   LabelDesc,
@@ -38,23 +36,23 @@ const SellStep = (props: {
     const attributeValue =
       category === AuctionCategory.InstantSale
         ? {
-            ...props.attributes,
-            startSaleTS: moment().unix(),
-            startListTS: moment().unix(),
-            priceFloor,
-            instantSalePrice: priceFloor,
-          }
+          ...props.attributes,
+          startSaleTS: moment().unix(),
+          startListTS: moment().unix(),
+          priceFloor,
+          instantSalePrice: priceFloor,
+        }
         : {
-            ...props.attributes,
-            startSaleTS: moment().unix(),
-            startListTS: moment().unix(),
-            priceFloor,
-            priceTick: 0.1,
-            auctionDuration: time,
-            // gapTime: 15,  // TODO DON'T FORGET TO UPDATE IF UPDATING MAIN 
-            gapTime: 3,
-            tickSizeEndingPhase: 10,
-          };
+          ...props.attributes,
+          startSaleTS: moment().unix(),
+          startListTS: moment().unix(),
+          priceFloor,
+          priceTick: 0.1,
+          auctionDuration: time,
+          // gapTime: 15,  // TODO DON'T FORGET TO UPDATE IF UPDATING MAIN 
+          gapTime: 3,
+          tickSizeEndingPhase: 10,
+        };
 
     props.setAttributes(attributeValue);
     props.confirm();
@@ -106,7 +104,7 @@ const SellStep = (props: {
               <div style={{ marginBottom: 12 }}>auction ended in</div>
 
               <div className={OptionsWrapper}>
-              {/* TODO DON'T FORGET TO UPDATE IF UPDATING MAIN  */}
+                {/* TODO DON'T FORGET TO UPDATE IF UPDATING MAIN  */}
                 <OptionButton
                   className={OptionButtonStyle(time === 0.005)}
                   text="Under 1 d"

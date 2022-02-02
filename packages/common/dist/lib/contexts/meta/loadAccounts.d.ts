@@ -10,9 +10,15 @@ export declare const pullStoreMetadata: (connection: Connection, tempCache: Meta
 export declare const pullYourMetadata: (connection: Connection, userTokenAccounts: TokenAccount[], tempCache: MetaState) => Promise<MetaState>;
 export declare const pullPayoutTickets: (connection: Connection, tempCache: MetaState) => Promise<MetaState>;
 export declare const pullPacks: (connection: Connection, state: MetaState, walletKey?: PublicKey | null | undefined) => Promise<MetaState>;
+export declare const pullPack: ({ connection, state, packSetKey, walletKey, }: {
+    connection: Connection;
+    state: MetaState;
+    packSetKey: StringPublicKey;
+    walletKey: PublicKey | null;
+}) => Promise<MetaState>;
 export declare const pullAuctionSubaccounts: (connection: Connection, auction: StringPublicKey, tempCache: MetaState) => Promise<MetaState>;
 export declare const pullPages: (connection: Connection) => Promise<ParsedAccount<StoreIndexer>[]>;
-export declare const pullPage: (connection: Connection, page: number, tempCache: MetaState) => Promise<MetaState>;
+export declare const pullPage: (connection: Connection, page: number, tempCache: MetaState, walletKey?: PublicKey | null | undefined, shouldFetchNftPacks?: boolean | undefined) => Promise<MetaState>;
 export declare const limitedLoadAccounts: (connection: Connection) => Promise<MetaState>;
 export declare const loadAccounts: (connection: Connection) => Promise<MetaState>;
 export declare const pullMetadataByKeys: (connection: Connection, state: MetaState, metadataKeys: StringPublicKey[]) => Promise<MetaState>;

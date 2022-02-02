@@ -53,6 +53,13 @@ export const uFontSize18 = css`
   font-size: 18px;
 `;
 
+export const uGradientText = css`
+  background: linear-gradient(125deg, #1cefff 0%, #ccff00 65.1%, #1cefff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+`;
+
 export const uPointer = css`
   cursor: pointer;
 `;

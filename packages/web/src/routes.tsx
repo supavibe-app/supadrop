@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import { Router, useParams } from 'react-router';
 import { createBrowserHistory } from 'history';
 import ReactGA from 'react-ga';
@@ -59,6 +59,8 @@ export function Routes() {
   return (
     <Router history={history}>
       <Switch>
+        <Route exact path="/" component={() => <LandingPage />} />
+
         <Providers>
           {/* <Route exact path="/admin" component={() => <AdminView />} />
             <Route exact path="/analytics" component={() => <AnalyticsView />} />
@@ -67,7 +69,6 @@ export function Routes() {
             <Route exact path="/artists" component={() => <ArtistsView />} />
             */}
           {/* Updated Path */}
-          <Route exact path="/" component={() => <LandingPage />} />
           <Route exact path="/:path" component={DirectPath} />
           <Route exact path="/auction/:id" component={() => <AuctionView />} />
           <Route
