@@ -69,9 +69,9 @@ export function Routes() {
             <Route exact path="/artists" component={() => <ArtistsView />} />
             */}
           {/* Updated Path */}
-          <Route exact path="/:path" component={DirectPath} />
-          <Route exact path="/auction/:id" component={() => <AuctionView />} />
-          <Route
+          {/* <Route exact path="/:path" component={DirectPath} /> */}
+          {/* <Route exact path="/auction/:id" component={() => <AuctionView />} /> */}
+          {/* <Route
             exact
             path="/auction/:id/settle"
             component={() => <BillingView />}
@@ -81,7 +81,7 @@ export function Routes() {
             path="/list/create"
             component={() => <AuctionCreateView />}
           />
-          <Route exact path="/art/:id" component={() => <ArtView />} />
+          <Route exact path="/art/:id" component={() => <ArtView />} /> */}
           {/* <Route
             exact
             path="/create/new"
