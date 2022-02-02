@@ -44,13 +44,14 @@ export interface MetaState {
 }
 export interface MetaContextState extends MetaState {
     art: any;
+    users: any;
     isLoadingMetaplex: boolean;
     isLoadingDatabase: boolean;
+    isLoadingAllMetadata: boolean;
+    counterPullAllMetadata: number;
     dataCollection: Collection;
     userData: UserData;
     endingTime: number;
-    liveDataAuctions: ItemAuction[];
-    endedAuctions: ItemAuction[];
     notifBidding: any[];
     notifAuction: any[];
     allDataAuctions: {
@@ -63,13 +64,13 @@ export interface MetaContextState extends MetaState {
     ];
     pullAuctionPage: (auctionAddress: StringPublicKey) => Promise<MetaState>;
     pullBillingPage: (auctionAddress: StringPublicKey) => void;
-    updateLiveDataAuction: () => void;
-    updateAllDataAuction: () => void;
     updateUserData: (data: UserData) => void;
     updateDetailAuction: (idAuction: string) => void;
     updateNotifBidding: (publicKey: string) => void;
     updateNotifAuction: (publicKey: string) => void;
+    updateAllNotification: (publicKey: string) => void;
     updateArt: (nftData: any) => void;
+    updateUsers: (userData: any) => void;
     pullAllSiteData: () => void;
     pullAllMetadata: () => void;
     isBidPlaced: boolean;
@@ -115,9 +116,10 @@ export declare class ItemAuction {
     winner: string;
     mint_key: string;
     isInstantSale: boolean;
+    royalty: number;
     ownerImg?: string;
     ownerUsername?: string;
-    constructor(id: string, name: string, id_nft: string, token_mint: string, price_floor: number, original_file: string, thumbnail: string, media_type: string, startAt: number, endAt: number, highestBid: number, price_tick: number, gapTime: number, tickExtend: number, vault: string, arweave_link: string, owner: string, winner: string, mint_key: string, isInstantSale: boolean, ownerImg?: string, ownerUsername?: string);
+    constructor(id: string, name: string, id_nft: string, token_mint: string, price_floor: number, original_file: string, thumbnail: string, media_type: string, startAt: number, endAt: number, highestBid: number, price_tick: number, gapTime: number, tickExtend: number, vault: string, arweave_link: string, owner: string, winner: string, mint_key: string, isInstantSale: boolean, royalty: number, ownerImg?: string, ownerUsername?: string);
 }
 export declare class NFTData {
     id: string;

@@ -302,7 +302,7 @@ function awaitTransactionSignatureConfirmation(txid, timeout, connection, commit
                                                         status = signatureStatuses && signatureStatuses.value[0];
                                                         if (!done) {
                                                             if (!status) {
-                                                                loglevel_1.default.debug('REST null result for', txid, status);
+                                                                loglevel_1.default.debug('REST null FROM TRANSACTION result for', txid, status);
                                                             }
                                                             else if (status.err) {
                                                                 loglevel_1.default.error('REST error for', txid, status);
