@@ -18,7 +18,7 @@ import {
 import { ArtCardCreate } from './../../components/ArtCardCreate';
 import { UserSearch, UserValue } from './../../components/UserSearch';
 import { Confetti } from './../../components/Confetti';
-import { mintNFT } from '../../actions';
+import { mintNFT, mintNFTIPFS } from '../../actions';
 import {
   MAX_METADATA_LEN,
   useConnection,
@@ -33,7 +33,9 @@ import {
   MetadataFile,
   StringPublicKey,
   getAssetCostToStore,
-  LAMPORT_MULTIPLIER
+  LAMPORT_MULTIPLIER,
+  supabaseDeleteNFT,
+  useMeta,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -55,13 +57,13 @@ const { Text } = Typography;
 export const ArtCreateView = () => {
   const connection = useConnection();
   const { env } = useConnectionConfig();
+  const { update } = useMeta();
   const wallet = useWallet();
   const [alertMessage, setAlertMessage] = useState<string>();
-  const { step_param }: { step_param: string } = useParams();
-  const history = useHistory();
   const { width } = useWindowDimensions();
   const [nftCreateProgress, setNFTcreateProgress] = useState<number>(0);
-
+  const [coverFile, setCoverFile] = useState<File>();
+  const [mainFile, setMainFile] = useState<File>();
   const [step, setStep] = useState<number>(0);
   const [stepsVisible, setStepsVisible] = useState<boolean>(true);
   const [isMinting, setMinting] = useState<boolean>(false);
@@ -84,19 +86,6 @@ export const ArtCreateView = () => {
     },
   });
 
-  const gotoStep = useCallback(
-    (_step: number) => {
-      history.push(`/art/create/${_step.toString()}`);
-      if (_step === 0) setStepsVisible(true);
-    },
-    [history],
-  );
-
-  useEffect(() => {
-    if (step_param) setStep(parseInt(step_param));
-    else gotoStep(0);
-  }, [step_param, gotoStep]);
-
   // store files
   const mint = async () => {
     const metadata = {
@@ -118,7 +107,7 @@ export const ArtCreateView = () => {
     setMinting(true);
 
     try {
-      const _nft = await mintNFT(
+      const _nft = await mintNFTIPFS(
         connection,
         wallet,
         env,
@@ -126,9 +115,13 @@ export const ArtCreateView = () => {
         metadata,
         setNFTcreateProgress,
         attributes.properties?.maxSupply,
+        coverFile,
+        mainFile,
       );
-
-      if (_nft) setNft(_nft);
+      if (_nft) {
+        setNft(_nft);
+      }
+      localStorage.setItem('reload', 'true');
     } catch (e: any) {
       setAlertMessage(e.message);
     } finally {
@@ -171,17 +164,19 @@ export const ArtCreateView = () => {
                     category,
                   },
                 });
-                gotoStep(1);
+                setStep(step + 1);
               }}
             />
           )}
           {step === 1 && (
             <UploadStep
+              onSetCoverFile={setCoverFile}
+              onSetMainFile={setMainFile}
               attributes={attributes}
               setAttributes={setAttributes}
               files={files}
               setFiles={setFiles}
-              confirm={() => gotoStep(2)}
+              confirm={() => setStep(step + 1)}
             />
           )}
 
@@ -190,13 +185,13 @@ export const ArtCreateView = () => {
               attributes={attributes}
               files={files}
               setAttributes={setAttributes}
-              confirm={() => gotoStep(3)}
+              confirm={() => setStep(step + 1)}
             />
           )}
           {step === 3 && (
             <RoyaltiesStep
               attributes={attributes}
-              confirm={() => gotoStep(4)}
+              confirm={() => setStep(step + 1)}
               setAttributes={setAttributes}
             />
           )}
@@ -204,7 +199,7 @@ export const ArtCreateView = () => {
             <LaunchStep
               attributes={attributes}
               files={files}
-              confirm={() => gotoStep(5)}
+              confirm={() => setStep(step + 1)}
               connection={connection}
             />
           )}
@@ -213,12 +208,12 @@ export const ArtCreateView = () => {
               mint={mint}
               minting={isMinting}
               step={nftCreateProgress}
-              confirm={() => gotoStep(6)}
+              confirm={() => setStep(step + 1)}
             />
           )}
           {0 < step && step < 5 && (
             <div style={{ margin: 'auto', width: 'fit-content' }}>
-              <Button onClick={() => gotoStep(step - 1)}>Back</Button>
+              <Button onClick={() => setStep(step - 1)}>Back</Button>
             </div>
           )}
         </Col>
@@ -317,6 +312,8 @@ const UploadStep = (props: {
   files: File[];
   setFiles: (files: File[]) => void;
   confirm: () => void;
+  onSetCoverFile?: (f: File) => void;
+  onSetMainFile?: (f: File) => void;
 }) => {
   const [coverFile, setCoverFile] = useState<File | undefined>(
     props.files?.[0],
@@ -377,8 +374,8 @@ const UploadStep = (props: {
       <Row className="call-to-action">
         <h2>Now, let's upload your creation</h2>
         <p style={{ fontSize: '1.2rem' }}>
-          Your file will be uploaded to the decentralized web via Arweave.
-          Depending on file type, can take up to 1 minute. Arweave is a new type
+          Your file will be uploaded to the decentralized web via IPFS.
+          Depending on file type, can take up to 1 minute. IPFS is a new type
           of storage that backs data with sustainable and perpetual endowments,
           allowing users and developers to truly store data forever – for the
           very first time.
@@ -412,7 +409,7 @@ const UploadStep = (props: {
               );
               return;
             }
-
+            props.onSetCoverFile && props.onSetCoverFile(file);
             setCoverFile(file);
             setCoverArtError(undefined);
           }}
@@ -453,7 +450,10 @@ const UploadStep = (props: {
               setCustomURL('');
               setCustomURLErr('');
 
-              if (file) setMainFile(file);
+              if (file) {
+                setMainFile(file);
+                props.onSetMainFile && props.onSetMainFile(file);
+              }
             }}
             onRemove={() => {
               setMainFile(undefined);
@@ -693,7 +693,7 @@ const InfoStep = (props: {
               allowClear
             />
           </label>
-          <label className="action-field">
+          {/* <label className="action-field">
             <span className="field-title">Maximum Supply</span>
             <InputNumber
               placeholder="Quantity"
@@ -708,7 +708,7 @@ const InfoStep = (props: {
               }}
               className="royalties-input"
             />
-          </label>
+          </label> */}
           <label className="action-field">
             <span className="field-title">Attributes</span>
           </label>
@@ -1222,7 +1222,7 @@ const WaitingStep = (props: {
           />
           <Step
             className={'white-description'}
-            title="Uploading to Arweave"
+            title="Uploading to IPFS"
             icon={setIconForStep(props.step, 6)}
           />
           <Step
@@ -1248,6 +1248,7 @@ const Congrats = (props: {
   };
   alert?: string;
 }) => {
+  const { publicKey } = useWallet();
   const history = useHistory();
 
   const newTweetURL = () => {
@@ -1266,11 +1267,14 @@ const Congrats = (props: {
 
   if (props.alert) {
     // TODO  - properly reset this components state on error
+    if (props.nft?.metadataAccount)
+      supabaseDeleteNFT(props.nft?.metadataAccount.toString()); // Delete Data NFT FROM DB IF THERE'S AN ERROR
+
     return (
       <>
         <div className="waiting-title">Sorry, there was an error!</div>
         <p>{props.alert}</p>
-        <Button onClick={_ => history.push('/art/create')}>
+        <Button onClick={() => window.location.reload()}>
           Back to Create NFT
         </Button>
       </>
@@ -1291,15 +1295,10 @@ const Congrats = (props: {
         <Button
           className="metaplex-button"
           onClick={_ =>
-            history.push(`/art/${props.nft?.metadataAccount.toString()}`)
+            history.push({
+              pathname: `/${publicKey?.toBase58()}`,
+            })
           }
-        >
-          <span>See it in your collection</span>
-          <span>&gt;</span>
-        </Button>
-        <Button
-          className="metaplex-button"
-          onClick={_ => history.push('/profile')}
         >
           <span>Sell it via auction</span>
           <span>&gt;</span>

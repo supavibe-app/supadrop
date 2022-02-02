@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button, Col } from 'antd';
-import { useLocation } from 'react-router-dom';
 import FeatherIcon from 'feather-icons-react';
 import moment from 'moment';
 import { StringPublicKey } from '@oyster/common';
 
 import InputPrice from '../../../components/InputPrice';
 import ActionButton from '../../ActionButton';
-import { useUserArts } from '../../../hooks';
 import { AuctionCategory, AuctionState } from '../../../views/auctionCreate';
 import {
   LabelDesc,
@@ -30,30 +28,31 @@ const SellStep = (props: {
   };
 }) => {
   // states
-  const [category, setCategory] = useState(AuctionCategory.InstantSale);
+  const [category, setCategory] = useState(AuctionCategory.Single);
   const [time, setTime] = useState(1);
-  const [priceFloor, setPriceFloor] = useState<number>();
+  const [priceFloor, setPriceFloor] = useState<number>(0);
 
   const handleList = async () => {
     const attributeValue =
       category === AuctionCategory.InstantSale
         ? {
-            ...props.attributes,
-            startSaleTS: moment().unix(),
-            startListTS: moment().unix(),
-            priceFloor,
-            instantSalePrice: priceFloor,
-          }
+          ...props.attributes,
+          startSaleTS: moment().unix(),
+          startListTS: moment().unix(),
+          priceFloor,
+          instantSalePrice: priceFloor,
+        }
         : {
-            ...props.attributes,
-            startSaleTS: moment().unix(),
-            startListTS: moment().unix(),
-            priceFloor,
-            priceTick: 0.1,
-            auctionDuration: time,
-            gapTime: 15,
-            tickSizeEndingPhase: 10,
-          };
+          ...props.attributes,
+          startSaleTS: moment().unix(),
+          startListTS: moment().unix(),
+          priceFloor,
+          priceTick: 0.1,
+          auctionDuration: time,
+          // gapTime: 15,  // TODO DON'T FORGET TO UPDATE IF UPDATING MAIN 
+          gapTime: 3,
+          tickSizeEndingPhase: 10,
+        };
 
     props.setAttributes(attributeValue);
     props.confirm();
@@ -67,6 +66,7 @@ const SellStep = (props: {
           make sure you have enough SOL to perform the network fee (supadrop
           don’t charge listing fee)
         </div>
+
         <InputPrice
           placeholder="0"
           suffix="SOL"
@@ -84,19 +84,18 @@ const SellStep = (props: {
         <div className={OptionsContainer}>
           <div className={OptionsWrapper}>
             <OptionBox
+              className={OptionBoxStyle(category === AuctionCategory.Single)}
+              icon="clock"
+              text="timed auction"
+              onClick={() => setCategory(AuctionCategory.Single)}
+            />
+            <OptionBox
               className={OptionBoxStyle(
                 category === AuctionCategory.InstantSale,
               )}
               icon="tag"
               text="instant sale"
               onClick={() => setCategory(AuctionCategory.InstantSale)}
-            />
-
-            <OptionBox
-              className={OptionBoxStyle(category === AuctionCategory.Single)}
-              icon="clock"
-              text="timed auction"
-              onClick={() => setCategory(AuctionCategory.Single)}
             />
           </div>
 
@@ -105,6 +104,13 @@ const SellStep = (props: {
               <div style={{ marginBottom: 12 }}>auction ended in</div>
 
               <div className={OptionsWrapper}>
+                {/* TODO DON'T FORGET TO UPDATE IF UPDATING MAIN  */}
+                <OptionButton
+                  className={OptionButtonStyle(time === 0.005)}
+                  text="Under 1 d"
+                  onClick={() => setTime(0.005)}
+                />
+
                 <OptionButton
                   className={OptionButtonStyle(time === 1)}
                   text="1 day"
@@ -128,7 +134,11 @@ const SellStep = (props: {
         </div>
       </div>
 
-      <ActionButton size="small" onClick={handleList}>
+      <ActionButton
+        size="small"
+        onClick={handleList}
+        disabled={priceFloor <= 0 || !priceFloor}
+      >
         list my NFT
       </ActionButton>
     </Col>

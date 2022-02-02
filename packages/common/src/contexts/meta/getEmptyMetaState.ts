@@ -1,4 +1,4 @@
-import { MetaState } from './types';
+ import { MetaState } from './types';
 
 export const getEmptyMetaState = (): MetaState => ({
   metadata: [],
@@ -26,4 +26,9 @@ export const getEmptyMetaState = (): MetaState => ({
   bidRedemptionV2sByAuctionManagerAndWinningIndex: {},
   auctionCaches: {},
   storeIndexer: [],
+  packs: {},
+  packCards: {},
+  packCardsByPackSet: {},
+  vouchers: {},
+  provingProcesses: {},
 });

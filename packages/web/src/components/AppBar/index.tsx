@@ -15,19 +15,34 @@ import { Notifications } from '../Notifications';
 import { FaqURL, LABELS } from '../../constants';
 
 // styles
-import { ActivityBadge, ButtonContainer, ButtonStyle, ButtonStyleFAQ, LinkButton, LogoWrapper, MobileTitle, RoundButton, Title } from './style';
+import {
+  ActivityBadge,
+  ButtonContainer,
+  ButtonStyle,
+  ButtonStyleFAQ,
+  LandingButtonContainer,
+  LinkButton,
+  LogoWrapper,
+  MobileTitle,
+  RoundButton,
+  Title,
+} from './style';
 import { GreyColor, WhiteColor } from '../../styles';
 
 export const AppBar = () => {
   const { publicKey, connected } = useWallet();
-  const { data: userData } = getUserData(publicKey?.toBase58());
+  const { userData, updateAllNotification } = useMeta();
   const { pathname } = useLocation();
-  const { isBidPlaced, setBidPlaced } = useMeta();
+  const { isBidPlaced, setBidPlaced, whitelistedCreatorsByCreator } = useMeta();
+
   const [showMenu, setShowMenu] = useState(false);
   const { push } = useHistory();
-  const isLandingPage = pathname === "/" || pathname === "/about";
+  const isLandingPage = pathname === '/' || pathname === '/about';
 
-  const hideActivityBadge = useCallback(() => setBidPlaced(false), [setBidPlaced]);
+  const hideActivityBadge = useCallback(
+    () => setBidPlaced(false),
+    [setBidPlaced],
+  );
 
   if (connected) {
     return (
@@ -39,13 +54,23 @@ export const AppBar = () => {
 
         <div className={ButtonContainer}>
           <Link to={`/auction`}>
-            <Button className={`${LinkButton} ${pathname.includes('auction') ? WhiteColor : GreyColor}`} type="link">
+            <Button
+              className={`${LinkButton} ${
+                pathname.includes('auction') ? WhiteColor : GreyColor
+              }`}
+              type="link"
+            >
               AUCTION
             </Button>
           </Link>
 
           <Link to={`/market`}>
-            <Button className={`${LinkButton} ${pathname.includes('market') ? WhiteColor : GreyColor}`} type="link">
+            <Button
+              className={`${LinkButton} ${
+                pathname.includes('market') ? WhiteColor : GreyColor
+              }`}
+              type="link"
+            >
               MARKET
             </Button>
           </Link>
@@ -53,14 +78,26 @@ export const AppBar = () => {
           <Link to={`/activity`}>
             {isBidPlaced && (
               <Badge dot className={ActivityBadge} color="#FF2D55">
-                <Button className={`${LinkButton} ${GreyColor}`} type="link" onClick={hideActivityBadge}>
+                <Button
+                  className={`${LinkButton} ${GreyColor}`}
+                  type="link"
+                  onClick={() => {
+                    hideActivityBadge();
+                    updateAllNotification(userData.wallet_address);
+                  }}
+                >
                   ACTIVITY
                 </Button>
               </Badge>
             )}
 
             {!isBidPlaced && (
-              <Button className={`${LinkButton} ${pathname.includes('activity') ? WhiteColor : GreyColor}`} type="link">
+              <Button
+                className={`${LinkButton} ${
+                  pathname.includes('activity') ? WhiteColor : GreyColor
+                }`}
+                type="link"
+              >
                 ACTIVITY
               </Button>
             )}
@@ -69,15 +106,29 @@ export const AppBar = () => {
           <Notifications />
 
           <CurrentUserBadge userData={userData} />
-
-          <Link to={`/${userData ? userData.username : publicKey?.toBase58()}`}>
+          {/* 
+          <Link
+            to={{
+              pathname: `/${userData?.username ? userData.username : publicKey?.toBase58()
+                }`,
+              state: 'refresh',
+            }}
+          >
             <Button className={RoundButton} type="default" shape="round">
               SELL
             </Button>
-          </Link>
+          </Link> */}
+
+          {whitelistedCreatorsByCreator[publicKey?.toBase58() || ''] && (
+            <Link to={'/create'}>
+              <Button className={RoundButton} type="default" shape="round">
+                CREATE
+              </Button>
+            </Link>
+          )}
 
           {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
-        </div >
+        </div>
       </>
     );
   }
@@ -92,32 +143,43 @@ export const AppBar = () => {
         </Link>
       </Col>
 
-      <Col className={ButtonContainer} xs={0} sm={12}>
+      <Col className={LandingButtonContainer} xs={0} sm={12}>
         {isLandingPage && (
           <>
-            <Link to="/about" onClick={() => {
-              ReactGA.event({
-                category: 'Our Story Button Selected',
-                action: 'ourStoryButton',
-                label: 'header',
-              });
-            }}>
-              <Button type="link" size="large" className={ButtonStyle}>our story</Button>
+            <Link
+              to="/about"
+              onClick={() => {
+                ReactGA.event({
+                  category: 'Our Story Button Selected',
+                  action: 'ourStoryButton',
+                  label: 'header',
+                });
+              }}
+            >
+              <Button type="link" size="large" className={ButtonStyle}>
+                our story
+              </Button>
             </Link>
 
-            <Button type="link" size="large" href={FaqURL} className={ButtonStyleFAQ} onClick={() => {
-              ReactGA.event({
-                category: 'FAQ Button Selected',
-                action: 'faqButton',
-                label: 'header',
-              });
-            }}>
+            <Button
+              type="link"
+              size="large"
+              href={FaqURL}
+              className={ButtonStyleFAQ}
+              onClick={() => {
+                ReactGA.event({
+                  category: 'FAQ Button Selected',
+                  action: 'faqButton',
+                  label: 'header',
+                });
+              }}
+            >
               faq
             </Button>
           </>
         )}
 
-        {!isLandingPage && <ConnectButton type="default" allowWalletChange />}
+        <ConnectButton type="default" allowWalletChange />
         {/* <Button className={CircleButton} icon={<FeatherIcon icon="sun" size="20" shape="circle" />} /> */}
       </Col>
 
@@ -129,35 +191,48 @@ export const AppBar = () => {
         </Link>
       </Col>
 
-      <Col className={ButtonContainer} xs={12} sm={0}>
+      <Col className={LandingButtonContainer} xs={12} sm={0}>
         <div onClick={() => setShowMenu(true)}>
           <FeatherIcon icon="menu" />
         </div>
       </Col>
 
-      <Drawer title="SUPADROP" placement="top" onClose={() => setShowMenu(false)} visible={showMenu}>
+      <Drawer
+        title="SUPADROP"
+        placement="top"
+        onClose={() => setShowMenu(false)}
+        visible={showMenu}
+      >
         <List>
-          <List.Item className={ButtonStyle} style={{ fontSize: 18 }} onClick={() => {
-            push('/about');
-            setShowMenu(false);
-            ReactGA.event({
-              category: 'Our Story Button Selected',
-              action: 'ourStoryButton',
-              label: 'header',
-            });
-          }}>
+          <List.Item
+            className={ButtonStyle}
+            style={{ fontSize: 18 }}
+            onClick={() => {
+              push('/about');
+              setShowMenu(false);
+              ReactGA.event({
+                category: 'Our Story Button Selected',
+                action: 'ourStoryButton',
+                label: 'header',
+              });
+            }}
+          >
             <span>our story</span>
             <FeatherIcon icon="arrow-up-right" size={18} />
           </List.Item>
 
-          <List.Item className={ButtonStyle} style={{ fontSize: 18 }} onClick={() => {
-            window.location.href = FaqURL;
-            ReactGA.event({
-              category: 'FAQ Button Selected',
-              action: 'faqButton',
-              label: 'header',
-            });
-          }}>
+          <List.Item
+            className={ButtonStyle}
+            style={{ fontSize: 18 }}
+            onClick={() => {
+              window.location.href = FaqURL;
+              ReactGA.event({
+                category: 'FAQ Button Selected',
+                action: 'faqButton',
+                label: 'header',
+              });
+            }}
+          >
             <span>faq</span>
             <FeatherIcon icon="arrow-up-right" size={18} />
           </List.Item>

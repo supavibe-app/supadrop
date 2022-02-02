@@ -195,17 +195,17 @@ class AuctionManager {
                 const newWinnerArr = [];
                 items.push(newWinnerArr);
                 (_a = this.safetyDepositConfigs) === null || _a === void 0 ? void 0 : _a.forEach(s => {
-                    var _a;
+                    var _a, _b;
                     const amount = s.info.getAmountForWinner(new bn_js_1.default(i));
                     if (amount.gt(new bn_js_1.default(0))) {
                         const safetyDeposit = boxes[s.info.order.toNumber()];
-                        const metadata = metadataByMint[safetyDeposit.info.tokenMint];
+                        const metadata = metadataByMint[(_a = safetyDeposit === null || safetyDeposit === void 0 ? void 0 : safetyDeposit.info) === null || _a === void 0 ? void 0 : _a.tokenMint];
                         newWinnerArr.push({
                             metadata,
                             winningConfigType: s.info.winningConfigType,
                             safetyDeposit,
                             amount,
-                            masterEdition: ((_a = metadata === null || metadata === void 0 ? void 0 : metadata.info) === null || _a === void 0 ? void 0 : _a.masterEdition)
+                            masterEdition: ((_b = metadata === null || metadata === void 0 ? void 0 : metadata.info) === null || _b === void 0 ? void 0 : _b.masterEdition)
                                 ? masterEditions[metadata.info.masterEdition]
                                 : undefined,
                         });

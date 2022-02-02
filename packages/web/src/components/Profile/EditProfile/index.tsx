@@ -17,14 +17,12 @@ import {
   UploadImageContainer,
   UploadStyle,
 } from './style';
-import { supabase, UserData } from '@oyster/common';
+import { Identicon, supabase, useMeta, UserData } from '@oyster/common';
 import { useHistory } from 'react-router';
 // import { replace } from 'lodash';
 
 const { TextArea } = Input;
 const maxChar = 280;
-const BASE_STORAGE_URL =
-  'https://fjgyltuahsuzqqkdnhay.supabase.in/storage/v1/object/public/profile/avatars/'; // TODO NEED TO MOVE or CHANGE
 
 const EditProfile = ({
   closeEdit,
@@ -37,37 +35,11 @@ const EditProfile = ({
 }) => {
   const { replace } = useHistory();
   const { publicKey } = useWallet();
+  const { updateUserData } = useMeta();
   const [form] = Form.useForm();
   const [bio, setBio] = useState(userData?.bio || ''); // to get the length of bio
   const [file, setFile] = useState<File>();
   const [avatarUrl, setAvatarUrl] = useState<String>();
-
-  async function deleteLastImage() {
-    let exProfpic;
-    if (userData?.img_profile) {
-      exProfpic = userData.img_profile.split('/');
-      await supabase.storage
-        .from('profile')
-        .remove([
-          `avatars/${userData?.wallet_address}_${
-            exProfpic[exProfpic.length - 1]
-          }`,
-        ]);
-    }
-  }
-
-  // will return localhost link just for temp data
-  async function downloadImage(path) {
-    console.log('downloadImage: ', path);
-    const { data, error } = await supabase.storage
-      .from('profile')
-      .download(`avatars/${userData?.wallet_address}_${path}`);
-    if (error) {
-      throw error;
-    }
-    const url = URL.createObjectURL(data);
-    setAvatarUrl(url);
-  }
 
   // NEED CLEAN THE CODE FOR THIS FUNC MAYBE
   const saveProfile = async values => {
@@ -83,17 +55,14 @@ const EditProfile = ({
         message.error(`username already taken`);
         return;
       }
-
-      if (error_user) {
-        console.log('error', error_user.message);
-      }
     }
 
-    if (file) {
-      deleteLastImage();
-
-      imageProfile = `${BASE_STORAGE_URL}${userData?.wallet_address}_${file?.name}`;
-    } else imageProfile = userData?.img_profile || '';
+    if (!file) {
+      imageProfile = userData?.img_profile || '';
+    } else {
+      imageProfile = avatarUrl ? `${avatarUrl}` : '';
+    }
+    // console.log('🚀 ~ file: index.tsx ~ line 98 ~ imageProfile', imageProfile);
 
     let { data, error } = await supabase
       .from('user_data')
@@ -103,7 +72,6 @@ const EditProfile = ({
       .limit(1);
 
     if (error) {
-      console.log(error);
       message.error(`update profile failed, reason: ${error}`);
       return;
     }
@@ -113,45 +81,52 @@ const EditProfile = ({
       if (values.username) {
         replace(`/${values.username}`);
       }
+      const { bio, name, twitter, username, website } = values;
+      updateUserData(
+        new UserData(
+          bio,
+          '',
+          imageProfile,
+          name,
+          twitter,
+          '',
+          username,
+          website,
+          publicKey?.toBase58() || '',
+        ),
+      );
       refetch();
       closeEdit();
     }
   };
 
   const onUpload = async event => {
-    console.log('onUpload', typeof event);
-    if (file) {
-      deleteLastImage();
-    }
+    const path = `${userData?.wallet_address}_${Date.now()}_${event.name}`;
     setFile(event);
     const { error: uploadError } = await supabase.storage
       .from('profile')
-      .upload(`avatars/${userData?.wallet_address}_${event.name}`, event);
+      .upload(`avatars/${path}`, event);
 
     if (uploadError) {
-      downloadImage(event.name);
+      console.log('🚀 ~ file: index.tsx ~ line 125 ~ uploadError', uploadError);
+      setAvatarUrl(process.env.NEXT_PUBLIC_BASE_STORAGE_URL + path);
       // message.error(`upload failed, reason: ${uploadError.message}`);
       throw uploadError;
-    } else downloadImage(event.name);
+    } else setAvatarUrl(process.env.NEXT_PUBLIC_BASE_STORAGE_URL + path);
 
     return '';
   };
 
   const props = {
     action: onUpload,
-    onStart(file) {
-      console.log('onStart file', file);
-      console.log('onStart file name', file.name);
-    },
+    onStart(file) {},
     onSuccess(ret) {
-      console.log('onSuccess', ret);
       onUpload;
     },
     onError(err) {
       console.log('onError', err);
     },
     beforeUpload(file) {
-      console.log(file);
       const isJpgOrPng =
         file.type === 'image/jpeg' || file.type === 'image/png';
       if (!isJpgOrPng) {
@@ -173,24 +148,24 @@ const EditProfile = ({
         <div className={UploadImageContainer}>
           <div>
             <Upload {...props} className={UploadStyle}>
-              {userData?.img_profile && avatarUrl && (
+              {avatarUrl && (
                 <Avatar
-                  size={86}
+                  size={90}
                   src={avatarUrl}
                   style={{ cursor: 'pointer' }}
                 />
               )}
-              {userData?.img_profile && !avatarUrl && (
+              {!avatarUrl && (
                 <Avatar
                   size={86}
-                  src={userData.img_profile}
-                  style={{ cursor: 'pointer' }}
-                />
-              )}
-              {!userData?.img_profile && !avatarUrl && (
-                <Avatar
-                  size={86}
-                  icon={<FeatherIcon icon="image" size="32" />}
+                  src={
+                    userData?.img_profile || (
+                      <Identicon
+                        address={userData?.wallet_address}
+                        style={{ width: 86 }}
+                      />
+                    )
+                  }
                   style={{ cursor: 'pointer' }}
                 />
               )}

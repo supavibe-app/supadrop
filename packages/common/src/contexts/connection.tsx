@@ -66,7 +66,7 @@ export const ENDPOINTS = [
     ChainId: ChainId.Devnet,
   },
 ];
-const defaultEndpoint = ENDPOINTS[Number(process.env.NEXT_PUBLIC_ENDPOINT)]
+const defaultEndpoint = ENDPOINTS[Number(process.env.NEXT_PUBLIC_ENDPOINT)];
 const DEFAULT = defaultEndpoint.endpoint;
 
 interface ConnectionConfig {
@@ -105,7 +105,8 @@ export function ConnectionProvider({ children = undefined as any }) {
   );
 
   const env =
-    ENDPOINTS.find(end => end.endpoint === endpoint)?.name || defaultEndpoint.name;
+    ENDPOINTS.find(end => end.endpoint === endpoint)?.name ||
+    defaultEndpoint.name;
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
@@ -172,7 +173,7 @@ export function useConnection() {
 
 export function useConnectionConfig() {
   const context = useContext(ConnectionContext);
-  
+
   return {
     endpoint: context.endpoint,
     setEndpoint: context.setEndpoint,
@@ -559,7 +560,7 @@ export async function sendSignedTransaction({
     }
 
     slot = confirmation?.slot || 0;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Timeout Error caught', err);
     if (err.timeout) {
       throw new Error('Timed out awaiting confirmation on transaction');
@@ -675,7 +676,11 @@ async function awaitTransactionSignatureConfirmation(
           status = signatureStatuses && signatureStatuses.value[0];
           if (!done) {
             if (!status) {
-              console.log('REST null result for', txid, status);
+              console.log(
+                'REST null FROM CONNECTION CTX result for',
+                txid,
+                status,
+              );
             } else if (status.err) {
               console.log('REST error for', txid, status);
               done = true;

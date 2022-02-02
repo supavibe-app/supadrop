@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import { Row, Col, Skeleton, Popover, Image } from 'antd';
 import FeatherIcon from 'feather-icons-react';
-import { useMeta } from '@oyster/common';
+import { supabase, useMeta } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import {
@@ -37,16 +37,26 @@ import {
   PaddingBox,
   StatusContainer,
 } from './style';
-import { getUsernameByPublicKeys } from '../../database/userData';
+import Congratulations from '../../components/Congratulations';
+import { DetailArtContent } from '../../components/Details/DetailArtContent';
 
 export const AuctionView = () => {
   const { location } = useHistory();
   const queryParams = new URLSearchParams(location.search);
-  const action = queryParams.get('action');
+  const {
+    allDataAuctions,
+    isLoadingDatabase,
+    isLoadingMetaplex,
+    pullAuctionPage,
+  } = useMeta();
 
+  const action = queryParams.get('action');
+  const [showCongratulations, setCongratulations] = useState('');
   const { id } = useParams<{ id: string }>();
   const { connected } = useWallet();
   const auction = useAuction(id);
+
+  const [loadingDetailAuction, setLoadingDetailAuction] = useState(true);
 
   const [bidAmount, setBidAmount] = useState<number>();
   const [showPlaceBid, setShowPlaceBid] = useState(action === 'bid');
@@ -60,8 +70,23 @@ export const AuctionView = () => {
     [setShowPlaceBid],
   );
 
-  const { allDataAuctions, isLoadingDatabase, pullAuctionPage } = useMeta();
   const auctionDatabase = allDataAuctions[id];
+
+  useEffect(() => {
+    if (!auctionDatabase && !isLoadingDatabase) {
+      supabase
+        .from('auction_status')
+        .select('id')
+        .eq('id', id)
+        .single()
+        .then(data => {
+          if (data.body) {
+            window.location.reload();
+          }
+        });
+    }
+  }, [auctionDatabase, isLoadingDatabase]);
+  const { thumbnail, original_file, media_type } = auctionDatabase || {};
 
   const { ref, data } = useExtendedArt(auctionDatabase?.id_nft);
   const art = useArt(auctionDatabase?.id_nft);
@@ -80,7 +105,6 @@ export const AuctionView = () => {
     ...bidderPublicKeys,
     ...creatorPublicKeys,
   ];
-  const { data: users = {} } = getUsernameByPublicKeys(userIDs);
 
   let edition = '';
   switch (art.type) {
@@ -96,20 +120,33 @@ export const AuctionView = () => {
   }
 
   useEffect(() => {
-    pullAuctionPage(id);
-  }, []);
+    updateDetailAuction();
+    setCongratulations('');
+  }, [location.key]);
+  async function updateDetailAuction() {
+    setLoadingDetailAuction(true);
+    await pullAuctionPage(id);
+    setLoadingDetailAuction(false);
+  }
+  if (showCongratulations !== '') {
+    return <Congratulations id={id} type={showCongratulations} />;
+  }
 
   return (
     <Row className={Container} ref={ref}>
       {/* Art Column */}
-      <Col className={ColumnBox} span={24} md={13}>
+      <Col
+        className={ColumnBox}
+        span={24}
+        md={auctionDatabase?.isInstantSale ? 17 : 13}
+      >
         <div className={ArtContainer}>
           {isDataReady && (
-            <Image
-              src={auctionDatabase.img_nft}
-              wrapperClassName={ArtContentStyle}
-              loading="lazy"
-              placeholder={<ThreeDots />}
+            <DetailArtContent
+              category={media_type}
+              className={ArtContentStyle}
+              thumbnail={thumbnail}
+              originalFile={original_file}
             />
           )}
 
@@ -166,7 +203,6 @@ export const AuctionView = () => {
                 art={art}
                 extendedArt={data}
                 highestBid={highestBid}
-                users={users}
               />
             )}
           </div>
@@ -181,20 +217,24 @@ export const AuctionView = () => {
               showPlaceBid={showPlaceBid}
               setShowPlaceBid={setPlaceBidVisibility}
               currentBidAmount={bidAmount}
-              users={users}
+              setShowCongratulations={setCongratulations}
+              loadingDetailAuction={loadingDetailAuction}
             />
           </div>
         </div>
       </Col>
 
       {/* Bids History Column */}
-      <Col className={`${ColumnBox} ${PaddingBox} `} span={24} md={4}>
-        <TransactionHistory
-          auction={auctionDatabase}
-          bids={bids}
-          users={users}
-        />
-      </Col>
+
+      {!auctionDatabase?.isInstantSale && (
+        <Col className={`${ColumnBox} ${PaddingBox} `} span={24} md={4}>
+          <TransactionHistory
+            key={auctionDatabase?.id}
+            auction={auctionDatabase}
+            bids={bids}
+          />
+        </Col>
+      )}
     </Row>
   );
 };

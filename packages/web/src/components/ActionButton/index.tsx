@@ -6,13 +6,20 @@ import { ButtonStyle } from './style';
 interface IActionButton {
   to?: string;
   width?: number | string;
-  size?: "small" | "medium" | "large";
+  size?: 'small' | 'medium' | 'large';
   onClick?: MouseEventHandler<HTMLDivElement>;
   children: React.ReactNode;
   disabled?: boolean;
 }
 
-const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionButton) => {
+const ActionButton = ({
+  to,
+  size,
+  width,
+  children,
+  onClick,
+  disabled,
+}: IActionButton) => {
   const { push } = useHistory();
   let height = 74;
   let fontSize = 20;
@@ -34,7 +41,15 @@ const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionB
   if (!disabled && onClick) {
     return (
       <div onClick={onClick}>
-        <div className={ButtonStyle({ height, width, fontSize, padding, disabled })}>
+        <div
+          className={ButtonStyle({
+            height,
+            width,
+            fontSize,
+            padding,
+            disabled,
+          })}
+        >
           {children}
         </div>
       </div>
@@ -44,7 +59,15 @@ const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionB
   if (!disabled && to) {
     return (
       <div onClick={() => push(to)}>
-        <div className={ButtonStyle({ height, width, fontSize, padding, disabled })}>
+        <div
+          className={ButtonStyle({
+            height,
+            width,
+            fontSize,
+            padding,
+            disabled,
+          })}
+        >
           {children}
         </div>
       </div>
@@ -52,7 +75,9 @@ const ActionButton = ({ to, size, width, children, onClick, disabled }: IActionB
   }
 
   return (
-    <div className={ButtonStyle({ height, width, fontSize, padding, disabled })}>
+    <div
+      className={ButtonStyle({ height, width, fontSize, padding, disabled })}
+    >
       {children}
     </div>
   );

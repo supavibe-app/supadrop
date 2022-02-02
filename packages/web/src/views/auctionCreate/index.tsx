@@ -16,6 +16,7 @@ import {
   ItemAuction,
   pubkeyToString,
   supabase,
+  supabaseAddNewNFT,
 } from '@oyster/common';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -36,7 +37,7 @@ import WaitingStep from '../../components/Listing/WaitingStep';
 import { BackButton } from './style';
 import CongratsStep from '../../components/Listing/CongratsStep';
 import { ArtCard } from '../../components/ArtCard';
-import { useUserSingleArt } from '../../hooks';
+import { useUserSingleArt, useExtendedArt, useArweaveData } from '../../hooks';
 
 const { ZERO } = constants;
 
@@ -77,21 +78,18 @@ export interface AuctionState {
 }
 
 export const AuctionCreateView = () => {
-  // const connection = useConnection();
-  // const wallet = useWallet();
   const {
     whitelistedCreatorsByCreator,
     storeIndexer,
-    updateAllDataAuction,
-    updateLiveDataAuction,
+    updateDetailAuction,
+    update,
   } = useMeta();
 
-  // const { step_param }: { step_param: string } = useParams();
-  // const history = useHistory();
   const history = useHistory();
   const wallet = useWallet();
+
   const { state } = history.location;
-  const { idNFT }: any = state || {};
+  const { idNFT, auctionData, nftData }: any = state || {};
 
   const singleUser = useUserSingleArt(idNFT);
 
@@ -117,8 +115,11 @@ export const AuctionCreateView = () => {
     winnersCount: 1,
   });
 
+  const { data } = useArweaveData(attributes.items[0].metadata.pubkey);
+
   const createAuction = async () => {
     let winnerLimit: WinnerLimit;
+
     if (
       attributes.category === AuctionCategory.InstantSale &&
       attributes.instantSaleType === InstantSaleType.Open
@@ -267,16 +268,59 @@ export const AuctionCreateView = () => {
       token_mint: QUOTE_MINT.toBase58(),
       vault: _auctionObj.vault,
       type_auction: isInstantSale || false,
+      isLiveMarket: isInstantSale || false,
       owner: wallet.publicKey?.toBase58(),
     };
+
     supabase
       .from('auction_status')
       .insert([item])
-      .then(() => {
-        updateLiveDataAuction();
-        updateAllDataAuction();
+      .then(result => {
+        // TODO CHECK NFT DATA
+
+        if (result.error) {
+          supabase
+            .from('nft_data')
+            .insert([
+              {
+                id: item.id_nft,
+                original_file: data?.image,
+                name: data?.name,
+                description: data?.description,
+                attribute: data?.attributes,
+                royalty: data?.seller_fee_basis_points,
+                arweave_link: attributes.items[0].metadata.info.data.uri,
+                mint_key: attributes?.items[0].metadata.info.mint,
+                creator: data?.properties.creators?.[0].address,
+                holder: item.owner,
+                max_supply: 1,
+              },
+            ])
+            .then(() => {
+              supabase
+                .from('nft_data')
+                .update({ id_auction: item.id })
+                .eq('id', item.id_nft)
+                .then();
+              supabase
+                .from('auction_status')
+                .insert([item])
+                .then(result => {
+                  updateDetailAuction(item.id);
+                });
+            });
+        } else {
+          updateDetailAuction(item.id);
+          supabase
+            .from('nft_data')
+            .update({ id_auction: item.id })
+            .eq('id', item.id_nft)
+            .then();
+        }
       });
+
     setAuctionObj(_auctionObj);
+    await update();
   };
 
   const sellStep = (
@@ -322,7 +366,12 @@ export const AuctionCreateView = () => {
 
         <Row align={step > 0 ? 'middle' : 'top'} gutter={72}>
           <Col span={12}>
-            <ArtCard pubkey={idNFT} preview={false} />
+            <ArtCard
+              pubkey={idNFT}
+              auctionData={auctionData}
+              nftData={nftData}
+              preview={false}
+            />
           </Col>
 
           {stepsSellNFT[step]}

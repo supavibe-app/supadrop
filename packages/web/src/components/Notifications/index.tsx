@@ -15,11 +15,13 @@ import {
   VaultState,
   WalletSigner,
   WRAPPED_SOL_MINT,
+  supabase,
+  supabaseUpdateIsRedeemAuctionStatus,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
 import { Badge, Popover, List, Button, Tooltip } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import moment from 'moment';
 import { closePersonalEscrow } from '../../actions/closePersonalEscrow';
 import { decommAuctionManagerAndReturnPrizes } from '../../actions/decommAuctionManagerAndReturnPrizes';
@@ -140,7 +142,6 @@ export async function getPersonalEscrowAta(
     )
   )[0];
 }
-
 export function useCollapseWrappedSol({
   connection,
   wallet,
@@ -162,7 +163,7 @@ export function useCollapseWrappedSol({
         if ((balance && balance.value.uiAmount) || 0 > 0) {
           setShowNotification(true);
         }
-      } catch (e) { }
+      } catch (e) {}
     }
     setTimeout(fn, 60000);
   };
@@ -177,6 +178,7 @@ export function useCollapseWrappedSol({
       textButton: 'settle',
       description:
         'You have unsettled royalties in your personal escrow account.',
+      notifiedAt: moment().unix(),
       action: async () => {
         try {
           const ata = await getPersonalEscrowAta(wallet);
@@ -207,17 +209,13 @@ export function useSettlementAuctions({
 }) {
   const { accountByMint } = useUserAccounts();
   const walletPubkey = wallet?.publicKey?.toBase58();
-  const { bidderPotsByAuctionAndBidder, pullAuctionPage } = useMeta();
+  const history = useHistory();
+  const { bidderPotsByAuctionAndBidder, pullAuctionPage, updateNotifAuction } =
+    useMeta();
   const auctionsNeedingSettling = [
     ...useAuctions(AuctionViewState.Ended),
     ...useAuctions(AuctionViewState.BuyNow),
   ];
-
-  // const auctionsEnded = useAuctions(AuctionViewState.Ended);
-  // const auctionPush = auctionsEnded.filter(auction => 
-  //   auction.totallyComplete === false && auction.isInstantSale === false
-  // )
-  // console.log('auctionEnd', auctionPush);
 
   const [validDiscoveredEndedAuctions, setValidDiscoveredEndedAuctions] =
     useState<Record<string, number>>({});
@@ -274,14 +272,6 @@ export function useSettlementAuctions({
     f();
   }, [auctionsNeedingSettling.length, walletPubkey]);
 
-  // async function tod () {
-  //   const checked = auctionsNeedingSettling.filter(a => a.totallyComplete === false);
-  //   checked[0].
-  //   console.log('notif', checked);
-  // }
-
-  // tod();
-
   Object.keys(validDiscoveredEndedAuctions).forEach(auctionViewKey => {
     const auctionView = auctionsNeedingSettling.find(
       a => a.auctionManager.pubkey === auctionViewKey,
@@ -312,69 +302,15 @@ export function useSettlementAuctions({
         title: 'You have an ended auction that needs settling!',
         textButton: 'settle',
         notifiedAt: auctionView.auction.info.endedAt?.toNumber(),
-        description: (
-          <span>
-            One of your auctions ended and it has monies that can be claimed.
-            For more detail,{' '}
-            <Link to={`/auction/${auctionKey}/billing`}>click here.</Link>
-          </span>
-        ),
+        description: '',
         action: async () => {
+          const fromSettlePage =
+            window.location.href.split('/').pop() === 'settle';
           try {
-            // pull missing data and complete the auction view to settle.
-            const {
-              auctionDataExtended,
-              auctionManagersByAuction,
-              safetyDepositBoxesByVaultAndIndex,
-              metadataByMint,
-              bidderMetadataByAuctionAndBidder:
-              updatedBidderMetadataByAuctionAndBidder,
-              bidderPotsByAuctionAndBidder,
-              bidRedemptionV2sByAuctionManagerAndWinningIndex,
-              masterEditions,
-              vaults,
-              safetyDepositConfigsByAuctionManagerAndIndex,
-              masterEditionsByPrintingMint,
-              masterEditionsByOneTimeAuthMint,
-              metadataByMasterEdition,
-              metadataByAuction,
-            } = await pullAuctionPage(auctionView.auction.pubkey);
-            const completeAuctionView = processAccountsIntoAuctionView(
-              auctionView.auction.pubkey,
-              auctionView.auction,
-              auctionDataExtended,
-              auctionManagersByAuction,
-              safetyDepositBoxesByVaultAndIndex,
-              metadataByMint,
-              updatedBidderMetadataByAuctionAndBidder,
-              bidderPotsByAuctionAndBidder,
-              bidRedemptionV2sByAuctionManagerAndWinningIndex,
-              masterEditions,
-              vaults,
-              safetyDepositConfigsByAuctionManagerAndIndex,
-              masterEditionsByPrintingMint,
-              masterEditionsByOneTimeAuthMint,
-              metadataByMasterEdition,
-              {},
-              metadataByAuction,
-              undefined,
-            );
-            if (completeAuctionView) {
-              await settle(
-                connection,
-                wallet,
-                completeAuctionView,
-                // Just claim all bidder pots
-                bidsToClaim,
-                myPayingAccount?.pubkey,
-                accountByMint,
-              );
-              // accept funds (open WSOL & close WSOL) only if Auction currency SOL
-              if (wallet.publicKey && auctionView.auction.info.tokenMint == WRAPPED_SOL_MINT.toBase58()) {
-                const ata = await getPersonalEscrowAta(wallet);
-                if (ata) await closePersonalEscrow(connection, wallet, ata);
-              }
-            }
+            history.push({
+              pathname: `/auction/${auctionView.auction.pubkey}/settle`,
+              state: fromSettlePage,
+            });
           } catch (e) {
             console.error(e);
             return false;
@@ -398,15 +334,16 @@ export function Notifications() {
     AuctionViewState.Defective,
   );
 
-
   // const liveAuctions = useAuctions(
   //   AuctionViewState.Live,
   // );
+  const { notifAuction, notifBidding } = useMeta();
 
+  const history = useHistory();
   const upcomingAuctions = useAuctions(AuctionViewState.Upcoming);
   const connection = useConnection();
   const wallet = useWallet();
-  const { accountByMint } = useUserAccounts();
+  const [popoverVisible, setPopoverVisible] = useState(false);
 
   //NOTE: notifications untuk kasih tau seller sol yg bisa diambil (settle)
   const notifications: NotificationCard[] = [];
@@ -415,55 +352,82 @@ export function Notifications() {
 
   useCollapseWrappedSol({ connection, wallet, notifications });
 
-  useSettlementAuctions({ connection, wallet, notifications });
+  // useSettlementAuctions({ connection, wallet, notifications });
 
-  // const participated = useMemo(
-  //   () =>
-  //     liveAuctions
-  //       .filter((m, idx) =>
-  //         m.auction.info.bidState.bids.find(b => b.key == walletPubkey),
-  //       ),
-  //   [walletPubkey],
-  // );
+  notifBidding.forEach(bidding => {
+    let isWinner = bidding?.id_auction?.winner === walletPubkey;
 
-  // participated.forEach(v => {
-  //   console.log('data', v)
-  //   notifications.push({
-  //     id: v.auctionManager.pubkey,
-  //     title: 'You have participated in a auction!',
-  //     textButton: '',
-  //     description: (
-  //       <span>BRAH! <Link to={`/activity`}>here.</Link></span>
-  //     ),
-  //     action: 
-  //     async () => {
-  //       // Action hanya pemanis
-  //       try {
-  //         await pullAllSiteData();
-  //       } catch (e) {
-  //         console.error(e);
-  //         return false;
-  //       }
-  //       return true;
-  //     },
-  //   })
-  // })
+    let title = 'your bid lose the auction, you can refund your bid now';
+    let textButton = 'refund';
 
-  // const metaBruh = useMemo(
-  //   () =>
-  //     metadata.filter(m => {
-  //       return (
-  //         m.info.data.creators &&
-  //         (whitelistedCreatorsByCreator[m.info.updateAuthority]?.info
-  //           ?.activated ||
-  //           store?.info.public) &&
-  //         m.info.data.creators.find(
-  //           c => c.address === walletPubkey && !c.verified,
-  //         )
-  //       );
-  //     }),
-  //   [metadata, whitelistedCreatorsByCreator, walletPubkey],
-  // );
+    // claim, refund bid
+    if (isWinner) {
+      title = 'your bid won the auction, claim the artwork now';
+      textButton = 'claim';
+    }
+    notifications.push({
+      title,
+      textButton,
+      id: bidding.id,
+      notifiedAt: Number(bidding.id_auction.end_auction),
+      description: '',
+      action: async () => {
+        try {
+          history.push(`/auction/${bidding.id_auction.id}`);
+        } catch (e) {
+          console.error(e);
+          return false;
+        }
+        return true;
+      },
+    });
+  });
+
+  notifAuction.forEach(auction => {
+    const highestBid = auction?.highest_bid;
+    const haveWinner = highestBid > 0;
+    // reclaim nft
+    if (!haveWinner && !auction.type_auction) {
+      notifications.push({
+        title: 'you have ended auction that needs to be reclaim',
+        textButton: 'reclaim',
+        id: auction.id,
+        notifiedAt: Number(auction.end_auction),
+        description: '',
+        action: async () => {
+          try {
+            history.push(`/auction/${auction.id}`);
+          } catch (e) {
+            console.error(e);
+            return false;
+          }
+          return true;
+        },
+      });
+    } else {
+      notifications.push({
+        title: 'you have ended auction that needs to be settled',
+        textButton: 'settle',
+        id: auction.id,
+        notifiedAt: Number(auction.end_auction),
+        description: '',
+        action: async () => {
+          const fromSettlePage =
+            window.location.href.split('/').pop() === 'settle';
+          try {
+            history.push({
+              pathname: `/auction/${auction.id}/settle`,
+              state: fromSettlePage,
+            });
+          } catch (e) {
+            console.error(e);
+            return false;
+          }
+          return true;
+        },
+      });
+    }
+  });
 
   const vaultsNeedUnwinding = useMemo(
     () =>
@@ -481,6 +445,7 @@ export function Notifications() {
       id: v.pubkey,
       title: 'You have items locked in a defective auction!',
       textButton: 'claim',
+      notifiedAt: moment().unix(),
       description: (
         <span>
           During an auction creation process that probably had some issues, you
@@ -489,12 +454,15 @@ export function Notifications() {
       ),
       action: async () => {
         try {
+          console.log('masuk');
+
           await unwindVault(
             connection,
             wallet,
             v,
             safetyDepositBoxesByVaultAndIndex,
           );
+          console.log('selesai');
         } catch (e) {
           console.error(e);
           return false;
@@ -504,35 +472,14 @@ export function Notifications() {
     });
   });
 
-  // ON Metaplex this can trigger notif
-  // notifications.push({
-  //   id: 'none',
-  //   title: 'Search for other auctions.',
-  //   textButton: 'f',
-  //   description: (
-  //     <span>
-  //       Load all auctions (including defectives) by pressing here. Then you can
-  //       close them.
-  //     </span>
-  //   ),
-  //   action: async () => {
-  //     try {
-  //       await pullAllSiteData();
-  //     } catch (e) {
-  //       console.error(e);
-  //       return false;
-  //     }
-  //     return true;
-  //   },
-  // });
-
   possiblyBrokenAuctionManagerSetups
     .filter(v => v.auctionManager.authority === walletPubkey)
     .forEach(v => {
       notifications.push({
         id: v.auctionManager.pubkey,
-        textButton: 'refund',
+        textButton: 'reclaim',
         title: 'You have items locked in a defective auction!',
+        notifiedAt: moment().unix(),
         description: (
           <span>
             During an auction creation process that probably had some issues,
@@ -577,6 +524,7 @@ export function Notifications() {
       id: m.pubkey,
       title: 'You have a new artwork to approve!',
       textButton: 'approve',
+      notifiedAt: moment().unix(),
       description: (
         <span>
           {whitelistedCreatorsByCreator[m.info.updateAuthority]?.info?.name ||
@@ -597,53 +545,61 @@ export function Notifications() {
     });
   });
 
-  upcomingAuctions
-    .filter(v => v.auctionManager.authority === walletPubkey)
-    .forEach(v => {
-      notifications.push({
-        id: v.auctionManager.pubkey,
-        title: 'You have an auction which is not started yet!',
-        textButton: 'activate',
-        description: <span>You can activate it now if you wish.</span>,
-        action: async () => {
-          try {
-            await startAuctionManually(connection, wallet, v);
-          } catch (e) {
-            console.error(e);
-            return false;
-          }
-          return true;
-        },
-      });
-    });
+  // upcomingAuctions
+  //   .filter(v => v.auctionManager.authority === walletPubkey)
+  //   .forEach(v => {
+  //     notifications.push({
+  //       id: v.auctionManager.pubkey,
+  //       title: 'You have an auction which is not started yet!',
+  //       textButton: 'activate',
+  //       notifiedAt: moment().unix(),
+  //       description: <span>You can activate it now if you wish.</span>,
+  //       action: async () => {
+  //         try {
+  //           await startAuctionManually(connection, wallet, v);
+  //         } catch (e) {
+  //           console.error(e);
+  //           return false;
+  //         }
+  //         return true;
+  //       },
+  //     });
+  //   });
 
   const content = notifications.length ? (
     <div>
       <List
         itemLayout="vertical"
         size="small"
-        dataSource={notifications.slice(0, 5)}
+        dataSource={notifications}
         renderItem={(notification: NotificationCard) => (
           <List.Item
             className={ListStyle}
             extra={
               <Button
                 className={uBoldFont}
-                onClick={notification.action}
+                onClick={() => {
+                  notification.action();
+                  setPopoverVisible(false);
+                }}
                 type="link"
               >
                 {notification.textButton}
               </Button>
             }
           >
-            <Tooltip
-              title={
-                <div className={uLowerCase}>{notification.description}</div>
-              }
-            >
+            {notification.description && (
+              <Tooltip
+                title={
+                  <div className={uLowerCase}>{notification.description}</div>
+                }
+              >
+                <div className={uLowerCase}>{notification.title}</div>
+              </Tooltip>
+            )}
+            {!notification.description && (
               <div className={uLowerCase}>{notification.title}</div>
-            </Tooltip>
-
+            )}
             <div className={GreyColor}>
               {moment((notification.notifiedAt || 0) * 1000).fromNow()}
             </div>
@@ -661,6 +617,8 @@ export function Notifications() {
   if (notifications.length === 0) {
     return (
       <Popover
+        onVisibleChange={setPopoverVisible}
+        visible={popoverVisible}
         overlayClassName={NotificationPopover}
         content={content}
         trigger="click"
@@ -683,6 +641,8 @@ export function Notifications() {
   return (
     <Badge className={BadgeStyle} dot>
       <Popover
+        onVisibleChange={setPopoverVisible}
+        visible={popoverVisible}
         overlayClassName={NotificationPopover}
         content={content}
         trigger="click"
@@ -701,7 +661,6 @@ export function Notifications() {
       </Popover>
     </Badge>
   );
-
 
   // const content = notifications.length ? (
   //   <div

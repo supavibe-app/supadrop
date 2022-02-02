@@ -68,3 +68,30 @@ export const UserWrapper = css`
   color: #fafafb;
   align-items: center;
 `;
+
+export const ConfirmModal = css`
+  .ant-modal-body {
+    border: 2px solid #ccff00;
+    border-radius: 2px;
+    background-color: #000000 !important;
+    font-weight: 600;
+    font-size: 24px;
+  }
+`;
+
+export const ButtonCard = css`
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  button {
+    border: 2px solid #7e7c7c;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 17px;
+
+    color: #fafafb;
+    height: 42px;
+    padding: 0 18px;
+  }
+`;

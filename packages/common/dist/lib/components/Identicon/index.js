@@ -26,6 +26,13 @@ exports.Identicon = void 0;
 const react_1 = __importStar(require("react"));
 const jazzicon_1 = __importDefault(require("jazzicon"));
 const bs58_1 = __importDefault(require("bs58"));
+const css_1 = require("@emotion/css");
+const fullSize = css_1.css `
+  svg {
+    height: 100%;
+    width: 100%;
+  }
+`;
 const Identicon = (props) => {
     var _a;
     const { style, className, alt } = props;
@@ -37,7 +44,7 @@ const Identicon = (props) => {
         if (address && ref.current) {
             try {
                 ref.current.innerHTML = '';
-                ref.current.className = className || '';
+                ref.current.className = className || fullSize;
                 ref.current.appendChild(jazzicon_1.default((style === null || style === void 0 ? void 0 : style.width) || 16, parseInt(bs58_1.default.decode(address).toString('hex').slice(5, 15), 16)));
             }
             catch (err) {

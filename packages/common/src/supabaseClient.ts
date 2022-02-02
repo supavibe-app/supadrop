@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Attribute } from '.';
+import { Attribute, timestampPostgre } from '.';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -20,7 +20,7 @@ export const supabaseUpdateBid = (
       if (data.body?.length > 0) {
         supabase
           .from('action_bidding')
-          .update({ price_bid: bidAmount })
+          .update({ price_bid: bidAmount, updated_at: timestampPostgre() })
           .eq('id', `${idAuction}_${walletAddress}`)
           .then(() => {
             supabaseUpdateHighestBid(
@@ -68,36 +68,80 @@ export const supabaseAddNewUser = (walletAddress?: string) => {
 
 export const supabaseAddNewNFT = (
   id: string,
-  img_nft: string,
-  name: string,
-  description: string,
-  attribute: Attribute[],
-  royalty: number,
-  arweave_link: string,
-  mint_key: string,
+  original_file?: string,
+  name?: string,
+  description?: string,
+  attribute?: Attribute[],
+  royalty?: number,
+  arweave_link?: string,
+  mint_key?: string,
+  creator?: string,
+  mediaType?: string,
+  thumbnail?: string,
 ) => {
   supabase
     .from('nft_data')
     .insert([
       {
         id,
-        img_nft,
+        original_file,
         name,
         description,
         attribute,
         royalty,
         arweave_link,
         mint_key,
+        creator,
+        holder: creator,
+        media_type: mediaType,
+        thumbnail: thumbnail,
         max_supply: 1,
       },
     ])
     .then();
 };
 
+export const supabaseDeleteNFT = (id: string) => {
+  supabase.from('nft_data').delete().eq('id', id).match({ id: id }).then();
+};
+
+export const supabaseUpdateNFTHolder = (
+  idNFT: string,
+  walletAddress?: string,
+  soldFor?: number,
+) => {
+  supabase
+    .from('nft_data')
+    .update({
+      holder: walletAddress,
+      updated_at: timestampPostgre(),
+      sold: soldFor,
+    })
+    .eq('id', idNFT)
+    .then();
+};
+
+export const supabaseGetAllOwnedNFT = (
+  idNFT: string,
+  walletAddress?: string,
+) => {
+  supabase
+    .from('nft_data')
+    .select('*')
+    .eq('id', idNFT)
+    .eq('holder', walletAddress)
+    .then(result => {
+      console.log('res', result);
+    });
+};
+
 export const supabaseUpdateStatusInstantSale = (idAuction?: string) => {
   supabase
     .from('auction_status')
-    .update({ isLiveMarket: false })
+    .update({
+      isLiveMarket: false,
+      updated_at: timestampPostgre(),
+    })
     .eq('id', idAuction)
     .then();
 };
@@ -107,11 +151,16 @@ export const supabaseUpdateIsRedeem = (
 ) => {
   supabase
     .from('action_bidding')
-    .update({ is_redeem: true })
+    .update({ is_redeem: true, updated_at: timestampPostgre() })
     .eq('id', `${idAuction}_${walletAddress}`)
-    .then(data => {
-      console.log('masuk kesini', data, `${idAuction}_${walletAddress}`);
-    });
+    .then();
+};
+export const supabaseUpdateIsRedeemAuctionStatus = (idAuction?: string) => {
+  supabase
+    .from('auction_status')
+    .update({ is_redeem: true, updated_at: timestampPostgre() })
+    .eq('id', idAuction)
+    .then();
 };
 
 export const supabaseUpdateHighestBid = (
@@ -119,8 +168,6 @@ export const supabaseUpdateHighestBid = (
   bid: number,
   walletAddress: string,
 ) => {
-  console.log('masuk sini');
-
   supabase
     .from('auction_status')
     .select('highest_bid')
@@ -128,20 +175,31 @@ export const supabaseUpdateHighestBid = (
     .single()
     .then(data => {
       if (data.body && data.body.highest_bid < bid) {
-        console.log(
-          'masuk sini lagi',
-          data.body.highest_bid,
-          bid,
-          walletAddress,
-        );
-
         supabase
           .from('auction_status')
-          .update({ highest_bid: bid, winner: walletAddress })
+          .update({
+            highest_bid: bid,
+            winner: walletAddress,
+            updated_at: timestampPostgre(),
+          })
           .eq('id', idAuction)
-          .then(data => {
-            console.log('data ', data);
-          });
+          .then();
       }
+    });
+};
+
+export const supabaseUpdateWinnerAuction = (
+  idAuction?: string,
+  walletAddress?: string,
+) => {
+  supabase
+    .from('auction_status')
+    .update({
+      winner: walletAddress,
+      updated_at: timestampPostgre(),
+    })
+    .eq('id', idAuction)
+    .then(result => {
+      console.log('res', result);
     });
 };

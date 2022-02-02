@@ -23,16 +23,16 @@ export default class MetaplexDocument extends Document {
           />
 
           {/* <!-- Primary Meta Tags --> */}
-          <meta name="theme-color" content="#000000" />
+          <meta name="theme-color" content="#0A0A0C" />
           <meta name="title" content="SUPADROP – Invest in Culture" />
-          <meta name="description" content="a curated NFT art & collectibles marketplace on Solana • connecting authentic artists and collectors." />
+          <meta name="description" content="aA community-driven marketplace for authentic NFT Drops on Solana. empowering digital creators & collectors." />
 
           {/* <!-- Open Graph / Facebook --> */}
           <meta property="og:type" content="website" />
           <meta property="og:url" content="https://supadrop.com/" />
           <meta property="og:title" content="SUPADROP – Invest in Culture" />
-          <meta property="og:description" content="a curated NFT art & collectibles marketplace on Solana • connecting authentic artists and collectors." />
-          <meta property="og:image" content="https://www.supadrop.com/img/metatag.png" />
+          <meta property="og:description" content="A community-driven marketplace for authentic NFT Drops on Solana. empowering digital creators & collectors." />
+          <meta property="og:image" content="https://supadrop.com/img/metatag.png" />
 
           {/* <!-- Twitter --> */}
           <meta name="twitter:creator" content="@supadropnft" />
@@ -40,7 +40,7 @@ export default class MetaplexDocument extends Document {
           <meta property="twitter:card" content="summary_large_image" />
           <meta property="twitter:url" content="https://supadrop.com/" />
           <meta property="twitter:title" content="SUPADROP – Invest in Culture" />
-          <meta property="twitter:description" content="a curated NFT art & collectibles marketplace on Solana • connecting authentic artists and collectors." />
+          <meta property="twitter:description" content="A community-driven marketplace for authentic NFT Drops on Solana. empowering digital creators & collectors." />
           <meta property="twitter:image" content={"https://supadrop.com/img/metatag.png"} />
 
           <link

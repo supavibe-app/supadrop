@@ -6,7 +6,17 @@ import ActionButton from '../ActionButton';
 import Discord from '../../assets/icons/discord';
 import Twitter from '../../assets/icons/twitter';
 import countDown from '../../helpers/countdown';
-import { ButtonWrapper, CarouselStyle, Description, DiscordButton, HomeStyle, ImageStyle, SocialMediaButton, Title, TwitterButton } from './style';
+import {
+  ButtonWrapper,
+  CarouselStyle,
+  Description,
+  DiscordButton,
+  HomeStyle,
+  ImageStyle,
+  SocialMediaButton,
+  Title,
+  TwitterButton,
+} from './style';
 import Numbers from './numbers';
 import { TwitterURL } from '../../constants';
 
@@ -15,7 +25,10 @@ const Home = () => {
   const { endingTime, dataCollection } = useMeta();
 
   useEffect(() => {
-    const calc = () => setState(countDown(endingTime ? endingTime : dataCollection.start_publish));
+    const calc = () =>
+      setState(
+        countDown(endingTime ? endingTime : dataCollection.start_publish, true),
+      );
     const interval = setInterval(() => calc(), 1000);
     calc();
 
@@ -26,7 +39,12 @@ const Home = () => {
     <Row className={HomeStyle}>
       <Col span={12} md={12} xs={24}>
         <div style={{ textAlign: 'center' }}>
-          <Carousel className={CarouselStyle} autoplay effect="fade" autoplaySpeed={1000}>
+          <Carousel
+            className={CarouselStyle}
+            autoplay
+            effect="fade"
+            autoplaySpeed={1000}
+          >
             {dataCollection.images.map((img, idx) => (
               <div key={idx}>
                 <Image src={img} className={ImageStyle} />
@@ -39,14 +57,20 @@ const Home = () => {
       <Col span={12} md={12} xs={24}>
         <div className={Title}>{dataCollection.name}</div>
         <Row>
-          <Col className={Description} span={16}>{dataCollection.description}</Col>
+          <Col className={Description} span={16}>
+            {dataCollection.description}
+          </Col>
         </Row>
 
         <Numbers state={state} />
 
         <div className={ButtonWrapper}>
-          {(endingTime > 0) && <ActionButton to="auction" size="large">view auction</ActionButton>}
-          {(endingTime === 0) && (
+          {endingTime > 0 && (
+            <ActionButton to="auction" size="large">
+              view auction
+            </ActionButton>
+          )}
+          {endingTime === 0 && (
             <a href={TwitterURL}>
               <ActionButton size="large">notify me</ActionButton>
             </a>

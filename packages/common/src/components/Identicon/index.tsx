@@ -4,6 +4,15 @@ import Jazzicon from 'jazzicon';
 import bs58 from 'bs58';
 import { PublicKey } from '@solana/web3.js';
 
+import { css } from '@emotion/css';
+
+const fullSize = css`
+  svg {
+    height: 100%;
+    width: 100%;
+  }
+`;
+
 export const Identicon = (props: {
   address?: string | PublicKey;
   style?: React.CSSProperties;
@@ -21,7 +30,7 @@ export const Identicon = (props: {
     if (address && ref.current) {
       try {
         ref.current.innerHTML = '';
-        ref.current.className = className || '';
+        ref.current.className = className || fullSize;
         ref.current.appendChild(
           Jazzicon(
             style?.width || 16,
