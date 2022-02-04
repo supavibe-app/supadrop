@@ -26,8 +26,8 @@ const ArtDetailSkeleton = () => (
     <div className={Label}>attributes</div>
 
     <Row gutter={[12, 12]}>
-      {[...Array(3)].map(i => (
-        <Col key={i}>
+      {[...Array(3)].map((i, idx) => (
+        <Col key={idx}>
           <Skeleton.Button shape="round" />
         </Col>
       ))}
@@ -35,4 +35,4 @@ const ArtDetailSkeleton = () => (
   </div>
 );
 
-export default ArtDetailSkeleton
+export default ArtDetailSkeleton;

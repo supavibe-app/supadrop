@@ -83,7 +83,18 @@ const Profile = ({ userId }: { userId: string }) => {
     allDataAuctions,
     updateArt,
     isLoadingAllMetadata,
+    counterPullAllMetadata,
   } = useMeta();
+
+  useEffect(() => {
+    if (
+      !isLoadingMetaplex &&
+      counterPullAllMetadata === 0 &&
+      !isLoadingAllMetadata
+    ) {
+      pullAllMetadata();
+    }
+  }, [isLoadingMetaplex]);
   const [onEdit, setOnEdit] = useState(false);
   const closeEdit = useCallback(() => setOnEdit(false), [setOnEdit]);
   const { data: userData, loading, refetch } = getUserData(userId);
@@ -359,11 +370,6 @@ const Profile = ({ userId }: { userId: string }) => {
                 {isEmpty && <EmptyState />}
 
                 {collected.map(art => {
-                  console.log(
-                    '🚀 ~ file: index.tsx ~ line 362 ~ Profile ~ art',
-                    art.name,
-                    art.id,
-                  );
                   const isLiveAuction =
                     art?.id_auction?.end_auction > moment().unix();
                   const isInstantSale =

@@ -35,8 +35,8 @@ const TransactionHistory = ({
 
   const TransactionHistorySkeleton = (
     <div>
-      {[...Array(3)].map(i => (
-        <Skeleton avatar paragraph={{ rows: 0 }} />
+      {[...Array(3)].map((i, idx) => (
+        <Skeleton key={idx} avatar paragraph={{ rows: 0 }} />
       ))}
     </div>
   );
@@ -64,10 +64,7 @@ const TransactionHistory = ({
           )}
           <Row className={Activity} justify="space-between" align="middle">
             <Col className={uFlexAlignItemsCenter} span={12}>
-              <ProfileAvatar
-                walletAddress={bid.info.bidderPubkey}
-                size={24}
-              />
+              <ProfileAvatar walletAddress={bid.info.bidderPubkey} size={24} />
             </Col>
 
             <Col className={uBoldFont} span={12}>
@@ -99,8 +96,8 @@ export const BillingHistory = ({
 
   const TransactionHistorySkeleton = (
     <div>
-      {[...Array(3)].map(i => (
-        <Skeleton key={i} avatar paragraph={{ rows: 0 }} />
+      {[...Array(3)].map((i, idx) => (
+        <Skeleton key={idx} avatar paragraph={{ rows: 0 }} />
       ))}
     </div>
   );

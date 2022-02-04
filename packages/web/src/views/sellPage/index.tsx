@@ -122,11 +122,6 @@ export const SellView = () => {
               {!isLoadingAllMetadata &&
                 userItems.map((art: any) => {
                   const pubkey = art?.metadata?.pubkey;
-                  console.log(
-                    '🚀 ~ file: index.tsx ~ line 125 ~ userItems.map ~ pubkey',
-                    pubkey,
-                  );
-
                   return (
                     <Col key={pubkey} span={6}>
                       <Link to={`/art/${pubkey}`}>
