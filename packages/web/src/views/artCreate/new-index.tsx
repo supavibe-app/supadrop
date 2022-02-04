@@ -53,7 +53,7 @@ import {
   useConnection,
   useConnectionConfig,
 } from '@oyster/common';
-import { mintNFT } from '../../actions';
+import { mintNFT, mintNFTIPFS } from '../../actions';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ArtContent } from '../../components/ArtContent';
 import { MintLayout } from '@solana/spl-token';
@@ -99,6 +99,14 @@ const ArtCreateView = () => {
   useEffect(() => {
     const attributes = form.getFieldsValue();
     const files = [coverFile, artFile].filter(f => f) as File[];
+    console.log(
+      '🚀 ~ file: new-index.tsx ~ line 102 ~ useEffect ~ artFiles',
+      artFile,
+    );
+    console.log(
+      '🚀 ~ file: new-index.tsx ~ line 102 ~ useEffect ~ coverFiles',
+      coverFile,
+    );
 
     const metadata = {
       name: attributes.title,
@@ -228,7 +236,7 @@ const ArtCreateView = () => {
       try {
         setMinting(true);
 
-        const _nft = await mintNFT(
+        const _nft = await mintNFTIPFS(
           connection,
           wallet,
           env,
@@ -236,6 +244,8 @@ const ArtCreateView = () => {
           metadata,
           setNFTcreateProgress,
           attributes.properties?.maxSupply,
+          coverFile,
+          artFile,
         );
 
         if (_nft) setNft(_nft);
