@@ -241,7 +241,6 @@ export const ArtCard = (props: ArtCardProps) => {
                 singleUser.length > 0 &&
                 !isOnSale &&
                 !onListingPage &&
-                isCollected &&
                 pubkey) ||
                 onSellPage) && (
                 <Col className={ButtonCard} span={12}>
@@ -260,7 +259,8 @@ export const ArtCard = (props: ArtCardProps) => {
                   </Link>
                 </Col>
               )}
-              {!art.title &&
+
+              {/* {!art.title &&
                 !onListingPage &&
                 isCollected &&
                 pubkey &&
@@ -271,7 +271,7 @@ export const ArtCard = (props: ArtCardProps) => {
                       please wait...
                     </Button>
                   </Col>
-                )}
+                )} */}
 
               {art.title &&
                 isCollected &&

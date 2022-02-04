@@ -95,7 +95,9 @@ export const SellView = () => {
               <>
                 Not Listed{' '}
                 <span>
-                  {userItems.length < 10
+                  {userItems.length === 0 || isLoadingAllMetadata
+                    ? ''
+                    : userItems.length < 10
                     ? `0${userItems.length}`
                     : userItems.length}
                 </span>
@@ -106,6 +108,13 @@ export const SellView = () => {
               className={userItems.length === 0 ? EmptyRow : ``}
               gutter={[36, 36]}
             >
+              {isLoadingAllMetadata &&
+                [...Array(10)].map((_, idx) => (
+                  <Col key={idx} span={6}>
+                    {' '}
+                    <CardLoader key={idx} />
+                  </Col>
+                ))}
               {!isLoadingAllMetadata &&
                 !isLoadingMetaplex &&
                 userItems.length === 0 && <EmptyState />}
@@ -113,6 +122,10 @@ export const SellView = () => {
               {!isLoadingAllMetadata &&
                 userItems.map((art: any) => {
                   const pubkey = art?.metadata?.pubkey;
+                  console.log(
+                    '🚀 ~ file: index.tsx ~ line 125 ~ userItems.map ~ pubkey',
+                    pubkey,
+                  );
 
                   return (
                     <Col key={pubkey} span={6}>

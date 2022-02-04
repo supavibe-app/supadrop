@@ -106,18 +106,12 @@ export const AppBar = () => {
           <Notifications />
 
           <CurrentUserBadge userData={userData} />
-          {/* 
-          <Link
-            to={{
-              pathname: `/${userData?.username ? userData.username : publicKey?.toBase58()
-                }`,
-              state: 'refresh',
-            }}
-          >
+
+          <Link to={'/sell'}>
             <Button className={RoundButton} type="default" shape="round">
               SELL
             </Button>
-          </Link> */}
+          </Link>
 
           {whitelistedCreatorsByCreator[publicKey?.toBase58() || ''] && (
             <Link to={'/create'}>

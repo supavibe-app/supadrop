@@ -328,7 +328,7 @@ const Profile = ({ userId }: { userId: string }) => {
                           nftData={art}
                           pubkey={art.id}
                           preview={false}
-                          isCollected={art.holder === publicKey?.toBase58()}
+                          // isCollected={art.holder === publicKey?.toBase58()}
                         />
                       </Link>
                     </Col>
@@ -359,6 +359,11 @@ const Profile = ({ userId }: { userId: string }) => {
                 {isEmpty && <EmptyState />}
 
                 {collected.map(art => {
+                  console.log(
+                    '🚀 ~ file: index.tsx ~ line 362 ~ Profile ~ art',
+                    art.name,
+                    art.id,
+                  );
                   const isLiveAuction =
                     art?.id_auction?.end_auction > moment().unix();
                   const isInstantSale =
@@ -382,7 +387,7 @@ const Profile = ({ userId }: { userId: string }) => {
                           pubkey={art.id}
                           name={art.name}
                           category={art.media_type}
-                          isCollected={art.holder === publicKey?.toBase58()}
+                          // isCollected={art.holder === publicKey?.toBase58()}
                           nftData={art}
                           preview={false}
                         />
