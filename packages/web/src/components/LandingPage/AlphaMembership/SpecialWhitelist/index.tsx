@@ -297,7 +297,7 @@ export const MobileSpecialWhitelist = ({ refMembership, refWhitelist }: { refMem
 
             <Col>
               <div className={MobileLabel}>mint date</div>
-              <div className={MobileValue}>06 . 02 . 2022</div>
+              <div className={MobileValue}>TBA</div>
               <div className={MobileExtraValue}>02 PM UTC</div>
             </Col>
           </Row>
