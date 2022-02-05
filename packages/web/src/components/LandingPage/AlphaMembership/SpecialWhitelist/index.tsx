@@ -213,7 +213,7 @@ const SpecialWhitelist = ({ refMembership, refWhitelist }: { refMembership: Reac
 
             <Col>
               <div className={Label}>mint date</div>
-              <div className={Value}>06 . 02 . 2022</div>
+              <div className={Value}>TBA</div>
               <div className={ExtraValue}>02 PM UTC</div>
             </Col>
           </Row>
